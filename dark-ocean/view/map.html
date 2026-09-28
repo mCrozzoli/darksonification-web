@@ -196,6 +196,7 @@
         <span class="glab">IDENTITY</span>
         <button class="mbtn on" data-m="wm">water mass</button>
         <button class="mbtn" data-m="km">cluster</button>
+        <button class="mbtn full" data-m="wmix" title="each cell coloured by its own shares of the three water masses, the way Björn's maps are drawn: red Atlantic, green Iceland/Polar, blue Arctic">water-mass mix</button>
         <span class="glab">FIELD</span>
         <button class="mbtn" data-m="temp">temperature</button>
         <button class="mbtn" data-m="sal">salinity</button>
@@ -278,20 +279,23 @@ const cv = document.querySelector("#map canvas"), ctx = cv.getContext("2d");
 // Every set is checked against its own ground (projects/web/style/README.md). The arrays are refilled IN PLACE
 // by applyLook(), so everything that reads them (legend, info, hover, the sound legend) stays live.
 const WM_COLORS = [], KM_COLORS = [], TRACK_COLORS = [], SCALE = {};
+// The WATER-MASS MIX corners are Björn's own (benedic-watermass, 2024): red Atlantic, green Iceland/Polar (his
+// "Arctic" end member), blue Arctic (his "Greenland"). The view reproduces his maps, so it is the same in every look.
+const BJORN_MIX = [[255,0,0],[0,255,0],[0,0,255]];
 const LOOK_DATA = (()=>{ const S = DarkStyle.sets, R = DarkStyle.ramp, P = DarkStyle.paperRamps;
   const inf = (a, b) => t => d3.interpolateInferno(a + b * t);
   return {
   dark:  { wm:["#2b6da8","#46b0a4","#e07b4f","#8aa9e0"],                  // discrete identity (water masses)
            km:["#fae41c","#399199","#a863e9","#fb9f65"],                  // the engine's CLUSTER_COLORS (datamapper/utils.py): the GUI's own hues
-           track:S("dark").lines8, fade:[0,0,0],
+           mix:BJORN_MIX, track:S("dark").lines8, fade:[0,0,0],
            scale:{ temp:t=>d3.interpolateRdYlBu(1-t),                      // blue cold → red warm
                    sal:t=>d3.interpolateBuPu(0.15+0.85*t), nut:t=>d3.interpolateYlGn(0.1+0.9*t), anom:inf(0.1,0.85) },
            glim:{ up:"rgb(210,238,255)", prod:"rgb(214,255,150)", op:"lighter" }, dyn:{ up:"#d2eeff", prod:"#d6ff96" }, sb:null },
-  light: { wm:[...S("light").cat3,"#6f8fcf"], km:S("light").cat4, track:S("light").lines8, fade:[244,246,250],
+  light: { wm:[...S("light").cat3,"#6f8fcf"], km:S("light").cat4, mix:BJORN_MIX, track:S("light").lines8, fade:[244,246,250],
            scale:{ temp:t=>d3.interpolateRdYlBu(1-t), sal:t=>d3.interpolateBuPu(0.22+0.78*t),
                    nut:t=>d3.interpolateYlGn(0.18+0.82*t), anom:inf(0.92,-0.8) },   // far from its average = dark on a light ground
            glim:{ up:"rgb(30,90,170)", prod:"rgb(120,130,10)", op:"multiply" }, dyn:{ up:"#1f5d8f", prod:"#5b7a00" }, sb:null },
-  paper: { wm:[...S("paper").cat3,"#6d8a3b"], km:S("paper").cat4, track:S("paper").lines8, fade:[243,229,218],
+  paper: { wm:[...S("paper").cat3,"#6d8a3b"], km:S("paper").cat4, mix:BJORN_MIX, track:S("paper").lines8, fade:[243,229,218],
            scale:{ temp:R(P.coolWarm), sal:R(P.lilac), nut:R(P.olive), anom:R(P.ochre) },
            glim:{ up:"rgb(29,74,102)", prod:"rgb(122,128,24)", op:"multiply" }, dyn:{ up:"#1d4a66", prod:"#5a7a26" },
            sb:{ thetao:R(P.coolWarm), so:R(P.lilac), chl:R(P.olive), o2:R(P.blue), no3:R(P.teal), ph:R(P.ink), nppv:R(P.gold), phyc:R(P.rust) } },
@@ -325,7 +329,7 @@ function modulate(rgb, d){
   const f = LOOK.fade;                                             // dimming recedes toward the ground (black on dark)
   return `rgba(${(f[0]+(rgb[0]-f[0])*b)|0},${(f[1]+(rgb[1]-f[1])*b)|0},${(f[2]+(rgb[2]-f[2])*b)|0},${a})`;
 }
-const NAMES = { wm:"water mass", km:"cluster", temp:"temperature", sal:"salinity", nut:"nutrients", anom:"anomaly" };
+const NAMES = { wm:"water mass", km:"cluster", wmix:"water-mass mix", temp:"temperature", sal:"salinity", nut:"nutrients", anom:"anomaly" };
 const WM_NAMES3=["Atlantic","Iceland/Polar","Arctic"];                    // Björn's 3-class water masses
 function wmName(c){ const n=meta&&meta.waterMass; return (n===3&&WM_NAMES3[c])?WM_NAMES3[c]:("water mass "+c); }
 // PHYSICAL UNITS (2026-09-27, INTEGRATION_PLAN 3.10). The cube and daily tiles store each field as a clipped
@@ -343,6 +347,30 @@ function fmtV(k,v){                                    // a 0..1 field value →
 }
 function fmtLat(v){ return `${Math.abs(v).toFixed(1)}° ${v>=0?"N":"S"}`; }
 function fmtLon(v){ return `${Math.abs(v).toFixed(1)}° ${v>=0?"E":"W"}`; }
+// WATER-MASS MIX (2026-09-28, Björn's maps). Each cell's own shares of the three water masses: the server's numbers
+// (the mean of his inverse-distance fractions), carried by viz/gen_wmix.py into viz/wmix/, NOT recomputed from the
+// cube (its salinity is clipped at 30.3, which would under-draw the freshest coast). Loaded the first time the mix
+// is shown and keyed by date, so merged daily months just work. WMIX[date] = Uint8Array(3N): [Atlantic,
+// Iceland/Polar, Arctic] shares × 254, 255 = no water-mass data.
+const WMIX={}; let _wmixLoad=null, WMIX_MISSING="";
+const WMIX_EM=[[15,35],[-1.5,35],[-1.5,26]];              // his end members, [°C, salinity], in the class order
+function loadMix(){
+  if(_wmixLoad||!meta) return _wmixLoad;
+  const files = meta.multiyear ? ["wmix/cube.json"]
+    : meta.daily ? [...new Set(meta.dates.map(d=>d.slice(0,7)))].map(m=>"wmix/daily_"+m+".json") : [];
+  _wmixLoad=Promise.all(files.map(p=>d3.json(p+"?_="+Date.now()).catch(()=>null))).then(list=>{
+    for(const w of list){ if(!w || w.n!==N) continue;           // another grid → not ours
+      w.dates.forEach((ds,k)=>{ const s=atob(w.frames[k]), a=new Uint8Array(s.length);
+        for(let j=0;j<s.length;j++) a[j]=s.charCodeAt(j); WMIX[ds]=a; }); }
+    const miss=meta.dates.filter(d=>!WMIX[d]).length;             // the key says so when a date has no mix baked
+    WMIX_MISSING = !miss ? "" : miss===meta.dates.length ? "the mix is not baked for this data" : `the mix is not baked for ${miss} of these ${meta.dates.length} dates`;
+    _smoothKey=""; drawLegend(); draw(); if(focusI>=0) renderCellInfo();
+  });
+  return _wmixLoad;
+}
+function mixAt(i){ const m=WMIX[meta.dates[t]]; if(!m || m[3*i]===255) return null; return [m[3*i]/254, m[3*i+1]/254, m[3*i+2]/254]; }
+function mixRGB(s){ const C=LOOK.mix; return [0,1,2].map(k=>(s[0]*C[0][k]+s[1]*C[1][k]+s[2]*C[2][k])|0); }   // his blend: Σ share·corner
+function mixText(s){ return s.map((v,k)=>`<span class="sw" style="background:rgb(${LOOK.mix[k].join(",")})"></span>${Math.round(v*100)}%`).join(" "); }
 
 let DATA=null, meta=null, lat=[], lon=[], frames=[], N=0;
 let dataNonce=0, _nutThr={}, _phytoThr={};               // dataNonce bumps on every data (re)load → invalidates the percentile caches
@@ -559,6 +587,8 @@ function cellColor(f,i){
   const d = f.dist ? f.dist[i] : null;                         // within-cluster distance 0..1
   if(mode==="wm"){ const c=f.wm[i]; return c==null?null:modulate(WM_RGB[c], d); }
   if(mode==="km"){ const c=f.km[i]; return c==null?null:modulate(KM_RGB[c], d); }
+  if(mode==="wmix"){ if(f.temp[i]==null) return null; const s=mixAt(i); if(!s) return null;   // his blend, no cluster distance
+    const c=mixRGB(s); return `rgb(${c[0]},${c[1]},${c[2]})`; }
   // OCEAN MASK: only paint continuous fields on the physical-ocean footprint. The nutrient/bio
   // grid overshoots ~1.4k cells onto the coast; temp (=sal=wm footprint) is the true ocean, so a
   // cell with no temperature is land — never colour it, whatever the field.
@@ -734,6 +764,13 @@ function drawLegend(){
     const lab=i=> mode==="wm" ? wmName(i) : `cluster ${i}`;
     const note=(mode==="km"&&meta.daily)?`<div class="note">clusters fitted on the daily data: the same colour is not the same group as on the monthly record</div>`:"";
     el.innerHTML=Array.from({length:n},(_,i)=>`<div class="row"><span><span class="sw" style="background:${cols[i]}"></span>${lab(i)}</span></div>`).join("")+note;
+  } else if(mode==="wmix"){
+    loadMix();
+    el.innerHTML=`<canvas id="mixkey" style="width:100%;height:128px;display:block;margin:4px 0;border-radius:3px"></canvas>
+      <div class="row"><span class="k">up: warmer</span><span class="k">right: saltier</span></div>
+      <div class="note">each cell takes the colour of its own mix of three reference waters (the dots), as in Björn's maps: mixed water shows a mixed colour</div>`
+      + (WMIX_MISSING ? `<div class="note">${WMIX_MISSING}</div>` : "");
+    drawMixKey();
   } else {
     const fl=meta.fields[mode]; let lo=fl.lo, hi=fl.hi;
     if(mode==="anom"){ const r=anomColorRange(); lo=Math.max(0,r[0]); hi=Math.min(1,r[1]); }
@@ -744,6 +781,37 @@ function drawLegend(){
     el.innerHTML=`<div id="gradbar" style="background:linear-gradient(90deg,${stops})"></div>
       <div class="row"><span class="k">${fmtV(mode,lo)}</span><span class="k">${fmtV(mode,hi)}</span></div>${extra}`;
   }
+}
+
+// the MIX KEY: Björn's colour over the temperature–salinity plane (each point coloured as a cell with that temperature
+// and salinity would be), his three end members as dots, the cell you picked as a ring
+let _mixKeyBg=null, _mixKeyBgKey="";
+function drawMixKey(){
+  const c=document.getElementById("mixkey"); if(!c) return;
+  const T=DarkStyle.tokens(), dpr=window.devicePixelRatio||1, W=c.clientWidth||236, H=128;
+  const S0=25, S1=36, T0=-5, T1=17, xOf=s=>(s-S0)/(S1-S0)*W, yOf=v=>(1-(v-T0)/(T1-T0))*H;   // room under the cold dots for a label
+  c.width=Math.round(W*dpr); c.height=Math.round(H*dpr);
+  const g=c.getContext("2d"), bk=c.width+"x"+c.height+"|"+LOOK.mix.join();
+  if(_mixKeyBgKey!==bk){                                  // the field, once per size and colours
+    _mixKeyBg=g.createImageData(c.width,c.height); const d=_mixKeyBg.data;
+    for(let y=0;y<c.height;y++){ const tt=T1-(y+0.5)/c.height*(T1-T0);
+      for(let x=0;x<c.width;x++){ const ss=S0+(x+0.5)/c.width*(S1-S0);
+        const w=WMIX_EM.map(([et,es])=>1/(Math.hypot(tt-et, ss-es)+1e-6)), z=w[0]+w[1]+w[2];
+        const rgb=mixRGB(w.map(v=>v/z)), o=(y*c.width+x)*4; d[o]=rgb[0]; d[o+1]=rgb[1]; d[o+2]=rgb[2]; d[o+3]=255; } }
+    _mixKeyBgKey=bk;
+  }
+  g.putImageData(_mixKeyBg,0,0); g.setTransform(dpr,0,0,dpr,0,0);
+  g.font=`10px ${T.fontCanvas}`; g.lineJoin="round";
+  const lab=(s,x,y,al)=>{ g.textAlign=al; g.lineWidth=3; g.strokeStyle=T.mapBg; g.strokeText(s,x,y); g.fillStyle=T.txt; g.fillText(s,x,y); };
+  WMIX_EM.forEach(([et,es],k)=>{ const x=xOf(es), y=yOf(et);
+    g.beginPath(); g.arc(x,y,3.5,0,2*Math.PI); g.fillStyle=T.mapBg; g.fill(); g.lineWidth=1.2; g.strokeStyle=T.txt; g.stroke();
+    const name=WM_NAMES3[k]+` ${et} °C · S ${es}`;          // the two cold dots share a height: one label above, one below
+    if(k===0) lab(name, x-8, y+4, "right"); else if(k===1) lab(name, x+4, y-8, "right"); else lab(name, x-4, y+15, "left"); });
+  const i=focusI, f=frames[t];                            // the picked cell, where its temperature and salinity sit
+  if(i>=0 && f && f.temp[i]!=null && f.sal[i]!=null){ const pt=phys("temp",f.temp[i]), ps=phys("sal",f.sal[i]);
+    if(pt!=null && ps!=null){ const x=xOf(ps), y=yOf(pt);
+      g.lineWidth=3.4; g.strokeStyle=T.mapBg; g.beginPath(); g.arc(x,y,5,0,2*Math.PI); g.stroke();
+      g.lineWidth=1.8; g.strokeStyle=T.ring; g.beginPath(); g.arc(x,y,5,0,2*Math.PI); g.stroke(); } }
 }
 
 function drawComposition(){
@@ -768,6 +836,7 @@ function showHover(i,e){
   else if(f.temp[i]==null) L.push(`<span class="k">no ocean data here</span>`);
   if(combo && !combo.geo) L.push(`<span class="k">${combo.xlabel||combo.x}</span> ${axisText(combo.x,f,i)} · <span class="k">${combo.ylabel||combo.y}</span> ${axisText(combo.y,f,i)}`);
   if(mode==="km"){ const k=f.km[i]; if(k!=null) L.push(`<span class="hsw" style="background:${KM_COLORS[k]}"></span>cluster ${k}`); }
+  else if(mode==="wmix"){ const s=f.temp[i]!=null && mixAt(i); if(s) L.push(`mix ${mixText(s)}`); }
   else if(mode!=="wm" && f.temp[i]!=null){ const v=f[mode][i]; L.push(`${NAMES[mode]} ${v==null?"—":fmtV(mode,v)}`); }
   const dl=dynLabel(i); if(dl) L.push(`<span style="color:${dl[0]==="u"?LOOK.dyn.up:LOOK.dyn.prod}">${dl}</span>`);
   hbox.innerHTML=L.join("<br>"); hbox.style.display="block";
@@ -781,12 +850,14 @@ function hideHover(){ hbox.style.display="none"; }
 // the cell you clicked, pinned in INFORMATION until you click elsewhere or press Esc
 function renderCellInfo(){
   const el=document.getElementById("info-cell");
+  if(mode==="wmix") drawMixKey();                   // the key's ring follows the pick
   if(focusI<0||!meta){ el.style.display="none"; el.innerHTML=""; return; }
-  const i=focusI, f=frames[t], w=f.wm[i], k=f.km[i];
+  const i=focusI, f=frames[t], w=f.wm[i], k=f.km[i], mx=f.temp[i]!=null && WMIX[meta.dates[t]] ? mixAt(i) : null;
   const row=(a,b)=>`<div class="row"><span class="k">${a}</span><span class="v">${b}</span></div>`;
   el.innerHTML=`<div class="seg">THE CELL YOU PICKED <span id="cell-x" style="cursor:pointer;margin-left:6px" title="let it go (Esc)">✕</span></div>`+
     row("where", `${fmtLat(lat[i])} · ${fmtLon(lon[i])}`)+
     row("water mass", w==null?"—":`<span class="sw" style="background:${WM_COLORS[w]}"></span>${wmName(w)}`)+
+    (mx ? row("mix", mixText(mx)) : "")+
     row(meta.daily?"cluster (daily fit)":"cluster", k==null?"—":`<span class="sw" style="background:${KM_COLORS[k]}"></span>${k}`)+
     ["temp","sal","nut","anom"].map(q=>row(NAMES[q], (f.temp[i]==null||f[q][i]==null)?"—":fmtV(q,f[q][i]))).join("");
   el.style.display="block";
