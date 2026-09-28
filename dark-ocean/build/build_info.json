@@ -1,8 +1,8 @@
 {
-  "built": "2026-09-27 21:44:46",
+  "built": "2026-09-28 12:24:07",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "sources": {
-    "viz/map.html": "5f240de37ae827bd",
+    "viz/map.html": "d83d4ced306435a2",
     "viz/legend.js": "13dbf82d7bbed7c4",
     "viz/timewheel.js": "d9257e00c4e40cc0",
     "viz/sunburst.js": "ce559e9eb2896729",
@@ -19,6 +19,7 @@
     "video export: the engine's audio track goes into the same MediaRecorder (desktop: SC records a WAV and mux_video.sh joins them)",
     "♪ tooltip: there is no bridge on the web",
     "status line: there is no terminal on the web",
+    "status line: ♪ is ON when the web page opens (Miguel 2026-09-28), but a browser plays nothing before the first gesture; until SuperCollider sounds, the line says so (engine.js pendingText)",
     "the header chip's tooltip: no bridge on the web",
     "the title links to credits + licences (a new tab, so the sound keeps playing)"
   ],

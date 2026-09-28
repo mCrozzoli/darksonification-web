@@ -62,6 +62,15 @@
   #tw-exp{ position:absolute; top:6px; right:6px; z-index:2; width:22px; height:20px; background:#131834;
     color:var(--dim); border:1px solid #262d54; border-radius:5px; font-size:12px; cursor:pointer; padding:0; }
   #tw-exp:hover{ color:var(--txt); border-color:#3a4570; }
+  /* the wheel folds into a small chip so it stops covering the data (Miguel 09-28); w toggles, remembered */
+  #tw-min{ position:absolute; top:6px; right:32px; z-index:2; width:22px; height:20px; background:#131834;
+    color:var(--dim); border:1px solid #262d54; border-radius:5px; font-size:14px; line-height:1; cursor:pointer; padding:0; }
+  #tw-min:hover{ color:var(--txt); border-color:#3a4570; }
+  #tw-pill{ position:absolute; left:14px; bottom:14px; z-index:3; display:none; align-items:center; gap:7px;
+    background:rgba(8,11,20,0.78); color:var(--txt); border:1px solid #262d54; border-radius:16px; padding:5px 12px 5px 9px;
+    font:inherit; font-size:11px; cursor:pointer; backdrop-filter:blur(3px); }
+  #tw-pill:hover{ border-color:#3a4570; }
+  #tw-pill .twdot{ width:10px; height:10px; border-radius:50%; border:1.5px solid var(--cur); flex:none; }
   #sb-overlay{ position:absolute; inset:0; z-index:20; background:rgba(5,7,15,0.95); display:none; flex-direction:column; }
   #sb-bar{ display:flex; align-items:center; gap:7px; padding:10px 16px; border-bottom:1px solid var(--line); font-size:12px; flex-wrap:wrap; }
   #sb-vars{ display:flex; gap:4px; } #sb-hint b{ color:var(--txt); }
@@ -125,8 +134,10 @@
 
   <div id="map">
     <canvas></canvas>
-    <div id="timewheel" title="time navigator: click a month to jump; ⤢ opens the full wheel">
+    <div id="timewheel" title="time navigator: click a month to jump; ⤢ opens the full wheel; – folds it away (w)">
+      <button id="tw-min" title="fold the time wheel away (w)">–</button>
       <button id="tw-exp" title="open the full time wheel (year → month → day)">⤢</button></div>
+    <button id="tw-pill" title="show the time wheel (w)"><span class="twdot"></span><span id="tw-pill-date">—</span></button>
     <div id="sb-overlay">
       <div id="sb-bar">
         <b style="color:var(--txt)">time wheel</b><span class="k">· year → month → day</span>
@@ -416,6 +427,9 @@ d3.json("daily/manifest.json?_="+Date.now())
         else location.href = DAILY[mk] ? ("map.html?daily="+mk) : "map.html?data=cube_time.json"; },   // daily: jump months
       onDrill:mk=>{ location.href="map.html?daily="+mk; },                             // dbl-click a month → its DAILY view
       current: meta.multiyear ? t : Math.max(0,months.indexOf(meta.dates[t].slice(0,7))) });
+    document.getElementById("tw-min").onclick=()=>setWheelMin(true);
+    document.getElementById("tw-pill").onclick=()=>setWheelMin(false);
+    setWheelMin(lsGet("ocean_wheel_min")==="1");                                      // folded last time → stays folded
   }
   if(meta.multiyear) setupWheel();
   else if(window.TimeWheel){                                                           // daily view → load the spine, then the wheel
@@ -665,6 +679,7 @@ function update(){                    // full refresh on t / mode change
   renderInfo(); if(focusI>=0) renderCellInfo(); if(mode==="anom") drawLegend(); draw();
   if(tracks.length) syncTracked();              // the traced cells' chord follows the day too
   if(window.TimeWheel && WHEEL_MONTHS) TimeWheel.setCurrent(meta.multiyear ? t : Math.max(0,WHEEL_MONTHS.indexOf(meta.dates[t].slice(0,7))));   // playhead follows scrub/play (daily → its month)
+  paintWheelPill();                             // the folded wheel's chip names the date too
   sonifyTimeline();                             // 2026-09-27: EVERY gesture that changes the picture changes the sound
 }                                               //   (the wheel, ticks, ranges and the sunburst used to change only the picture)
 
@@ -763,8 +778,9 @@ function renderHear(){
   const up=!!(bridgeWS&&bridgeWS.readyState===1);
   el.classList.remove("off","none");
   if(!up){ el.classList.add("none"); el.textContent="silent: no sound engine connected"; return; }
-  if(SC_UP===false){ el.classList.add("none"); el.textContent="no sound engine: this browser could not start SuperCollider"; return; }
+  if(SC_UP===false){ el.classList.add("none"); el.textContent="no sound engine: SuperCollider did not start · reload the page to try again"; return; }
   if(!soundArmed){ el.classList.add("off"); el.innerHTML="sound off · <b>press ♪ to hear</b>"; return; }
+  const _wp=window.__darkWeb&&window.__darkWeb.pending(); if(_wp){ el.classList.add("off"); el.innerHTML=_wp; return; }   // WEB BUILD
   const n=tracks.reduce((s,tr)=>s+tr.cells.size,0);
   el.textContent=`you hear: the whole region, ${meta?fmtDate(meta.dates[t]):"…"}`+(n?` · and a chord for your ${n} traced cell${n>1?"s":""}`:"");
 }
@@ -1454,6 +1470,20 @@ function setSide(open){
   lsSet(LS.side, open?"1":"0");
   setTimeout(()=>{ if(N) resize(); }, 0);
 }
+// THE WHEEL FOLDS AWAY (2026-09-28, Miguel: "it would be great if the time wheel could be possible to
+// minimize? it is blocking part of the display"). – folds it into a chip with the date; the chip, or w,
+// brings it back. Remembered per browser, like the panel's other settings.
+let wheelMin=false;
+function setWheelMin(on){
+  const tw=document.getElementById("timewheel"), pill=document.getElementById("tw-pill");
+  if(!WHEEL_MONTHS){ pill.style.display="none"; return; }                 // no wheel on this page (yet)
+  wheelMin=!!on;
+  tw.style.display = wheelMin ? "none" : "block";
+  pill.style.display = wheelMin ? "flex" : "none";
+  lsSet("ocean_wheel_min", wheelMin?"1":"0");
+  paintWheelPill();
+}
+function paintWheelPill(){ const el=document.getElementById("tw-pill-date"); if(el && meta) el.textContent=meta.dates[t]; }
 function setupPanel(){
   document.querySelectorAll(".stab").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));
   const tab=lsGet(LS.tab); showTab(["view","lens","sound","trace"].includes(tab)?tab:"view");
@@ -1463,6 +1493,7 @@ function setupPanel(){
   window.addEventListener("keydown",e=>{
     if(e.target && /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
     if((e.key==="i"||e.key==="I") && !e.metaKey && !e.ctrlKey && !e.altKey) setSide(document.body.classList.contains("side-closed"));
+    if((e.key==="w"||e.key==="W") && !e.metaKey && !e.ctrlKey && !e.altKey && WHEEL_MONTHS) setWheelMin(!wheelMin);
   });
   document.getElementById("trace-cell").addEventListener("click",()=>{ if(focusI>=0) createTrack([focusI]); });
   document.getElementById("trace-nb").addEventListener("click",()=>{ if(focusI>=0) createTrack([focusI, ...neighborSet]); });

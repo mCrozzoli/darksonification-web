@@ -30,6 +30,7 @@
 
   window.__darkWeb = engine ? {
     attach(page) { engine.attachPage(page, window); },
+    pending() { return engine.pendingText(); },          // ♪ on but not sounding yet: the status line's words
     withAudio(stream) {
       const track = engine.audioTrack();
       if (track) stream.addTrack(track);

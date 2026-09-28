@@ -30,8 +30,10 @@
   if (!reloading) {
     const { darkEngine } = await import("./engine.js");
     window.darkEngine = darkEngine;
-    darkEngine.preload().catch(() => {});      // download + compile the class library now; sound starts on ♪
-    document.getElementById("view").src = "view/map.html" + (location.search || "?data=cube_time.json") + location.hash;
+    darkEngine.preload().catch(() => {});      // download + compile the class library now; sound starts at the first gesture
+    const view = document.getElementById("view");
+    view.addEventListener("load", () => { try { view.contentWindow.focus(); } catch (_) {} });   // keys (L, i, w, any key) reach the map at once
+    view.src = "view/map.html" + (location.search || "?data=cube_time.json") + location.hash;
   }
 </script>
 </body>
