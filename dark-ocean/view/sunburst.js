@@ -81,7 +81,7 @@ window.Sunburst = (function () {
       .on("pointerleave", () => { if (!dragging) { hoverNode = null; markSel(); emit("onHover", currentInfo()); } });
     g = svg.append("g").attr("transform", `translate(${cx},${cy})`);
     g.selectAll("path.sb-arc").data(root.descendants().filter(d => d.depth > 0)).join("path")
-      .attr("class", "sb-arc").attr("d", arc).attr("stroke", "#080b14").attr("stroke-width", 0.4)
+      .attr("class", "sb-arc").attr("d", arc).style("stroke", "var(--ds-arc-gap-overlay, #080b14)").attr("stroke-width", 0.4)
       .style("cursor", d => RINGS.includes(d.data.kind) ? "pointer" : "default")
       .attr("fill", d => VARC[VAR](d._means[VAR]))
       .on("pointerdown", (e, d) => startDrag(e, d))
@@ -91,7 +91,7 @@ window.Sunburst = (function () {
         markSel(); emit("onHover", currentInfo());
       });
     g.selectAll("text.sb-yl").data(root.descendants().filter(d => d.depth === 1)).join("text")
-      .attr("class", "sb-yl").attr("fill", "#8a97c4").attr("font-size", Math.min(13, R * 0.06) + "px")
+      .attr("class", "sb-yl").style("fill", "var(--ds-label, #8a97c4)").attr("font-size", Math.min(13, R * 0.06) + "px")
       .attr("text-anchor", "middle").attr("dy", ".35em").attr("pointer-events", "none")
       .attr("transform", d => { const a = (d.x0 + d.x1) / 2 - Math.PI / 2, r = (d.y0 + d.y1) / 2;
         return `translate(${Math.cos(a) * r},${Math.sin(a) * r})`; })
@@ -107,12 +107,12 @@ window.Sunburst = (function () {
       }
       const ring = d3.arc().innerRadius(R + 3).outerRadius(R + 6).startAngle(d => d.x0).endAngle(d => d.x1).cornerRadius(2);
       g.selectAll("path.sb-avail-ring").data(runs).join("path").attr("class", "sb-avail-ring")
-        .attr("d", ring).attr("fill", "#34d399").attr("pointer-events", "none");
+        .attr("d", ring).style("fill", "var(--ds-avail, #34d399)").attr("pointer-events", "none");
     }
     g.append("text").attr("class", "sb-ctr").attr("text-anchor", "middle").attr("dy", "-.1em")
-      .attr("fill", "#c9d3ee").attr("font-size", "16px").attr("pointer-events", "none");
+      .style("fill", "var(--ds-chart-txt, #c9d3ee)").attr("font-size", "16px").attr("pointer-events", "none");
     g.append("text").attr("class", "sb-sub").attr("text-anchor", "middle").attr("dy", "1.4em")
-      .attr("fill", "#5f6a8c").attr("font-size", "10px").attr("pointer-events", "none");
+      .style("fill", "var(--ds-dim, #5f6a8c)").attr("font-size", "10px").attr("pointer-events", "none");
     markSel();
   }
 
@@ -173,7 +173,7 @@ window.Sunburst = (function () {
         return o;
       })
       .attr("stroke-width", d => d === hoverNode ? 1.8 : (sel && sel.nodes.includes(d) ? 1.2 : 0.4))
-      .attr("stroke", d => d === hoverNode ? "#fff" : (sel && sel.nodes.includes(d) ? "#ffe08a" : "#080b14"));
+      .style("stroke", d => d === hoverNode ? "var(--ds-txt-hi, #fff)" : (sel && sel.nodes.includes(d) ? "var(--ds-ring, #ffe08a)" : "var(--ds-arc-gap-overlay, #080b14)"));
     const [lab, sub] = centerLabel();
     g.select("text.sb-ctr").text(lab.length > 15 ? lab.slice(0, 15) : lab); g.select("text.sb-sub").text(sub);
   }
@@ -241,6 +241,9 @@ window.Sunburst = (function () {
   function clearSelection() { sel = null; hoverNode = null; markSel(); }
   function getSelection() { return sel ? selInfo() : null; }
   function resize() { if (container && root) layoutAndDraw(); }
-  const api = { render, setVariable, setAvailable, setSeasonal, clearSelection, getSelection, resize, VARC, MON, get variable() { return VAR; } };
+  // the look's scales (style kit): null = the originals above
+  const ORIG = Object.assign({}, VARC);
+  function setScales(o) { Object.assign(VARC, ORIG, o || {}); if (g) g.selectAll("path.sb-arc").attr("fill", d => VARC[VAR](d._means[VAR])); }
+  const api = { render, setVariable, setAvailable, setSeasonal, setScales, clearSelection, getSelection, resize, VARC, MON, get variable() { return VAR; } };
   return api;
 })();

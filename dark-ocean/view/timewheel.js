@@ -41,7 +41,7 @@ window.TimeWheel = (function () {
     g.selectAll("path.tw-m").data(root.descendants().filter(d => d.depth === 2)).join("path")
       .attr("class", "tw-m").attr("d", arc)
       .attr("cursor", d => dailyMonths.has(dates[d.data.leaf.i]) ? "zoom-in" : "pointer")
-      .attr("stroke", "#0a0e1a").attr("stroke-width", 0.5)
+      .style("stroke", "var(--ds-arc-gap, #0a0e1a)").attr("stroke-width", 0.5)
       .on("mousemove", (e, d) => center(d.data.leaf.i, true))
       .on("mouseleave", () => center(cur, false))
       .on("click", (e, d) => { onSelect(d.data.leaf.i); })
@@ -49,23 +49,23 @@ window.TimeWheel = (function () {
     // year arcs (inner) — click = jump to that year's first month
     g.selectAll("path.tw-y").data(root.descendants().filter(d => d.depth === 1)).join("path")
       .attr("class", "tw-y").attr("d", arc).attr("cursor", "pointer")
-      .attr("fill", "#141a34").attr("stroke", "#0a0e1a").attr("stroke-width", 0.7)
+      .style("fill", "var(--ds-wheel-fill, #141a34)").style("stroke", "var(--ds-arc-gap, #0a0e1a)").attr("stroke-width", 0.7)
       .on("click", (e, d) => { onSelect(d.leaves()[0].data.leaf.i); });
     g.selectAll("text.tw-yl").data(root.descendants().filter(d => d.depth === 1)).join("text")
-      .attr("class", "tw-yl").attr("fill", "#8a97c4").attr("font-size", "8px").attr("text-anchor", "middle")
+      .attr("class", "tw-yl").style("fill", "var(--ds-label, #8a97c4)").attr("font-size", "8px").attr("text-anchor", "middle")
       .attr("transform", d => { const a = (d.x0 + d.x1) / 2 - Math.PI / 2, r = (R0 + R1) / 2;
         return `translate(${Math.cos(a) * r},${Math.sin(a) * r})`; })
       .attr("dy", ".35em").text(d => "'" + d.data.name.slice(2));
     g.append("circle").attr("class", "tw-play").attr("fill", "none")
-      .attr("stroke", "#ffe08a").attr("stroke-width", 2).attr("pointer-events", "none");
+      .style("stroke", "var(--ds-ring, #ffe08a)").attr("stroke-width", 2).attr("pointer-events", "none");
     g.append("text").attr("class", "tw-ctr").attr("text-anchor", "middle").attr("dy", "-.15em")
-      .attr("fill", "#c9d3ee").attr("font-size", "12px");
+      .style("fill", "var(--ds-chart-txt, #c9d3ee)").attr("font-size", "12px");
     g.append("text").attr("class", "tw-sub").attr("text-anchor", "middle").attr("dy", "1.1em")
-      .attr("fill", "#5f6a8c").attr("font-size", "8px").text("time");
+      .style("fill", "var(--ds-dim, #5f6a8c)").attr("font-size", "8px").text("time");
     // daily-available months → a small dot ("dbl-click to drill into days")
     g.selectAll("circle.tw-daily")
       .data(root.descendants().filter(d => d.depth === 2 && dailyMonths.has(dates[d.data.leaf.i]))).join("circle")
-      .attr("class", "tw-daily").attr("r", 1.6).attr("fill", "#ffe08a").attr("pointer-events", "none")
+      .attr("class", "tw-daily").attr("r", 1.6).style("fill", "var(--ds-ring, #ffe08a)").attr("pointer-events", "none")
       .attr("cx", d => { const a = (d.x0 + d.x1) / 2 - Math.PI / 2; return Math.cos(a) * (R2 - 3); })
       .attr("cy", d => { const a = (d.x0 + d.x1) / 2 - Math.PI / 2; return Math.sin(a) * (R2 - 3); });
     recolor(); setCurrent(cur); applySelHi();
@@ -90,7 +90,7 @@ window.TimeWheel = (function () {
     const a = (n.x0 + n.x1) / 2 - Math.PI / 2, r = (R1 + R2) / 2;
     g.select("circle.tw-play").attr("cx", Math.cos(a) * r).attr("cy", Math.sin(a) * r).attr("r", 3.5);
     g.selectAll("path.tw-m").attr("stroke-width", d => d.data.leaf.i === i ? 1.8 : 0.5)
-      .attr("stroke", d => d.data.leaf.i === i ? "#ffe08a" : "#0a0e1a");
+      .style("stroke", d => d.data.leaf.i === i ? "var(--ds-ring, #ffe08a)" : "var(--ds-arc-gap, #0a0e1a)");
     center(i, false);
   }
   return { render, recolor, setCurrent, resize, setSelection };

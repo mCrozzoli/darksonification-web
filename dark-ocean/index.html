@@ -6,9 +6,21 @@
 <title>Dark Ocean</title>
 <meta name="description" content="The North Atlantic, 2020–2023, as sound and image. SuperCollider runs in this page.">
 <style>
-  html, body { margin: 0; height: 100%; background: #0b0f1e; overflow: hidden; }
+  html { background: #0b0f1e; }
+  html, body { margin: 0; height: 100%; overflow: hidden; }
   iframe { border: 0; display: block; width: 100%; height: 100%; }
 </style>
+<script>
+  // The style kit's look (the map's darkstyle.js keeps it in localStorage, or ?theme=): the shell's ground follows
+  // it, so no dark frame shows around a light or paper map, and it follows a switch made inside the map.
+  (function () {
+    var bg = { dark: "#0b0f1e", light: "#e8ecf3", paper: "#f3e5da" }, look = null;
+    try { look = new URLSearchParams(location.search).get("theme") || localStorage.getItem("darkstyle.theme"); } catch (e) {}
+    var set = function (l) { document.documentElement.style.background = bg[l] || bg.dark; };
+    set(look);
+    addEventListener("storage", function (e) { if (e.key === "darkstyle.theme") set(e.newValue); });
+  })();
+</script>
 </head>
 <body>
 <iframe id="view" title="Dark Ocean map"></iframe>

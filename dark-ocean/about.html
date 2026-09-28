@@ -12,7 +12,14 @@
   p, li { color:var(--ink); } .dim { color:var(--dim); }
   a { color:var(--acc); } ul { padding-left:18px; } li { margin:4px 0; }
   code { font:13px ui-monospace,Menlo,monospace; color:var(--dim); }
+  /* the look chosen in the map (the style kit): light and paper; dark keeps the values above */
+  :root[data-theme="light"], :root[data-theme="paper"] { color-scheme:light; --bg:var(--ds-panel); --ink:var(--ds-txt);
+    --dim:var(--ds-dim); --rule:var(--ds-line); --acc:var(--ds-cur-txt); }
+  :root[data-theme="paper"] body { background-image:var(--ds-grain); font-family:var(--ds-font-ui); font-size:16px; }
+  :root[data-theme="paper"] h1 { font-family:var(--ds-font-display); font-weight:300; font-size:34px; }
 </style>
+<link rel="stylesheet" href="view/darkstyle/darkstyle.css">
+<script src="view/darkstyle/darkstyle.js"></script>
 </head>
 <body>
 <main>

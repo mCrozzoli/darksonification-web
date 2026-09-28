@@ -12,6 +12,8 @@
 <head>
 <meta charset="utf-8">
 <title>dark_ocean · map + time</title>
+<link rel="stylesheet" href="darkstyle/darkstyle.css">
+<script src="darkstyle/darkstyle.js"></script>   <!-- the style kit: dark · light · paper (projects/web/style) -->
 <script src="vendor/d3.v7.min.js"></script>
 <script src="../web_bridge.js"></script>
 <!-- web build: web_control.js (darkui GUI link) removed -->
@@ -19,9 +21,11 @@
 <script src="timewheel.js"></script>
 <script src="sunburst.js"></script>
 <style>
-  :root{ --bg:#080b16; --panel:#0e1224; --line:#20264a; --txt:#c8d0ee; --dim:#5f6a8c; --cur:#ffe08a; --side-w:268px; }
+  /* COLOURS, FONTS, TEXTURE come from the style kit (darkstyle/darkstyle.css, 2026-09-28). Its dark look is exactly
+     the values this page used, so dark is unchanged; light and paper are the other two looks (view tab, LOOK · T). */
+  :root{ --bg:var(--ds-bg); --panel:var(--ds-panel); --line:var(--ds-line); --txt:var(--ds-txt); --dim:var(--ds-dim); --cur:var(--ds-cur); --side-w:268px; }
   html,body{ margin:0; height:100%; background:var(--bg); color:var(--txt);
-    font:13px/1.45 "SF Mono", ui-monospace, Menlo, monospace; overflow:hidden; }
+    font:var(--ds-font-size)/1.45 var(--ds-font-ui); overflow:hidden; }
   /* LAYOUT (2026-09-27, re_wilding's): a lean header; the right sidebar = a pinned INFORMATION block + the
      tabs view · lens · sound · trace; the legend is its own left panel (key L); the sidebar folds (key i). */
   #wrap{ display:grid; grid-template-rows:44px 1fr auto 64px; grid-template-columns:1fr var(--side-w);
@@ -29,97 +33,104 @@
   body.side-closed #wrap{ grid-template-columns:1fr 0; } body.side-closed #side{ display:none; }
   header{ grid-column:1/3; display:flex; align-items:center; gap:14px; padding:0 16px; background:var(--panel); }
   header b{ letter-spacing:.12em; } #hdr-sp{ flex:1; }
-  .mbtn{ background:#131834; color:var(--dim); border:1px solid #262d54; border-radius:6px;
+  .mbtn{ background:var(--ds-ctl); color:var(--dim); border:1px solid var(--ds-ctl-line); border-radius:6px;
     padding:4px 9px; font:inherit; font-size:11px; cursor:pointer; }
-  .mbtn:hover{ color:var(--txt); border-color:#3a4570; }
-  .mbtn.on{ color:#0a0d18; background:var(--cur); border-color:var(--cur); font-weight:600; }
+  .mbtn:hover{ color:var(--txt); border-color:var(--ds-ctl-line-hi); }
+  .mbtn.on{ color:var(--ds-on-cur); background:var(--cur); border-color:var(--ds-cur-line); font-weight:600; }
   .mbtn:disabled{ opacity:.4; cursor:default; }
-  .nbbtn{ background:#131834; color:var(--txt); border:1px solid #262d54; border-radius:5px;
+  .nbbtn{ background:var(--ds-ctl); color:var(--txt); border:1px solid var(--ds-ctl-line); border-radius:5px;
     width:22px; height:20px; font:inherit; font-size:13px; line-height:1; cursor:pointer; }
-  .nbbtn:hover{ border-color:#3a4570; }
+  .nbbtn:hover{ border-color:var(--ds-ctl-line-hi); }
   .trk-row{ display:flex; align-items:center; gap:7px; padding:3px 4px; border-radius:5px; cursor:pointer; font-size:12px; }
-  .trk-row:hover{ background:#141a38; }
+  .trk-row:hover{ background:var(--ds-ctl-hover); }
   .trk-sw{ width:11px; height:11px; border-radius:3px; flex:none; box-shadow:0 0 5px currentColor; }
   .trk-lab{ flex:1; color:var(--txt); }
   .trk-cnt{ color:var(--dim); font-size:10px; }
   .trk-x{ background:none; border:none; color:var(--dim); cursor:pointer; font-size:14px; line-height:1; padding:0 3px; }
-  .trk-x:hover{ color:#ff6b6b; }
-  .tbtn{ background:#131834; color:var(--dim); border:1px solid #262d54; border-radius:6px; padding:5px 9px; font:inherit; font-size:11px; cursor:pointer; flex:none; }
-  .tbtn:hover{ color:var(--txt); border-color:#3a4570; } .tbtn:disabled{ opacity:.4; cursor:default; }
-  #ticks span{ cursor:pointer; } #ticks span:hover{ color:var(--cur); }
-  #ticks span.sel{ color:var(--cur); font-weight:600; }
-  #ticks span.gapb{ border-left:2px solid #c0605a; padding-left:2px; }     /* days missing from the record before this one */
-  #ticks span.gapa{ border-right:2px solid #c0605a; padding-right:2px; }    /* … after it (the record stops early in its month) */
+  .trk-x:hover{ color:var(--ds-danger); }
+  .tbtn{ background:var(--ds-ctl); color:var(--dim); border:1px solid var(--ds-ctl-line); border-radius:6px; padding:5px 9px; font:inherit; font-size:11px; cursor:pointer; flex:none; }
+  .tbtn:hover{ color:var(--txt); border-color:var(--ds-ctl-line-hi); } .tbtn:disabled{ opacity:.4; cursor:default; }
+  #ticks span{ cursor:pointer; } #ticks span:hover{ color:var(--ds-cur-txt); }
+  #ticks span.sel{ color:var(--ds-cur-txt); font-weight:600; }
+  #ticks span.gapb{ border-left:2px solid var(--ds-gap-mark); padding-left:2px; }     /* days missing from the record before this one */
+  #ticks span.gapa{ border-right:2px solid var(--ds-gap-mark); padding-right:2px; }    /* … after it (the record stops early in its month) */
   #period{ grid-row:3; grid-column:1; display:flex; align-items:center; gap:8px; padding:6px 16px; font-size:11px; background:var(--bg); }
   .pk{ color:var(--dim); } #moy{ display:flex; gap:3px; }
-  .chip{ min-width:20px; height:18px; background:#131834; color:var(--dim); border:1px solid #262d54; border-radius:4px; font-size:10px; cursor:pointer; text-align:center; line-height:16px; }
-  .chip:hover{ color:var(--txt); border-color:#3a4570; }
-  .chip.on{ background:var(--cur); color:#0a0d18; border-color:var(--cur); font-weight:600; }
-  #map{ grid-row:2; grid-column:1; position:relative; background:#05070f; overflow:hidden; }
+  .chip{ min-width:20px; height:18px; background:var(--ds-ctl); color:var(--dim); border:1px solid var(--ds-ctl-line); border-radius:4px; font-size:10px; cursor:pointer; text-align:center; line-height:16px; }
+  .chip:hover{ color:var(--txt); border-color:var(--ds-ctl-line-hi); }
+  .chip.on{ background:var(--cur); color:var(--ds-on-cur); border-color:var(--ds-cur-line); font-weight:600; }
+  #map{ grid-row:2; grid-column:1; position:relative; background:var(--ds-map-bg); background-image:var(--ds-grain); overflow:hidden; }
   #map canvas{ display:block; width:100%; height:100%; }
   #timewheel{ position:absolute; left:14px; bottom:14px; width:210px; height:210px; display:none;
-    background:rgba(8,11,20,0.62); border:1px solid #1b2238; border-radius:12px; backdrop-filter:blur(3px); transition:width .18s,height .18s; }
-  #tw-exp{ position:absolute; top:6px; right:6px; z-index:2; width:22px; height:20px; background:#131834;
-    color:var(--dim); border:1px solid #262d54; border-radius:5px; font-size:12px; cursor:pointer; padding:0; }
-  #tw-exp:hover{ color:var(--txt); border-color:#3a4570; }
+    background:var(--ds-glass); border:1px solid var(--ds-glass-line); border-radius:12px; backdrop-filter:blur(3px); transition:width .18s,height .18s; }
+  #tw-exp{ position:absolute; top:6px; right:6px; z-index:2; width:22px; height:20px; background:var(--ds-ctl);
+    color:var(--dim); border:1px solid var(--ds-ctl-line); border-radius:5px; font-size:12px; cursor:pointer; padding:0; }
+  #tw-exp:hover{ color:var(--txt); border-color:var(--ds-ctl-line-hi); }
   /* the wheel folds into a small chip so it stops covering the data (Miguel 09-28); w toggles, remembered */
-  #tw-min{ position:absolute; top:6px; right:32px; z-index:2; width:22px; height:20px; background:#131834;
-    color:var(--dim); border:1px solid #262d54; border-radius:5px; font-size:14px; line-height:1; cursor:pointer; padding:0; }
-  #tw-min:hover{ color:var(--txt); border-color:#3a4570; }
+  #tw-min{ position:absolute; top:6px; right:32px; z-index:2; width:22px; height:20px; background:var(--ds-ctl);
+    color:var(--dim); border:1px solid var(--ds-ctl-line); border-radius:5px; font-size:14px; line-height:1; cursor:pointer; padding:0; }
+  #tw-min:hover{ color:var(--txt); border-color:var(--ds-ctl-line-hi); }
   #tw-pill{ position:absolute; left:14px; bottom:14px; z-index:3; display:none; align-items:center; gap:7px;
-    background:rgba(8,11,20,0.78); color:var(--txt); border:1px solid #262d54; border-radius:16px; padding:5px 12px 5px 9px;
+    background:var(--ds-glass-hi); color:var(--txt); border:1px solid var(--ds-ctl-line); border-radius:16px; padding:5px 12px 5px 9px;
     font:inherit; font-size:11px; cursor:pointer; backdrop-filter:blur(3px); }
-  #tw-pill:hover{ border-color:#3a4570; }
-  #tw-pill .twdot{ width:10px; height:10px; border-radius:50%; border:1.5px solid var(--cur); flex:none; }
-  #sb-overlay{ position:absolute; inset:0; z-index:20; background:rgba(5,7,15,0.95); display:none; flex-direction:column; }
+  #tw-pill:hover{ border-color:var(--ds-ctl-line-hi); }
+  #tw-pill .twdot{ width:10px; height:10px; border-radius:50%; border:1.5px solid var(--ds-ring); flex:none; }
+  #sb-overlay{ position:absolute; inset:0; z-index:20; background:var(--ds-overlay); display:none; flex-direction:column; }
   #sb-bar{ display:flex; align-items:center; gap:7px; padding:10px 16px; border-bottom:1px solid var(--line); font-size:12px; flex-wrap:wrap; }
   #sb-vars{ display:flex; gap:4px; } #sb-hint b{ color:var(--txt); }
   #sb-wheel{ flex:1; min-height:0; }
   #sb-foot{ display:flex; align-items:center; gap:8px; padding:9px 16px; border-top:1px solid var(--line); font-size:12px; }
-  #sb-sel{ color:var(--cur); } #sb-sel.dim{ color:var(--dim); }
-  .tbtn.primary{ background:var(--cur); color:#0a0d18; border-color:var(--cur); font-weight:600; }
-  .tbtn.on{ background:var(--cur); color:#0a0d18; border-color:var(--cur); }
-  .sbv{ background:#131834; color:var(--dim); border:1px solid #262d54; border-radius:6px; padding:4px 9px; font:inherit; font-size:11px; cursor:pointer; }
-  .sbv:hover{ color:var(--txt); border-color:#3a4570; } .sbv.on{ background:var(--cur); color:#0a0d18; border-color:var(--cur); font-weight:600; }
-  #date{ position:absolute; top:12px; left:14px; font-size:22px; letter-spacing:.06em; color:var(--txt);
-    text-shadow:0 1px 6px #000; pointer-events:none; }
-  #date small{ display:block; font-size:11px; color:var(--dim); letter-spacing:.14em; }
+  #sb-sel{ color:var(--ds-cur-txt); } #sb-sel.dim{ color:var(--dim); }
+  .tbtn.primary{ background:var(--cur); color:var(--ds-on-cur); border-color:var(--ds-cur-line); font-weight:600; }
+  .tbtn.on{ background:var(--cur); color:var(--ds-on-cur); border-color:var(--ds-cur-line); }
+  .sbv{ background:var(--ds-ctl); color:var(--dim); border:1px solid var(--ds-ctl-line); border-radius:6px; padding:4px 9px; font:inherit; font-size:11px; cursor:pointer; }
+  .sbv:hover{ color:var(--txt); border-color:var(--ds-ctl-line-hi); } .sbv.on{ background:var(--cur); color:var(--ds-on-cur); border-color:var(--ds-cur-line); font-weight:600; }
+  #date{ position:absolute; top:12px; left:14px; font-size:var(--ds-date-size); letter-spacing:.06em; color:var(--txt);
+    font-family:var(--ds-font-display); font-weight:var(--ds-display-weight); text-shadow:var(--ds-date-shadow); pointer-events:none; }
+  #date small{ display:block; font-size:11px; color:var(--dim); letter-spacing:.14em; font-family:var(--ds-font-ui); font-weight:400; }
   /* the HOVER BOX: names the point where the eyes already are (re_wilding) */
-  #hbox{ position:absolute; pointer-events:none; display:none; z-index:6; background:rgba(8,11,22,.93);
-    border:1px solid #2a3150; border-radius:7px; padding:6px 9px; font-size:11px; line-height:1.5; max-width:240px; white-space:nowrap; }
+  #hbox{ position:absolute; pointer-events:none; display:none; z-index:6; background:var(--ds-pop);
+    border:1px solid var(--ds-pop-line); box-shadow:var(--ds-pop-shadow); border-radius:7px; padding:6px 9px; font-size:11px; line-height:1.5; max-width:240px; white-space:nowrap; }
   #hbox .hsw, .sw{ display:inline-block; width:10px; height:10px; border-radius:3px; margin:0 7px -1px 0; }
   #side{ grid-row:2/4; grid-column:2; background:var(--panel); padding:12px 14px; overflow-y:auto; }
   .seg{ font-size:10px; letter-spacing:.14em; color:var(--dim); margin:12px 0 6px; }
   .row{ display:flex; justify-content:space-between; gap:8px; margin:2px 0; }   /* flex, not float: no overlapping rows */
   .k{ color:var(--dim); } .v{ text-align:right; }
-  #hear{ font-size:11px; line-height:1.45; padding:6px 8px; border:1px solid #262d54; border-radius:6px; margin:0 0 10px;
-    color:var(--txt); background:#10152e; cursor:pointer; }
-  #hear.off{ border-color:#6b5a1f; } #hear.off b{ color:var(--cur); } #hear.none{ color:var(--dim); cursor:default; }
+  #hear{ font-size:11px; line-height:1.45; padding:6px 8px; border:1px solid var(--ds-ctl-line); border-radius:6px; margin:0 0 10px;
+    color:var(--txt); background:var(--ds-raised); cursor:pointer; }
+  #hear.off{ border-color:var(--ds-warn-line); } #hear.off b{ color:var(--ds-cur-txt); } #hear.none{ color:var(--dim); cursor:default; }
   #gradbar{ height:12px; border-radius:3px; margin:4px 0; }
   #comp{ display:flex; height:14px; border-radius:3px; overflow:hidden; margin:6px 0 3px; }
   #comp div{ height:100%; }
   #comp-lab{ font-size:10px; line-height:1.5; }
   #info-support{ font-size:10px; margin-top:3px; }
   #side-tabs{ display:grid; grid-template-columns:repeat(4,1fr); gap:4px; margin:12px 0 10px; padding-top:12px; border-top:1px solid var(--line); }
-  .stab{ text-align:center; font-size:11px; padding:5px 0; border:1px solid #262d54; border-radius:6px; color:var(--dim); cursor:pointer; user-select:none; }
-  .stab:hover{ color:var(--txt); } .stab.on{ color:#0a0d18; background:var(--cur); border-color:var(--cur); font-weight:600; }
+  .stab{ text-align:center; font-size:11px; padding:5px 0; border:1px solid var(--ds-ctl-line); border-radius:6px; color:var(--dim); cursor:pointer; user-select:none; }
+  .stab:hover{ color:var(--txt); } .stab.on{ color:var(--ds-on-cur); background:var(--cur); border-color:var(--ds-cur-line); font-weight:600; }
   .tsec{ display:none; } .tsec.on{ display:block; } .tsec > .seg:first-child{ margin-top:0; }
   .wcgrid{ display:grid; grid-template-columns:1fr 1fr; gap:5px; } .wcgrid .full{ grid-column:1/-1; }
   .glab{ font-size:9px; letter-spacing:.12em; color:var(--dim); grid-column:1/-1; margin-top:3px; }
   .note{ font-size:10px; line-height:1.45; color:var(--dim); margin-top:6px; }
   .fader{ display:grid; grid-template-columns:52px 1fr 32px; gap:6px; align-items:center; margin:4px 0; font-size:11px; }
-  .fader input{ width:100%; accent-color:var(--cur); } .fader .fv{ color:var(--dim); text-align:right; font-size:10px; }
+  .fader input{ width:100%; accent-color:var(--ds-accent); } .fader .fv{ color:var(--dim); text-align:right; font-size:10px; }
   .fader.na{ opacity:.45; }
   #side-tab{ position:fixed; top:50%; right:var(--side-w); z-index:30; transform:translateY(-50%); writing-mode:vertical-rl;
     font:inherit; font-size:10px; letter-spacing:.14em; color:var(--dim); background:var(--panel); cursor:pointer;
     border:1px solid var(--line); border-right:0; border-radius:5px 0 0 5px; padding:10px 3px; }
   #side-tab:hover{ color:var(--txt); } body.side-closed #side-tab{ right:0; }
   #transport{ grid-row:4; grid-column:1/3; display:flex; align-items:center; gap:14px; padding:0 18px; background:var(--panel); }
-  #play{ background:var(--cur); color:#0a0d18; border:none; border-radius:8px; width:38px; height:38px;
+  #play{ background:var(--cur); color:var(--ds-on-cur); border:none; border-radius:8px; width:38px; height:38px;
     font-size:15px; cursor:pointer; flex:none; }
-  #scrub{ width:100%; accent-color:var(--cur); }
+  #scrub{ width:100%; accent-color:var(--ds-accent); }
   #ticks{ display:flex; justify-content:space-between; color:var(--dim); font-size:10px; }
   #loading{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--dim); }
+  /* the kit's texture (after every panel rule, so their `background` does not reset it) and the LOOK control */
+  header, #side, #transport, #period{ background-image:var(--ds-grain); }
+  /* PAPER: the grain lies over the painted field as well, and the time wheels are drawn in ink */
+  [data-theme="paper"] #map::after{ content:""; position:absolute; inset:0; z-index:1; pointer-events:none;
+    background-image:var(--ds-grain); mix-blend-mode:multiply; }
+  [data-theme="paper"] #timewheel svg, [data-theme="paper"] #sb-wheel svg > g{ filter:var(--ds-ink-filter); }
+  [data-theme="paper"] #play{ box-shadow:inset 0 0 0 1px var(--ds-cur-line); }   /* the butter wash needs its gold edge */
 </style>
 </head>
 <body>
@@ -129,7 +140,7 @@
     <span id="hdr-sp"></span>
     <button id="lg-btn" class="mbtn" title="the legend: how each colour and each sound reads (L)">legend · L</button>
     <span id="chip" title="SuperCollider, running in this page"
-      style="font-size:11px;padding:3px 9px;border-radius:11px;border:1px solid #262d54;color:var(--dim)">standalone</span>
+      style="font-size:11px;padding:3px 9px;border-radius:11px;border:1px solid var(--ds-ctl-line);color:var(--dim)">standalone</span>
   </header>
 
   <div id="map">
@@ -142,7 +153,7 @@
       <div id="sb-bar">
         <b style="color:var(--txt)">time wheel</b><span class="k">· year → month → day</span>
         <span class="k" style="margin-left:12px">colour by</span><span id="sb-vars"></span>
-        <span id="sb-hint" class="k" style="margin-left:auto"><b>drag</b> a ring to select · <span style="color:#34d399">━ green</span> = days with daily data · day-ring→daily, month/year→monthly</span>
+        <span id="sb-hint" class="k" style="margin-left:auto"><b>drag</b> a ring to select · <span style="color:var(--ds-avail)">━ green</span> = days with daily data · day-ring→daily, month/year→monthly</span>
         <button id="sb-close" class="tbtn" style="margin-left:12px">✕ close</button>
       </div>
       <div id="sb-wheel"></div>
@@ -179,7 +190,7 @@
     <div class="tsec" data-tab="view">
       <div class="seg">VIEW</div>
       <select id="combo" title="display combination (from the manifest, baked into the data file)"
-        style="width:100%;background:#131834;color:var(--txt);border:1px solid #262d54;border-radius:6px;padding:4px 8px;font:inherit;font-size:11px"></select>
+        style="width:100%;background:var(--ds-ctl);color:var(--txt);border:1px solid var(--ds-ctl-line);border-radius:6px;padding:4px 8px;font:inherit;font-size:11px"></select>
       <div class="seg">COLOUR</div>
       <div class="wcgrid" id="modes">
         <span class="glab">IDENTITY</span>
@@ -195,6 +206,7 @@
       <div id="legend"></div>
       <div class="note">gold ring · the cell you picked<br>purple · the cells most like it<br>coloured outlines · your traces<br>shimmer · upwelling (blue-white) or productive water (gold-green)</div>
       <button id="backrec" class="mbtn" style="display:none;margin-top:10px;width:100%" title="back to the whole record (monthly)">← back to the whole record</button>
+      <div id="ds-style-seg"><div class="seg">LOOK · T</div><div id="ds-looks"></div></div>
     </div>
 
     <div class="tsec" data-tab="lens">
@@ -260,17 +272,31 @@
 
 <script>
 const cv = document.querySelector("#map canvas"), ctx = cv.getContext("2d");
-const WM_COLORS = ["#2b6da8","#46b0a4","#e07b4f","#8aa9e0"];        // discrete identity (water masses)
-// km cluster palette = the engine's CLUSTER_COLORS (datamapper/utils.py) — the exact
-// hues the GUI's DarkViz canvas uses (yellow / teal / purple / tan), so the map reads
-// like the researcher's own display.
-const KM_COLORS = ["#fae41c","#399199","#a863e9","#fb9f65"];
-const SCALE = {                                                     // continuous state
-  temp: t => d3.interpolateRdYlBu(1 - t),      // blue cold → red warm
-  sal:  t => d3.interpolateBuPu(0.15 + 0.85 * t),
-  nut:  t => d3.interpolateYlGn(0.1 + 0.9 * t),
-  anom: t => d3.interpolateInferno(0.1 + 0.85 * t),
-};
+// DATA COLOURS, ONE SET PER LOOK (style kit, 2026-09-28). dark = this display's originals, untouched. light and
+// paper keep each identity's hue family (Atlantic blue, Iceland/Polar teal, Arctic orange; the GUI's cluster hues
+// yellow / teal / purple / orange) re-stepped for their ground, and paper draws the fields in Miguel's colours.
+// Every set is checked against its own ground (projects/web/style/README.md). The arrays are refilled IN PLACE
+// by applyLook(), so everything that reads them (legend, info, hover, the sound legend) stays live.
+const WM_COLORS = [], KM_COLORS = [], TRACK_COLORS = [], SCALE = {};
+const LOOK_DATA = (()=>{ const S = DarkStyle.sets, R = DarkStyle.ramp, P = DarkStyle.paperRamps;
+  const inf = (a, b) => t => d3.interpolateInferno(a + b * t);
+  return {
+  dark:  { wm:["#2b6da8","#46b0a4","#e07b4f","#8aa9e0"],                  // discrete identity (water masses)
+           km:["#fae41c","#399199","#a863e9","#fb9f65"],                  // the engine's CLUSTER_COLORS (datamapper/utils.py): the GUI's own hues
+           track:S("dark").lines8, fade:[0,0,0],
+           scale:{ temp:t=>d3.interpolateRdYlBu(1-t),                      // blue cold → red warm
+                   sal:t=>d3.interpolateBuPu(0.15+0.85*t), nut:t=>d3.interpolateYlGn(0.1+0.9*t), anom:inf(0.1,0.85) },
+           glim:{ up:"rgb(210,238,255)", prod:"rgb(214,255,150)", op:"lighter" }, dyn:{ up:"#d2eeff", prod:"#d6ff96" }, sb:null },
+  light: { wm:[...S("light").cat3,"#6f8fcf"], km:S("light").cat4, track:S("light").lines8, fade:[244,246,250],
+           scale:{ temp:t=>d3.interpolateRdYlBu(1-t), sal:t=>d3.interpolateBuPu(0.22+0.78*t),
+                   nut:t=>d3.interpolateYlGn(0.18+0.82*t), anom:inf(0.92,-0.8) },   // far from its average = dark on a light ground
+           glim:{ up:"rgb(30,90,170)", prod:"rgb(120,130,10)", op:"multiply" }, dyn:{ up:"#1f5d8f", prod:"#5b7a00" }, sb:null },
+  paper: { wm:[...S("paper").cat3,"#6d8a3b"], km:S("paper").cat4, track:S("paper").lines8, fade:[243,229,218],
+           scale:{ temp:R(P.coolWarm), sal:R(P.lilac), nut:R(P.olive), anom:R(P.ochre) },
+           glim:{ up:"rgb(29,74,102)", prod:"rgb(122,128,24)", op:"multiply" }, dyn:{ up:"#1d4a66", prod:"#5a7a26" },
+           sb:{ thetao:R(P.coolWarm), so:R(P.lilac), chl:R(P.olive), o2:R(P.blue), no3:R(P.teal), ph:R(P.ink), nppv:R(P.gold), phyc:R(P.rust) } },
+  }; })();
+let LOOK = LOOK_DATA.dark;
 
 // The GUI's colour "richness" on discrete fields: a flat cluster colour dimmed +
 // faded by each cell's distance to its centroid (baked as `dist`, 0=core..1=edge).
@@ -280,13 +306,24 @@ const SCALE = {                                                     // continuou
 const DIST_MIN_BRIGHT = 0.18, DIST_MIN_ALPHA = 0.35;
 // pre-parsed RGB for the discrete palettes → modulate builds the string by hand (d3.color per
 // cell over 15k cells was ~25ms/frame). rgb = [r,g,b].
-const WM_RGB = WM_COLORS.map(h=>{ const c=d3.color(h); return [c.r,c.g,c.b]; });
-const KM_RGB = KM_COLORS.map(h=>{ const c=d3.color(h); return [c.r,c.g,c.b]; });
+const WM_RGB = [], KM_RGB = [];
+// ONE place turns the look into the page's colours; the listener at the end of the script repaints after a switch.
+function applyLook(){
+  LOOK = LOOK_DATA[DarkStyle.get()] || LOOK_DATA.dark;
+  const rgb = h=>{ const c=d3.color(h); return [c.r,c.g,c.b]; };
+  WM_COLORS.splice(0, WM_COLORS.length, ...LOOK.wm);  WM_RGB.splice(0, WM_RGB.length, ...LOOK.wm.map(rgb));
+  KM_COLORS.splice(0, KM_COLORS.length, ...LOOK.km);  KM_RGB.splice(0, KM_RGB.length, ...LOOK.km.map(rgb));
+  TRACK_COLORS.splice(0, TRACK_COLORS.length, ...LOOK.track);
+  Object.assign(SCALE, LOOK.scale);
+  if(window.Sunburst && Sunburst.setScales) Sunburst.setScales(LOOK.sb);
+}
+applyLook();
 function modulate(rgb, d){
   if(d==null) return `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;         // no distance → flat
   const b = DIST_MIN_BRIGHT + (1 - DIST_MIN_BRIGHT) * (1 - d);     // bright core → dim edge
   const a = DIST_MIN_ALPHA + (1 - DIST_MIN_ALPHA) * (1 - d);       // opaque core → faint edge
-  return `rgba(${(rgb[0]*b)|0},${(rgb[1]*b)|0},${(rgb[2]*b)|0},${a})`;
+  const f = LOOK.fade;                                             // dimming recedes toward the ground (black on dark)
+  return `rgba(${(f[0]+(rgb[0]-f[0])*b)|0},${(f[1]+(rgb[1]-f[1])*b)|0},${(f[2]+(rgb[2]-f[2])*b)|0},${a})`;
 }
 const NAMES = { wm:"water mass", km:"cluster", temp:"temperature", sal:"salinity", nut:"nutrients", anom:"anomaly" };
 const WM_NAMES3=["Atlantic","Iceland/Polar","Arctic"];                    // Björn's 3-class water masses
@@ -322,7 +359,7 @@ let focusI=-1, neighborSet=new Set(), NB_K=30;           // KNN neighbourhood (s
 let trackMode=false, tracks=[], trackSeq=0, flashId=null;  // tracks:[{id,label,color,cells:Set}]
 let brushing=false, brushPath=null, brushCells=null;     // freehand path-brush (base-px pts + picked cells)
 let BRUSH_W=1;                                           // brush width in cells (1..6 slider)
-const TRACK_COLORS=["#ffd166","#4cc9f0","#ef476f","#06d6a0","#f78c6b","#c77dff","#80ffdb","#ffd6a5"];
+// TRACK_COLORS: one set per look (LOOK_DATA, above); a trace keeps its SLOT, so it takes the look's colour
 let zt=d3.zoomIdentity, zoomBehavior=null;               // pan/zoom transform (context-space) + the d3.zoom behaviour
 let combo=null, scatterAxes=null;                        // current display combination (from meta.combinations)
 
@@ -420,7 +457,7 @@ d3.json("daily/manifest.json?_="+Date.now())
     }
     WHEEL_MONTHS=months;
     TimeWheel.render(tw, {
-      dates:months, valueOf:i=>sig[i], colorFn:u=>d3.interpolateRdYlBu(1-u),
+      dates:months, valueOf:i=>sig[i], colorFn:u=>SCALE.temp(u),
       dailyMonths:new Set(Object.keys(DAILY)),
       onSelect:i=>{ const mk=months[i];
         if(meta.multiyear){ if(playing) togglePlay(); t=i; update(); }
@@ -582,8 +619,13 @@ function renderSmooth(){
   ctx3.putImageData(img,0,0); _smoothKey=key; return cv3;
 }
 
+// a ring on the map (the picked cell, the hovered one): the look's ring colour, over a halo on light grounds
+function ring(T, x, y, rad, lw){
+  if(T.ringHalo){ ctx.strokeStyle=T.ringHalo; ctx.lineWidth=lw+2.4/zt.k; ctx.beginPath(); ctx.arc(x,y,rad,0,2*Math.PI); ctx.stroke(); }
+  ctx.strokeStyle=T.ring; ctx.lineWidth=lw; ctx.beginPath(); ctx.arc(x,y,rad,0,2*Math.PI); ctx.stroke();
+}
 function draw(){
-  const r=cv.getBoundingClientRect(), dpr=window.devicePixelRatio||1;
+  const r=cv.getBoundingClientRect(), dpr=window.devicePixelRatio||1, T=DarkStyle.tokens();
   ctx.setTransform(dpr,0,0,dpr,0,0);                    // reset to device space, clear all
   ctx.clearRect(0,0,r.width,r.height);
   ctx.translate(zt.x, zt.y); ctx.scale(zt.k, zt.k);    // apply pan/zoom (draw in base px)
@@ -591,11 +633,12 @@ function draw(){
     const path=d3.geoPath(proj,ctx);
     if(baseMap && coastGeo){                             // land under the data (gaps become land)
       ctx.beginPath(); path(coastGeo);
-      ctx.fillStyle="rgba(38,48,74,0.62)"; ctx.fill();                       // subtle land fill
-      ctx.strokeStyle="rgba(150,172,224,0.42)"; ctx.lineWidth=0.7/zt.k; ctx.stroke();  // coastline
+      ctx.fillStyle=T.land; ctx.fill();                                     // subtle land fill
+      ctx.strokeStyle=T.coast; ctx.lineWidth=0.7/zt.k; ctx.stroke();        // coastline
     }
-    ctx.strokeStyle="rgba(130,150,210,0.16)"; ctx.lineWidth=0.6/zt.k;
-    ctx.beginPath(); path(d3.geoGraticule().step([5,5])()); ctx.stroke();
+    ctx.strokeStyle=T.graticule; ctx.lineWidth=0.6/zt.k;
+    if(T.graticuleDash.length) ctx.setLineDash(T.graticuleDash.map(v=>v/zt.k));   // paper: dotted, like the orbits in the drawings
+    ctx.beginPath(); path(d3.geoGraticule().step([5,5])()); ctx.stroke(); ctx.setLineDash([]);
   } else { drawScatterAxes(); }
   // the field — on the MAP, render to an offscreen buffer and BLUR-COMPOSITE so the discrete 0.25°
   // cells melt into one smooth interpolated field (like the engine's render); in the SCATTERS, crisp dots.
@@ -609,54 +652,53 @@ function draw(){
     const sm=renderSmooth(), r2=cv.getBoundingClientRect();
     if(sm){ ctx.imageSmoothingEnabled=true; ctx.drawImage(sm, 0, 0, r2.width, r2.height);
       if(sel){                                            // the neighbourhood shows with smooth on too (3.12): dim the
-        ctx.fillStyle="rgba(5,7,15,0.84)"; ctx.fillRect(0, 0, r2.width, r2.height);   //   field, then the linked cells crisp on top
+        ctx.fillStyle=T.veil; ctx.fillRect(0, 0, r2.width, r2.height);   //   field, then the linked cells crisp on top
         if(baseMap && coastGeo){ ctx.beginPath(); d3.geoPath(proj,ctx)(coastGeo);      //   (the coastline stays readable)
-          ctx.strokeStyle="rgba(150,172,224,0.42)"; ctx.lineWidth=0.7/zt.k; ctx.stroke(); }
+          ctx.strokeStyle=T.coast; ctx.lineWidth=0.7/zt.k; ctx.stroke(); }
         for(const i of [focusI, ...neighborSet]){ if(px[i]!=px[i]) continue; const c=cellColor(f,i); if(c){ ctx.fillStyle=c; ctx.fillRect(px[i]-h, py[i]-h, s, s); } } }
     } else crisp();
   } else crisp();                                         // CRISP cells (scatters, or smooth off) — the honest 0.25° boxes
   // neighbourhood highlight — same cell identities in every view (the linked part).
   // Purple = KNN neighbours, amber ring = focus/primary (manual B2.16.1 overlay colours).
   if(sel){
-    ctx.lineWidth=1.1/zt.k; ctx.strokeStyle="rgba(178,74,224,0.85)";
+    ctx.lineWidth=1.1/zt.k; ctx.strokeStyle=T.nb;
     neighborSet.forEach(i=>{ if(px[i]==px[i]) ctx.strokeRect(px[i]-h-0.5/zt.k, py[i]-h-0.5/zt.k, s+1/zt.k, s+1/zt.k); });
-    if(px[focusI]==px[focusI]){ ctx.strokeStyle="#ffe08a"; ctx.lineWidth=2.2/zt.k;
-      ctx.beginPath(); ctx.arc(px[focusI],py[focusI],Math.max(7,cellPx*1.6),0,2*Math.PI); ctx.stroke(); }
+    if(px[focusI]==px[focusI]) ring(T, px[focusI], py[focusI], Math.max(7,cellPx*1.6), 2.2/zt.k);
   }
   // hovered cell ring
-  if(hoverI>=0 && px[hoverI]==px[hoverI]){ ctx.strokeStyle="#ffe08a"; ctx.lineWidth=1.5/zt.k;
-    ctx.beginPath(); ctx.arc(px[hoverI],py[hoverI],Math.max(5,cellPx),0,2*Math.PI); ctx.stroke(); }
+  if(hoverI>=0 && px[hoverI]==px[hoverI]) ring(T, px[hoverI], py[hoverI], Math.max(5,cellPx), 1.5/zt.k);
   // tracked cells — persistent, per-track colour, drawn LAST (on top, manual render order)
   tracks.forEach(tr=>{
     const flash=tr.id===flashId, pad=(flash?2:1)/zt.k;
-    ctx.strokeStyle=tr.color; ctx.lineWidth=(flash?2.8:1.7)/zt.k;
+    const tc=trackColor(tr); ctx.strokeStyle=tc; ctx.lineWidth=(flash?2.8:1.7)/zt.k;
     let cx=0, cy=0, n=0;
     tr.cells.forEach(i=>{ if(px[i]==px[i]){ ctx.strokeRect(px[i]-h-pad, py[i]-h-pad, s+2*pad, s+2*pad); cx+=px[i]; cy+=py[i]; n++; } });
-    if(n){ ctx.fillStyle=tr.color; ctx.font=`${11/zt.k}px "SF Mono",monospace`;
+    if(n){ ctx.fillStyle=tc; ctx.font=`${11/zt.k}px ${T.fontCanvas}`;
       ctx.textAlign="center"; ctx.textBaseline="bottom";
       ctx.fillText(tr.label, cx/n, cy/n-h-3/zt.k); }
   });
   // active path-brush while tracking — the cells being picked up + the gesture line
   if(brushing && brushPath){
     if(brushCells){ const s2=cellPx, h2=s2/2;
-      ctx.strokeStyle="rgba(255,209,102,0.95)"; ctx.lineWidth=1.3/zt.k;
+      ctx.strokeStyle=T.brush; ctx.lineWidth=1.3/zt.k;
       brushCells.forEach(i=>{ if(px[i]==px[i]) ctx.strokeRect(px[i]-h2, py[i]-h2, s2, s2); }); }
-    if(brushPath.length>1){ ctx.strokeStyle="rgba(255,209,102,0.5)"; ctx.lineWidth=1.5/zt.k;
+    if(brushPath.length>1){ ctx.strokeStyle=T.brushPath; ctx.lineWidth=1.5/zt.k;
       ctx.beginPath(); ctx.moveTo(brushPath[0][0],brushPath[0][1]);
       for(let k=1;k<brushPath.length;k++) ctx.lineTo(brushPath[k][0],brushPath[k][1]); ctx.stroke(); }
   }
 }
 function drawScatterAxes(){
   if(!scatterAxes) return;
+  const T=DarkStyle.tokens();
   const {X,Y}=scatterAxes, x0=X.range()[0], x1=X.range()[1], y0=Y.range()[0], y1=Y.range()[1];
-  ctx.strokeStyle="rgba(130,150,210,0.25)"; ctx.lineWidth=1/zt.k;
+  ctx.strokeStyle=T.axis; ctx.lineWidth=1/zt.k;
   ctx.beginPath(); ctx.moveTo(x0,y1); ctx.lineTo(x0,y0); ctx.lineTo(x1,y0); ctx.stroke();
-  ctx.fillStyle="#5f6a8c"; ctx.font=`${10/zt.k}px "SF Mono",monospace`;
+  ctx.fillStyle=T.dim; ctx.font=`${10/zt.k}px ${T.fontCanvas}`;
   ctx.textAlign="center"; ctx.textBaseline="top";
   X.ticks(6).forEach(v=>ctx.fillText(v.toFixed(2), X(v), y0+5/zt.k));
   ctx.textAlign="right"; ctx.textBaseline="middle";
   Y.ticks(6).forEach(v=>ctx.fillText(v.toFixed(2), x0-5/zt.k, Y(v)));
-  ctx.fillStyle="#8a97c4"; ctx.font=`${12/zt.k}px "SF Mono",monospace`;
+  ctx.fillStyle=T.label; ctx.font=`${12/zt.k}px ${T.fontCanvas}`;
   ctx.textAlign="center"; ctx.textBaseline="alphabetic";
   ctx.fillText(combo.xlabel||combo.x, (x0+x1)/2, y0+22/zt.k);
   ctx.save(); ctx.translate(x0-34/zt.k,(y0+y1)/2); ctx.rotate(-Math.PI/2); ctx.fillText(combo.ylabel||combo.y,0,0); ctx.restore();
@@ -727,7 +769,7 @@ function showHover(i,e){
   if(combo && !combo.geo) L.push(`<span class="k">${combo.xlabel||combo.x}</span> ${axisText(combo.x,f,i)} · <span class="k">${combo.ylabel||combo.y}</span> ${axisText(combo.y,f,i)}`);
   if(mode==="km"){ const k=f.km[i]; if(k!=null) L.push(`<span class="hsw" style="background:${KM_COLORS[k]}"></span>cluster ${k}`); }
   else if(mode!=="wm" && f.temp[i]!=null){ const v=f[mode][i]; L.push(`${NAMES[mode]} ${v==null?"—":fmtV(mode,v)}`); }
-  const dl=dynLabel(i); if(dl) L.push(`<span style="color:${dl[0]==="u"?"#d2eeff":"#d6ff96"}">${dl}</span>`);
+  const dl=dynLabel(i); if(dl) L.push(`<span style="color:${dl[0]==="u"?LOOK.dyn.up:LOOK.dyn.prod}">${dl}</span>`);
   hbox.innerHTML=L.join("<br>"); hbox.style.display="block";
   const mr=document.getElementById("map").getBoundingClientRect(), bw=hbox.offsetWidth, bh=hbox.offsetHeight;
   let x=e.clientX-mr.left+14, y=e.clientY-mr.top+14;                   // beside the cursor, kept inside the map
@@ -991,9 +1033,11 @@ function brushStroke(a,b){                        // add cells within brushRadiu
 function createTrack(cells){
   if(!cells.length) return;
   trackSeq++;
-  tracks.push({id:trackSeq, label:`T${trackSeq}`, color:TRACK_COLORS[(trackSeq-1)%TRACK_COLORS.length], cells:new Set(cells)});
+  const slot=(trackSeq-1)%TRACK_COLORS.length;
+  tracks.push({id:trackSeq, label:`T${trackSeq}`, slot, color:TRACK_COLORS[slot], cells:new Set(cells)});
   renderTrackList(); draw(); syncTracked();
 }
+function trackColor(tr){ return (tr.slot!=null && TRACK_COLORS[tr.slot]) ? TRACK_COLORS[tr.slot] : tr.color; }   // the look's colour for its slot
 function deleteTrack(id){ tracks=tracks.filter(t=>t.id!==id); renderTrackList(); draw(); syncTracked(); }
 // the union of every trace → ONE sound-ready aggregate → bridge → SC /dark_tracked (the chord).
 // Its drivers are stretched like the region's (Miguel D3, A2): over the TRACED CELLS' OWN range across the
@@ -1040,7 +1084,8 @@ function renderTrackList(){
   tracks.forEach(t=>{
     const row=document.createElement("div"); row.className="trk-row";
     row.title="click to flash it on the map";
-    row.innerHTML=`<span class="trk-sw" style="background:${t.color};color:${t.color}"></span>`+
+    const tc=trackColor(t);
+    row.innerHTML=`<span class="trk-sw" style="background:${tc};color:${tc}"></span>`+
       `<span class="trk-lab">${t.label}</span><span class="trk-cnt">${t.cells.size} cell${t.cells.size>1?"s":""}</span>`+
       `<button class="trk-x" title="remove ${t.label}">×</button>`;
     row.addEventListener("click",e=>{ if(!e.target.classList.contains("trk-x")) flashTrack(t.id); });
@@ -1256,7 +1301,8 @@ function drawGlimmer(now){
   if(zoneFade<=0 || !activeDyn) return;
   ctx2.translate(zt.x,zt.y); ctx2.scale(zt.k,zt.k);      // follow the live pan/zoom (mirrors draw())
   const D=GLIM[activeDyn], s=cellPx, h=s/2, w=2*Math.PI/D.T;
-  ctx2.globalCompositeOperation="lighter"; ctx2.fillStyle=D.rgb;   // ADD to the sharp cell underneath
+  ctx2.globalCompositeOperation=LOOK.glim.op;                     // dark: ADD light to the cell underneath;
+  ctx2.fillStyle=activeDyn==="upwell"?LOOK.glim.up:LOOK.glim.prod; //   light/paper: an ink shimmer (multiply)
   for(const i of zoneSet){ if(px[i]!=px[i]) continue;
     let g=Math.sin(w*now + phase01(i)*6.2832); g=g>0?g:0; g=Math.pow(g, D.gamma);   // brief hot flash (mostly dark)
     const sweep=0.55+0.45*Math.sin(D.sweep*now - (px[i]+py[i])*0.015);              // slow travelling reflection
@@ -1339,7 +1385,7 @@ document.getElementById("mp4").addEventListener("click", recordVideo);
 let wcReady=false, navCursor=null, bridgeWS=null;       // bridgeWS: page → bridge → SC (/dark_tracked)
 const chipEl=document.getElementById("chip");
 function setChip(txt,on){ chipEl.textContent=txt;
-  chipEl.style.color=on?"#8ce6a8":"var(--dim)"; chipEl.style.borderColor=on?"#2f6a45":"#262d54"; }
+  chipEl.style.color=on?"var(--ds-ok)":"var(--dim)"; chipEl.style.borderColor=on?"var(--ds-ok-line)":"var(--ds-ctl-line)"; }
 
 // Everything the bridge says to the page. ONE handler, so the web build's in-tab engine can deliver the
 // same echoes (master + mix are painted ONLY from these: the page never guesses the sound state).
@@ -1499,7 +1545,18 @@ function setupPanel(){
   document.getElementById("trace-nb").addEventListener("click",()=>{ if(focusI>=0) createTrack([focusI, ...neighborSet]); });
   document.getElementById("tr-clear").addEventListener("click",()=>{ tracks=[]; renderTrackList(); draw(); syncTracked(); });
   buildMixer(); paintSound(); paintGlim(); renderTrackList(); updateNbPanel();
+  DarkStyle.control(document.getElementById("ds-looks"), { btnClass:"mbtn" }); DarkStyle.keys();   // LOOK: dark · light · paper (T)
 }
+// A LOOK SWITCH repaints everything that holds a data colour (map, key, information, traces, time wheels, the
+// sound legend's swatches); CSS repaints the rest by itself.
+DarkStyle.onChange(()=>{
+  applyLook(); if(!meta) return;
+  _smoothKey=""; _anomCR=null;
+  drawLegend(); renderInfo(); if(focusI>=0) renderCellInfo(); renderTrackList();
+  if(window.DarkLegend) DarkLegend.render();
+  if(window.TimeWheel && WHEEL_MONTHS) TimeWheel.recolor();
+  draw();
+});
 
 // ══ WHAT YOU MAKE SURVIVES A RELOAD (re_wilding 09-23): traces, colour, view, neighbours, the lens.
 //    A trace is a list of cell indices, so it is kept PER GRID: the cube and the daily tiles share one
@@ -1512,7 +1569,7 @@ function saveState(){
   const st=readState();
   st.mode=mode; st.combo=combo?combo.label:null; st.nb=NB_K; st.coast=baseMap; st.smooth=smoothOn; st.glim=glimArmed;
   st.traces=st.traces||{};
-  st.traces[gridSig()]=tracks.map(tr=>({id:tr.id, label:tr.label, color:tr.color, cells:[...tr.cells]}));
+  st.traces[gridSig()]=tracks.map(tr=>({id:tr.id, label:tr.label, slot:tr.slot, color:tr.color, cells:[...tr.cells]}));
   lsSet(LS.state, JSON.stringify(st));
 }
 function restoreState(){
@@ -1528,7 +1585,8 @@ function restoreState(){
     if(st.glim!=null){ glimArmed=!!st.glim; paintGlim(); }
     const tr=st.traces&&st.traces[gridSig()];
     if(Array.isArray(tr)){
-      tracks=tr.map(x=>({id:x.id, label:x.label, color:x.color, cells:new Set((x.cells||[]).filter(i=>i>=0&&i<N))})).filter(x=>x.cells.size);
+      const slotOf=x=>{ if(x.slot!=null) return x.slot; const k=LOOK_DATA.dark.track.indexOf(x.color); return k>=0?k:null; };   // traces saved before the kit
+      tracks=tr.map(x=>({id:x.id, label:x.label, slot:slotOf(x), color:x.color, cells:new Set((x.cells||[]).filter(i=>i>=0&&i<N))})).filter(x=>x.cells.size);
       trackSeq=tracks.reduce((m,x)=>Math.max(m,x.id),0);
     }
   } finally { _restoring=false; }
