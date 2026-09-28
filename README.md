@@ -1,14 +1,21 @@
 # darksonification-web
 
-Web versions of Miguel Angel Crozzoli's darksonification designs: data displays you read by eye and
-by ear. Each one runs in your browser; SuperCollider (its language, sclang, and its synthesis server,
-scsynth, compiled to WebAssembly) plays inside the page. Nothing to install.
+Dark Sonification is a multimodal data display design system focusing on human-data relations in a
+world increasingly driven by data and mediated through computational processes. It looks into how the
+process of designing and engaging with data allows meanings to emerge, when we position data and
+algorithms as non-human co-designers. A display created with Dark Sonification is the result of humans
+and data intra-acting within Dark Sonification's affordances, given by its structuring methodology and
+the specific algorithms selected for processing the data.
+
+This repository holds the web versions of Miguel Angel Crozzoli's designs. Each one runs in your
+browser; SuperCollider (its language, sclang, and its synthesis server, scsynth, compiled to
+WebAssembly) plays inside the page. Nothing to install.
 
 **Live:** https://mcrozzoli.github.io/darksonification-web/
 
 | design | what it is | with |
 |---|---|---|
-| [dark ocean](https://mcrozzoli.github.io/darksonification-web/dark-ocean/) | The North Atlantic, November 2020 – July 2023: water masses, temperature, salinity and nutrients as image and sound | Björn Erlingsson |
+| [dark ocean](https://mcrozzoli.github.io/darksonification-web/dark-ocean/) | The North Atlantic, November 2020 – July 2023: water masses, temperature, salinity and nutrients | Björn Erlingsson, Research Scientist in Physical Oceanography |
 
 ## How this repository is made
 
@@ -29,4 +36,5 @@ its page, its data, its `.scd` files and the engine it runs on.
   (unreleased), unmodified: scsynth and sclang are GPL-3.0; the WebAssembly bindings are AGPL-3.0.
   The licence text is in each design's `engine/LICENSE`; the corresponding source is the link above.
 - **D3** v7.9.0, ISC licence.
-- Built with [DarkSonification](https://github.com/Intelligent-Instruments-Lab/darksonification).
+- Built with [DarkSonification](https://github.com/Intelligent-Instruments-Lab/darksonification), and
+  Claude AI as a co-designing agent within the system's framework.

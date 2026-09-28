@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>darksonification</title>
-<meta name="description" content="Sonification designs by Miguel Angel Crozzoli. Each one runs in your browser: SuperCollider plays inside the page.">
+<meta name="description" content="Dark Sonification is a multimodal data display design system by Miguel Angel Crozzoli, focusing on human-data relations. Each design runs in your browser: SuperCollider plays inside the page.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Karla:wght@400;500&family=Rubik:wght@300;400&display=swap">
@@ -35,9 +35,8 @@
   .hero-art { width: 100%; height: auto; display: block; }
   .by { margin: 0 0 10px; font: 500 13px/1.2 "Karla", sans-serif; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-2); }
   h1 { margin: 0; font: 300 clamp(44px, 7.6vw, 84px)/1 "Rubik", "Helvetica Neue", sans-serif; letter-spacing: -.015em; }
-  .lead { margin: 18px 0 0; max-width: 34ch; font-size: 18.5px; color: var(--ink); }
-  .lead b { font-weight: 500; }
-  .how { margin: 22px 0 0; max-width: 40ch; font-size: 17px; color: var(--ink-2); }
+  .about { margin: 20px 0 0; max-width: 46ch; font-size: 16.5px; line-height: 1.62; color: var(--ink); }
+  .how { margin: 18px 0 0; max-width: 40ch; font-size: 17px; color: var(--ink-2); }
 
   /* ---------- the designs, laid out like the installation posters ---------- */
   .designs { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 28px; padding-block: 28px 12px; }
@@ -55,12 +54,11 @@
   .card p { margin: 0; }
   .card .line { font-size: 16px; }
   .card .meta { font-size: 14px; color: var(--ink-2); }
-  .card .go { margin-top: 10px; align-self: flex-start; font: 500 15px/1 "Karla", sans-serif; letter-spacing: .04em;
-              border-bottom: 1.5px solid var(--gold); padding-bottom: 3px; }
+  .card .go { margin-top: 16px; align-self: flex-start; font: 500 23px/1 "Karla", sans-serif; letter-spacing: .05em;
+              border-bottom: 2px solid var(--gold); padding-bottom: 5px; }
   .card:hover .go { color: var(--blue-deep); }
   .stamp { font: 500 11px/1 "Karla", sans-serif; letter-spacing: .14em; text-transform: uppercase; color: var(--rose);
            border: 1.4px solid var(--rose); border-radius: 999px; padding: 4px 8px 3px; transform: rotate(-4deg); }
-  .more { margin: 20px 0 0; color: var(--ink-2); font-size: 15px; }
 
   /* ---------- foot: a pulsar's single pulse as the rule ---------- */
   footer { margin-top: 56px; padding-block: 0 44px; color: var(--ink-2); font-size: 14px; }
@@ -79,7 +77,6 @@
     .designs:has(> .card:only-child) .card-text { padding: 4px 22px 22px; }
     .hero { grid-template-columns: 1fr; padding-block: 28px 8px; }
     .hero-art { max-width: 460px; margin: 0 auto -12px; order: -1; }
-    .lead { font-size: 17.5px; }
   }
 </style>
 </head>
@@ -142,6 +139,12 @@
     <div>
       <p class="by">Miguel Angel Crozzoli</p>
       <h1>darksonification</h1>
+      <p class="about">Dark Sonification is a multimodal data display design system focusing on human-data relations
+        in a world increasingly driven by data and mediated through computational processes. It looks into how the
+        process of designing and engaging with data allows meanings to emerge, when we position data and algorithms
+        as non-human co-designers. A display created with Dark Sonification is the result of humans and data
+        intra-acting within Dark Sonification's affordances, given by its structuring methodology and the specific
+        algorithms selected for processing the data.</p>
       <p class="how">Open a design and press ♪ to hear it. Headphones help.</p>
     </div>
     <svg class="hero-art" viewBox="0 0 600 470" role="img" aria-label="An ink and watercolour drawing: golden orbits, an olive brush stroke dotted with ink, blue ink dots and a field of stars over a peach wash.">
@@ -177,20 +180,20 @@
         <svg class="motif" viewBox="0 0 480 250" aria-hidden="true"><use href="#m-dark-ocean"/></svg>
         <div class="card-text">
           <h2>dark ocean</h2>
-          <p class="line">The North Atlantic, November 2020 – July 2023: water masses, temperature, salinity and nutrients as image and sound.</p>
-          <p class="meta">with Björn Erlingsson · SuperCollider (sclang + scsynth) in the browser</p>
+          <p class="line">The North Atlantic, November 2020 – July 2023: water masses, temperature, salinity and nutrients</p>
+          <p class="meta">In collaboration with Björn Erlingsson, Research Scientist in Physical Oceanography</p>
           <span class="go">open ♪</span>
         </div>
       </a>
     </section>
-    <p class="more">More designs will appear here as they come to the web.</p>
   </main>
 
   <footer>
     <svg viewBox="0 0 1000 36" preserveAspectRatio="none" aria-hidden="true">
       <path d="M0 26 H 470 C 482 26, 486 24, 492 18 L 500 3 L 506 22 C 509 29, 514 26, 530 26 H 1000" fill="none" stroke="#33203a" stroke-width="1.2" vector-effect="non-scaling-stroke" filter="url(#ink)"/>
     </svg>
-    <p>Built with <a href="https://github.com/Intelligent-Instruments-Lab/darksonification">DarkSonification</a>. Sound: SuperCollider, compiled to WebAssembly, running in your browser.</p>
+    <p>Built with <a href="https://github.com/Intelligent-Instruments-Lab/darksonification">DarkSonification</a>, and Claude AI as a co-designing agent within the system's framework.</p>
+    <p>Sound: SuperCollider, compiled to WebAssembly, running in your browser.</p>
     <p>Source of this site: <a href="https://github.com/mCrozzoli/darksonification-web">github.com/mCrozzoli/darksonification-web</a></p>
   </footer>
 </div>
