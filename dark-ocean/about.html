@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dark Ocean · about</title>
+<style>
+  :root { color-scheme: dark; --bg:#0b0f1e; --ink:#dfe5f2; --dim:#8f9bbd; --rule:#262d54; --acc:#f0b35a; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.6 -apple-system,"Segoe UI",Roboto,sans-serif; }
+  main { max-width:720px; margin:0 auto; padding:40px 20px 64px; }
+  h1 { font-size:28px; margin:0 0 4px; } h2 { font-size:15px; margin:32px 0 8px; text-transform:uppercase; letter-spacing:.08em; color:var(--dim); }
+  p, li { color:var(--ink); } .dim { color:var(--dim); }
+  a { color:var(--acc); } ul { padding-left:18px; } li { margin:4px 0; }
+  code { font:13px ui-monospace,Menlo,monospace; color:var(--dim); }
+</style>
+</head>
+<body>
+<main>
+<h1>Dark Ocean</h1>
+<p class="dim">The North Atlantic, November 2020 – July 2023, read by eye and by sound.</p>
+
+<p>Each cell of the map is one place on an ocean model grid, carrying temperature, salinity and
+thirteen biogeochemical variables. Colour shows either the water mass a cell belongs to or a continuous
+field. Press <b>♪</b> to hear the whole region on the date shown. <b>Time is the ground</b>: temperature
+becomes pitch (the coldest date on screen is the lowest note, the warmest the highest), salinity becomes
+space, nutrients become rain, anomaly (how unusual the date is for each place against the whole record)
+becomes tremolo, and the most common water mass holds a bed tone and rings a clean bell when another mass
+takes over. <b>Space is the figure</b>: the place you pick chimes on the dates it is upwelling or at a
+productive front. Cells you trace sound together as a chord.</p>
+
+<p>Press <b>L</b> for the legend: hold a chip to hear one change on the date shown, even with ♪ off.
+The sound tab has a fader for every layer. Headphones help.</p>
+
+<h2>Credits</h2>
+<ul>
+  <li>Design, sound and code: <b>Miguel Crozzoli</b>.</li>
+  <li>In collaboration with <b>Björn Erlingsson</b>, Research Scientist in Physical Oceanography, whose
+      questions shaped what the display tries to show.</li>
+  <li>Built with <a href="https://github.com/Intelligent-Instruments-Lab/darksonification" target="_blank" rel="noopener">DarkSonification</a>.</li>
+</ul>
+
+<h2>Data</h2>
+<ul>
+  <li>Ocean fields: a gridded reanalysis of the North Atlantic from the E.U. Copernicus Marine Service.
+      Generated using E.U. Copernicus Marine Service Information.</li>
+  <li>Water masses follow the end-member framework for the waters around Iceland and the Denmark Strait:
+      Mastropole, D., et al. (2017). On the hydrography of Denmark Strait.
+      <i>Journal of Geophysical Research: Oceans</i>, 122.
+      <a href="https://agupubs.onlinelibrary.wiley.com/doi/full/10.1002/2016JC012007" target="_blank" rel="noopener">doi:10.1002/2016JC012007</a></li>
+  <li>Coastlines: <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a> (public domain).</li>
+</ul>
+
+<h2>Sound</h2>
+<p>The sound is made by <b>SuperCollider running inside this page</b>: its synthesis server
+(<code>scsynth</code>) and its language (<code>sclang</code>), compiled to WebAssembly. They run the
+design's own SuperCollider files, the same ones the desktop version plays, so what you hear is the
+design's code rather than a translation of it. Two differences from the desktop version: one modulation
+source that this engine does not include (<code>LinCongL</code>) is replaced by a smooth random walk of
+the same rate and range, and video export records the sound directly instead of muxing it afterwards.</p>
+
+<h2>Software and licences</h2>
+<ul>
+  <li><a href="https://supercollider.github.io/" target="_blank" rel="noopener">SuperCollider</a>, WebAssembly
+      build from the development branch at commit
+      <a href="https://github.com/supercollider/supercollider/tree/5d47207bb313684e81ebe729a5f714f50761c6c7" target="_blank" rel="noopener"><code>5d47207</code></a>
+      (unreleased). scsynth and sclang: GPL-3.0; the WebAssembly bindings: AGPL-3.0. Unmodified; the
+      licence text is in <code>engine/LICENSE</code>.</li>
+  <li><a href="https://d3js.org/" target="_blank" rel="noopener">D3</a> v7.9.0 (ISC licence).</li>
+  <li>This page's own code: <a href="https://github.com/mCrozzoli/darksonification-web" target="_blank" rel="noopener">github.com/mCrozzoli/darksonification-web</a>.</li>
+</ul>
+
+<p class="dim"><a href="./">← back to the map</a></p>
+</main>
+</body>
+</html>

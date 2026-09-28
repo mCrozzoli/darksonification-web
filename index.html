@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>darksonification</title>
+<meta name="description" content="Sonification designs by Miguel Angel Crozzoli. Each one runs in your browser: SuperCollider plays inside the page.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Karla:wght@400;500&family=Rubik:wght@300;400&display=swap">
+<style>
+  /* Palette from Miguel's drawings and posters: warm paper, aubergine ink, ochre lines, olive brush,
+     blue ink dots with darker rims, peach and pale-yellow washes. One look, on purpose (paper). */
+  :root {
+    color-scheme: light;
+    --paper: #f3e5da; --paper-hi: #f9f1e9; --ink: #33203a; --ink-2: #6f5c69;
+    --gold: #c6922c; --olive: #6d8a3b; --blue: #3a82aa; --blue-deep: #1d4a66;
+    --peach: #ef9f84; --butter: #f3e7b8; --rose: #c85168;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--paper); }
+  body {
+    margin: 0; color: var(--ink);
+    font: 17px/1.65 "Karla", "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--paper);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .27 0 0 0 0 .24 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E");
+  }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; border-radius: 2px; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding-inline: 24px; }
+
+  /* ---------- the first page: a drawing with the name set into it ---------- */
+  .hero { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+          align-items: center; gap: 12px; padding-block: 56px 24px; }
+  .hero-art { width: 100%; height: auto; display: block; }
+  .by { margin: 0 0 10px; font: 500 13px/1.2 "Karla", sans-serif; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-2); }
+  h1 { margin: 0; font: 300 clamp(44px, 7.6vw, 84px)/1 "Rubik", "Helvetica Neue", sans-serif; letter-spacing: -.015em; }
+  .lead { margin: 18px 0 0; max-width: 34ch; font-size: 18.5px; color: var(--ink); }
+  .lead b { font-weight: 500; }
+  .how { margin: 22px 0 0; max-width: 40ch; font-size: 17px; color: var(--ink-2); }
+
+  /* ---------- the designs, laid out like the installation posters ---------- */
+  .designs { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 28px; padding-block: 28px 12px; }
+  /* while there is one design, it is a feature: drawing left, words right */
+  .designs:has(> .card:only-child) { grid-template-columns: 1fr; }
+  .designs:has(> .card:only-child) .card { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); grid-template-rows: auto; align-items: center; }
+  .designs:has(> .card:only-child) .card-text { padding: 26px 34px 26px 6px; }
+  .card { position: relative; display: grid; grid-template-rows: auto 1fr; text-decoration: none; background: var(--paper-hi);
+          border-radius: 3px; box-shadow: 0 1px 0 rgba(51, 32, 58, .06), 0 18px 34px -24px rgba(51, 32, 58, .45);
+          transition: transform .25s ease, box-shadow .25s ease; overflow: hidden; }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 1px 0 rgba(51, 32, 58, .06), 0 24px 40px -24px rgba(51, 32, 58, .5); }
+  .card .motif { width: 100%; height: auto; display: block; }
+  .card-text { padding: 4px 26px 24px; display: flex; flex-direction: column; gap: 6px; }
+  .card h2 { margin: 0; font: 300 30px/1.1 "Rubik", sans-serif; letter-spacing: -.01em; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .card p { margin: 0; }
+  .card .line { font-size: 16px; }
+  .card .meta { font-size: 14px; color: var(--ink-2); }
+  .card .go { margin-top: 10px; align-self: flex-start; font: 500 15px/1 "Karla", sans-serif; letter-spacing: .04em;
+              border-bottom: 1.5px solid var(--gold); padding-bottom: 3px; }
+  .card:hover .go { color: var(--blue-deep); }
+  .stamp { font: 500 11px/1 "Karla", sans-serif; letter-spacing: .14em; text-transform: uppercase; color: var(--rose);
+           border: 1.4px solid var(--rose); border-radius: 999px; padding: 4px 8px 3px; transform: rotate(-4deg); }
+  .more { margin: 20px 0 0; color: var(--ink-2); font-size: 15px; }
+
+  /* ---------- foot: a pulsar's single pulse as the rule ---------- */
+  footer { margin-top: 56px; padding-block: 0 44px; color: var(--ink-2); font-size: 14px; }
+  footer svg { width: 100%; height: 36px; display: block; margin-bottom: 10px; }
+  footer p { margin: 4px 0; max-width: 72ch; }
+  footer a { text-decoration-color: var(--gold); text-underline-offset: 3px; }
+
+  /* the golden line draws itself once; everything is visible without motion */
+  @media (prefers-reduced-motion: no-preference) {
+    .draw { stroke-dasharray: 1400; stroke-dashoffset: 1400; animation: draw 3.2s ease-out .2s forwards; }
+    .draw.d2 { animation-delay: .9s; }
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+  }
+  @media (max-width: 760px) {
+    .designs:has(> .card:only-child) .card { grid-template-columns: 1fr; }
+    .designs:has(> .card:only-child) .card-text { padding: 4px 22px 22px; }
+    .hero { grid-template-columns: 1fr; padding-block: 28px 8px; }
+    .hero-art { max-width: 460px; margin: 0 auto -12px; order: -1; }
+    .lead { font-size: 17.5px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- the tools: ink wobble, watercolour edges, washes; and one motif per design -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="ink" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency=".04" numOctaves="2" seed="4" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="2.6"/>
+    </filter>
+    <filter id="wash" x="-25%" y="-25%" width="150%" height="150%">
+      <feTurbulence type="fractalNoise" baseFrequency=".011" numOctaves="3" seed="11" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="46" result="d"/>
+      <feGaussianBlur in="d" stdDeviation="1.4"/>
+    </filter>
+    <radialGradient id="peach" cx="50%" cy="46%" r="55%">
+      <stop offset="0" stop-color="#ef9f84" stop-opacity=".55"/><stop offset=".72" stop-color="#ef9f84" stop-opacity=".42"/>
+      <stop offset="1" stop-color="#e98c70" stop-opacity=".62"/>
+    </radialGradient>
+    <radialGradient id="butter" cx="50%" cy="50%" r="55%">
+      <stop offset="0" stop-color="#f3e7b8" stop-opacity=".75"/><stop offset="1" stop-color="#ecd98f" stop-opacity=".7"/>
+    </radialGradient>
+    <radialGradient id="atl" r="60%"><stop offset="0" stop-color="#3f7fb0" stop-opacity=".42"/><stop offset="1" stop-color="#2f6e9f" stop-opacity=".55"/></radialGradient>
+    <radialGradient id="pol" r="60%"><stop offset="0" stop-color="#63b8a6" stop-opacity=".40"/><stop offset="1" stop-color="#4fa895" stop-opacity=".52"/></radialGradient>
+    <radialGradient id="arc" r="60%"><stop offset="0" stop-color="#ef9f84" stop-opacity=".42"/><stop offset="1" stop-color="#e3876b" stop-opacity=".55"/></radialGradient>
+
+    <!-- dark ocean: three water masses as washes, currents in ink, a light rain of dots -->
+    <symbol id="m-dark-ocean" viewBox="0 0 480 250">
+      <ellipse cx="170" cy="130" rx="150" ry="92" fill="url(#atl)" filter="url(#wash)"/>
+      <ellipse cx="318" cy="112" rx="112" ry="74" fill="url(#pol)" filter="url(#wash)"/>
+      <ellipse cx="398" cy="178" rx="62" ry="44" fill="url(#arc)" filter="url(#wash)"/>
+      <g fill="none" stroke-linecap="round" filter="url(#ink)">
+        <path d="M34 150 C 92 118, 150 176, 212 142 S 322 104, 384 136 S 440 160, 458 146" stroke="#1d4a66" stroke-width="1.7"/>
+        <path d="M52 176 C 110 150, 168 200, 236 170 S 350 138, 420 166" stroke="#1d4a66" stroke-width="1.2" opacity=".75"/>
+        <path d="M76 116 C 128 92, 190 132, 250 108 S 350 76, 408 98" stroke="#c6922c" stroke-width="1.5"/>
+      </g>
+      <g fill="#33203a" filter="url(#ink)">
+        <circle cx="120" cy="58" r="2"/><circle cx="146" cy="44" r="1.4"/><circle cx="178" cy="64" r="1.8"/><circle cx="214" cy="40" r="1.3"/>
+        <circle cx="246" cy="58" r="2.2"/><circle cx="292" cy="36" r="1.5"/><circle cx="330" cy="52" r="1.9"/><circle cx="362" cy="34" r="1.3"/>
+      </g>
+      <g filter="url(#ink)">
+        <circle cx="96" cy="210" r="7" fill="#3a82aa" stroke="#1d4a66" stroke-width="2"/>
+        <circle cx="428" cy="70" r="5" fill="#3a82aa" stroke="#1d4a66" stroke-width="1.6"/>
+      </g>
+    </symbol>
+
+    <!-- any design without its own motif: an orbit and a field of stars -->
+    <symbol id="m-default" viewBox="0 0 480 250">
+      <ellipse cx="250" cy="130" rx="150" ry="94" fill="url(#butter)" filter="url(#wash)"/>
+      <path d="M140 150 C 170 70, 330 60, 360 130 S 270 220, 200 170 S 260 80, 330 110" fill="none" stroke="#c6922c" stroke-width="1.5" stroke-linecap="round" filter="url(#ink)"/>
+      <g fill="#33203a" filter="url(#ink)"><circle cx="120" cy="60" r="2"/><circle cx="380" cy="70" r="1.6"/><circle cx="410" cy="180" r="2"/><circle cx="96" cy="190" r="1.5"/></g>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <header class="hero">
+    <div>
+      <p class="by">Miguel Angel Crozzoli</p>
+      <h1>darksonification</h1>
+      <p class="how">Open a design and press ♪ to hear it. Headphones help.</p>
+    </div>
+    <svg class="hero-art" viewBox="0 0 600 470" role="img" aria-label="An ink and watercolour drawing: golden orbits, an olive brush stroke dotted with ink, blue ink dots and a field of stars over a peach wash.">
+      <ellipse cx="352" cy="244" rx="178" ry="156" fill="url(#peach)" filter="url(#wash)"/>
+      <ellipse cx="170" cy="118" rx="96" ry="70" fill="url(#butter)" filter="url(#wash)"/>
+      <g fill="none" stroke-linecap="round" filter="url(#ink)">
+        <path class="draw" d="M96 300 C 120 150, 330 86, 450 170 S 470 390, 300 392 S 150 270, 272 196 S 520 214, 470 330 S 300 432, 222 360" stroke="#c6922c" stroke-width="1.7"/>
+        <path class="draw d2" d="M150 250 C 210 150, 390 130, 430 230 S 330 360, 260 300 S 300 190, 380 214" stroke="#c6922c" stroke-width="1.2" opacity=".8"/>
+        <path d="M188 356 C 238 316, 262 262, 336 238 S 434 210, 472 150" stroke="#6d8a3b" stroke-width="10" opacity=".88"/>
+      </g>
+      <g fill="#33203a" filter="url(#ink)">
+        <circle cx="222" cy="336" r="2.3"/><circle cx="258" cy="302" r="2.1"/><circle cx="292" cy="268" r="2.3"/><circle cx="330" cy="244" r="2"/>
+        <circle cx="372" cy="228" r="2.2"/><circle cx="414" cy="210" r="2"/><circle cx="446" cy="182" r="2.1"/>
+      </g>
+      <g filter="url(#ink)">
+        <circle cx="486" cy="92" r="9" fill="#3a82aa" stroke="#1d4a66" stroke-width="2.4"/>
+        <circle cx="530" cy="136" r="6" fill="#3a82aa" stroke="#1d4a66" stroke-width="2"/>
+        <circle cx="452" cy="58" r="5" fill="#3a82aa" stroke="#1d4a66" stroke-width="1.8"/>
+        <circle cx="520" cy="60" r="4" fill="#bfb3ae" opacity=".7"/><circle cx="560" cy="100" r="3.4" fill="#bfb3ae" opacity=".6"/>
+      </g>
+      <g fill="#33203a" opacity=".85">
+        <circle cx="62" cy="80" r="1.6"/><circle cx="98" cy="44" r="1.2"/><circle cx="134" cy="66" r="1.8"/><circle cx="58" cy="150" r="1.3"/>
+        <circle cx="560" cy="250" r="1.6"/><circle cx="572" cy="310" r="1.2"/><circle cx="540" cy="370" r="1.8"/><circle cx="96" cy="410" r="1.4"/>
+        <circle cx="40" cy="236" r="1.2"/><circle cx="412" cy="438" r="1.5"/>
+      </g>
+      <circle cx="352" cy="244" r="206" fill="none" stroke="#33203a" stroke-width="1" stroke-dasharray="1 7" opacity=".45"/>
+    </svg>
+  </header>
+
+  <main>
+    <section class="designs" aria-label="Designs">
+      <a class="card" href="dark-ocean/">
+        <svg class="motif" viewBox="0 0 480 250" aria-hidden="true"><use href="#m-dark-ocean"/></svg>
+        <div class="card-text">
+          <h2>dark ocean</h2>
+          <p class="line">The North Atlantic, November 2020 – July 2023: water masses, temperature, salinity and nutrients as image and sound.</p>
+          <p class="meta">with Björn Erlingsson · SuperCollider (sclang + scsynth) in the browser</p>
+          <span class="go">open ♪</span>
+        </div>
+      </a>
+    </section>
+    <p class="more">More designs will appear here as they come to the web.</p>
+  </main>
+
+  <footer>
+    <svg viewBox="0 0 1000 36" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 26 H 470 C 482 26, 486 24, 492 18 L 500 3 L 506 22 C 509 29, 514 26, 530 26 H 1000" fill="none" stroke="#33203a" stroke-width="1.2" vector-effect="non-scaling-stroke" filter="url(#ink)"/>
+    </svg>
+    <p>Built with <a href="https://github.com/Intelligent-Instruments-Lab/darksonification">DarkSonification</a>. Sound: SuperCollider, compiled to WebAssembly, running in your browser.</p>
+    <p>Source of this site: <a href="https://github.com/mCrozzoli/darksonification-web">github.com/mCrozzoli/darksonification-web</a></p>
+  </footer>
+</div>
+</body>
+</html>

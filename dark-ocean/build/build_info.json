@@ -1,0 +1,41 @@
+{
+  "built": "2026-09-27 21:44:46",
+  "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
+  "sources": {
+    "viz/map.html": "5f240de37ae827bd",
+    "viz/legend.js": "13dbf82d7bbed7c4",
+    "viz/timewheel.js": "d9257e00c4e40cc0",
+    "viz/sunburst.js": "ce559e9eb2896729",
+    "viz/coastline.geojson": "8c22327236fe742b",
+    "viz/multiyear.json": "ea84e5350134adaa",
+    "viz/units.json": "1aa315920a5d7e5a",
+    "sc/dark_ocean_synths.scd": "4f93172e5fb3782e",
+    "sc/parse_dark_ocean.scd": "764dbe4c8af95297"
+  },
+  "patches": [
+    "d3 vendored: cross-origin isolation blocks the d3js.org CDN; web_bridge.js must run after d3 and before the page script",
+    "web_control.js only links to the darkui GUI, which does not exist on the web",
+    "the transport: connectBridge() hands the page to the in-tab SuperCollider engine instead of a WebSocket. The page paints ♪, the volume and the faders ONLY from the engine's echoes (onBridgeMessage), exactly as it does from bridge.py's; bridge: mirrors the page's own ws.onopen",
+    "video export: the engine's audio track goes into the same MediaRecorder (desktop: SC records a WAV and mux_video.sh joins them)",
+    "♪ tooltip: there is no bridge on the web",
+    "status line: there is no terminal on the web",
+    "the header chip's tooltip: no bridge on the web",
+    "the title links to credits + licences (a new tab, so the sound keeps playing)"
+  ],
+  "sc_patches": [
+    {
+      "file": "dark_ocean_synths.scd",
+      "why": "LinCongL is absent from SuperCollider's WebAssembly build (and SuperSonic): the whole Chaos family is not compiled in. Same rate and range, a smooth random walk instead of a chaotic map. PENDING Miguel's A/B listen: if approved, make the same change in sc/ so both builds match."
+    }
+  ],
+  "data": {
+    "cube_time.json": {
+      "raw": 34749285,
+      "gz": 6990174
+    },
+    "daily": {
+      "months": 33,
+      "gz_total": 210042433
+    }
+  }
+}
