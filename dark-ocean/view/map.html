@@ -538,6 +538,11 @@ function resize(){
   computePositions(); draw();
 }
 window.addEventListener("resize", ()=>{ if(N) resize(); });
+// THE MAP FOLLOWS ITS BOX (2026-09-29). The window is not the only thing that changes the map's size: in the cube
+// view the #period bar appears after the first layout, and the side panel and the legend fold. Without this the
+// canvas kept its first size, squashed about 3.5% into the smaller box, and draw() (which clears the box) left a
+// strip of the first frame under the southern edge, blue from the water-mass colours, in every later mode.
+if(window.ResizeObserver) new ResizeObserver(()=>{ if(N) resize(); }).observe(document.getElementById("map"));
 
 // px[]/py[] for the current combination. GEO = stereographic map (frame-independent);
 // SCATTER = linear xy on the combo's columns for the CURRENT frame (points move per day,
