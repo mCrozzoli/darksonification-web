@@ -26,6 +26,9 @@ const ENGINE_DIR = new URL("./engine/", import.meta.url);
 const SC_DIR = new URL("./sc/", import.meta.url);
 const SC_FILES = ["dark_ocean_synths.scd", "parse_dark_ocean.scd"];
 const MIX_KEYS = ["drone", "bed", "rain", "bell", "chimes", "trace"];    // bridge.py MIX_KEYS
+// The web version's starting mix (Miguel 2026-09-29): the six SOUND-tab faders as a first listen in a browser should
+// hear them. The desktop bridge keeps its own (all 1). A visitor's changes last until the page is reloaded.
+const DEFAULT_MIX = { drone: 0.14, bed: 0.40, rain: 0.56, bell: 0.80, chimes: 0.14, trace: 1.00 };
 
 // This build's scsynth.getWorkletNode() throws (lab/PORTING_LOG.md §2, gotcha 2), so remember
 // whichever AudioWorkletNode connects to the speakers: that is scsynth.
@@ -62,9 +65,9 @@ class DarkEngine {
     this.pages = new Set();                      // {page, win, holding}
     this.log = [];                               // last post-window lines: darkEngine.log
     this.watchers = [];
-    // bridge.py SOUND, except ♪ starts ON here (Miguel 2026-09-28: "sound should be on by default");
-    // SuperCollider itself still boots muted and gets this state from replay()
-    this.SOUND = { master: { vol: 1.0, mute: 0 }, mix: Object.fromEntries(MIX_KEYS.map((k) => [k, 1.0])),
+    // bridge.py SOUND, except ♪ starts ON here (Miguel 2026-09-28: "sound should be on by default") and the faders
+    // start at DEFAULT_MIX; SuperCollider itself still boots muted and gets this state from replay()
+    this.SOUND = { master: { vol: 1.0, mute: 0 }, mix: { ...DEFAULT_MIX },
                    frame: null, tracked: null };
     this.pendingHold = null;                     // a legend hold that arrived while SC was starting
     this.attempt = 0;                            // start attempts; a superseded attempt stops at its next step
@@ -273,9 +276,9 @@ class DarkEngine {
   }
   replay() {
     const S = this.SOUND;
-    this.send("/dark_master", [s("vol"), f(S.master.vol)]);
+    this.send("/dark_mix", MIX_KEYS.map((k) => f(S.mix[k])));   // the mix FIRST, while SC is still muted: its own
+    this.send("/dark_master", [s("vol"), f(S.master.vol)]);      //   default mix (all 1) must never be heard
     this.send("/dark_master", [s("mute"), f(S.master.mute)]);
-    this.send("/dark_mix", MIX_KEYS.map((k) => f(S.mix[k])));
     if (S.frame) this.send(...this.relay(S.frame));
     if (S.tracked) this.send(...this.relay(S.tracked));
   }
