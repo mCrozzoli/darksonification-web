@@ -303,7 +303,8 @@ const LOOK_DATA = (()=>{ const S = DarkStyle.sets, R = DarkStyle.ramp, P = DarkS
 let LOOK = LOOK_DATA.dark;
 
 // The GUI's colour "richness" on discrete fields: a flat cluster colour dimmed +
-// faded by each cell's distance to its centroid (baked as `dist`, 0=core..1=edge).
+// faded by each cell's distance to its centroid (baked as `dist`, 0=core..1=edge). The CLUSTER view only: since
+// 2026-09-29 the water-mass view is shaded by the cell's own share of its water (shareFade, below).
 // Replicates the engine's compute_brightness × compute_alpha, so structure emerges
 // WITHIN a cluster band instead of a solid block. min_* floors keep far cells faintly
 // visible on the dark canvas (the engine's 0-floor would vanish here).
@@ -368,6 +369,10 @@ function loadMix(){
   });
   return _wmixLoad;
 }
+// The water-mass CLASS view's shade (2026-09-29, Miguel): the cell's share of its own water mass, on the absolute
+// scale: a pure water (share 1) in full colour, a three-way tie (1/3) at the faintest. Absolute, so a cell reads the
+// same by month and by day. Flat until the shares have loaded.
+function shareFade(v){ return Math.max(0, Math.min(1, 1 - (v - 1/3) / (2/3))); }
 function mixAt(i){ const m=WMIX[meta.dates[t]]; if(!m || m[3*i]===255) return null; return [m[3*i]/254, m[3*i+1]/254, m[3*i+2]/254]; }
 function mixRGB(s){ const C=LOOK.mix; return [0,1,2].map(k=>(s[0]*C[0][k]+s[1]*C[1][k]+s[2]*C[2][k])|0); }   // his blend: Σ share·corner
 function mixText(s){ return s.map((v,k)=>`<span class="sw" style="background:rgb(${LOOK.mix[k].join(",")})"></span>${Math.round(v*100)}%`).join(" "); }
@@ -590,7 +595,8 @@ function anomColorRange(){
 }
 function cellColor(f,i){
   const d = f.dist ? f.dist[i] : null;                         // within-cluster distance 0..1
-  if(mode==="wm"){ const c=f.wm[i]; return c==null?null:modulate(WM_RGB[c], d); }
+  if(mode==="wm"){ const c=f.wm[i]; if(c==null) return null;            // shaded by how much of the cell IS that water
+    const s=mixAt(i); return modulate(WM_RGB[c], s ? shareFade(s[c]) : null); }   //   (its own share), not the cluster distance
   if(mode==="km"){ const c=f.km[i]; return c==null?null:modulate(KM_RGB[c], d); }
   if(mode==="wmix"){ if(f.temp[i]==null) return null; const s=mixAt(i); if(!s) return null;   // his blend, no cluster distance
     const c=mixRGB(s); return `rgb(${c[0]},${c[1]},${c[2]})`; }
@@ -767,7 +773,9 @@ function drawLegend(){
     const cols=mode==="wm"?WM_COLORS:KM_COLORS;
     const n=mode==="wm"?(meta.waterMass||cols.length):(meta.cluster||cols.length);   // 3-class water mass, 4 clusters
     const lab=i=> mode==="wm" ? wmName(i) : `cluster ${i}`;
-    const note=(mode==="km"&&meta.daily)?`<div class="note">clusters fitted on the daily data: the same colour is not the same group as on the monthly record</div>`:"";
+    if(mode==="wm") loadMix();                                   // the shade is the cell's own share (viz/wmix/)
+    const note=mode==="wm" ? `<div class="note">full colour: the cell is almost all that water · faint: a close mix of the three</div>`
+      : (meta.daily ? `<div class="note">clusters fitted on the daily data: the same colour is not the same group as on the monthly record</div>` : "");
     el.innerHTML=Array.from({length:n},(_,i)=>`<div class="row"><span><span class="sw" style="background:${cols[i]}"></span>${lab(i)}</span></div>`).join("")+note;
   } else if(mode==="wmix"){
     loadMix();
