@@ -269,7 +269,9 @@ window.LEG = (function () {
   #rwleg{ position:fixed; top:0; left:0; width:430px; height:100%; z-index:40; display:none;
     background:var(--rw-legend-bg); border-right:1px solid var(--rw-legend-edge); overflow:auto; padding:16px 20px 24px;
     font:var(--ds-font-size)/1.5 var(--ds-font-ui); color:var(--txt,#c8d0ee); }
-  #rwleg.open{ display:block; } body.rwleg-open #wrap{ margin-left:430px; }
+  /* the panel's whole width: 430 + 2 x 20 padding + 1 border. It was 430, and the first 41 px of every view
+     sat under the docked legend (found with P44, 2026-09-30: the scatter's DAWN caption, the biplot's y axis) */
+  #rwleg.open{ display:block; } body.rwleg-open #wrap{ margin-left:471px; }
   /* the legend's own edge tab, mirroring the sidebar's on the right: the panel is always
      reachable without hunting for a header button, and it says what it is */
   #rwleg-tab{ position:fixed; top:50%; left:0; z-index:39; transform:translateY(-50%);
@@ -1037,6 +1039,21 @@ window.LEG = (function () {
       : "BI · bioacoustic index: how much sound there is in the bird band (1–10 kHz), above its quietest level",
   };
   const gloss = (k, ch) => Object.prototype.hasOwnProperty.call(GLOSS, k) ? GLOSS[k](ch) : null;
+  // THE SCATTER'S AXES IN PLAIN WORDS (P44, 2026-09-30; Alice T2). "NAME · meaning", as GLOSS: the legend
+  // face's own words where it has a row for the measure (ROWS name · what), GLOSS for AEI / BI, and the two
+  // it has no row for: n_species (Miguel's "BirdNET species per minute", P45) and Anthro (maad's
+  // AnthroEnergy band, 0–2 kHz: lab/LEGEND_REFERENCE.md §4.3). On water Bio names its band (the water (i):
+  // 1–8 kHz), not "the birdsong range" - a hydrophone, as GLOSS's BI does. STATIC strings; null = none.
+  // Separate from GLOSS on purpose: a GLOSS entry also glosses the roses' and linear's picker.
+  const AXIS_ROW = { ACI: "clave.index.aci", Ht: "clave.index.bright", Bio: "clave.index.bioenergy",
+                     NBPEAKS: "clave.index.nbpeaks" };
+  const AXIS_WORDS = { n_species: "BirdNET species per minute", Anthro: "energy below about 2 kHz" };
+  function axisName(k, ch) {
+    if (k === "Bio" && ch === "water") return "Bio · energy in the 1–8 kHz range";
+    if (Object.prototype.hasOwnProperty.call(AXIS_WORDS, k)) return k + " · " + AXIS_WORDS[k];
+    const r = Object.prototype.hasOwnProperty.call(AXIS_ROW, k) ? ROWS.find(x => x.id === AXIS_ROW[k]) : null;
+    return r ? r.name + " · " + r.what : gloss(k, ch);
+  }
   // what the picked index IS on each view that has a picker (the SEE key's line, AEI / BI only)
   const INDEX_KEY = { "rose.html": "radius", "linear.html": "height" };
   // WHICH PROPERTY OF A MOMENT THE HUM FOLLOWS, in the words the sidebar uses (SOUND · DRONE
@@ -1058,6 +1075,7 @@ window.LEG = (function () {
   }
   function buildSee() {
     const view = here(), v = VIEWS[view] || null, hv = HOUR_VIEWS[view];
+    const pageChan = () => (opts.channel ? opts.channel() : "air");   // the channel the page draws
     const s = stat();                                   // the shipped default — must track WC.statPref()
     const dim = 'style="color:var(--dim,#67708c)"';
     // THE KEY IS PER VIEW, because the views do not share an encoding (review 2026-09-26):
@@ -1070,9 +1088,12 @@ window.LEG = (function () {
       ? `<div class="lrow">${dielSwatches()}</div>
          <div class="lrow"><span class="sw" style="height:2px;vertical-align:3px;background:${TRACE_BLUE}"></span>line colour = one per <b>month</b> you compare</div>`
       : `<div class="lrow"><span class="sw" style="background:var(--rw-months)"></span>colour = <b>month</b> (seasons line up across years)</div>` +
-        ((view === "index.html" || view === "biplot.html")
-          ? `<div class="lrow">● small ▸ ● large = <b>number of species</b></div>` : "") +
-        (view === "index.html"
+        // the SIZE is BirdNET species per minute (n_species_analysed since 2026-09-29), in the biplot's size key's
+        // words (2026-10-01; it said "number of species"). Water has no BirdNET: its dots are one size and never
+        // hollow, so neither line is claimed there (the page's channel: this is what the picture shows)
+        ((view === "index.html" || view === "biplot.html") && pageChan() !== "water"
+          ? `<div class="lrow">● small ▸ ● large = <b>BirdNET species per minute</b></div>` : "") +
+        (view === "index.html" && pageChan() !== "water"
           ? `<div class="lrow"><i style="background:none;border:1.5px solid var(--rw-partial)"></i>hollow = <b>no species count</b> (BirdNET could not read that audio)</div>` : "");
     const key = hv
       // ---- hour-of-day views: spectro, mfcc ----
@@ -1157,5 +1178,6 @@ window.LEG = (function () {
     // HEAR rebuild (which would release a held chip) - nothing is sent
     see() { if (open) buildSee(); },
     gloss,                                               // the index picker's plain words (GLOSS)
+    axisName,                                            // the scatter's axes in plain words (P44)
   };
 })();

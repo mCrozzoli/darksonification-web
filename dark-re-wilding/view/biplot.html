@@ -68,6 +68,18 @@
   @keyframes wcpulse{ 0%,100%{ filter:drop-shadow(0 0 2px var(--rw-gold)); } 50%{ filter:drop-shadow(0 0 7px var(--rw-gold-hi)); } }
   circle.wc-ring{ animation:wcpulse 1.6s ease-in-out infinite; }
   .hint{ color:var(--dim); font-size:10px; line-height:1.4; margin:4px 0 2px; }
+  /* THE SIZE KEY (P45, 2026-09-30): what a dot's size says, drawn with the plot's own scale (drawSizeKey).
+     Quiet, map-legend style: where the plot is not; on glass only when it has to sit over the plot. */
+  #sizekey{ position:absolute; pointer-events:none; z-index:1; color:var(--rw-label); font-size:11px;
+    line-height:1.35; border-radius:6px; }
+  #sizekey.glass{ background:var(--rw-glass); border:1px solid var(--line); padding:5px 8px; }
+  #sizekey svg{ display:block; width:auto; height:auto; overflow:visible; }
+  #sizekey .dots{ display:flex; align-items:flex-end; gap:10px; }
+  #sizekey .sk{ display:flex; flex-direction:column; align-items:center; gap:1px; }
+  #sizekey .cap{ margin-top:3px; text-wrap:balance; }
+  #sizekey.row{ display:flex; align-items:center; gap:14px; } #sizekey.row .cap{ margin:0; white-space:nowrap; }
+  /* the n_species arrow in plain words (P45), haloed so it reads over the dots */
+  .arrgloss{ fill:var(--load); font-size:10px; paint-order:stroke; stroke:var(--bg); stroke-width:3px; stroke-linejoin:round; }
 </style>
 </head>
 <body>
@@ -78,7 +90,7 @@
     <span style="flex:1"></span>
     <nav id="viewnav"></nav>
   </header>
-  <div id="plot-wrap"><div id="tip"></div><svg id="plot">
+  <div id="plot-wrap"><div id="tip"></div><div id="sizekey" style="display:none"></div><svg id="plot">
     <defs><marker id="arrow" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto">
       <path d="M0,0 L6,3 L0,6 Z" fill="var(--load)"></path></marker></defs>
   </svg></div>
@@ -195,7 +207,8 @@ const fillOf = m => (colorMode==="month") ? (m.anomaly?RWLook.d.anom2:clColor(cl
 
 const svg=d3.select("#plot");
 const gEll=svg.append("g"), gArr=svg.append("g"), gYears=svg.append("g").attr("class","years").style("pointer-events","none"),
-      gPts=svg.append("g"), gTrace=svg.append("g"), gAxis=svg.append("g").attr("class","axis");
+      gPts=svg.append("g"), gTrace=svg.append("g"), gAxis=svg.append("g").attr("class","axis"),
+      gArrW=svg.append("g").style("pointer-events","none");   // the n_species arrow's plain words (P45)
 const gCur=svg.append("circle").attr("fill","none").attr("stroke","var(--cur)").attr("stroke-width",2).style("display","none");
 const gEmpty=svg.append("text").attr("text-anchor","middle").attr("fill","var(--dim)")
   .attr("font-size",11).style("display","none").style("pointer-events","none");
@@ -283,6 +296,8 @@ const placedM = m => m.pca_0 != null && m.pca_1 != null;
 const isVisible = m => placedM(m) && (yearFilter==="all" || m.year===+yearFilter)
                     && (!window.WC || WC.isShown(m.key));
 const shownPoints = () => months.filter(isVisible);
+// ONE size scale for the dots, their rings, the cursor and the size key: BirdNET species per minute (P45)
+const sizeScale = () => d3.scaleSqrt().domain([0,d3.max(months,m=>m.nsp)||1]).range([4,13]);
 
 function draw(){
   const {R}=layout();
@@ -317,12 +332,30 @@ function draw(){
   ag.selectAll("*").remove();
   ag.append("line").attr("x1",d=>X(d.x0)).attr("y1",d=>Y(d.y0)).attr("x2",d=>X(d.x1)).attr("y2",d=>Y(d.y1))
     .attr("stroke","var(--load)").attr("stroke-width",1.3).attr("opacity",0.85).attr("marker-end","url(#arrow)");
+  // each name sits OUTWARD of its tip, both ways (2026-10-01): the vertical test compares SCREEN y - it compared
+  // data y, and the screen's y is flipped, so every name sat on the side of its tip facing the centroid
   ag.append("text").attr("x",d=>X(d.x1)).attr("y",d=>Y(d.y1))
-    .attr("dx",d=>d.x1>=d.x0?4:-4).attr("dy",d=>d.y1<=d.y0?-3:10)
+    .attr("dx",d=>d.x1>=d.x0?4:-4).attr("dy",d=>Y(d.y1)<=Y(d.y0)?-3:10)
     .attr("text-anchor",d=>d.x1>=d.x0?"start":"end").attr("fill","var(--load)").attr("font-size",10).text(d=>d.f);
+  // THE n_species ARROW IN PLAIN WORDS (P45, 2026-09-30; Alice B1c): one quiet line stacked outward of its name
+  // (a line further from the tip; across the tip when that is on another name), haloed so it reads over the
+  // dots, and kept inside the svg (at day resolution with the legend docked it ran past the right edge). It is
+  // not in g.arr: each arrow keeps its name alone. No arrow, no line - water has no BirdNET.
+  const nsa=channel!=="water" && arr.find(d=>d.f==="n_species");
+  gArrW.selectAll("*").remove();
+  if(nsa){ const t=gArrW.append("text").attr("class","arrgloss")
+    .attr("x",X(nsa.x1)).attr("y",Y(nsa.y1)).attr("dx",nsa.x1>=nsa.x0?4:-4).attr("dy",Y(nsa.y1)<=Y(nsa.y0)?-15:22)
+    .attr("text-anchor",nsa.x1>=nsa.x0?"start":"end").text("BirdNET species/min");
+    // never on another arrow's name (day resolution: NBPEAKS's tip is just above): then across the tip
+    const up=Y(nsa.y1)<=Y(nsa.y0), names=gArr.selectAll("g.arr text").nodes().filter(n=>n.textContent!=="n_species");
+    const onName=()=>{ const b=t.node().getBBox(); return names.some(n=>{ const o=n.getBBox();
+      return b.x<o.x+o.width && o.x<b.x+b.width && b.y<o.y+o.height && o.y<b.y+b.height; }); };
+    if(onName()){ t.attr("dy",up?10:-3); if(onName()) t.attr("dy",up?-15:22); }
+    const b=t.node().getBBox(), sw=+svg.attr("width"), over=Math.max(0,b.x+b.width-(sw-4))-Math.max(0,4-b.x);
+    if(over) t.attr("x",X(nsa.x1)-over); }
 
   // dots (year + month filtered — see isVisible; the space behind them is not refitted)
-  const rSize=d3.scaleSqrt().domain([0,d3.max(months,m=>m.nsp)||1]).range([4,13]);
+  const rSize=sizeScale();
   gPts.selectAll("circle").data(shown,m=>m.idx).join("circle")
     .attr("cx",m=>X(m.pca_0)).attr("cy",m=>Y(m.pca_1)).attr("r",m=>rSize(m.nsp))
     // a PARTIAL month (a time of day missing, or under half the usual hours - WC.isPartial) is
@@ -387,7 +420,7 @@ function draw(){
         .text(yearFilter!=="all"
           ? `no points — ${yearFilter} has none of the months you are showing · press ↺ all`
           : "no points to show · press ↺ all");
-  drawLegend(); placeCursor(); updateWxInfo(shown); renderMonthBar();
+  drawLegend(); placeCursor(); updateWxInfo(shown); renderMonthBar(); drawSizeKey();
   // keep the brush trail above the ring, cursor and axes drawn after it (the stroke listens on
   // the svg itself, so nothing can block the gesture - this is only about seeing the trail)
   if(_brush) _brush.resize().raise();
@@ -473,8 +506,48 @@ function placeCursor(){
   // taken off screen is not drawn and cannot be pressed, and a cursor floating over an absent
   // point would claim otherwise.
   const m=months[hovered]; if(!m || !isVisible(m)){ gCur.style("display","none"); return; }
-  const rSize=d3.scaleSqrt().domain([0,d3.max(months,mm=>mm.nsp)||1]).range([4,13]);
+  const rSize=sizeScale();
   gCur.style("display",null).attr("cx",X(m.pca_0)).attr("cy",Y(m.pca_1)).attr("r",rSize(m.nsp)+4);
+}
+
+// THE SIZE KEY (P45, 2026-09-30; Alice B1c: "I can't see species richness on there?"). A dot's size is
+// BirdNET species per minute (sizeScale). The key draws reference dots with that SAME scale, at real values
+// of it - the smallest and the largest placed point, and the middle of the two, as printed (1 dp) - so a
+// dot can be laid against them. Water has no BirdNET: no key (and no n_species arrow).
+function drawSizeKey(){
+  const k=d3.select("#sizekey"), el=k.node();
+  const vals=months.filter(m=>placedM(m) && m.nsp!=null).map(m=>+m.nsp);
+  k.selectAll("*").remove();
+  if(channel==="water" || !vals.length){ el.style.display="none"; return; }
+  const r1=v=>Math.round(v*10)/10, lo=r1(d3.min(vals)), hi=r1(d3.max(vals));
+  const refs=[...new Set([lo, r1((lo+hi)/2), hi])], rs=sizeScale(), R=rs(hi);
+  const dots=k.append("div").attr("class","dots");
+  refs.forEach(v=>{ const s=dots.append("span").attr("class","sk").attr("data-v",v);
+    s.append("svg").attr("width",2*rs(v)).attr("height",2*R).append("circle")
+      .attr("cx",rs(v)).attr("cy",R).attr("r",rs(v)).attr("fill","var(--rw-label)");
+    s.append("span").attr("class","v").text(v.toFixed(1)); });
+  k.append("div").attr("class","cap").text("small ▸ large = BirdNET species per minute");
+  el.style.display=""; placeSizeKey();
+}
+// Where the plot is not: left of the y axis (bottom-aligned with the square) when that band is wide enough,
+// else in one row under the x axis's tick labels; only when neither has room (a docked legend on a wide
+// screen) on glass over the corner of the square that hides the fewest dots - never the PC1 label's corner.
+function placeSizeKey(){
+  const el=document.getElementById("sizekey"); if(el.style.display==="none") return;
+  const wrap=document.getElementById("plot-wrap"), W=wrap.clientWidth, H=wrap.clientHeight;
+  const [x0,x1]=X.range(), yb=Y.range()[0], yt=Y.range()[1];
+  const put=(cls,maxw,l,t)=>{ el.className=cls; el.style.maxWidth=maxw?maxw+"px":""; el.style.left=l+"px"; el.style.top=t+"px"; };
+  const side=x0-42;                                        // the y axis's tick labels take ~30 px of the band
+  if(side>=130){ put("",side,8,0); const h=el.offsetHeight;
+    if(h<=yb-yt-80){ el.style.top=(yb-h)+"px"; return; } }     // below the PC2 label, at the top of that band
+  put("row",0,x0,yb+26);
+  if(yb+26+el.offsetHeight<=H-4 && x0+el.offsetWidth<=W-6) return;
+  put("glass",170,0,0);
+  const w=el.offsetWidth, h=el.offsetHeight, pts=shownPoints(), rs=sizeScale();
+  const hid=([l,t])=>pts.filter(m=>{ const cx=X(m.pca_0), cy=Y(m.pca_1), r=rs(m.nsp);
+    return cx+r>l && cx-r<l+w && cy+r>t && cy-r<t+h; }).length;
+  const best=[[x0+6,yt+6],[x1-w-6,yt+6],[x0+6,yb-h-6]].reduce((a,c)=>hid(c)<hid(a)?c:a);
+  el.style.left=best[0]+"px"; el.style.top=best[1]+"px";
 }
 
 function drawLegend(){

@@ -35,8 +35,13 @@ svg text { cursor:default }
     border-radius:6px; padding:3px 8px; font:inherit; cursor:pointer; }
   button.on{ background:var(--rw-on); border-color:var(--rw-on-line); }
   #facets{ background:var(--bg); background-image:var(--ds-grain); position:relative; display:grid;
-    grid-template-columns:repeat(4,1fr); gap:1px; min-height:0; overflow:hidden; }
-  .facet{ position:relative; background:var(--bg); min-height:0; overflow:hidden; }
+    grid-template-columns:repeat(4,1fr); grid-template-rows:minmax(0,1fr) auto; gap:1px; min-height:0; overflow:hidden; }
+  .facet{ grid-row:1; position:relative; background:var(--bg); min-height:0; overflow:hidden; }
+  /* THE AXES IN PLAIN WORDS (P44): one line under the four panels - each axis's name, then its meaning */
+  #axkey{ grid-row:2; grid-column:1/-1; display:flex; flex-wrap:wrap; column-gap:30px; row-gap:1px;
+    padding:3px 10px 6px; background:var(--bg); color:var(--rw-label); font-size:13px; line-height:1.4; }
+  #axkey b{ color:var(--txt); font-weight:600; }
+  #axkey .dir{ color:var(--dim); margin-right:6px; }
   .facet svg{ cursor:crosshair; }
   /* the caption is also the DIEL GROUPING control, lit while it is in force */
   .facet .title{ position:absolute; top:6px; left:10px; color:var(--dim); letter-spacing:.14em;
@@ -52,7 +57,7 @@ svg text { cursor:default }
     display:flex; align-items:center; gap:20px; }
   #wxkey{ flex:0 0 auto; white-space:nowrap; }
   svg{ display:block; width:100%; height:100%; }
-  .axis text{ fill:var(--dim); font-size:9px; } .axis line,.axis path{ stroke:var(--line); }
+  .axis text{ fill:var(--rw-label); font-size:12px; } .axis line,.axis path{ stroke:var(--line); }   /* P44: were 9 px */
   #chip{ font-size:11px; padding:3px 9px; border-radius:11px; border:1px solid var(--rw-ctl-line); display:flex; align-items:center; gap:6px; }
   #chip::before{ content:""; width:8px; height:8px; border-radius:50%; background:var(--rw-chip-dot); }
   #chip.disconnected{ color:var(--rw-off); } #chip.disconnected::before{ background:var(--rw-off-dot); }
@@ -62,7 +67,8 @@ svg text { cursor:default }
   .row{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin:3px 0; }
   .k{ color:var(--dim); flex:0 0 auto; }
   .v{ flex:1 1 auto; min-width:0; text-align:right; overflow-wrap:anywhere; }
-  .axlbl{ fill:var(--dim); font-size:10px; }
+  .axis text.axlbl{ fill:var(--txt); font-size:13px; font-weight:600; }   /* each panel's axis names (P44) */
+  .axis text.axdir{ fill:var(--dim); font-size:13px; }
   /* HOVER READOUT — the same box linear.html carries, so the two views read as one
      instrument. It lives inside #facets (position:relative) and is positioned in that
      element's pixels, so it can cross a facet boundary and still be placed correctly. */
@@ -86,7 +92,7 @@ svg text { cursor:default }
     <nav id="viewnav"></nav>
   </header>
 
-  <div id="facets"><div id="tip"></div></div>
+  <div id="facets"><div id="tip"></div><div id="axkey"></div></div>
 
   <div id="side">
     <h4 id="i-head">WINDOW <span class="k" style="font-weight:normal">· drag to hear</span></h4>
@@ -508,6 +514,7 @@ facets.each(function(win){
 });
 
 function draw(animate=false){
+  drawAxKey();              // FIRST (P44): the line under the panels can wrap, which changes their height
   const maxNsp = d3.max(rows,r=>r.nsp)||1;
   rSize.domain([0,maxNsp]);
   noNsp = (d3.max(rows,r=>r.nsp)||0) <= 0.01;              // water: no species richness
@@ -547,15 +554,24 @@ function draw(animate=false){
     const svg=facet.select("svg");
     const node=facet.node(), W=node.clientWidth, H=node.clientHeight;
     svg.attr("width",W).attr("height",H);
-    const x=d3.scaleLinear().domain([0,1]).range([34,W-12]);
-    const y=d3.scaleLinear().domain([0,1]).range([H-26,20]);
+    // THE AXES, LEGIBLE (P44, 2026-09-30; Alice T2: in the July video the ticks were ~9 px in 1080p and the
+    // names small and rotated). Ticks 12 px in the chart-label colour, no more than the width holds; each
+    // panel names its own axes, level, where Observable Plot puts them: "↑ y" over the vertical axis (under
+    // the caption), "x →" under the right end of the horizontal one. What the names MEAN is said once for
+    // the four panels, in the line under them (drawAxKey). The .axlbl texts are the bare names, x then y.
+    const ML=40, MT=50, MB=42, MR=14;                        // the room for ticks, caption + "↑ y", "x →"
+    const x=d3.scaleLinear().domain([0,1]).range([ML,W-MR]);
+    const y=d3.scaleLinear().domain([0,1]).range([H-MB,MT]);
     let ax=svg.select("g.axis"); if(ax.empty()) ax=svg.append("g").attr("class","axis");
     ax.selectAll("*").remove();
-    ax.append("g").attr("transform",`translate(0,${H-26})`).call(d3.axisBottom(x).ticks(4).tickFormat(d3.format(".1f")));
-    ax.append("g").attr("transform","translate(34,0)").call(d3.axisLeft(y).ticks(4).tickFormat(d3.format(".1f")));
-    ax.append("text").attr("class","axlbl").attr("x",W-12).attr("y",H-30).attr("text-anchor","end").text(reading.x);
-    ax.append("text").attr("class","axlbl").attr("transform",`translate(11,${(H-26)/2}) rotate(-90)`)
-      .attr("text-anchor","middle").text(reading.y);
+    const nx=(W-ML-MR)>=180 ? 4 : 2;                         // 0 .2 .4 … 1, or 0 .5 1 on a narrow panel
+    ax.append("g").attr("transform",`translate(0,${H-MB})`).call(d3.axisBottom(x).ticks(nx).tickFormat(d3.format(".1f")));
+    ax.append("g").attr("transform",`translate(${ML},0)`).call(d3.axisLeft(y).ticks(4).tickFormat(d3.format(".1f")));
+    const xa=ax.append("text").attr("class","axdir").attr("x",W-MR).attr("y",H-6).attr("text-anchor","end").text("→");
+    ax.append("text").attr("class","axlbl").attr("x",W-MR-xa.node().getComputedTextLength()-5).attr("y",H-6)
+      .attr("text-anchor","end").text(reading.x);
+    const ya=ax.append("text").attr("class","axdir").attr("x",10).attr("y",MT-14).text("↑");   // x 10 = the caption's edge
+    ax.append("text").attr("class","axlbl").attr("x",10+ya.node().getComputedTextLength()+5).attr("y",MT-14).text(reading.y);
     // layers, created once, in z-order: points < spokes < highlight
     let g=svg.select("g.pts"); if(g.empty()) g=svg.append("g").attr("class","pts");
     let spk=svg.select("g.spokes"); if(spk.empty()) spk=svg.append("g").attr("class","spokes");
@@ -617,6 +633,27 @@ function draw(animate=false){
   // last, so the brush trails sit above every layer appended since (the stroke listens on the
   // svg itself: nothing can block the gesture, this only keeps the trail visible)
   DIEL.forEach(w=>{ const b=brushes[w]; if(b) b.resize().raise(); });
+}
+
+// THE AXES IN PLAIN WORDS (P44, 2026-09-30), said ONCE for the four panels, in the line under them: each
+// axis's direction, its name, then its meaning in the legend face's own words (LEG.axisName; legend.js
+// owns them). An embedding (PCA / UMAP / SOM) has no measure on an axis: its line says what the map is,
+// in the biplot's words. Built with .text() only (a method's name comes from the embeddings file).
+function drawAxKey(){
+  const host=d3.select("#axkey"); host.selectAll("*").remove();
+  const ch=channel==="water" ? "water" : "air";
+  const what=k=>{ const p=(window.LEG && LEG.axisName) ? LEG.axisName(k,ch) : null;
+                  return p ? p.slice(p.indexOf(" · ")+3) : null; };
+  const item=(dir,name,w)=>{ const s=host.append("span").attr("class","ak");
+    s.append("span").attr("class","dir").text(dir); s.append("b").text(name);
+    if(w) s.append("span").attr("class","what").text(" · "+w); };
+  if(reading.xchan){ const lbl=XLBL[reading.xchan]||reading.xchan;
+    item("→",reading.x,lbl); item("↑",reading.y,lbl); return; }
+  if(reading.embed){ item("→",reading.x,null); item("↑",reading.y,null);
+    host.append("span").attr("class","ak what")
+      .text(`${reading.embed.toUpperCase()} · a similarity map: points that sit close have similar measures`);
+    return; }
+  item("→",reading.x,what(reading.x)); item("↑",reading.y,what(reading.y));
 }
 
 function hover(d){

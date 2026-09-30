@@ -16,6 +16,8 @@
   --rw-ctl:#141a34; --rw-ctl-line:#2a3150; --rw-ctl-line-hi:#4a5ad0; --rw-on:#2a3aa0; --rw-on-line:#4a5ad0; --rw-on2-line:#2a3a6a;
   /* the hover boxes */
   --rw-pop:#0d1224; --rw-pop-line:#2a3150; --rw-pop-shadow:0 4px 14px rgba(0,0,0,.55);
+  /* a key that has to sit over the plot (the biplot's size key, P45, 2026-09-30): the plot's ground, see-through */
+  --rw-glass:rgba(11,14,26,.84);
   /* the TRACE gold, the cursor, the casing under rings and brush strokes */
   --rw-gold:#ffe14a; --rw-gold-hi:#fff3a0; --rw-gold-line:#5a4a1a; --rw-gold-wash:rgba(255,225,74,.07); --rw-gold-glow:rgba(255,225,74,.85);
   --rw-cursor:#fff; --rw-casing:#05070f; --rw-del:#e07f7f; --rw-warm:#e2a25f;
@@ -50,7 +52,7 @@
   --rw-bg:var(--ds-bg); --rw-panel:var(--ds-panel); --rw-line:var(--ds-line); --rw-txt:var(--ds-txt); --rw-dim:var(--ds-dim); --rw-cur:var(--ds-cur);
   --rw-txt-hi:var(--ds-txt-hi); --rw-label:var(--ds-label); --rw-load:var(--ds-accent);
   --rw-ctl:var(--ds-ctl); --rw-ctl-line:var(--ds-ctl-line); --rw-ctl-line-hi:var(--ds-ctl-line-hi); --rw-on:#dfe5f3; --rw-on-line:var(--ds-chip-line-hi); --rw-on2-line:var(--ds-chip-line-hi);
-  --rw-pop:var(--ds-pop); --rw-pop-line:var(--ds-pop-line); --rw-pop-shadow:var(--ds-pop-shadow);
+  --rw-pop:var(--ds-pop); --rw-pop-line:var(--ds-pop-line); --rw-pop-shadow:var(--ds-pop-shadow); --rw-glass:var(--ds-glass);
   --rw-gold:var(--ds-ring); --rw-gold-hi:var(--ds-cur-line); --rw-gold-line:var(--ds-cur-line); --rw-gold-wash:rgba(168,111,0,.08); --rw-gold-glow:rgba(168,111,0,.55);
   --rw-cursor:var(--ds-txt-hi); --rw-casing:var(--ds-map-bg); --rw-del:var(--ds-danger); --rw-warm:#c45a1e;
   --rw-chip-dot:var(--ds-ctl-line-hi); --rw-off:var(--ds-danger); --rw-off-dot:var(--ds-danger); --rw-wait:var(--ds-accent); --rw-wait-dot:var(--ds-cur-line); --rw-ok:var(--ds-ok); --rw-ok-dot:var(--ds-avail);
@@ -77,7 +79,7 @@
   --rw-bg:var(--ds-bg); --rw-panel:var(--ds-panel); --rw-line:var(--ds-line); --rw-txt:var(--ds-txt); --rw-dim:var(--ds-dim); --rw-cur:var(--ds-cur);
   --rw-txt-hi:var(--ds-txt-hi); --rw-label:var(--ds-label); --rw-load:var(--ds-accent);
   --rw-ctl:var(--ds-ctl); --rw-ctl-line:var(--ds-ctl-line); --rw-ctl-line-hi:var(--ds-ctl-line-hi); --rw-on:var(--ds-chip-hold); --rw-on-line:var(--ds-cur-line); --rw-on2-line:var(--ds-chip-line-hi);
-  --rw-pop:var(--ds-pop); --rw-pop-line:var(--ds-pop-line); --rw-pop-shadow:var(--ds-pop-shadow);
+  --rw-pop:var(--ds-pop); --rw-pop-line:var(--ds-pop-line); --rw-pop-shadow:var(--ds-pop-shadow); --rw-glass:var(--ds-glass);
   --rw-gold:var(--ds-ring); --rw-gold-hi:var(--ds-cur-line); --rw-gold-line:var(--ds-cur-line); --rw-gold-wash:rgba(156,103,16,.08); --rw-gold-glow:rgba(156,103,16,.5);
   --rw-cursor:var(--ds-txt-hi); --rw-casing:var(--ds-map-bg); --rw-del:var(--ds-danger); --rw-warm:#a8502e;
   --rw-chip-dot:var(--ds-ctl-line-hi); --rw-off:var(--ds-danger); --rw-off-dot:var(--ds-danger); --rw-wait:var(--ds-accent); --rw-wait-dot:var(--ds-cur-line); --rw-ok:var(--ds-ok); --rw-ok-dot:var(--ds-avail);
