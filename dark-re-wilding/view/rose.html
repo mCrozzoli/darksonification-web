@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<!-- dark_re_wilding · J3 — radial diel roses.
+     One rose per month (rows = years, cols = months). Angle = time of day
+     (night top · dawn right · day bottom · dusk left); radius = the selected
+     index; the closed shape is that month's diel "fingerprint". Answers N6/N7
+     (diel shape, not the mean) and N4-see (July-2023 vs July-2024 in one column).
+     Press a rose -> hear it (sc/ engine); WHERE on it you press is the diel window
+     you hear, so the four spokes are four points and not four copies of one.
+     DAY resolution (2026-09-27, Miguel: "go with A and B"): every month becomes a RIBBON rose -
+     the band is the middle half of its days (25th-75th percentile) at each time of day, the
+     line its median day (B: many months, compared by shape AND steadiness) - and the focused
+     month opens below as a CALENDAR of day roses (A: one month at a time; press a day to hear
+     that day's window, at L1). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>dark_re_wilding · diel roses</title>
+<link rel="stylesheet" href="darkstyle/darkstyle.css">
+<script src="darkstyle/darkstyle.js"></script>   <!-- the style kit: dark · light · paper (projects/web/style) -->
+<link rel="stylesheet" href="rewild_tokens.css">   <!-- this design's tokens: dark = the values below used to be literals -->
+<script src="vendor/d3.v7.min.js"></script>
+<script src="../web_bridge.js"></script>
+<!-- web build: web_control.js (darkui GUI link) removed -->
+<script src="looks.js"></script>   <!-- the looks' data colours (after d3, before the modules) -->
+<script src="wc.js"></script>
+<script src="panel.js"></script>
+<script src="viewnav.js"></script>
+<script src="monthbar.js"></script>
+<script src="legend.js"></script>
+<script src="diel.js"></script>
+<style>
+  :root{ --bg:var(--rw-bg); --panel:var(--rw-panel); --line:var(--rw-line); --txt:var(--rw-txt); --dim:var(--rw-dim); --cur:var(--rw-cur); }   /* rewild_tokens.css */
+  html,body{ margin:0; height:100%; background:var(--bg); color:var(--txt);
+    font:var(--ds-font-size)/1.45 var(--ds-font-ui); }
+  #wrap{ display:grid; grid-template-rows:46px minmax(0,1fr); grid-template-columns:1fr 300px;
+    height:100%; gap:1px; background:var(--line); }
+  header{ grid-column:1/3; display:flex; align-items:center; gap:14px; padding:0 14px; background:var(--panel); }
+  header b{ letter-spacing:.12em; }
+  .ctl{ display:flex; align-items:center; gap:6px; } .ctl label{ color:var(--dim); }
+  select,button{ background:var(--rw-ctl); color:var(--txt); border:1px solid var(--rw-ctl-line); border-radius:6px; padding:3px 8px; font:inherit; cursor:pointer; }
+  button.on{ background:var(--rw-on); border-color:var(--rw-on-line); }
+  #grid-wrap{ background:var(--bg); background-image:var(--ds-grain); overflow:auto; padding:8px 12px; display:flex; flex-direction:column; position:relative; }
+  #grid-wrap > #grid{ flex:1 1 auto; }
+  #grid-wrap.day > #grid{ flex:0 0 auto; }
+  /* the DAY grid's rows are ~56 px: the cells must STRETCH to them, or the svg's height:100% has
+     no definite height to resolve against and stays the 150 px default - a 150 px cell centred in a
+     56 px row overlaps its neighbours, and the next year's box takes the presses (review 2026-09-27) */
+  #grid-wrap.day .cell{ align-self:stretch; min-height:0; overflow:hidden; }
+  #cal-wrap{ display:none; flex:1 1 auto; min-height:0; margin-top:8px; padding-top:8px; border-top:1px solid var(--line); }
+  #grid-wrap.day #cal-wrap{ display:flex; flex-direction:column; }
+  #cal-head{ display:flex; align-items:center; gap:10px; color:var(--dim); font-size:11px; margin-bottom:6px; }
+  #cal-head b{ color:var(--txt); font-size:12px; letter-spacing:.06em; }
+  #cal-head button{ padding:1px 8px; }
+  #cal{ display:grid; grid-template-columns:repeat(7,1fr); gap:3px; flex:1 1 auto; min-height:0; }
+  .dhd{ color:var(--dim); font-size:10px; text-align:center; }
+  .dcell{ position:relative; min-height:0; }
+  .dcell svg{ display:block; width:100%; height:100%; cursor:crosshair; }
+  .dcell .dn{ position:absolute; left:3px; top:1px; font-size:10px; color:var(--dim); pointer-events:none; }
+  .dcell.none{ opacity:.3; } .dcell.none svg{ cursor:default; }
+  .dcell.tracing{ outline:1px dashed var(--rw-gold); outline-offset:-2px; }
+  /* the ARMED trace-drag (the ◫ switch, or alt held) wears the brush tip (wc.js), not the
+     crosshair every cell always has - on the SVG, which covers the cell and carries its own
+     cursor (.cell svg{cursor:pointer}); !important, the month cells set theirs inline */
+  body.brushing #grid .cell:not(.empty) svg, body.brush-alt #grid .cell:not(.empty) svg,
+  body.brushing .dcell:not(.none) svg, body.brush-alt .dcell:not(.none) svg{ cursor:var(--rw-brush-cursor, cell) !important; }
+  #grid{ display:grid; gap:2px; align-items:center; min-height:0; overflow:auto; }
+  .hd{ color:var(--dim); font-size:10px; text-align:center; letter-spacing:.06em; }
+  .yl{ color:var(--dim); font-size:11px; text-align:right; padding-right:6px; }
+  .cell{ position:relative; }
+  .cell svg{ display:block; width:100%; height:100%; cursor:pointer; }
+  .cell.empty{ opacity:.16; }
+  /* a month the filter is not showing: the ring and the typical-shape ghost stay, so the grid
+     keeps its geometry and you can see WHERE the record you hid sits — but the rose is gone
+     and the cell is inert, because what you cannot see you cannot hear. */
+  .cell.hidden{ opacity:.13; pointer-events:none; }
+  .cell.tracing{ outline:1px dashed var(--rw-gold); outline-offset:-2px; }   /* pending trace-drag, committed on release */
+  /* the grid's axes ARE months and years, so its labels double as visibility shortcuts */
+  .hd,.yl{ cursor:pointer; }
+  .hd:hover,.yl:hover{ color:var(--txt); }
+  .hd.sel,.yl.sel{ color:var(--cur); }
+  #side{ background:var(--panel); padding:12px; overflow-y:auto; }
+  #focus{ width:100%; height:250px; cursor:crosshair; }
+  #chip{ font-size:11px; padding:3px 9px; border-radius:11px; border:1px solid var(--rw-ctl-line); display:flex; align-items:center; gap:6px; }
+  #chip::before{ content:""; width:8px; height:8px; border-radius:50%; background:var(--rw-chip-dot); }
+  #chip.disconnected{ color:var(--rw-off); } #chip.disconnected::before{ background:var(--rw-off-dot); }
+  #chip.streaming{ color:var(--rw-ok); } #chip.streaming::before{ background:var(--rw-ok-dot); }
+  h4{ margin:8px 0 6px; color:var(--dim); font-size:11px; letter-spacing:.1em; }
+  .row{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin:3px 0; }
+  .k{ color:var(--dim); flex:0 0 auto; }
+  .v{ flex:1 1 auto; min-width:0; text-align:right; overflow-wrap:anywhere; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <header>
+    <b><a href="../about.html" target="_blank" rel="noopener" title="about, credits and licences" style="color:inherit;text-decoration:none">dark_re_wilding ⓘ</a></b><span class="k">diel roses</span>
+    <div id="chip" class="disconnected">disconnected</div>
+    <span style="flex:1"></span>
+    <nav id="viewnav"></nav>
+  </header>
+
+  <div id="grid-wrap"><div id="grid"></div>
+    <div id="cal-wrap"><div id="cal-head"></div><div id="cal"></div></div>
+  </div>
+
+  <div id="side">
+    <h4 id="focus-title">PRESS A MONTH</h4>
+    <div id="traces" class="k" style="margin:2px 0 6px"></div>
+    <svg id="focus"></svg>
+    <div id="f-info" style="margin-top:6px"></div>
+    <div id="r-ret" style="margin-top:6px; color:var(--rw-dawn)"></div>
+    <div class="wc-seglabel" style="color:var(--dim);font-size:11px;letter-spacing:.1em;margin:10px 0 6px">VIEW</div>
+    <div class="wc-seglabel" style="color:var(--dim);font-size:11px;letter-spacing:.1em;margin:4px 0 6px">RESOLUTION</div>
+    <div class="wcgrid" id="res-toggle" style="margin-bottom:8px">
+      <button class="wbtn" data-res="month" title="one rose per month: its mean day">month</button>
+      <button class="wbtn" data-res="day" title="ribbon roses of each month's days, and a calendar of the focused month">day</button>
+    </div>
+    <!-- WHAT YOU SEE. The shared strip writes the SHOWN set and nothing else: no ring, no
+         aura, no trace. Tracing is the other act entirely, over in the CONTROLLER tab. -->
+    <div id="monthbar" style="margin:2px 0 5px"></div>
+    <button class="wbtn" id="mb-all" style="width:100%" title="show every month again">↺ all</button>
+    <div class="k" style="font-size:10px;margin:5px 0 8px;line-height:1.4">
+      the grid's own <b>Jan…Dec</b> headers and <b>year</b> labels show or hide a whole column / row
+    </div>
+    <label class="k" style="font-size:11px">index (radius)</label>
+    <select id="index" style="width:100%;margin:4px 0 2px"></select>
+    <!-- the picked index in plain words (AEI, BI: legend.js GLOSS); hidden, and taking no room, otherwise -->
+    <div id="index-gloss" class="k" style="display:none;font-size:10px;line-height:1.4;margin:3px 0 4px"></div>
+    <div id="wc"></div>
+  </div>
+</div>
+
+<script>
+const DIEL_CLOCK = ["night","dawn","day","dusk"];   // clockwise from top
+const ANG = {night:0, dawn:Math.PI/2, day:Math.PI, dusk:3*Math.PI/2};
+const MONTHS = ["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const monthColor = m => d3.interpolateSinebow(((m-1)%12)/12);
+const rad = v => 0.12 + 0.88*Math.max(0,Math.min(1,v==null?0:v));   // value -> unit radius
+const retText = r => !r ? "" : (r.kind==="return"
+  ? `↩ returner: ${r.common} · back ${r.gap}mo` : `↩ ${r.common} · first record`);
+
+let roses=[], byKey=new Map(), index="ACI", years=[], ws=null, lastFocus=null, lastWin=null;
+let l0months=[], channel="air", channels=[], _wcInited=false;   // air/water switch
+let traceDrag=null, _subset=null, _mbar=null;   // pending trace set · the grouping last sent · the month strip
+let traceArmed=false;   // this trace-drag was armed by the BRUSH (the ◫ switch or alt), not by shift alone
+// DAY RESOLUTION (2026-09-27). Shared with the scatter and the biplot ("rewild_resolution"), so
+// "day" means day on every dot/rose view. lastDay = the day being heard ("YYYY-MM-DD");
+// calMonth = the month the calendar shows; rowIdx = (date, window) -> the L1 row the bridge plays.
+let resolution = (()=>{ try{ return localStorage.getItem("rewild_resolution")==="day" ? "day" : "month"; }catch(e){ return "month"; } })();
+let lastDay=null, calMonth=null, rowIdx={}, _sentTag=null;
+const isDay = () => resolution==="day";
+// TWO INDEPENDENT SETS, and this view holds them apart as strictly as the point-field views do.
+//   SHOWN  (WC.isShown / the month strip / the grid's own axis labels) = which roses are drawn.
+//          Visibility only: no ring, no aura, and an empty filter means the whole record.
+//   TRACED (WC.isTraced / shift- or ◫-drag across cells / ◎) = the ring + aura on a rose you
+//          are keeping an eye on. It dims nothing and hides nothing.
+// A traced month you have hidden is not lost: its cell simply has no rose until you show the
+// month again, and the ring comes back with it.
+const isShownMo = mo => !!mo && (!window.WC || WC.isShown(mo.key));
+
+// ---- geometry ----
+const line = d3.line().curve(d3.curveLinearClosed);
+// valFn(w) -> 0..1  =>  4 polygon points around the clock
+function ptsOf(valFn, RR, cx, cy){
+  return DIEL_CLOCK.map(w=>{ const r=rad(valFn(w))*RR, a=ANG[w];
+    return [cx + r*Math.sin(a), cy - r*Math.cos(a)]; });
+}
+const winMean = (mo,w) => (mo && mo.win[w]) ? mo.win[w].ax[index] : null;   // month mean, selected index
+// A SPOKE WITH NO VALUE IS MARKED HOLLOW. rad(null) is the floor, the same radius as a real 0, so
+// unmarked a window that was never recorded (or an index never measured) reads as a quiet one
+// (DISPLAY_DESIGN §6.2). pts = the rose's four vertices, has(w) = "this spoke has a value".
+function markGaps(svg, pts, has, r){
+  DIEL_CLOCK.forEach((w,i)=>{ if(!has(w)) svg.append("circle").attr("cx",pts[i][0]).attr("cy",pts[i][1])
+     .attr("r",r||2.2).attr("fill","var(--bg)").attr("stroke","var(--dim)").attr("stroke-width",0.8); });
+}
+// WHICH SPOKE THE POINTER IS ON. A rose is a clock, so the angle from its centre already IS
+// a time of day — no hit targets needed, and the four spokes are exactly 90° apart. This is
+// what lets the view name its diel window when it navigates (see focus()).
+function winAt(node, e){
+  const b=node.getBoundingClientRect();
+  const t=Math.atan2(e.clientX-(b.left+b.width/2), (b.top+b.height/2)-e.clientY);   // clockwise from north, as ANG is
+  return DIEL_CLOCK[(Math.round(t/(Math.PI/2))+4)%4];
+}
+
+// typical diel shape = mean across ALL months (per window, selected index). Deliberately NOT
+// filtered by what is shown: it is the whole record's baseline, and a reference that moved
+// every time you hid a month would make two filters incomparable.
+function grandMean(){
+  const acc={}, n={}; DIEL_CLOCK.forEach(w=>{ acc[w]=0; n[w]=0; });
+  roses.forEach(mo=>DIEL_CLOCK.forEach(w=>{ const v=winMean(mo,w); if(v!=null){ acc[w]+=v; n[w]++; } }));
+  const gm={}; DIEL_CLOCK.forEach(w=> gm[w]= n[w]? acc[w]/n[w] : 0); return gm;
+}
+// day-to-day spread (min/max across the month's days) per window
+function monthBand(mo){
+  const b={}; DIEL_CLOCK.forEach(w=>{
+    const vs=mo.days.map(d=> d[w]? d[w][index] : null).filter(v=>v!=null);
+    b[w]= vs.length ? [Math.min(...vs), Math.max(...vs)] : null; });
+  return b;
+}
+
+// THE RIBBON (day resolution): per window, the MIDDLE HALF of the month's days (25th-75th
+// percentile) and the median day. Not min-max: one storm day would set a month's whole band.
+function quant(sorted, p){
+  if(!sorted.length) return null;
+  const i=(sorted.length-1)*p, lo=Math.floor(i), hi=Math.ceil(i);
+  return sorted[lo] + (sorted[hi]-sorted[lo])*(i-lo);
+}
+function monthRibbon(mo){
+  const r={}; DIEL_CLOCK.forEach(w=>{
+    const vs=mo.days.map(d=> d[w]? d[w][index] : null).filter(v=>v!=null).sort((a,b)=>a-b);
+    r[w]= vs.length ? {lo:quant(vs,0.25), med:quant(vs,0.5), hi:quant(vs,0.75), n:vs.length} : null; });
+  return r;
+}
+// draw a ribbon rose: the band (the region between the 75th and 25th percentile shapes) + the median line.
+// THIN SUPPORT FADES (§6.2): a spoke with fewer than THIN_N days has no middle half to speak of - one
+// day draws a band of zero width, which is exactly what a perfectly steady month looks like - so the
+// band and the median either side of it are drawn faint, and a spoke with no days at all is marked
+// hollow. That is why the band is four wedges (one per quarter of the clock) and not one path.
+const THIN_N=4, THIN_FADE=0.3;
+function drawRibbon(svg, mo, RR, cx, cy, col, opts){
+  const rb=monthRibbon(mo), o=opts||{};
+  const at=(w,k)=> rb[w] ? rb[w][k] : null;
+  const outer=ptsOf(w=>at(w,"hi"),RR,cx,cy), inner=ptsOf(w=>at(w,"lo"),RR,cx,cy), med=ptsOf(w=>at(w,"med"),RR,cx,cy);
+  const bo=o.bandOpacity==null?0.28:o.bandOpacity, lo=o.opacity==null?1:o.opacity;
+  const thin=i=>{ const r=rb[DIEL_CLOCK[i]]; return !r || r.n<THIN_N; };
+  DIEL_CLOCK.forEach((w,i)=>{ const j=(i+1)%4, f=(thin(i)||thin(j))?THIN_FADE:1;
+    svg.append("path").attr("d",`M${outer[i]}L${outer[j]}L${inner[j]}L${inner[i]}Z`)
+       .attr("fill",col).attr("fill-opacity",bo*f).attr("stroke","none");
+    svg.append("path").attr("d",`M${med[i]}L${med[j]}`).attr("fill","none")
+       .attr("stroke",col).attr("stroke-width",o.width||1.4).attr("stroke-linecap","round")
+       .attr("stroke-dasharray",o.dash||null).attr("opacity",lo*f);
+  });
+  markGaps(svg, med, w=>!!rb[w], o.gapR);
+  return rb;
+}
+
+// ONE DAY'S ROSE, FADED BY ITS RECORDED MINUTES (TASKS P33). A day-window's value is a mean
+// over the minutes it holds, so what makes it trustworthy is how many there are - not how long
+// the window is: the same rule as spectro/mfcc's DAY cells (under 30 min faded, 5 or fewer
+// fainter). dr.nm = {window: minutes}. A day with every window well recorded (97% of them) is
+// one path; otherwise four wedges, faded like drawRibbon's quarters, so only the thin part pales.
+const MIN_THIN=30, MIN_FAINT=5;
+const minFade = n => n==null ? 1 : n<=MIN_FAINT ? 0.22 : n<MIN_THIN ? 0.5 : 1;   // hourview.js's DAY values
+function drawDayRose(svg, dr, p, cx, cy, col, fillOp, width){
+  const nm=dr.nm||{}, f=DIEL_CLOCK.map(w=> dr[w] ? minFade(nm[w]) : 1);
+  if(f.every(x=>x===1)){
+    svg.append("path").attr("d",line(p)).attr("fill",col).attr("fill-opacity",fillOp)
+       .attr("stroke",col).attr("stroke-width",width);
+    return;
+  }
+  DIEL_CLOCK.forEach((w,i)=>{ const j=(i+1)%4, k=Math.min(f[i],f[j]);
+    svg.append("path").attr("d",`M${cx},${cy}L${p[i]}L${p[j]}Z`).attr("fill",col)
+       .attr("fill-opacity",fillOp*k).attr("stroke","none");
+    svg.append("path").attr("d",`M${p[i]}L${p[j]}`).attr("fill","none").attr("stroke",col)
+       .attr("stroke-width",width).attr("stroke-linecap","round").attr("opacity",k); });
+}
+const minText = n => n==null ? "" : `${n} min recorded${n<MIN_THIN?" — thin, read with care":""}`;
+
+// ---- grid cell: reference ring + faint grand-mean ghost + mean rose ----
+function drawCell(svg, mo, gm){
+  const node=svg.node(), W=node.clientWidth, H=node.clientHeight, cx=W/2, cy=H/2, RR=Math.min(W,H)/2-6;
+  svg.attr("width",W).attr("height",H).selectAll("*").remove();
+  svg.append("circle").attr("cx",cx).attr("cy",cy).attr("r",RR)
+     .attr("fill","none").attr("stroke","var(--line)").attr("stroke-width",0.6);
+  svg.append("path").attr("d",line(ptsOf(w=>gm[w],RR,cx,cy)))   // typical-shape ghost
+     .attr("fill","none").attr("stroke","var(--dim)").attr("stroke-width",0.6).attr("opacity",0.35);
+  // NOT SHOWN -> no rose. The ring and the ghost above stay so the grid keeps its shape, but
+  // the month is out of the view: nothing to read, nothing to press, nothing to hear.
+  if(!mo || !isShownMo(mo)) return;
+  const col=monthColor(mo.month);
+  if(isDay()) drawRibbon(svg, mo, RR, cx, cy, col);            // B: the month's days, as a band
+  else {
+    const p=ptsOf(w=>winMean(mo,w),RR,cx,cy);
+    svg.append("path").attr("d",line(p)).attr("fill",col).attr("fill-opacity",0.14)
+       .attr("stroke",col).attr("stroke-width",1.5);
+    markGaps(svg, p, w=>winMean(mo,w)!=null);
+  }
+  if(lastFocus===mo) svg.append("circle").attr("cx",cx).attr("cy",cy).attr("r",RR-1)
+     .attr("fill","none").attr("stroke",RWLook.d.cursor).attr("stroke-width",1.2).attr("opacity",0.9);   // cursor: where the sound is
+  // TRACED: the aura and the ring, and only for traces. Being SHOWN earns a rose, never a
+  // circle — the shiny ring round a month you had merely selected to look at is exactly what
+  // Miguel reported. The aura is the shared gold glow; the ring inside it is this trace's own
+  // colour, so several traces are told apart rather than all being one gold.
+  if(window.WC && WC.isTraced(mo.key)){
+    svg.append("circle").attr("cx",cx).attr("cy",cy).attr("r",RR+3)       // aura
+       .attr("fill","none").attr("stroke",WC.GOLD).attr("stroke-width",5).attr("opacity",0.22);
+    svg.append("circle").attr("cx",cx).attr("cy",cy).attr("r",RR+1)       // ring
+       .attr("fill","none").attr("stroke",WC.traceColor(mo.key)||WC.GOLD).attr("stroke-width",2);
+  }
+  if(window.WC && WC.isPartial && WC.isPartial(mo.key)){
+    // a PARTIAL month (a time of day missing, or thin): the half-filled badge, top left
+    svg.append("circle").attr("class","wc-partial").attr("cx",cx-RR+3).attr("cy",cy-RR+3).attr("r",3.4)
+       .attr("fill",WC.halfFill(RWLook.d.partial)).attr("stroke",RWLook.d.partial).attr("stroke-width",0.9);
+  }
+  if(window.WC && WC.isTraced(mo.key)){ /* ringed above */ }
+  else if(window.WC && WC.isEchoMonth && WC.isEchoMonth(mo.key)){
+    // ECHO: the same month as a trace, another year (wc.js ECHOES) - dashed, no aura, in the
+    // colour of the trace it answers to. Down a calendar column, a traced May marks every May.
+    svg.append("circle").attr("cx",cx).attr("cy",cy).attr("r",RR+1).attr("fill","none")   // dark casing
+       .attr("stroke",RWLook.d.casing).attr("stroke-width",3.4).attr("stroke-opacity",0.8);
+    svg.append("circle").attr("class","wc-echo").attr("cx",cx).attr("cy",cy).attr("r",RR+1)
+       .attr("fill","none").attr("stroke",WC.echoColor(mo.key)||WC.GOLD).attr("stroke-width",1.4)
+       .attr("stroke-dasharray","3,2.5").attr("opacity",0.9);
+  }
+}
+
+// THE SAME MONTH IN THE OTHER YEARS (Miguel 2026-09-28: "When traced"). When the month in focus is
+// traced, or is an echo of a trace, the focus rose also draws that calendar month in every other
+// year - dashed, in the month's colour, older years fainter (the lightness ramp) - so a traced May
+// shows every May's diel shape on one rose: Alice's "did it change?" as one picture. Months the
+// filter hides are skipped; the ◌ echo switch turns it off with the echoes.
+function sameMonthYears(mo){
+  if(!mo || !window.WC || !WC.echoPref || !WC.echoPref()) return null;
+  if(!(WC.isTraced(mo.key) || (WC.isEchoMonth && WC.isEchoMonth(mo.key)))) return null;
+  const all=roses.filter(o=>o.month===mo.month && (o===mo || isShownMo(o))).sort((a,b)=>a.year-b.year);
+  if(all.length<2) return null;
+  const n=all.length, op=o=>0.3+0.7*(all.indexOf(o)/(n-1));
+  return { others: all.filter(o=>o!==mo), all, op };
+}
+// the key, bottom left (clear of the spoke labels): one year per line, newest at the bottom
+function drawYearKey(svg, ys, mo, W, H){
+  const g=svg.append("g").attr("class","wc-years");
+  ys.all.forEach((o,i)=>g.append("text").attr("x",4).attr("y",H-6-12*(ys.all.length-1-i)).attr("font-size",10)
+     .attr("fill",monthColor(o.month)).attr("opacity",ys.op(o)).attr("font-weight",o===mo?"bold":null)
+     .text(`${o===mo?"\u2501":"\u2504"} ${o.year}`));
+}
+
+// ---- focus: grand mean (dashed) + day-spread band + mean + the traced months ----
+function drawFocus(svg, mo){
+  const node=svg.node(), W=node.clientWidth, H=node.clientHeight, cx=W/2, cy=H/2, RR=Math.min(W,H)/2-28;
+  svg.attr("width",W).attr("height",H).selectAll("*").remove();
+  [0.5,1.0].forEach(f=>svg.append("circle").attr("cx",cx).attr("cy",cy)
+    .attr("r",(0.12+0.88*f)*RR).attr("fill","none").attr("stroke","var(--line)").attr("stroke-width",0.6));
+  const gm=grandMean();
+  svg.append("path").attr("d",line(ptsOf(w=>gm[w],RR,cx,cy)))   // typical shape, dashed grey
+     .attr("fill","none").attr("stroke","var(--dim)").attr("stroke-width",1).attr("stroke-dasharray","2,3");
+  if(!mo) return;
+  if(isDay()) return drawFocusDay(svg, mo, RR, cx, cy);
+  const col=monthColor(mo.month), band=monthBand(mo);
+  // variance band = area between per-window max and min (evenodd hole)
+  const outer=ptsOf(w=> band[w]?band[w][1]:winMean(mo,w), RR, cx, cy);
+  const inner=ptsOf(w=> band[w]?band[w][0]:winMean(mo,w), RR, cx, cy);
+  svg.append("path").attr("d", line(outer)+line(inner))
+     .attr("fill",col).attr("fill-opacity",0.14).attr("fill-rule","evenodd").attr("stroke","none");
+  // every OTHER TRACED month, dashed in its trace colour. Tracing is "keep an eye on this",
+  // so the traced roses are the ones worth superimposing on the one you are hearing — and a
+  // trace whose month you have hidden is skipped, not drawn from behind the filter.
+  const ys=sameMonthYears(mo);
+  ((window.WC&&WC.tracedMonths)?WC.tracedMonths():new Set()).forEach(k=>{
+    const o=byKey.get(k); if(!o||o===mo||!isShownMo(o)) return;
+    if(ys && ys.others.includes(o)) return;                // drawn below, as one of the years
+    svg.append("path").attr("d",line(ptsOf(w=>winMean(o,w),RR,cx,cy)))
+       .attr("fill","none").attr("stroke",WC.traceColor(k)||monthColor(o.month)).attr("stroke-width",1.6)
+       .attr("stroke-dasharray","5,3").attr("opacity",0.9);
+  });
+  if(ys){ ys.others.forEach(o=>svg.append("path").attr("class","wc-year-rose").attr("data-mk",o.key)
+       .attr("d",line(ptsOf(w=>winMean(o,w),RR,cx,cy))).attr("fill","none").attr("stroke",monthColor(o.month))
+       .attr("stroke-width",1.5).attr("stroke-dasharray","4,3").attr("opacity",ys.op(o)));
+    drawYearKey(svg, ys, mo, W, H); }
+  // this month's mean (bold)
+  const p=ptsOf(w=>winMean(mo,w),RR,cx,cy);
+  svg.append("path").attr("d",line(p)).attr("fill",col).attr("fill-opacity",0.18)
+     .attr("stroke",col).attr("stroke-width",2);
+  svg.selectAll("circle.vtx").data(DIEL_CLOCK).join("circle").attr("class","vtx")
+     .attr("cx",(w,i)=>p[i][0]).attr("cy",(w,i)=>p[i][1]).attr("r",3).attr("fill",col);
+  markGaps(svg, p, w=>winMean(mo,w)!=null, 3.5);
+  if(lastWin){ const i=DIEL_CLOCK.indexOf(lastWin);   // which spoke the sound is standing on
+    svg.append("circle").attr("cx",p[i][0]).attr("cy",p[i][1]).attr("r",6)
+       .attr("fill","none").attr("stroke",RWLook.d.cursor).attr("stroke-width",1.5); }
+  DIEL_CLOCK.forEach(w=>{ const a=ANG[w];
+    svg.append("text").attr("x",cx+(RR+16)*Math.sin(a)).attr("y",cy-(RR+16)*Math.cos(a)+3)
+      .attr("text-anchor","middle").attr("fill","var(--dim)").attr("font-size",10).text(w); });
+}
+
+// DAY focus: the month's ribbon, every other traced month's ribbon (median dashed in its trace
+// colour, band faint), and - when a day is being heard - that day's rose on top, bold.
+function drawFocusDay(svg, mo, RR, cx, cy){
+  const ys=sameMonthYears(mo);
+  ((window.WC&&WC.tracedMonths)?WC.tracedMonths():new Set()).forEach(k=>{
+    const o=byKey.get(k); if(!o||o===mo||!isShownMo(o)) return;
+    if(ys && ys.others.includes(o)) return;                // drawn below, as one of the years
+    drawRibbon(svg, o, RR, cx, cy, WC.traceColor(k)||monthColor(o.month), {bandOpacity:0.1, dash:"5,3", width:1.4, opacity:0.9, gapR:3});
+  });
+  if(ys){                                                  // the other years: their median day only, no band
+    ys.others.forEach(o=>{ const g=svg.append("g").attr("class","wc-year-rose").attr("data-mk",o.key);
+      drawRibbon(g, o, RR, cx, cy, monthColor(o.month), {bandOpacity:0, dash:"4,3", width:1.4, opacity:ys.op(o), gapR:2.5}); });
+    const node=svg.node(); drawYearKey(svg, ys, mo, node.clientWidth, node.clientHeight);
+  }
+  const col=monthColor(mo.month);
+  drawRibbon(svg, mo, RR, cx, cy, col, {bandOpacity:0.3, width:1.6, gapR:3.5});
+  const dr = lastDay && dayRec(mo, lastDay);
+  if(dr){
+    const p=ptsOf(w=> dr[w]? dr[w][index] : null, RR, cx, cy);
+    drawDayRose(svg, dr, p, cx, cy, RWLook.d.cursor, 0.08, 1.8);
+    markGaps(svg, p, w=>dr[w] && dr[w][index]!=null, 3.5);
+    if(lastWin){ const i=DIEL_CLOCK.indexOf(lastWin);
+      svg.append("circle").attr("cx",p[i][0]).attr("cy",p[i][1]).attr("r",6)
+         .attr("fill","none").attr("stroke",RWLook.d.cursor).attr("stroke-width",1.5); }
+  }
+  DIEL_CLOCK.forEach(w=>{ const a=ANG[w];
+    svg.append("text").attr("x",cx+(RR+16)*Math.sin(a)).attr("y",cy-(RR+16)*Math.cos(a)+3)
+      .attr("text-anchor","middle").attr("fill","var(--dim)").attr("font-size",10).text(w); });
+}
+
+// The TRACED set as a readout. Colours are the ring colours, so a dashed line in the focus
+// rose and the month that named it are findable from one another. Traces whose month is
+// hidden right now are still listed, greyed — a trace is an annotation on the data, not a
+// view state, and it is still there waiting for you to show its month again.
+function updateTraces(){
+  const el=d3.select("#traces"); el.selectAll("*").remove();
+  const mm=[...((window.WC&&WC.tracedMonths)?WC.tracedMonths():[])].filter(k=>byKey.has(k)).sort();
+  if(!mm.length) return;
+  el.append("span").text("traced ");
+  mm.forEach((k,i)=>{ const o=byKey.get(k), on=isShownMo(o);
+    el.append("span").style("color",WC.traceColor(k)||monthColor(o.month))
+      .style("opacity",on?null:0.45)
+      .attr("title",on?null:"traced · hidden by the month filter")
+      .text(`${i?" · ":""}${MONTHS[o.month]} '${String(o.year).slice(2)}${on?"":" (hidden)"}`); });
+  el.append("span").style("cursor","pointer").style("color","var(--cur)").style("margin-left","8px")
+    .text("✕ clear").on("click",()=>WC.clearTraces());
+}
+
+// ---- month-mean SC drivers (average the non-null windows) ----
+function monthDrv(mo){
+  const acc={}, n={};
+  DIEL_CLOCK.forEach(w=>{ const c=mo.win[w]; if(!c||!c.drv) return;
+    Object.entries(c.drv).forEach(([k,v])=>{ if(v==null) return; acc[k]=(acc[k]||0)+v; n[k]=(n[k]||0)+1; }); });
+  const out={}; Object.keys(acc).forEach(k=>out[k]=acc[k]/n[k]); return out;
+}
+
+// TRACE-DRAG. The other views stroke over a point field to trace (brush.js); there is no
+// 2D field here, so the grid itself is the field and the cells the pointer crosses are the
+// sweep. It TRACES, not shows: it is armed by the very controls that mean "trace" everywhere
+// else — the sidebar's ◫ "brush to trace" toggle, or a held shift/alt — and shift-press is the
+// per-point trace gesture in all six views, so a shift-DRAG that instead changed what was
+// visible would make this the one view where those keys mean something different.
+// Choosing what to SEE is reachable here too, and is a separate control: the month strip and
+// the ↺ all button under VIEW, plus the grid's own Jan…Dec / year labels.
+function joinTraceDrag(node, mo, start){
+  if(start) traceDrag=new Set();
+  traceDrag.add(mo.key); node.classList.add("tracing");
+}
+
+// ---- build the grid (rows=years, cols=months) ----
+function buildGrid(){
+  // the `day` class first: its CSS sizes the grid and stretches the cells, and drawCell measures them below
+  document.getElementById("grid-wrap").classList.toggle("day", isDay());
+  const grid=d3.select("#grid");
+  grid.style("grid-template-columns",`44px repeat(12, 1fr)`)
+      // DAY: the grid becomes the many-month overview (B) and gives the pane's rest to the calendar
+      // (A). minmax(0,…) because a fresh <svg> is 150 px tall by default, and a plain 1fr row
+      // would never shrink below it.
+      .style("grid-template-rows", isDay() ? `18px repeat(${years.length}, minmax(0,1fr))` : `18px repeat(${years.length}, 1fr)`)
+      .style("height", isDay() ? `${18 + years.length*58}px` : null);
+  grid.selectAll("*").remove();
+  grid.append("div");                                   // corner
+  // THE AXES ARE THE FILTER. This grid's columns are months and its rows are years, so its
+  // own labels are the most direct way to say "show me every July" (the view's N4 question)
+  // or "show me 2024". They write SHOWN only — a column you light gets roses, never rings.
+  for(let m=1;m<=12;m++) grid.append("div").attr("class","hd").text(MONTHS[m])
+    .attr("title",`show / hide every ${MONTHS[m]}`)
+    .on("click",()=>toggleRun(years.map(y=>`${y}-${String(m).padStart(2,"0")}`)));
+  years.forEach(yr=>{
+    grid.append("div").attr("class","yl").text(yr)
+      .attr("title",`show / hide ${yr}`)
+      .on("click",()=>toggleRun(d3.range(1,13).map(m=>`${yr}-${String(m).padStart(2,"0")}`)));
+    for(let m=1;m<=12;m++){
+      const mo=byKey.get(`${yr}-${String(m).padStart(2,"0")}`);
+      const cell=grid.append("div").attr("class","cell"+(mo?"":" empty"));
+      const svg=cell.append("svg");
+      if(mo){
+        cell.style("cursor","crosshair")
+            .on("pointerover",function(e){ if(traceDrag){ joinTraceDrag(this,mo); return; }
+                 if(window._roseDrag) focus(mo, winAt(this,e)); })   // press-drag only (hover no longer selects)
+            .on("pointermove",function(e){ showCellTip(e, mo, winAt(this,e));
+                 if(traceDrag||!window._roseDrag) return;
+                 const w=winAt(this,e); if(mo!==lastFocus||w!==lastWin) focus(mo,w); })   // a rose is a clock: dragging round one walks its day
+            .on("pointerleave",()=>{ if(tip) tip.hide(); })
+            .on("pointerdown",function(e){
+                 if(WC.brushPref()||e.shiftKey||e.altKey){ traceArmed=WC.brushPref()||e.altKey;
+                   joinTraceDrag(this,mo,true); return; }   // tracing, not hearing
+                 window._roseDrag=true; focus(mo, winAt(this,e)); })                      // press to hear
+            // NO tracing here. A plain press HEARS the month, nothing else: pointerdown has
+            // already focused it. Tracing is its own gesture everywhere - shift-press, the
+            // brush, or the ◎ button - and routing it through the click as well meant every
+            // press while navigating quietly traced whatever you were listening to.
+            .on("dblclick",()=>{ location.href=`linear.html?m=${mo.key}`; });   // drill L0->L1
+      }
+      cell.node().__mo=mo; cell.node().__svg=svg;
+    }
+  });
+  redrawCells();
+}
+const cellNode = mo => d3.selectAll("#grid .cell").nodes().find(n=>n.__mo===mo);
+function redrawCells(){
+  const gm=grandMean();
+  d3.selectAll("#grid .cell").each(function(){
+    // .hidden carries the FILTER (dim + inert). .empty carries "no data here" — two different
+    // reasons for a blank cell, kept apart so neither is mistaken for the other.
+    this.classList.toggle("hidden", !!this.__mo && !isShownMo(this.__mo));
+    drawCell(this.__svg, this.__mo||null, gm);
+  });
+  // light the axis labels whose whole run is in the filter
+  const sh=(window.WC&&WC.shownMonths)?WC.shownMonths():new Set();
+  const lit=keys=>{ const k=keys.filter(x=>byKey.has(x)); return k.length>0 && k.every(x=>sh.has(x)); };
+  d3.selectAll("#grid .hd").classed("sel",function(d,i){
+    const m=i+1; return lit(years.map(y=>`${y}-${String(m).padStart(2,"0")}`)); });
+  d3.selectAll("#grid .yl").classed("sel",function(){
+    const yr=+this.textContent; return lit(d3.range(1,13).map(m=>`${yr}-${String(m).padStart(2,"0")}`)); });
+}
+// a whole column (every July) or a whole row (all of 2024), in ONE write: if the run is
+// already in the filter, drop it; otherwise add it. Membership is read off the RAW filter,
+// not isShownMonth — with an empty filter everything is visible, and the useful answer to
+// clicking "Jul" there is "now show me only the Julys".
+function toggleRun(keys){
+  if(!window.WC) return;
+  const run=keys.filter(k=>byKey.has(k)); if(!run.length) return;
+  const sh=WC.shownMonths();
+  WC.setShown(run, run.every(k=>sh.has(k)) ? "remove" : "add");
+}
+// moving the cursor repaints two roses, not thirty-six — a press-drag calls this on every
+// pointermove, and redrawCells() redraws the whole grid
+function redrawCursor(a, b){
+  const gm=grandMean();
+  [a,b].forEach(mo=>{ const n=mo&&cellNode(mo); if(n) drawCell(n.__svg, mo, gm); });
+}
+// the grid scrolls once there are more years than fit, so a month sent here from elsewhere
+// (the legend catalogue) has to be scrolled to before "see it" means anything
+function revealCell(mo){
+  const n=cellNode(mo);
+  if(n&&n.scrollIntoView) n.scrollIntoView({block:"nearest",inline:"nearest"});
+}
+// MAKE A MONTH VISIBLE, without narrowing the view by accident. An empty filter already shows
+// everything, so adding to it there would go from "all 36 months" to "this one" — the opposite
+// of what a legend chip means. Only a filter that is actually excluding the month is widened.
+function reveal(key){
+  if(!window.WC) return;
+  const mk=WC.monthOf(key); if(!mk || WC.isShownMonth(mk)) return;
+  WC.setShown([mk],"add");
+}
+// THE CURSOR CANNOT STAND ON A MONTH THAT IS NOT THERE. Hide the month you were hearing and
+// the focus panel goes back to its empty state: nothing is re-voiced, nothing is played, the
+// sound simply has no point under it until you press one that is on screen.
+function syncFocus(){
+  if(!lastFocus || isShownMo(lastFocus)) return;
+  clearFocus();
+}
+function clearFocus(){
+  lastFocus=null; lastWin=null; lastDay=null;
+  d3.select("#focus-title").text("PRESS A MONTH");
+  d3.select("#focus").selectAll("*").remove();
+  d3.select("#f-info").selectAll("*").remove();
+  d3.select("#r-ret").text("");
+}
+// ---- the month strip: the SHOWN filter, spelled the way the other five views spell it ----
+function mountMonthBar(){
+  if(!_mbar) _mbar=MonthBar.mount({ host:"#monthbar", months:()=>roses.map(r=>r.key).sort(),
+    current:()=>lastFocus&&lastFocus.key,
+    // a MULTI-month view: picking only changes what is on screen. It does not move the cursor
+    // and does not sound anything, so MonthBar.pick's return value is not used here.
+    onPick:mk=>{ MonthBar.pick(mk, lastFocus&&lastFocus.key); } });
+  _mbar.render();
+}
+function renderMonthBar(){ if(_mbar) _mbar.render(); }
+d3.select("#mb-all").on("click",()=>MonthBar.showAll());
+
+// ---- focus panel + sound ----
+function focusDraw(mo){
+  const prev=lastFocus; lastFocus=mo; if(window.WC) WC.refresh();
+  if(prev!==mo) redrawCursor(prev, mo);            // the white cursor ring moved
+  d3.select("#focus-title").text(isDay() && lastDay
+    ? `${dayLabel(lastDay)}${lastWin?" · "+lastWin:""}`
+    : `${MONTHS[mo.month]} ${mo.year}${lastWin?" · "+lastWin:""} · ${mo.ndays} days`);
+  drawFocus(d3.select("#focus"), mo);
+  const host=d3.select("#f-info"); host.selectAll("*").remove();
+  if(isDay()){                                          // the day's value, beside its month's median day
+    const rb=monthRibbon(mo), dr=lastDay&&dayRec(mo,lastDay);
+    DIEL_CLOCK.forEach(w=>{ const v=dr&&dr[w]?dr[w][index]:null, r=rb[w];
+      host.append("div").attr("class","row").style("color", w===lastWin?"var(--cur)":null)
+        .style("opacity", dr&&dr[w]&&dr.nm ? (minFade(dr.nm[w])<1?0.6:null) : null)   // a thin window reads thin here too
+        .html(`<span class="k">${w}</span><span class="v">${dr?(!dr[w]?"no window":v==null?"not measured":v.toFixed(2)):""} `
+          // a heard day's row carries its own minutes; the month's day count gives way (one line in the
+          // panel), and stays in the hover box of the month's ribbon
+          + (dr&&dr[w]&&dr.nm&&dr.nm[w]!=null ? `<span class="k">${dr.nm[w]} min · </span>` : "")
+          + `<span class="k">${r?`median ${r.med.toFixed(2)}${dr?"":` · ${r.n} days`}`:"no days"}</span></span>`); });
+    d3.select("#r-ret").text(retText(mo.returner));
+    return;
+  }
+  DIEL_CLOCK.forEach(w=>{ const c=mo.win[w];
+    const v=c? c.ax[index] : null;
+    host.append("div").attr("class","row").style("color", w===lastWin?"var(--cur)":null)   // the window you are hearing
+      .html(`<span class="k">${w}</span><span class="v">${v==null?"—":v.toFixed(2)} <span class="k">(n=${c?c.n:0})</span></span>`);
+  });
+  d3.select("#r-ret").text(retText(mo.returner));
+}
+// THE GROUPING. The grid's rows ARE years, so the row you are pressing in is the selection
+// whose body the drone should be. Sent only on a change, or a drag across a row would
+// re-voice the room on every cell it crossed.
+const L0_YEARS=new Set([2023,2024,2025]);   // the year subsets the L0 tables ship — there is no year:2026
+function sendSelection(yr){
+  const subset = L0_YEARS.has(yr) ? `year:${yr}` : "all:2023-2026";
+  if(subset===_subset || !(ws&&ws.readyState===1)) return;
+  _subset=subset; ws.send(JSON.stringify({type:"select", level:0, subset}));
+}
+function focus(mo, win){
+  // THE SONIFICATION FOLLOWS WHAT IS VISIBLE. There are no shadowed points here any more: a
+  // rose you can see you can hear, and a month the filter has taken out of the view is not
+  // there to be pressed. (The cells are inert while hidden; this guards the other ways in —
+  // WC.step, a stale cursor — rather than voicing a month that is not on screen.)
+  if(!mo || !isShownMo(mo)) return;
+  _sentTag=null;                                 // the last thing voiced is now this month, not a day
+  lastWin = (win && mo.win[win]) ? win : null;   // a spoke with no recordings is not a point of its own
+  // the calendar follows the cursor at EITHER resolution, so day mode opens on the month you hear
+  if(calMonth!==mo || lastDay){ calMonth=mo; lastDay=null; if(isDay()) drawCalendar(); }
+  focusDraw(mo);
+  if(!(ws&&ws.readyState===1)) return;
+  // LEVEL 0. `mkey` is an L0 key ("2023|8"); sent at level 1 the bridge looked it up in the
+  // L1 table, where a month cannot exist, and the all-subset fallback missed too — which is
+  // why this view has been silent since the v2 port. `win` then buys the rose its point: a
+  // month key alone voices the same drone for all four spokes.
+  const c = lastWin && mo.win[lastWin];
+  const msg={type:"drv", level:0, drv:(c&&c.drv)||monthDrv(mo),
+    mkey:`${mo.year}-${String(mo.month).padStart(2,"0")}`, channel};
+  if(lastWin) msg.win=lastWin;
+  ws.send(JSON.stringify(msg));
+  // POINT FIRST, ROOM SECOND (TASKS P20, fixed here 2026-09-27): the bridge re-voices its last
+  // point when the room changes, and a last point outside the new room fell back to `all` and
+  // wrote that back - so room-then-point across a year left the new month in `all`.
+  sendSelection(mo.year);
+}
+
+// ---- A: the CALENDAR of the focused month's days (day resolution) ----------------------
+const WD=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const pad2 = n => String(n).padStart(2,"0");
+const dayKeyOf = (mo,d) => `${mo.year}-${pad2(mo.month)}-${pad2(d)}`;
+const dayRec = (mo,dk) => mo.days.find(x=>x.d===+dk.slice(8));
+function dayLabel(dk){ const [y,m,d]=dk.split("-").map(Number);
+  return `${WD[new Date(Date.UTC(y,m-1,d)).getUTCDay()]} ${d} ${MONTHS[m]} ${y}`; }
+// the months the calendar can step through: shown, with days, in time order
+const calMonths = () => roses.filter(mo=>isShownMo(mo) && mo.days && mo.days.length).sort((a,b)=>a.key<b.key?-1:1);
+function drawCalendar(){
+  const wrap=document.getElementById("grid-wrap");
+  wrap.classList.toggle("day", isDay());
+  if(!isDay()) return;
+  const ms=calMonths();
+  if(!calMonth || !isShownMo(calMonth)) calMonth = lastFocus && isShownMo(lastFocus) ? lastFocus : ms[ms.length-1];
+  const head=d3.select("#cal-head"), cal=d3.select("#cal"); head.selectAll("*").remove(); cal.selectAll("*").remove();
+  if(!calMonth){ head.append("span").text("no month to show"); return; }
+  const mo=calMonth, i=ms.indexOf(mo);
+  head.append("button").text("◀").attr("title","previous month").property("disabled",i<=0)
+      .on("click",()=>{ if(ms[i-1]) focus(ms[i-1]); });
+  head.append("b").text(`${MONTHS[mo.month]} ${mo.year}`);
+  head.append("button").text("▶").attr("title","next month").property("disabled",i<0||i>=ms.length-1)
+      .on("click",()=>{ if(ms[i+1]) focus(ms[i+1]); });
+  const nThin=mo.days.reduce((a,d)=>a+DIEL_CLOCK.filter(w=>d[w] && d.nm && d.nm[w]!=null && d.nm[w]<MIN_THIN).length, 0);
+  head.append("span").text(`${mo.days.length} days recorded · each day over its month's median (grey) · press a day to hear it`
+    + (nThin ? ` · faint = under ${MIN_THIN} min recorded (${nThin} window${nThin>1?"s":""})` : ""));
+  // Monday-first, UTC, rows sized to fit what is left of the pane
+  const first=(new Date(Date.UTC(mo.year,mo.month-1,1)).getUTCDay()+6)%7;
+  const nDays=new Date(Date.UTC(mo.year,mo.month,0)).getUTCDate();
+  const nRows=Math.ceil((first+nDays)/7);
+  cal.style("grid-template-rows",`14px repeat(${nRows}, minmax(0,1fr))`);
+  ["M","T","W","T","F","S","S"].forEach(l=>cal.append("div").attr("class","dhd").text(l));
+  for(let k=0;k<first;k++) cal.append("div");
+  const rb=monthRibbon(mo), col=monthColor(mo.month);
+  for(let d=1; d<=nDays; d++){
+    const dk=dayKeyOf(mo,d), dr=dayRec(mo,dk);
+    const cell=cal.append("div").attr("class","dcell"+(dr?"":" none"));
+    cell.append("span").attr("class","dn").text(d);
+    const svg=cell.append("svg");
+    cell.node().__dk=dk; cell.node().__svg=svg;
+    if(dr){
+      cell.on("pointerdown",function(e){
+            if(WC.brushPref()||e.shiftKey||e.altKey){ traceArmed=WC.brushPref()||e.altKey;
+              joinDayTrace(this,dk,true); return; }   // tracing, not hearing
+            // a fresh press always sends: the dedupe is for repeats within ONE drag, and the engine
+            // may have moved since (a month press, the legend, another view on the same bridge)
+            window._roseDrag=true; _sentTag=null; focusDay(mo, dk, winAt(this.querySelector("svg"),e)); })
+          .on("pointerover",function(e){ if(traceDrag){ joinDayTrace(this,dk); return; }
+            if(window._roseDrag) focusDay(mo, dk, winAt(this.querySelector("svg"),e)); })
+          .on("pointermove",function(e){
+            const w=winAt(this.querySelector("svg"),e);
+            // against the RESOLVED window (lastWin is what dayWinFor chose): over a spoke the day
+            // lacks, the raw one never matches and every move redrew the whole calendar
+            if(window._roseDrag && !traceDrag && (dk!==lastDay || dayWinFor(dk,w)!==lastWin)) focusDay(mo, dk, w);
+            showDayTip(e, mo, dk, w); })
+          .on("pointerleave",()=>tip.hide());
+    }
+  }
+  requestAnimationFrame(()=>redrawDays());
+}
+// only = the day keys to repaint (a press repaints the day it left and the day it lands on); omitted = all
+function redrawDays(only){
+  if(!isDay() || !calMonth) return;
+  const mo=calMonth, rb=monthRibbon(mo), col=monthColor(mo.month);
+  // measure every cell FIRST, then draw: sizing one svg between reads forced a layout per cell
+  const cells=d3.selectAll("#cal .dcell").nodes().filter(n=>n.__svg && (!only || only.includes(n.__dk)))
+    .map(n=>({dk:n.__dk, svg:n.__svg, W:n.__svg.node().clientWidth, H:n.__svg.node().clientHeight}));
+  cells.forEach(({dk, svg, W, H})=>{
+    if(W<8||H<8) return;
+    const cx=W/2, cy=H/2+2, RR=Math.max(4, Math.min(W,H)/2-7);
+    svg.attr("width",W).attr("height",H).selectAll("*").remove();
+    svg.append("circle").attr("cx",cx).attr("cy",cy).attr("r",RR).attr("fill","none")
+       .attr("stroke","var(--line)").attr("stroke-width",0.6);
+    const dr=dayRec(mo,dk); if(!dr) return;
+    // the month's median day, grey: what this day is read against
+    svg.append("path").attr("d",line(ptsOf(w=>rb[w]?rb[w].med:null,RR,cx,cy)))
+       .attr("fill","none").attr("stroke","var(--dim)").attr("stroke-width",0.8).attr("opacity",0.7);
+    const p=ptsOf(w=> dr[w]? dr[w][index] : null, RR, cx, cy);
+    drawDayRose(svg, dr, p, cx, cy, col, 0.22, 1.3);
+    // a window this day did not record (or an index it did not measure) sits at the centre,
+    // marked hollow - never drawn as quiet
+    markGaps(svg, p, w=>dr[w] && dr[w][index]!=null);
+    if(dk===lastDay){
+      svg.append("circle").attr("cx",cx).attr("cy",cy).attr("r",RR-1).attr("fill","none")
+         .attr("stroke",RWLook.d.cursor).attr("stroke-width",1.2).attr("opacity",0.9);
+      if(lastWin){ const i=DIEL_CLOCK.indexOf(lastWin);
+        svg.append("circle").attr("cx",p[i][0]).attr("cy",p[i][1]).attr("r",4)
+           .attr("fill","none").attr("stroke",RWLook.d.cursor).attr("stroke-width",1.2); }
+    }
+    if(window.WC && WC.isTraced("w:"+dk)){
+      svg.append("circle").attr("cx",cx).attr("cy",cy).attr("r",RR+2).attr("fill","none")
+         .attr("stroke",WC.GOLD).attr("stroke-width",4).attr("opacity",0.22);
+      svg.append("circle").attr("cx",cx).attr("cy",cy).attr("r",RR).attr("fill","none")
+         .attr("stroke",WC.traceColor("w:"+dk)||WC.GOLD).attr("stroke-width",1.8);
+    } else if(window.WC && WC.isEcho && WC.isEcho("w:"+dk)){
+      // ECHO: the same date as a traced day (or one of its windows), another year
+      svg.append("circle").attr("cx",cx).attr("cy",cy).attr("r",RR).attr("fill","none")   // dark casing
+         .attr("stroke",RWLook.d.casing).attr("stroke-width",3.2).attr("stroke-opacity",0.8);
+      svg.append("circle").attr("class","wc-echo").attr("cx",cx).attr("cy",cy).attr("r",RR).attr("fill","none")
+         .attr("stroke",WC.echoColor("w:"+dk)||WC.GOLD).attr("stroke-width",1.3)
+         .attr("stroke-dasharray","3,2.5").attr("opacity",0.9);
+    }
+  });
+}
+// the day's own window nearest to `win` (itself, next, previous, opposite) that has an L1 point:
+// a day can lack a window, and there is no whole-day point to stand in for it
+function dayWinFor(dk, win){
+  const has=w=>rowIdx[`${dk}:${w}`]!=null, i=DIEL_CLOCK.indexOf(win);
+  if(has(win)) return win;
+  const cand = i<0 ? DIEL_CLOCK : [1,3,2].map(k=>DIEL_CLOCK[(i+k)%4]);
+  return cand.find(has) || null;
+}
+// HEAR A DAY: its window at L1, point first, room second (a room change re-voices the last
+// point, and a point outside the new room falls back to `all` and writes that back).
+function focusDay(mo, dk, win){
+  if(!mo || !isShownMo(mo)) return;
+  const w=dayWinFor(dk, win);
+  const prev=lastFocus, prevDay=lastDay, sameCal=calMonth===mo;
+  lastDay=dk; lastWin=w; calMonth=mo;
+  focusDraw(mo); if(prev!==mo) redrawCursor(prev, mo);
+  if(sameCal) redrawDays([prevDay, dk]); else drawCalendar();   // the cursor moved between two days, not all 31
+  if(!w || !(ws&&ws.readyState===1)) return;
+  const tag=`${channel}|${dk}:${w}`; if(tag===_sentTag) return; _sentTag=tag;
+  ws.send(JSON.stringify({type:"drv", level:1, widx:rowIdx[`${dk}:${w}`], channel}));
+  ws.send(JSON.stringify({type:"select", level:1, subset:"year:"+dk.slice(0,4)}));
+  _subset=null;                                   // the next month press re-asserts its L0 room
+}
+function joinDayTrace(node, dk, start){
+  if(start) traceDrag=new Set();
+  traceDrag.add("w:"+dk); node.classList.add("tracing");
+}
+// THE HOVER BOX (this view had none): the month or the day under the pointer, the window, the value
+let tip=null;
+function fmtv(v){ return v==null?"—":v.toFixed(2); }
+function showCellTip(e, mo, w){
+  if(!tip || !mo || !isShownMo(mo)) return;
+  const col=monthColor(mo.month);
+  if(isDay()){
+    const r=monthRibbon(mo)[w];
+    tip.show(e, `<div>${DIEL.dot(col)}<b>${MONTHS[mo.month]} ${mo.year}</b> · ${w}</div>`
+      + (!r ? `<div class="k">no ${w} windows this month</div>`
+         : `<div><span class="k">${index}</span>median ${fmtv(r.med)}</div>` + glossTip()
+           + (r.n<THIN_N   // too few days for a middle half: say so, the faint band is not a steady one
+              ? `<div class="k">${r.n===1?"one day, no spread":`only ${r.n} days, too few for a spread`}</div>`
+              : `<div><span class="k">middle half</span>${fmtv(r.lo)}–${fmtv(r.hi)} · ${r.n} days</div>`))
+      + (WC.traceNote ? WC.traceNote(mo.key) : "") + (WC.partialNote ? WC.partialNote(mo.key) : ""));
+  } else {
+    const c=mo.win[w];
+    tip.show(e, `<div>${DIEL.dot(col)}<b>${MONTHS[mo.month]} ${mo.year}</b> · ${w}</div>`
+      + (c ? `<div><span class="k">${index}</span>${fmtv(c.ax[index])} <span class="k">mean of ${c.n} days</span></div>` + glossTip()
+           : `<div class="k">no ${w} windows this month</div>`)
+      + (WC.traceNote ? WC.traceNote(mo.key) : "") + (WC.partialNote ? WC.partialNote(mo.key) : ""));
+  }
+}
+function showDayTip(e, mo, dk, w){
+  if(!tip) return;
+  const dr=dayRec(mo,dk), r=monthRibbon(mo)[w], v=dr&&dr[w]?dr[w][index]:null, hw=dayWinFor(dk,w);
+  tip.show(e, `<div>${DIEL.dot(monthColor(mo.month))}<b>${dayLabel(dk)}</b> · ${w}</div>`
+    + (v!=null ? `<div><span class="k">${index}</span>${fmtv(v)}${r?` <span class="k">month median ${fmtv(r.med)}</span>`:""}</div>` + glossTip()
+       // recorded but this index has no value (not a missing window: you hear the window itself)
+       : dr&&dr[w] ? `<div class="k">${index} not measured in this window — you hear it all the same</div>` + glossTip()
+               : `<div class="k">no ${w} window this day${hw?` — you hear its ${hw}`:""}</div>`)
+    + (dr&&dr[w]&&dr.nm&&dr.nm[w]!=null ? `<div class="k">${minText(dr.nm[w])}</div>` : "")
+    + (window.WC && WC.traceNote ? WC.traceNote("w:"+dk) : ""));
+}
+
+// ---- resolution toggle ----
+function markRes(){ document.querySelectorAll("#res-toggle .wbtn").forEach(b=>b.classList.toggle("on", b.dataset.res===resolution)); }
+function setResolution(r){
+  if(r!=="day") r="month";
+  if(r===resolution) return;
+  const heardDay=lastDay;
+  resolution=r; try{ localStorage.setItem("rewild_resolution", r); }catch(e){}
+  if(window.WC && WC.setLevelDefaults) WC.setLevelDefaults(r);     // a no-op since P26: the bridge owns the mix
+  if(!isDay()) lastDay=null;
+  markRes(); buildGrid(); drawCalendar();
+  // LEAVING THE CALENDAR WHILE A DAY SOUNDS: re-voice its month (L0 point, then room). Redrawn
+  // alone, the panel would read the month's mean while the engine still played the one day at L1.
+  if(heardDay && lastFocus) focus(lastFocus, lastWin);
+  else if(lastFocus) focusDraw(lastFocus);
+  if(window.LEG) LEG.refresh();
+}
+document.querySelectorAll("#res-toggle .wbtn").forEach(b=>b.addEventListener("click",()=>setResolution(b.dataset.res)));
+
+// ---- index selector ----
+// THE PICKED INDEX, IN PLAIN WORDS (2026-09-30). AEI and BI joined the list (the bridge's AX_COLS, in
+// its order); each is explained wherever this view names it: the option's tooltip, the line under the
+// picker, the hover box, the legend's key (legend.js GLOSS owns the words). AEI is drawn as measured:
+// a longer spoke = more uneven. The picker only changes the picture - it sends nothing.
+const glossOf = k => (window.LEG && LEG.gloss) ? LEG.gloss(k, channel) : null;
+const glossTip = () => { const g=glossOf(index); return g ? `<div class="k">${g.slice(g.indexOf(" · ")+3)}</div>` : ""; };
+function showGloss(){
+  const g=glossOf(index), el=document.getElementById("index-gloss");
+  d3.select("#index").attr("title", g);                 // null removes it
+  if(el){ el.textContent=g||""; el.style.display=g?"block":"none"; }
+  if(window.LEG && LEG.see) LEG.see();                  // the key's radius line; draws only
+}
+function buildIndexSelect(keys){
+  // an index this channel never measured is not offered (n_species on water: BirdNET is air-only).
+  // Every rose would sit on the floor - drawn as quiet, when it was never measured at all.
+  const measured=k=>roses.some(mo=>DIEL_CLOCK.some(w=>mo.win[w] && mo.win[w].ax[k]!=null));
+  keys=keys.filter(measured); if(!keys.length) keys=["ACI"];
+  const sel=d3.select("#index");
+  sel.selectAll("option").data(keys).join("option").attr("value",d=>d).text(d=>d).attr("title",d=>glossOf(d));
+  sel.property("value", keys.includes("ACI")?"ACI":keys[0]); index=sel.property("value"); showGloss();
+  sel.on("change",function(){ index=this.value; showGloss(); redrawCells(); redrawDays(); if(lastFocus) focusDraw(lastFocus); });
+}
+
+// ---- websocket ----
+async function resolveWsPort(){
+  const q=new URLSearchParams(location.search).get("ws"); if(q) return q;
+  try{ const r=await Promise.reject(new Error("web build: no bridge")); const j=await r.json(); if(j&&j.ws) return String(j.ws);}catch(e){}
+  return "8765";
+}
+function setConn(s,t){ const c=document.getElementById("chip"); c.className=s; c.textContent=t; }
+async function connect(){
+  const port=await resolveWsPort();
+  ws=(window.__darkWeb ? window.__darkWeb.socket() : new WebSocket(`ws://127.0.0.1:${port}`));   // WEB BUILD (build_web.py)
+  ws.onopen=()=>setConn("streaming","connected");
+  ws.onclose=()=>{ setConn("disconnected","disconnected · retrying"); setTimeout(connect,1500); };
+  ws.onerror=()=>ws.close();
+  ws.onmessage=ev=>{
+    const m=JSON.parse(ev.data);
+    if(m.type==="mix"){ if(window.WC) WC.applyMix(m); return; }   // the bridge owns the mix; the faders render it
+    if(m.type==="init"){
+      window.RW_COVERAGE = m.coverage || {};           // per month: hours, windows, partial (bridge month_coverage)
+      channel=m.channel||"air"; channels=m.channels||[];
+      if(window.WC && WC.channelPref()!==channel && channels.includes(WC.channelPref())){
+        ws.send(JSON.stringify({type:"channel",channel:WC.channelPref()})); return; }
+      roses=m.roses||[]; byKey=new Map(roses.map(r=>[r.key,r]));
+      // the L1 lookup for the calendar's sound: (date, window) -> the row the bridge plays.
+      // Rebuilt on every init, because a channel switch swaps the rows (water's differ from air's).
+      rowIdx={}; (m.rows||[]).forEach(r=>{ rowIdx[`${r.y}-${pad2(r.m)}-${pad2(r.d)}:${r.win}`]=r.idx; });
+      _sentTag=null;
+      l0months=m.l0months||[];                          // the legend's catalogue reads these
+      years=[...new Set(roses.map(r=>r.year))].sort();
+      _subset=null;                                     // a reconnect re-asserts the grouping on the next press
+      setConn("streaming",`${channel} · ${roses.length} months · drag to hear`);
+      if(window.WC && ws&&ws.readyState===1) ws.send(JSON.stringify({type:"loop",on:WC.loopPref()?1:0}));
+      if(window.WC && ws&&ws.readyState===1) ws.send(JSON.stringify({type:"stat",stat:WC.statPref()}));
+      if(ws&&ws.readyState===1) ws.send(JSON.stringify({type:"mixquery"}));   // adopt the engine's mix, do not assume it
+      if(!tip) tip=DIEL.tip(document.getElementById("grid-wrap"));
+      if(calMonth && !byKey.has(calMonth.key)) calMonth=null;
+      if(calMonth) calMonth=byKey.get(calMonth.key);      // the same month in the new channel's data
+      // THE CURSOR DOES NOT CROSS A CHANNEL SWITCH (nor a reconnect), as on the scatter
+      // (index.html:724). Nothing is re-voiced here, so the engine is still on the last channel's
+      // point - a ring on this channel's month or day would name one it is not playing, and the
+      // day may not even exist here (water lacks 4 of air's days).
+      clearFocus();
+      buildIndexSelect(m.ax_keys||["ACI"]); markRes(); buildGrid(); mountMonthBar(); drawCalendar();
+      if(!_wcInited){ _wcInited=true;
+        WC.init({ container:document.getElementById("wc"), level:"l0",
+          months:()=>roses.map(r=>r.key).sort(),
+          // ◎ traces what is under the cursor: the DAY at day resolution, else the month
+          current:()=> (isDay()&&lastDay) ? "w:"+lastDay : (lastFocus&&lastFocus.key), channel:()=>channel, channels:()=>channels,
+          onChannel:ch=>{ if(ws&&ws.readyState===1) ws.send(JSON.stringify({type:"channel",channel:ch})); },
+          sound:()=>WC.soundPref(),
+          onMaster:p=>{ if(ws&&ws.readyState===1) ws.send(JSON.stringify({type:"master",...p})); },
+          onMix:p=>{ if(ws&&ws.readyState===1) ws.send(JSON.stringify({type:"mix",...p})); },
+          onStat:s=>{ if(ws&&ws.readyState===1) ws.send(JSON.stringify({type:"stat",stat:s}));
+            if(window.LEG) LEG.refresh(); },      // the legend states which reading you are on
+          onLoop:v=>{ if(ws&&ws.readyState===1) ws.send(JSON.stringify({type:"loop",on:v})); },
+          select:k=>{ const mo=byKey.get(k); if(!mo) return; reveal(k); focus(mo); },
+          // ONE onChange for BOTH sets (wc.js fires it either way), so it has to answer both:
+          // the shown filter decides which roses exist at all, the traces decide which carry a
+          // ring. Repainting the whole grid answers the first; updateTraces + focusDraw the
+          // second; syncFocus catches the cursor standing on a month you have just hidden.
+          onChange:()=>{ syncFocus(); redrawCells(); renderMonthBar(); updateTraces(); drawCalendar();
+            if(lastFocus) focusDraw(lastFocus); if(window.LEG) LEG.refresh(); } });
+        WC.handleWebControl(m.web_control);
+        // perceptual legend (C5 §19): the dockable panel the scatter had, now on every view
+        LEG.init({
+          send: obj => { if(ws&&ws.readyState===1) ws.send(JSON.stringify(obj)); },
+          months: ()=>l0months, current: ()=>lastFocus&&lastFocus.key, channel: ()=>channel,
+          index: ()=>index,                                // the SEE key names a glossed pick (AEI, BI)
+          point: ()=> (isDay()&&lastDay&&lastWin) ? `w:${lastDay}:${lastWin}` : (lastFocus&&lastFocus.key),
+          // A chip is "look at this record-holder", so o.show makes its month VISIBLE — it
+          // does not trace it. The grid holds every month at once, so BRINGING it into view is
+          // also scrolling to its cell and putting the cursor on it.
+          select:(k,o)=>{ const mo=byKey.get(k); if(!mo) return;
+            if(o&&o.show) reveal(k);
+            focus(mo); revealCell(mo); },
+          onToggle: ()=>{ if(roses.length){ buildGrid(); drawCalendar(); } } });   // the panel docks left; the grid reflows
+        // the legend opens from its own left edge tab (legend.js) and the L key
+      } else { WC.refresh(); if(window.LEG) LEG.refresh(); }   // channel re-init: data-only swap
+    }
+    if(m.type==="web_control"){ WC.handleWebControl(m); }
+  };
+}
+window.addEventListener("resize",()=>{ if(roses.length){ buildGrid(); drawCalendar(); } });
+// The focus rose is a clock too, and the only one drawn large enough to aim at: press or
+// drag round it to walk the focused month's day without leaving the cell you are on.
+// At day resolution with a day heard, it is THAT DAY's rose you walk (L1): the month is a press
+// on the grid away, and dropping the day here would jump the sound back to L0.
+d3.select("#focus")
+  .on("pointerdown",function(e){ if(!lastFocus) return; window._roseDrag=true;
+       if(isDay() && lastDay){ _sentTag=null; focusDay(lastFocus, lastDay, winAt(this,e)); }
+       else focus(lastFocus, winAt(this,e)); })
+  .on("pointermove",function(e){ if(!lastFocus||!window._roseDrag) return;
+       const w=winAt(this,e);
+       if(isDay() && lastDay){ if(dayWinFor(lastDay,w)!==lastWin) focusDay(lastFocus, lastDay, w); }   // resolved, as on the calendar
+       else if(w!==lastWin) focus(lastFocus,w); });
+// end a press-drag anywhere (sound is deliberate: press/drag over cells, not hover), and
+// commit a trace-drag as ONE write rather than a toggle per cell it crossed
+// THE BRUSH'S GRAMMAR, here too (review 2026-09-28): the header chip and the ◫ button promise
+// "hold shift to untrace", and on the roses a trace-drag only ever ADDED. Now a drag armed by the
+// BRUSH (the switch or alt) with shift held at release ERASES, as brush.js reads it; shift alone
+// (brush off) is still this page's trace gesture and adds. A cancelled drag commits nothing.
+d3.select(window).on("pointerup.rose pointercancel.rose",(e)=>{
+  window._roseDrag=false;
+  if(!traceDrag) return;
+  const keys=[...traceDrag]; traceDrag=null;
+  d3.selectAll("#grid .cell.tracing, #cal .dcell.tracing").classed("tracing",false);
+  if(e && e.type==="pointercancel") return;
+  WC.setTraced(keys, (traceArmed && e && e.shiftKey) ? "remove" : "add");
+});
+connect();
+</script>
+</body>
+</html>

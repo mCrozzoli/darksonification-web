@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<!-- dark_re_wilding · L1 linear drill (dark_son_linear style).
+     Drill into ONE month: its ecological windows grouped by days, laid out
+     linearly in time (dawn·day·dusk·night repeating each day). y = the selected
+     index; points coloured by diel phase; day boundaries marked. Scrub left→right
+     to HEAR the diel cycle (sc/ engine, L1 fast arp). This is the L0→L1 drill:
+     pick a month (or arrive via ?m=YYYY-MM from the scatter / rose / biplot).
+
+     TWO INDEPENDENT SETS (wc.js). SHOWN = which months you are looking at: the month grid
+     writes it, and here 2+ shown months draw the day-for-day OVERLAY. TRACED = which windows
+     carry a ring: only the trace gestures write it (shift-press, the brush, the sidebar's
+     circle button), and a ring hides nothing, dims nothing and frames nothing. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>dark_re_wilding · L1 linear</title>
+<link rel="stylesheet" href="darkstyle/darkstyle.css">
+<script src="darkstyle/darkstyle.js"></script>   <!-- the style kit: dark · light · paper (projects/web/style) -->
+<link rel="stylesheet" href="rewild_tokens.css">   <!-- this design's tokens: dark = the values below used to be literals -->
+<script src="vendor/d3.v7.min.js"></script>
+<script src="../web_bridge.js"></script>
+<!-- web build: web_control.js (darkui GUI link) removed -->
+<script src="looks.js"></script>   <!-- the looks' data colours (after d3, before the modules) -->
+<script src="wc.js"></script>
+<script src="brush.js"></script>
+<script src="panel.js"></script>
+<script src="viewnav.js"></script>
+<script src="legend.js"></script>
+<script src="monthbar.js"></script>
+<style>
+  :root{ --bg:var(--rw-bg); --panel:var(--rw-panel); --line:var(--rw-line); --txt:var(--rw-txt); --dim:var(--rw-dim); --cur:var(--rw-cur); }   /* rewild_tokens.css */
+  html,body{ margin:0; height:100%; background:var(--bg); color:var(--txt);
+    font:var(--ds-font-size)/1.45 var(--ds-font-ui); }
+  #wrap{ display:grid; grid-template-rows:46px minmax(0,1fr); grid-template-columns:1fr 244px;
+    height:100%; gap:1px; background:var(--line); }
+  header{ grid-column:1/3; display:flex; align-items:center; gap:14px; padding:0 14px; background:var(--panel); }
+  header b{ letter-spacing:.12em; }
+  .ctl{ display:flex; align-items:center; gap:6px; } .ctl label{ color:var(--dim); }
+  select,button{ background:var(--rw-ctl); color:var(--txt); border:1px solid var(--rw-ctl-line); border-radius:6px; padding:3px 8px; font:inherit; cursor:pointer; }
+  #plot-wrap{ background:var(--bg); background-image:var(--ds-grain); position:relative; min-height:0; overflow:hidden; }
+  #side{ background:var(--panel); padding:12px; overflow-y:auto; }
+  svg{ display:block; width:100%; height:100%; }
+  .axis text{ fill:var(--dim); font-size:10px; } .axis line,.axis path{ stroke:var(--line); }
+  #chip{ font-size:11px; padding:3px 9px; border-radius:11px; border:1px solid var(--rw-ctl-line); display:flex; align-items:center; gap:6px; }
+  #chip::before{ content:""; width:8px; height:8px; border-radius:50%; background:var(--rw-chip-dot); }
+  #chip.disconnected{ color:var(--rw-off); } #chip.disconnected::before{ background:var(--rw-off-dot); }
+  #chip.streaming{ color:var(--rw-ok); } #chip.streaming::before{ background:var(--rw-ok-dot); }
+  h4{ margin:8px 0 6px; color:var(--dim); font-size:11px; letter-spacing:.1em; }
+  .row{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin:3px 0; }
+  .k{ color:var(--dim); flex:0 0 auto; }
+  .v{ flex:1 1 auto; min-width:0; text-align:right; overflow-wrap:anywhere; }
+  .lg{ margin:2px 0; display:inline-block; margin-right:10px; } .lg i{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; vertical-align:-1px; }
+  a{ color:var(--dim); text-decoration:none; }
+  /* hover readout: a scrub is a press-drag, so plain hover was free for this. */
+  #tip{ position:absolute; display:none; pointer-events:none; z-index:3; max-width:200px;
+    background:var(--rw-pop); border:1px solid var(--rw-pop-line); border-radius:7px; padding:5px 8px;
+    font-size:11px; line-height:1.45; box-shadow:var(--rw-pop-shadow); }
+  #tip .k{ margin-right:5px; }
+  /* TRACE ring - the same glow+pulse the scatter uses, so one aura reads the same wherever you
+     meet it. A ring says "keep an eye on this point". It hides nothing and dims nothing. */
+  @keyframes wcpulse{ 0%,100%{ filter:drop-shadow(0 0 2px var(--rw-gold)); } 50%{ filter:drop-shadow(0 0 7px var(--rw-gold-hi)); } }
+  circle.wc-ring{ animation:wcpulse 1.6s ease-in-out infinite; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <header>
+    <b><a href="../about.html" target="_blank" rel="noopener" title="about, credits and licences" style="color:inherit;text-decoration:none">dark_re_wilding ⓘ</a></b><span class="k">L1 linear</span>
+    <div id="chip" class="disconnected">disconnected</div>
+    <span style="flex:1"></span>
+    <nav id="viewnav"></nav>
+  </header>
+  <div id="plot-wrap"><svg id="plot"></svg><div id="tip"></div></div>
+  <div id="side">
+    <h4 id="w-title">SCRUB THE MONTH</h4>
+    <div class="row"><span class="k">day · phase</span><span class="v" id="w-when">—</span></div>
+    <div class="row"><span class="k">top bird</span><span class="v" id="w-sp">—</span></div>
+    <div id="w-ret" style="color:var(--rw-dawn); margin:3px 0"></div>
+    <div id="w-ax" style="margin-top:6px"></div>
+    <div class="wc-seglabel" style="color:var(--dim);font-size:11px;letter-spacing:.1em;margin:10px 0 6px">VIEW</div>
+    <div id="monthbar" style="margin-bottom:5px"></div>
+    <button class="wbtn" id="mb-all" style="width:100%;margin-bottom:7px"
+      title="show every month again - with no month singled out this view draws the one you are on">&#8634; all</button>
+    <select id="index" style="width:100%;margin-bottom:2px"></select>
+    <!-- the picked index in plain words (AEI, BI: legend.js GLOSS); hidden, and taking no room, otherwise -->
+    <div id="index-gloss" class="k" style="display:none;font-size:10px;line-height:1.4;margin:3px 0 6px"></div>
+    <div id="wc"></div>
+    <h4>PHASE</h4>
+    <div id="legend"></div>
+  </div>
+</div>
+
+<script>
+const DIEL=["dawn","day","dusk","night"];
+const PHASE_ORDER={dawn:0,day:1,dusk:2,night:3};
+const PHASE_COLOR=RWLook.phase;   // per look (rewild_tokens.css --rw-dawn…), refilled in place
+const MON=["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+// the bridge's AX_COLS, in its order (the fallback list, and the rows of the sidebar's record of a
+// window); AEI and BI joined on 2026-09-30 (Miguel's design)
+const AXK=["ACI","AEI","BI","Ht","n_species","Anthro","Bio","NBPEAKS"];
+const retText = r => !r ? "—" : (r.kind==="return" ? `${r.common} · back ${r.gap}mo` : `${r.common} · first record`);
+const winKey=(mk,d,ph)=>`w:${mk}-${String(d).padStart(2,"0")}:${ph}`;   // THE shared window key (trace set, brush)
+// TRACED is an annotation on a window: a ring + aura on that point, and nothing else.
+const isTracedKey = k => !!(window.WC && WC.isTraced && WC.isTraced(k));
+const traceRing   = k => (window.WC && ((WC.traceColor && WC.traceColor(k)) || WC.GOLD)) || RWLook.d.gold;
+// ECHO: the same date and window as a trace, another year (wc.js ECHOES). Open May 2024 and the
+// windows you traced in May 2025 answer - each with its OWN dashed ring AROUND the dot, in the
+// trace's colour, on a dark casing. The first version dashed the dot's own edge, and a 3-px dot
+// swallowed it (Miguel 2026-09-28: "it is difficult to see the echoed traces ... also in linear").
+const isEchoKey   = k => !isTracedKey(k) && !!(window.WC && WC.isEcho && WC.isEcho(k));
+const echoRing    = k => (window.WC && ((WC.echoColor && WC.echoColor(k)) || WC.GOLD)) || RWLook.d.gold;
+function drawEchoRings(list){                     // list: [{x, y, r, key}] in svg pixels
+  gEcho.selectAll("*").remove();
+  list.forEach(p=>{
+    const g=gEcho.append("g").attr("class","wc-echo").datum(p).attr("transform",`translate(${p.x},${p.y})`);
+    g.append("circle").attr("r",p.r).attr("fill","none").attr("stroke",RWLook.d.casing)
+      .attr("stroke-width",3.4).attr("stroke-opacity",0.8);
+    g.append("circle").attr("r",p.r).attr("fill","none").attr("stroke",echoRing(p.key))
+      .attr("stroke-width",1.5).attr("stroke-dasharray","2.4,1.6"); });
+}
+// A WHOLE-MONTH trace (made in a month view) has no window to ring here, so it marks the MONTH:
+// one month drawn -> the plot's own frame, as on spectro/mfcc (solid = traced; dashed = an echo,
+// the same month traced in another year); several compared -> their lines (drawCompare). Before
+// 2026-09-28 a month trace showed nothing at all in this view.
+// Both are about WHOLE-MONTH traces only, on purpose: a window traced inside May 2024 rings that
+// window here and must not stop May 2024 answering, as an echo, to a whole-May trace in 2025
+// (WC.echoOf declines any key isTraced folds - review 2026-09-28). First trace wins, as in wc.js,
+// so the colour is the source trace's; the ◌ switch is honoured.
+const monthTraced = mk => !!(mk && window.WC && WC.traced && WC.traced().has(mk));
+const monthEchoOf = mk => { if(!mk || !window.WC || !WC.echoPref || !WC.echoPref() || monthTraced(mk)) return null;
+  for(const k of WC.traced()) if(typeof k==="string" && /^\d{4}-\d{2}$/.test(k) && k!==mk && k.slice(4)===mk.slice(4)) return k;
+  return null; };
+function updMonthFrame(mk){
+  const w=document.getElementById("plot-wrap"), tr=monthTraced(mk), src=tr ? null : monthEchoOf(mk);
+  w.style.boxShadow = tr ? `inset 0 0 0 2px ${WC.traceColor(mk)||WC.GOLD}` : "none";
+  w.style.outline = src ? `2px dashed ${WC.traceColor(src)||WC.GOLD}` : "";
+  w.style.outlineOffset = src ? "-2px" : "";
+  w.classList.toggle("wc-traced", tr); w.classList.toggle("wc-echo", !!src);
+}
+
+let rows=[], months=[], l0months=[], monthKey=null, index="ACI", ws=null, hovered=-1, seq=[];
+let curKey=null;      // the WINDOW the scrub sits on - what the sidebar's trace button rings
+// WHAT STILL SOUNDS, which is not always the cursor: a quiet cursor move (the legend's) sends
+// nothing, and a legend chip voices a whole MONTH at L0. {key:"w:YYYY-MM-DD:win"|"m:YYYY-MM",
+// chan}, set only where this page (or its legend) really sends a point. rowsKey = the window
+// whose numbers the sidebar rows hold.
+let heard=null, rowsKey=null;
+let channel="air", channels=[], _wcInited=false, embeddings={};   // air/water switch + combined data
+// no BirdNET on this channel at all (water): n_species is not offered as an index, and an empty
+// n_species is "—" there, not "not analysed" (set on every init)
+let noNsp=false;
+let AIR_COLOR=RWLook.d.air, WATER_COLOR=RWLook.d.water;   // per look; the line below and the key read them at draw
+RWLook.onChange(()=>{ AIR_COLOR=RWLook.d.air; WATER_COLOR=RWLook.d.water; if(typeof gLine!=="undefined") gLine.attr("stroke",AIR_COLOR); });
+const XCHAN_OF={ACI:"aci", Ht:"bright", Anthro:"anthro", Bio:"bio", NBPEAKS:"nbpeaks"};   // linear index -> combined xchan key
+const svg=d3.select("#plot");
+const gBands=svg.append("g"), gAxis=svg.append("g").attr("class","axis"),
+      gLine=svg.append("path").attr("fill","none").attr("stroke",RWLook.d.air).attr("stroke-width",1.4),
+      gPts=svg.append("g"), gCompare=svg.append("g"),
+      gEcho=svg.append("g").attr("class","echo").style("pointer-events","none"),   // echo rings, over the points
+      gScrub=svg.append("line").attr("stroke","var(--cur)").attr("stroke-width",1.5).style("display","none");
+let X=d3.scaleLinear(), Y=d3.scaleLinear().domain([0,1]);
+
+// ordered windows for the selected month
+function buildSeq(){
+  seq = rows.filter(r=>`${r.y}-${String(r.m).padStart(2,"0")}`===monthKey)
+    .sort((a,b)=> a.d-b.d || PHASE_ORDER[a.win]-PHASE_ORDER[b.win]);
+}
+
+// WHAT YOU ARE LOOKING AT: the month grid's SHOWN filter, sorted. Purely a visibility
+// question - a traced window rings a point, it never decides which months this view draws.
+// EMPTY MEANS NO FILTER, every month shown. "Every month" is not a drawable answer in a
+// one-month drill (36 overlaid lines is a hairball), so an empty filter means "just the month
+// you are on" and the overlay waits until you have singled out two or more.
+function shownList(){
+  return (window.WC && WC.shownMonths) ? [...WC.shownMonths()].sort() : [];
+}
+function draw(){
+  gEcho.selectAll("*").remove();
+  if(channel==="air+water" && (embeddings.pca||embeddings.umap||embeddings.som)){
+    updMonthFrame(null); return drawChannelCompare(); }     // combined: air vs water diel overlay
+  const ms = shownList();                                  // what the grid says you are looking at
+  if(ms.length>=2){ updMonthFrame(null); return drawCompare(ms); }   // 2+ SHOWN months -> day-for-day overlay
+  gCompare.selectAll("*").remove();
+  // the compare path owns #w-title, so coming BACK to one month has to reclaim it - otherwise
+  // dropping to one shown month leaves the panel still announcing "COMPARE - 18 months"
+  d3.select("#w-title").text(`${MON[+monthKey.split("-")[1]]} ${monthKey.split("-")[0]}`);
+  buildSeq();
+  const w=document.getElementById("plot-wrap"), W=w.clientWidth, H=w.clientHeight, m=40;
+  svg.attr("width",W).attr("height",H);
+  X.domain([0, Math.max(1,seq.length-1)]).range([m, W-14]);
+  Y.range([H-28, 16]);
+  gAxis.selectAll("*").remove();
+  gAxis.append("g").attr("transform",`translate(${m},0)`).call(d3.axisLeft(Y).ticks(5).tickFormat(d3.format(".1f")));
+  gAxis.append("text").attr("class","ixlbl").attr("x",m).attr("y",12).attr("fill","var(--dim)").attr("font-size",10).text(index).call(axisGloss);
+  // day-alternating background bands + boundary ticks
+  gBands.selectAll("*").remove();
+  let start=0;
+  for(let i=1;i<=seq.length;i++){
+    if(i===seq.length || seq[i].d!==seq[start].d){
+      if((seq[start].d)%2===0) gBands.append("rect").attr("x",X(start)-2).attr("y",16)
+        .attr("width",Math.max(0,X(i-1)-X(start)+4)).attr("height",Math.max(0,H-44)).attr("fill",RWLook.d.dayband).attr("opacity",0.02);
+      gBands.append("line").attr("x1",X(start)-2).attr("x2",X(start)-2).attr("y1",16).attr("y2",H-28)
+        .attr("stroke","var(--line)").attr("stroke-width",0.6);
+      gBands.append("text").attr("x",X(start)-1).attr("y",H-14).attr("fill","var(--dim)").attr("font-size",9).text(seq[start].d);
+      start=i;
+    }
+  }
+  // main line + phase-coloured points
+  const line=d3.line().x((d,i)=>X(i)).y(d=>Y(d.ax[index])).defined(d=>d.ax[index]!=null);
+  gLine.attr("d",line(seq));
+  // UNKNOWN IS NOT ZERO (2026-09-29). A window with no value on this index - on n_species, one of
+  // the 40 BirdNET analysed no minute of - is not a point on this axis. It used to be drawn as a
+  // filled dot at Y(0), exactly where a real "0 species" window sits, with an echo ring and a
+  // hover target there too. Now, as on the scatter's n_species axes, it has no dot, no ring, no
+  // hover or brush target: the line breaks over it, and the scrub still walks it (it still sounds;
+  // the sidebar says "not analysed"). seqI keeps each window's own x slot.
+  const has=d=>d.ax[index]!=null, seqI=new Map(seq.map((d,i)=>[d,i]));
+  // A TRACE LANDS HERE, on the point: the ring + aura on the windows you traced, an echo ring
+  // around the windows traced in another year - and a whole-month trace frames the plot. No
+  // dimming, nothing hidden.
+  const tkey=d=>winKey(monthKey,d.d,d.win);
+  gPts.selectAll("circle").data(seq.filter(has)).join("circle")
+    .attr("cx",d=>X(seqI.get(d))).attr("cy",d=>Y(d.ax[index]))
+    .attr("r",d=>isTracedKey(tkey(d))?4:3)
+    .attr("fill",d=>PHASE_COLOR[d.win]).attr("opacity",0.9)
+    .attr("stroke",d=>isTracedKey(tkey(d))?traceRing(tkey(d)):"none").attr("stroke-width",2)
+    .classed("wc-ring",d=>isTracedKey(tkey(d)));                       // glow+pulse
+  drawEchoRings(seq.filter(has).map(d=>({ x:X(seqI.get(d)), y:Y(d.ax[index]), r:6.2, key:tkey(d), d:d.d, win:d.win }))
+    .filter(p=>isEchoKey(p.key)));
+  updMonthFrame(monthKey);
+  svg.node().__X=X;
+  svg.node().__cmp=null;                                    // the compare paths own this; stale it here
+  // THE CURSOR BELONGS TO ONE MONTH. A redraw of the SAME month (a resize, an index change, a
+  // trace) puts the scrub line back on its window at the new scale. After a MONTH change it
+  // used to stand over another month's window while the sidebar read the old window's numbers
+  // under the new month's title. What still sounds IS that old window - its clave, arp and
+  // corpus; the drone has moved to the new month's room (TASKS P20) - so it is named with its
+  // own date rather than passed off as this month's.
+  // Re-placed only on the channel that is sounding: after an air -> water switch the same key
+  // names water's row, while air's window still plays until the next scrub.
+  const ci = curKey ? seq.findIndex(d=>tkey(d)===curKey) : -1;
+  if(ci>=0 && (!heard || heard.chan===channel)) scrubTo(ci,true);
+  else {
+    gScrub.style("display","none"); hovered=-1;
+    if(!(heard && heard.key===rowsKey)){                 // the rows are not the numbers of what sounds
+      d3.select("#w-sp").text("—"); d3.select("#w-ret").text(""); d3.select("#w-ax").selectAll("*").remove();
+      rowsKey=null;
+    }
+    const hl=heardLabel(heard);
+    d3.select("#w-when").text(hl ? `still hearing ${hl}` : "—");   // the chip above already says: scrub to hear
+  }
+  // the drawn circles in screen space, for the hover tooltip
+  svg.node().__qt=d3.quadtree().x(p=>p.x).y(p=>p.y).addAll(seq.filter(has).map(d=>
+    ({ x:X(seqI.get(d)), y:Y(d.ax[index]), mk:monthKey, d:d.d, ph:d.win,
+       v:d.ax[index], sp:d.sp, nsp:d.nsp })));
+  drawLegend(); syncWC(); brushSync();
+}
+// THE YELLOW SQUARE, and why there is not one any more. This painted a 2px gold inset
+// box-shadow around the WHOLE plot whenever the drilled month was in the old merged set - and
+// the month grid wrote that same set, so picking a month to LOOK at framed the entire view in
+// gold (Miguel 2026-09-24). It was also the brush's only feedback here, because linear never
+// ringed its own points. Both jobs now land where they belong: the ring goes on the traced
+// WINDOWS (draw / drawCompare above), and the plot frame answers only to a TRACE of the whole
+// month on screen - solid when traced, dashed on its echo (updMonthFrame, 2026-09-28) - never to
+// what you picked to look at.
+function syncWC(){ if(window.WC) WC.refresh(); }
+
+// ---- COMPARE overlay (darkpulsar "parents"): 2+ SHOWN months overlaid on a shared
+// DAY-OF-MONTH axis. The resolution never collapses to diel: every window is still its
+// own point, coloured by its phase, and the MONTH is the line colour. ----
+function monthProfile(key){                      // mean diel profile - the air x water overlay still reads this
+  return DIEL.map(ph=>{
+    const sub=rows.filter(r=>`${r.y}-${String(r.m).padStart(2,"0")}`===key && r.win===ph);
+    const vs=sub.map(r=>r.ax[index]).filter(v=>v!=null);
+    const md={}; if(sub.length) Object.keys(sub[0].drv).forEach(k=>md[k]=d3.mean(sub,r=>r.drv[k]));
+    return { ph, v: vs.length? d3.mean(vs): null, drv: md };
+  });
+}
+// every window of one month, placed at day + a quarter-day phase offset, so months of
+// different lengths line up day-for-day and the diel rhythm stays visible inside each day.
+function monthDayProfile(key){
+  const pts = rows.filter(r=>`${r.y}-${String(r.m).padStart(2,"0")}`===key)
+    .sort((a,b)=> a.d-b.d || PHASE_ORDER[a.win]-PHASE_ORDER[b.win])
+    // mk: here a point belongs to a MONTH as well as a day, so the tooltip must name it
+    .map(r=>({ mk:key, d:r.d, ph:r.win, x:r.d+PHASE_ORDER[r.win]/4,
+               v:(r.ax[index]==null?null:r.ax[index]), drv:r.drv, sp:r.sp||null, nsp:r.nsp,
+               idx:(r.idx!=null?r.idx:null), returner:r.returner||null }));
+  // break the line over missing days: a recorder outage is a GAP in the record, and a
+  // straight bridge across it would draw values nobody measured.
+  const out=[];
+  pts.forEach((p,i)=>{ if(i && p.d-pts[i-1].d>1) out.push({ gap:true, x:(pts[i-1].x+p.x)/2, v:null });
+    out.push(p); });
+  return out;
+}
+function drawCompare(keys){
+  gBands.selectAll("*").remove(); gLine.attr("d",null); gPts.selectAll("*").remove();
+  gScrub.style("display","none"); gCompare.selectAll("*").remove();
+  const w=document.getElementById("plot-wrap"), W=w.clientWidth, H=w.clientHeight, m=44;
+  svg.attr("width",W).attr("height",H);
+  // one colour per month you are LOOKING AT (its place in the shown filter). Not the trace
+  // palette: these lines are the months on screen, which is a different question from rings.
+  const profiles=keys.map(key=>({ key,
+    color:(window.WC&&WC.shownColor&&WC.shownColor(key))||RWLook.d.air,
+    vals:monthDayProfile(key) }));
+  const dMax=d3.max(profiles,p=>d3.max(p.vals,v=>(v.gap?null:v.d)))||31;
+  const xs=d3.scaleLinear().domain([1,dMax+1]).range([m,W-14]);
+  Y.range([H-40,20]);
+  gAxis.selectAll("*").remove();
+  gAxis.append("g").attr("transform",`translate(${m},0)`).call(d3.axisLeft(Y).ticks(5).tickFormat(d3.format(".1f")));
+  gAxis.append("text").attr("class","ixlbl").attr("x",m).attr("y",12).attr("fill","var(--dim)").attr("font-size",10).text(index).call(axisGloss);
+  // day gridlines, labelled at whatever stride fits the width
+  const stride=Math.max(1,Math.ceil(dMax/Math.max(1,Math.floor((W-m-14)/26))));
+  for(let d=1; d<=dMax; d++){
+    const lab=((d-1)%stride===0);
+    gAxis.append("line").attr("x1",xs(d)).attr("x2",xs(d)).attr("y1",20).attr("y2",H-40)
+      .attr("stroke","var(--line)").attr("stroke-width",lab?0.5:0.25).attr("opacity",lab?0.9:0.35);
+    if(lab) gAxis.append("text").attr("x",xs(d)).attr("y",H-20).attr("text-anchor","middle")
+      .attr("fill","var(--dim)").attr("font-size",9).text(d);
+  }
+  gAxis.append("text").attr("x",(m+W-14)/2).attr("y",H-6).attr("text-anchor","middle")
+    .attr("fill","var(--dim)").attr("font-size",9).text("day of month");
+  const line=d3.line().x(d=>xs(d.x)).y(d=>Y(d.v)).defined(d=>d.v!=null);
+  const rad=(dMax>20||profiles.length>3)?2.2:3;
+  const tk=v=>winKey(v.mk,v.d,v.ph);
+  const echoes=[];
+  profiles.forEach(p=>{
+    // a WHOLE-MONTH trace marks its LINE: traced = bold, an echo (that month traced in another
+    // year) = bold and dashed - so comparing May 2023, 2024 and 2025 with May 2025 traced, the
+    // three Mays stand out of the other lines and say which is the trace (2026-09-28)
+    p.traced=monthTraced(p.key); p.echo=p.traced ? null : monthEchoOf(p.key);
+    gCompare.append("path").attr("class","mline"+(p.traced?" wc-traced":"")+(p.echo?" wc-echo":""))
+      .attr("data-mk",p.key).attr("fill","none").attr("stroke",p.color)
+      .attr("stroke-width",p.traced?2.6:p.echo?2:1.2).attr("opacity",(p.traced||p.echo)?1:0.55)
+      .attr("stroke-dasharray",p.echo?"7,4":null).attr("d",line(p.vals));
+    gCompare.append("g").selectAll("circle").data(p.vals.filter(v=>v.v!=null)).join("circle")
+      .attr("cx",v=>xs(v.x)).attr("cy",v=>Y(v.v))
+      .attr("r",v=>isTracedKey(tk(v))?rad+1.4:rad)
+      .attr("fill",v=>PHASE_COLOR[v.ph])
+      // the outline is the MONTH (which line you are on), unless the window is traced - then
+      // it is the trace colour + pulse, because a ring is rarer and should win the outline. An
+      // echo of a traced window gets its own ring around the dot (drawEchoRings): comparing May
+      // 2023, 2024 and 2025 day for day, a traced May 2025 window shows where it falls in the others.
+      .attr("stroke",v=>isTracedKey(tk(v))?traceRing(tk(v)):p.color)
+      .attr("stroke-width",v=>isTracedKey(tk(v))?2:1)
+      .classed("wc-ring",v=>isTracedKey(tk(v)))
+      .attr("opacity",0.95);
+    p.vals.forEach(v=>{ if(v.v!=null && isEchoKey(tk(v)))
+      echoes.push({ x:xs(v.x), y:Y(v.v), r:rad+3.6, key:tk(v), d:v.d, win:v.ph, mk:v.mk }); });
+  });
+  drawEchoRings(echoes);
+  svg.node().__cmp={xs,profiles,mode:"day"};
+  const hits=[];                                 // gap sentinels are line breaks, not points
+  profiles.forEach(p=>p.vals.forEach(v=>{ if(v.gap||v.v==null) return;
+    hits.push({ x:xs(v.x), y:Y(v.v), mk:v.mk, d:v.d, ph:v.ph, v:v.v, sp:v.sp, nsp:v.nsp }); }));
+  svg.node().__qt=d3.quadtree().x(p=>p.x).y(p=>p.y).addAll(hits);
+  d3.select("#w-title").text(`COMPARE \u00b7 ${keys.length} months`);
+  d3.select("#w-when").text("scrub a day"); d3.select("#w-sp").text("\u2014"); d3.select("#w-ret").text(""); rowsKey=null;
+  d3.select("#w-ax").selectAll("*").remove();
+  drawCompareLegend(profiles);
+  syncWC();
+  brushSync();
+}
+function drawCompareLegend(profiles){            // line = month, point fill = diel phase
+  const host=d3.select("#legend"); host.selectAll("*").remove();
+  // ◎ a traced month (bold line), ◌ an echo of one (dashed line) - named, so the line is findable
+  profiles.forEach(p=>host.append("span").attr("class","lg")
+    .attr("title",p.traced?"traced (bold line)":p.echo?`echo · ${WC.label(p.echo)} is traced (dashed line)`:null)
+    .html(`<i style="background:${p.color}"></i>${p.traced?"\u25ce ":p.echo?"\u25cc ":""}${MON[+p.key.split("-")[1]]} ${p.key.split("-")[0]}`));
+  DIEL.forEach(w=>host.append("span").attr("class","lg")
+    .html(`<i style="background:${PHASE_COLOR[w]};border-radius:50%"></i>${w}`));
+}
+
+// ---- COMBINED: air vs water diel overlay for ONE month (from the joint embeddings) ----
+function channelProfiles(key, xk){
+  const meth = (((embeddings.meta||{}).methods) ||
+                Object.keys(embeddings).filter(k=>k!=="meta")).find(k=>embeddings[k]);
+  const src = embeddings[meth] || {};
+  const get = ch => DIEL.map(ph=>{
+    const pt = (src[ph]||[]).find(p=>p.key===key);
+    return { ph, v: (pt && pt[ch] && pt[ch][xk]!=null) ? pt[ch][xk] : null, drv: pt ? pt.drv : {} };
+  });
+  return [{ key:"air", color:AIR_COLOR, vals:get("air") },
+          { key:"water", color:WATER_COLOR, vals:get("water") }];
+}
+function drawChannelCompare(){
+  gBands.selectAll("*").remove(); gLine.attr("d",null); gPts.selectAll("*").remove();
+  gScrub.style("display","none"); gCompare.selectAll("*").remove();
+  const w=document.getElementById("plot-wrap"), W=w.clientWidth, H=w.clientHeight, m=44;
+  svg.attr("width",W).attr("height",H);
+  const xs=d3.scalePoint().domain(DIEL).range([m+30, W-40]);
+  Y.range([H-40,20]);
+  const xk = XCHAN_OF[index] || "aci";
+  gAxis.selectAll("*").remove();
+  gAxis.append("g").attr("transform",`translate(${m},0)`).call(d3.axisLeft(Y).ticks(5).tickFormat(d3.format(".1f")));
+  gAxis.append("text").attr("class","ixlbl").attr("x",m).attr("y",12).attr("fill","var(--dim)").attr("font-size",10).text(index).call(axisGloss);
+  DIEL.forEach(ph=>{
+    gAxis.append("line").attr("x1",xs(ph)).attr("x2",xs(ph)).attr("y1",20).attr("y2",H-40).attr("stroke","var(--line)").attr("stroke-width",0.5);
+    gAxis.append("text").attr("x",xs(ph)).attr("y",H-20).attr("text-anchor","middle").attr("fill",PHASE_COLOR[ph]).attr("font-size",11).text(ph);
+  });
+  const profiles=channelProfiles(monthKey, xk);
+  const line=d3.line().x(d=>xs(d.ph)).y(d=>Y(d.v)).defined(d=>d.v!=null);
+  profiles.forEach(p=>{
+    gCompare.append("path").attr("fill","none").attr("stroke",p.color).attr("stroke-width",2).attr("opacity",0.95).attr("d",line(p.vals));
+    p.vals.filter(v=>v.v!=null).forEach(v=>gCompare.append("circle").attr("cx",xs(v.ph)).attr("cy",Y(v.v)).attr("r",4).attr("fill",p.color));
+  });
+  svg.node().__cmp={xs,profiles};
+  // x is four diel phases, not points: nothing here to look up or to stroke over
+  svg.node().__qt=null; if(_brush){ _brush.destroy(); _brush=null; }
+  d3.select("#w-title").text(`AIR × WATER · ${MON[+monthKey.split("-")[1]]} ${monthKey.split("-")[0]}`);
+  d3.select("#w-when").text("scrub a phase"); d3.select("#w-sp").text("—"); d3.select("#w-ret").text(""); rowsKey=null;
+  d3.select("#w-ax").selectAll("*").remove();
+  const host=d3.select("#legend"); host.selectAll("*").remove();
+  host.append("span").attr("class","lg").html(`<i style="background:${AIR_COLOR}"></i>air`);
+  host.append("span").attr("class","lg").html(`<i style="background:${WATER_COLOR}"></i>water`);
+  syncWC();
+}
+function scrubPhase(ph,cmp){
+  curKey=null;                       // a phase is a month MEAN, not a window: nothing to ring
+  gScrub.style("display",null).attr("x1",cmp.xs(ph)).attr("x2",cmp.xs(ph)).attr("y1",16).attr("y2",Y.range()[0]);
+  d3.select("#w-when").text(`phase · ${ph}`);
+  const host=d3.select("#w-ax"); host.selectAll("*").remove();
+  cmp.profiles.forEach(p=>{ const v=p.vals.find(x=>x.ph===ph);
+    host.append("div").attr("class","row")
+      .html(`<span class="k" style="color:${p.color}">${p.key}</span><span class="v">${v&&v.v!=null?v.v.toFixed(2):"—"}</span>`); });
+  rowsKey=null;                                                      // per-month rows, not a window's
+  const widx=phaseWidx(ph);                                          // standalone: the primary sounds
+  if(widx!=null&&ws&&ws.readyState===1){
+    const r=rows.find(x=>x.idx===widx);
+    heard = r ? {key:winKey(`${r.y}-${String(r.m).padStart(2,"0")}`,r.d,r.win), chan:channel} : null;
+    ws.send(JSON.stringify({type:"drv",level:1,widx,channel}));
+  }
+}
+// The bridge resolves a point by mkey or widx and ignores a bare `drv` payload, which is why
+// this path made no sound at all. A phase here is the month's MEAN over ~30 days, which no
+// single window is, so what sounds is the primary channel's window of that phase nearest it.
+function phaseWidx(ph){
+  const sub=rows.filter(r=>`${r.y}-${String(r.m).padStart(2,"0")}`===monthKey && r.win===ph
+                           && r.idx!=null && r.ax[index]!=null);
+  if(!sub.length) return null;
+  const mu=d3.mean(sub,r=>r.ax[index]);
+  return sub.reduce((a,b)=>Math.abs(b.ax[index]-mu)<Math.abs(a.ax[index]-mu)?b:a).idx;
+}
+
+// day-resolution compare scrub: snap to the nearest WINDOW of the primary (first pinned)
+// month, sound that window, and read every pinned month at the same day + phase.
+function scrubCmpDay(mx,cmp){
+  const prim=cmp.profiles[0]; if(!prim) return;
+  let best=null,bd=1e9;
+  prim.vals.forEach(v=>{ if(v.v==null) return; const dx=Math.abs(cmp.xs(v.x)-mx); if(dx<bd){ bd=dx; best=v; } });
+  if(!best) return;
+  curKey=winKey(best.mk,best.d,best.ph);
+  gScrub.style("display",null).attr("x1",cmp.xs(best.x)).attr("x2",cmp.xs(best.x))
+    .attr("y1",16).attr("y2",Y.range()[0]);
+  d3.select("#w-when").text(`day ${best.d} \u00b7 ${best.ph}`);
+  d3.select("#w-sp").text(best.sp||"\u2014");
+  d3.select("#w-ret").text(best.returner ? "returner \u00b7 "+retText(best.returner) : "returner \u2014");
+  const host=d3.select("#w-ax"); host.selectAll("*").remove();
+  cmp.profiles.forEach(p=>{ const v=p.vals.find(x=>x.d===best.d && x.ph===best.ph);
+    host.append("div").attr("class","row")
+      .html(`<span class="k" style="color:${p.color}">${p.key}</span><span class="v">${v&&v.v!=null?v.v.toFixed(2):"\u2014"}</span>`); });
+  rowsKey=null;                                                      // per-month rows, not a window's
+  if(ws&&ws.readyState===1){ heard={key:curKey, chan:channel};
+    ws.send(JSON.stringify({type:"drv",level:1,drv:best.drv,sp:best.sp||null,
+      widx:(best.idx!=null?best.idx:null),channel})); }
+}
+
+// PRESS-and-drag to scrub (matches the scatter/biplot idiom): hold and move to hear,
+// nearest window (single month) OR nearest phase (compare / air-vs-water overlay).
+let lgDrag=false;
+const cmpMode = () => (shownList().length>=2) || channel==="air+water";
+// the brush owns the drag while it is armed: without this gate a tracing stroke would ALSO
+// scrub every point it passed. RWBrush.armed, not the toggle/alt test alone: it stays true
+// while a stroke is in flight, so releasing alt mid-sweep does not start scrubbing.
+const brushing = e => (window.RWBrush ? RWBrush.armed(e)
+                        : ((window.WC && WC.brushPref()) || (e && e.altKey)));
+function scrubAt(e){
+  const cmp=svg.node().__cmp;
+  const cmpOn = cmp && cmpMode();
+  const mx=d3.pointer(e, svg.node())[0];
+  if(cmpOn){
+    if(cmp.mode==="day") return scrubCmpDay(mx,cmp);
+    let best=DIEL[0],bd=1e9; DIEL.forEach(ph=>{ const dx=Math.abs(cmp.xs(ph)-mx); if(dx<bd){ bd=dx; best=ph; } });
+    scrubPhase(best,cmp);
+  } else if(seq.length){
+    const i=Math.max(0,Math.min(seq.length-1, Math.round(X.invert(mx))));
+    scrubTo(i);
+  }
+}
+// SHIFT-PRESS TRACES the window under the cursor - the scatter's gesture, spelled the same
+// here. Tracing is never a side effect of navigating: a plain press only moves the sound.
+function traceAt(e){
+  const qt=svg.node().__qt; if(!qt||!window.WC) return;
+  const [mx,my]=d3.pointer(e, svg.node());
+  const p=qt.find(mx,my,NEAR_PX); if(!p) return;   // what the hover box names, and a dab would take
+  WC.toggleTrace(winKey(p.mk,p.d,p.ph));
+  draw();
+}
+d3.select("#plot")
+  .on("pointerdown",function(e){ if(brushing(e)) return;      // the brush owns this drag
+    if(e.shiftKey){ e.preventDefault(); return traceAt(e); }  // ...and shift owns this press
+    lgDrag=true; try{ this.setPointerCapture(e.pointerId); }catch(_){}; scrubAt(e); })
+  .on("pointermove",function(e){
+    // the box goes only while a STROKE is in flight; an armed brush that is merely hovering
+    // still names what is under it - that is how you aim a dab
+    if(window.RWBrush && RWBrush.stroking()) return hideTip();
+    if(brushing(e)) return showTip(e);                         // armed: name it, never scrub
+    if(lgDrag){ hideTip(); return scrubAt(e); }                // a drag reports in the sidebar
+    showTip(e); })
+  .on("pointerup pointercancel",function(){ lgDrag=false; })
+  .on("pointerleave",hideTip);
+// `quiet` moves the cursor without sounding, for the legend: it has already voiced the month
+// at L0, and an L1 window press would overwrite that before you heard it.
+function scrubTo(i,quiet){
+  const d=seq[i]; if(!d) return;
+  hovered=i; curKey=winKey(monthKey,d.d,d.win);       // what the sidebar's trace button rings
+  gScrub.style("display",null).attr("x1",X(i)).attr("x2",X(i)).attr("y1",16).attr("y2",Y.range()[0]);
+  d3.select("#w-when").text(`day ${d.d} · ${d.win}`);
+  d3.select("#w-sp").text(d.sp||"—");
+  d3.select("#w-ret").text(d.returner ? "returner · "+retText(d.returner) : "returner —");
+  const host=d3.select("#w-ax"); host.selectAll("*").remove();
+  AXK.forEach(k=>host.append("div").attr("class","row").attr("title",glossOf(k))
+    .html(`<span class="k">${k}</span><span class="v">${d.ax[k]!=null ? d.ax[k].toFixed(2)
+      : (k==="n_species" && !noNsp) ? "not analysed" : "—"}</span>`));   // unknown, not 0 (2026-09-29)
+  rowsKey=curKey;
+  if(!quiet&&ws&&ws.readyState===1){ heard={key:curKey, chan:channel};
+    ws.send(JSON.stringify({type:"drv",level:1,drv:d.drv,sp:d.sp||null,widx:(d.idx!=null?d.idx:null),channel})); }   // widx -> per-window corpus clips
+}
+
+function heardLabel(h){
+  if(!h) return null;
+  let m=h.key.match(/^w:(\d{4})-(\d{2})-(\d{2}):(\w+)$/), s=null;
+  if(m) s=`${+m[3]} ${MON[+m[2]]} ${m[1]} · ${m[4]}`;
+  else if((m=h.key.match(/^m:(\d{4})-(\d{2})$/))) s=`${MON[+m[2]]} ${m[1]}, the month`;
+  return s && h.chan!==channel ? `${s} · ${h.chan}` : s;
+}
+function drawLegend(){
+  const host=d3.select("#legend"); host.selectAll("*").remove();
+  DIEL.forEach(w=>host.append("span").attr("class","lg").html(`<i style="background:${PHASE_COLOR[w]}"></i>${w}`));
+}
+
+// HOVER READOUT. Hearing a point is a press-drag, so plain hover was doing nothing; it now
+// names the point under the cursor. In compare mode a point belongs to a month as well as a
+// day, so the month is part of the answer or the tooltip is ambiguous by construction.
+const tip=d3.select("#tip");
+const NEAR_PX=18;          // the hover box's reach - and the brush dab's (brush.js `reach`)
+function hideTip(){ tip.style("display","none"); }
+function showTip(e){
+  const qt=svg.node().__qt; if(!qt) return hideTip();
+  const [mx,my]=d3.pointer(e, svg.node());
+  const p=qt.find(mx,my,NEAR_PX); if(!p) return hideTip();
+  // measured at the ORIGIN (TASKS P29), as the scatter and the hour views do: an absolutely-
+  // positioned box shrink-to-fits against the room left to its right, so measured where it
+  // last sat near the edge it reads a wrapped width, and the flip below is computed from that
+  tip.style("display","block").style("left","0px").style("top","0px").html(
+      (cmpMode() ? `<div><b>${MON[+p.mk.split("-")[1]]} ${p.mk.split("-")[0]}</b></div>` : "")
+    // the MONTH's own mark (the frame, or the bold / dashed line), named in both modes
+    + (!p.mk ? "" : monthTraced(p.mk) ? `<div style="color:${WC.traceColor(p.mk)||WC.GOLD}">\u25ce month traced</div>`
+       : monthEchoOf(p.mk) ? `<div style="color:${WC.traceColor(monthEchoOf(p.mk))||WC.GOLD}">\u25cc month echo \u00b7 ${WC.label(monthEchoOf(p.mk))} is traced</div>` : "")
+    + `<div><span class="k">day</span>${p.d} \u00b7 <span style="color:${PHASE_COLOR[p.ph]}">${p.ph}</span></div>`
+    + `<div><span class="k">${index}</span>${p.v==null?"\u2014":p.v.toFixed(2)}</div>` + glossTip()
+    + (p.sp ? `<div><span class="k">top bird</span>${p.sp}</div>` : "")
+    // UNKNOWN richness is named, never dropped or shown as 0 (2026-09-29), as on the scatter
+    + (p.nsp!=null ? `<div><span class="k">n_species</span>${p.nsp}</div>`
+       : noNsp ? "" : `<div><span class="k">n_species</span>not analysed</div>`)
+    + (window.WC && WC.traceNote && p.mk ? WC.traceNote(winKey(p.mk,p.d,p.ph)) : ""));
+  // flip to the other side of the cursor rather than overflow the plot
+  const w=document.getElementById("plot-wrap"), b=tip.node().getBoundingClientRect();
+  tip.style("left",Math.max(0,(mx+14+b.width >w.clientWidth ) ? mx-14-b.width  : mx+14)+"px")
+     .style("top" ,Math.max(0,(my+12+b.height>w.clientHeight) ? my-12-b.height : my+12)+"px");
+}
+
+// BRUSH (brush.js): stroke over the plot to TRACE many windows at once. Mounted lazily because
+// the plot has to be sized first, and re-sized on every draw so its extent still covers it.
+let _brush=null;
+function brushSync(){
+  if(!_brush && window.RWBrush) _brush=RWBrush.mount({ svg, reach:NEAR_PX,
+    extent:()=>{ const w=document.getElementById("plot-wrap"); return [[0,0],[w.clientWidth,w.clientHeight]]; },
+    points:brushPoints,
+    onCommit:(keys,mode)=>{ WC.setTraced(keys,mode); draw(); } });
+  if(_brush) _brush.resize().raise();          // keep the trail above later-appended layers
+}
+// the drawn circles in svg pixels, one branch per draw path
+function brushPoints(){
+  const cmp=svg.node().__cmp;
+  if(cmp && cmp.mode==="day"){
+    const out=[];
+    cmp.profiles.forEach(p=>p.vals.forEach(v=>{ if(v.gap||v.v==null) return;
+      out.push({ key:winKey(v.mk,v.d,v.ph), x:cmp.xs(v.x), y:Y(v.v) }); }));
+    return out;
+  }
+  // a window with no value on this index has no dot (draw), so nothing for a stroke to take
+  return seq.map((d,i)=>({ d, i })).filter(p=>p.d.ax[index]!=null)
+    .map(({d,i})=>({ key:winKey(monthKey,d.d,d.win), x:X(i), y:Y(d.ax[index]) }));
+}
+
+// MONTH SELECTOR — a year×month grid (replaces the dropdown; consistent with the
+// scatter's month colours). Click a month to scrub it; click more to overlay them (they
+// toggle in the shared SHOWN filter). Rendered by the shared MonthBar. THE GRID CHOOSES WHAT
+// YOU SEE AND NOTHING ELSE: no ring, no aura, no frame follows from picking a month.
+let _mbar=null;
+function buildMonthSelect(){
+  months=[...new Set(rows.map(r=>`${r.y}-${String(r.m).padStart(2,"0")}`))].sort();
+  if(!monthKey){
+    const q=new URLSearchParams(location.search).get("m");
+    monthKey = (q && months.includes(q)) ? q : (months.find(k=>k.endsWith("-05")) || months[0]);
+  }
+  keepMonthShown();
+  if(!_mbar) _mbar=MonthBar.mount({ host:"#monthbar", months:()=>months, current:()=>monthKey, onPick:pickMonth });
+  renderMonthBar();
+}
+// ONE invariant, so the grid, the title and the plot can never disagree: this view always
+// draws a month that is SHOWN. An arriving ?m= or a stale monthKey loses to the filter,
+// because the filter is what you last told the display you wanted to see. Held on EVERY
+// change of the filter, not only when the month list is built: WC loads the saved filter in
+// its own init - AFTER that build - so a reload with a saved filter drew the first May while
+// the grid lit another month, and a scrub there played a window outside the room (P20).
+function keepMonthShown(){
+  if(!(window.WC && WC.isShownMonth) || !monthKey || WC.isShownMonth(monthKey)) return;
+  const vis=[...WC.shownMonths()].filter(k=>months.includes(k)).sort();
+  if(vis.length) monthKey=vis[vis.length-1];
+}
+function renderMonthBar(){
+  if(_mbar) _mbar.render();
+  // "all" is lit when there is no filter at all - i.e. when it has nothing left to undo
+  d3.select("#mb-all").classed("on", !!(window.WC && WC.showingAll && WC.showingAll()));
+}
+// ↺ all - drop the month filter. Nothing is hidden by a filter in this view (it draws one
+// month, or overlays the ones you singled out), so "all" means: stop singling months out.
+d3.select("#mb-all").on("click",()=>{ if(window.MonthBar) MonthBar.showAll(); });
+// THE shared month policy (monthbar.js): toggle the month's VISIBILITY and report the month
+// the cursor should sit on. It does NOT trace - clicking a month changes what you are looking
+// at and nothing else.
+function pickMonth(mk){
+  monthKey=MonthBar.pick(mk,monthKey);
+  sendSelection(); draw(); renderMonthBar();
+}
+// THE GROUPING, at L1. This view is the L1 one, so what you are LOOKING AT is what the drone's
+// room should be. (The SHOWN months - a trace is an annotation and moves no room.) There is no `month:` subset in the precompute, so the room is the narrowest
+// precomputed one that CONTAINS the selection: one year -> that year, all-summer or all-winter
+// months -> that season, anything spanning them -> the whole dataset. Widening rather than
+// picking one selected month keeps the claim honest: the body is the selection, not a sample
+// of it.
+function subsetForSelection(){
+  const vis = shownList();
+  const ms = vis.length ? vis : (monthKey ? [monthKey] : []);
+  if(!ms.length) return "all:2023-2026";
+  const ys = new Set(ms.map(k=>+k.slice(0,4))), mo = ms.map(k=>+k.slice(5,7));
+  if(ys.size===1){ const y=[...ys][0]; if(y>=2023&&y<=2026) return "year:"+y; }
+  if(mo.every(m=>m>=5&&m<=7)) return "season:summer";
+  if(mo.every(m=>m===11||m===12||m===1)) return "season:winter";
+  return "all:2023-2026";
+}
+let _lastSubset=null;
+function sendSelection(){
+  const sub=subsetForSelection();
+  if(sub===_lastSubset || !(ws&&ws.readyState===1)) return;
+  _lastSubset=sub;
+  ws.send(JSON.stringify({type:"select", level:1, subset:sub}));
+}
+// The legend's select contract: BRING the month into view, put the CURSOR on it, SHOW it.
+// A chip means "look at this record-holder", so it makes the month VISIBLE (o.show) - it does
+// not trace it; a chip is not a ring. A chip is a month and this view scrubs windows, so the
+// cursor lands on the month's first window. An ADD, not a toggle: eleven chips resolve to
+// about seven months, and a toggle would make the second chip for a month undo the first.
+function selectMonth(key,o){
+  if(!key) return;
+  if(o&&o.bring) heard={key:"m:"+key, chan:channel};   // the legend chip voiced the MONTH at L0
+  monthKey=key;
+  // only if it is hidden (P25): adding to an EMPTY filter (= all shown) narrowed every view
+  // sharing SHOWN to this one month, and here it also flipped linear into single-month mode
+  if(o&&o.show&&window.WC&&!WC.isShownMonth(key)) WC.setShown([key],"add");
+  // the ROOM follows the month you are now looking at (P20): with no filter the room is the
+  // month's own year, so a chip landing in another year moved the plot and left the room
+  // behind - and the next scrub fell out of it to `all`, for good. Deduped: a no-op when the
+  // setShown above already sent it.
+  sendSelection();
+  draw(); renderMonthBar();
+  if(!cmpMode() && seq.length) scrubTo(0,true);
+}
+// THE PICKED INDEX, IN PLAIN WORDS (2026-09-30). AEI and BI joined the list; each is explained wherever
+// this view names it: the option's tooltip, the line under the picker, the axis label's and the sidebar
+// row's tooltips, the hover box and the legend's key (legend.js GLOSS owns the words). AEI is drawn as measured:
+// higher = more uneven. The picker only changes the picture - it sends nothing.
+function glossOf(k){ return (window.LEG && LEG.gloss) ? LEG.gloss(k, channel) : null; }
+function glossTip(){ const g=glossOf(index); return g ? `<div class="k">${g.slice(g.indexOf(" \u00b7 ")+3)}</div>` : ""; }
+// the axis label stays the index's name - a sentence there is clipped once the legend docks - and carries
+// the gloss as its tooltip, as the picker's options do
+function axisGloss(sel){ const g=glossOf(index); if(g) sel.append("title").text(g); }
+function showGloss(){
+  const g=glossOf(index), el=document.getElementById("index-gloss");
+  d3.select("#index").attr("title", g);                 // null removes it
+  if(el){ el.textContent=g||""; el.style.display=g?"block":"none"; }
+  if(window.LEG && LEG.see) LEG.see();                  // the key's height line; draws only
+}
+function buildIndexSelect(keys){
+  const sel=d3.select("#index");
+  sel.selectAll("option").data(keys).join("option").attr("value",d=>d).text(d=>d).attr("title",d=>glossOf(d));
+  sel.property("value","ACI"); index="ACI"; showGloss();
+  sel.on("change",function(){ index=this.value; showGloss(); draw(); });
+}
+
+async function resolveWsPort(){
+  const q=new URLSearchParams(location.search).get("ws"); if(q) return q;
+  try{ const r=await Promise.reject(new Error("web build: no bridge")); const j=await r.json(); if(j&&j.ws) return String(j.ws);}catch(e){}
+  return "8765";
+}
+function setConn(s,t){ const c=document.getElementById("chip"); c.className=s; c.textContent=t; }
+async function connect(){
+  const port=await resolveWsPort();
+  ws=(window.__darkWeb ? window.__darkWeb.socket() : new WebSocket(`ws://127.0.0.1:${port}`));   // WEB BUILD (build_web.py)
+  ws.onopen=()=>setConn("streaming","connected");
+  ws.onclose=()=>{ setConn("disconnected","disconnected · retrying"); setTimeout(connect,1500); };
+  ws.onerror=()=>ws.close();
+  ws.onmessage=ev=>{ const m=JSON.parse(ev.data);
+    if(m.type==="mix"){ if(window.WC) WC.applyMix(m); return; }   // the bridge owns the mix; the faders render it
+    if(m.type==="init"){
+      window.RW_COVERAGE = m.coverage || {};           // per month: hours, windows, partial (bridge month_coverage)
+      channel=m.channel||"air"; channels=m.channels||[];
+      if(window.WC && WC.channelPref()!==channel && channels.includes(WC.channelPref())){
+        ws.send(JSON.stringify({type:"channel",channel:WC.channelPref()})); return; }
+      rows=m.rows||[]; embeddings=m.embeddings||{}; l0months=m.l0months||[];   // l0months feeds the legend catalogue
+      noNsp = !rows.some(r=>r.nsp!=null);              // water: no BirdNET richness at all
+      setConn("streaming",`${channel} · ${rows.length} windows · scrub to hear`);
+      if(window.WC && ws&&ws.readyState===1) ws.send(JSON.stringify({type:"loop",on:WC.loopPref()?1:0}));
+      if(window.WC && ws&&ws.readyState===1) ws.send(JSON.stringify({type:"stat",stat:WC.statPref()}));
+      if(ws&&ws.readyState===1) ws.send(JSON.stringify({type:"mixquery"}));   // adopt the engine's mix, do not assume it
+      buildMonthSelect();
+      // THE ROOM is sent once the month AND the saved filter are known (TASKS P20): on the first
+      // init by WC.init's own onChange below (it loads the filter, then re-renders), on a re-init
+      // right after it. Sent first thing, as it was, an empty filter and no month yet made it
+      // all:2023-2026 while the plot drew one month of one year. The dedupe is dropped on every
+      // init: a reconnect may be a fresh bridge (its room back at `all`); a channel switch
+      // re-inits too.
+      _lastSubset=null;
+      // a channel with no BirdNET (water) has no n_species index: every window would be empty
+      buildIndexSelect(channel==="air+water" ? (m.ax_keys||AXK).filter(k=>XCHAN_OF[k])
+                       : (m.ax_keys||AXK).filter(k=>!(noNsp && k==="n_species")));
+      draw();
+      if(!_wcInited){ _wcInited=true;
+        WC.init({ container:document.getElementById("wc"), level:"l1",
+          // current = the WINDOW the scrub is on, so the sidebar's trace button rings the point
+          // you are hearing (not the whole month). Falls back to the month before any scrub.
+          months:()=>months, current:()=>curKey||monthKey, channel:()=>channel, channels:()=>channels,
+          onChannel:ch=>{ if(ws&&ws.readyState===1) ws.send(JSON.stringify({type:"channel",channel:ch})); },
+          sound:()=>WC.soundPref(),
+          onMaster:p=>{ if(ws&&ws.readyState===1) ws.send(JSON.stringify({type:"master",...p})); },
+          onMix:p=>{ if(ws&&ws.readyState===1) ws.send(JSON.stringify({type:"mix",...p})); },
+          onStat:st=>{ if(ws&&ws.readyState===1) ws.send(JSON.stringify({type:"stat",stat:st})); },
+          onLoop:v=>{ if(ws&&ws.readyState===1) ws.send(JSON.stringify({type:"loop",on:v})); },
+          select:selectMonth,
+          // EITHER set landing here: a shown month changes the room, a trace only redraws
+          onChange:()=>{ keepMonthShown(); sendSelection(); draw(); renderMonthBar(); } });
+        WC.handleWebControl(m.web_control);
+        // perceptual legend (C5 §19) — on every view now, and it hosts this view's how-to-read
+        LEG.init({
+          send: obj => { if(ws&&ws.readyState===1) ws.send(JSON.stringify(obj)); },
+          months: ()=>l0months, current: ()=>monthKey, channel: ()=>channel,
+          index: ()=>index,                                // the SEE key names a glossed pick (AEI, BI)
+          // what the bridge stands on changes with the ROOM and with every point sent - and only
+          // then: a month pick can start a resting room (P20) and the next scrub ends it, and
+          // the probe must follow both or the chips stay blocked after you pressed one
+          point: ()=>[subsetForSelection(), monthKey, heard ? heard.key+"@"+heard.chan : ""].join("|"),
+          select: selectMonth,
+          onToggle: ()=>{ if(rows.length) draw(); } });     // the panel docks left, so the plot reflows
+        // the legend opens from its own left edge tab (legend.js) and the L key
+      } else { WC.refresh(); if(window.LEG) LEG.refresh(); sendSelection(); }
+    }
+    if(m.type==="web_control"){ WC.handleWebControl(m); }
+  };
+}
+window.addEventListener("resize",()=>{ if(rows.length) draw(); });
+connect();
+</script>
+</body>
+</html>

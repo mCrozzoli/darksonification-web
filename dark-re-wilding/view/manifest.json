@@ -1,0 +1,5042 @@
+{
+  "manifest_version": 1,
+  "generated_by": "darkui save_project",
+  "generated_at": "2026-08-22T16:38:23",
+  "project": "dark_re_wilding",
+  "levels": {
+    "l0": {
+      "n_rows": 34,
+      "columns": [
+        "_id",
+        "year",
+        "month",
+        "top_species_k0_name",
+        "top_species_k0_common",
+        "top_species_k0_n_det",
+        "top_species_k0_conf_mean",
+        "top_species_k0_conf_max",
+        "top_species_k0_file",
+        "top_species_k0_t_start",
+        "top_species_k0_t_end",
+        "top_species_k1_name",
+        "top_species_k1_common",
+        "top_species_k1_n_det",
+        "top_species_k1_conf_mean",
+        "top_species_k1_conf_max",
+        "top_species_k1_file",
+        "top_species_k1_t_start",
+        "top_species_k1_t_end",
+        "top_species_k2_name",
+        "top_species_k2_common",
+        "top_species_k2_n_det",
+        "top_species_k2_conf_mean",
+        "top_species_k2_conf_max",
+        "top_species_k2_file",
+        "top_species_k2_t_start",
+        "top_species_k2_t_end",
+        "top_species_k3_name",
+        "top_species_k3_common",
+        "top_species_k3_n_det",
+        "top_species_k3_conf_mean",
+        "top_species_k3_conf_max",
+        "top_species_k3_file",
+        "top_species_k3_t_start",
+        "top_species_k3_t_end",
+        "top_species_k4_name",
+        "top_species_k4_common",
+        "top_species_k4_n_det",
+        "top_species_k4_conf_mean",
+        "top_species_k4_conf_max",
+        "top_species_k4_file",
+        "top_species_k4_t_start",
+        "top_species_k4_t_end",
+        "top_species_k5_name",
+        "top_species_k5_common",
+        "top_species_k5_n_det",
+        "top_species_k5_conf_mean",
+        "top_species_k5_conf_max",
+        "top_species_k5_file",
+        "top_species_k5_t_start",
+        "top_species_k5_t_end",
+        "top_species_k6_name",
+        "top_species_k6_common",
+        "top_species_k6_n_det",
+        "top_species_k6_conf_mean",
+        "top_species_k6_conf_max",
+        "top_species_k6_file",
+        "top_species_k6_t_start",
+        "top_species_k6_t_end",
+        "top_species_k7_name",
+        "top_species_k7_common",
+        "top_species_k7_n_det",
+        "top_species_k7_conf_mean",
+        "top_species_k7_conf_max",
+        "top_species_k7_file",
+        "top_species_k7_t_start",
+        "top_species_k7_t_end",
+        "top_species_k8_name",
+        "top_species_k8_common",
+        "top_species_k8_n_det",
+        "top_species_k8_conf_mean",
+        "top_species_k8_conf_max",
+        "top_species_k8_file",
+        "top_species_k8_t_start",
+        "top_species_k8_t_end",
+        "top_species_k9_name",
+        "top_species_k9_common",
+        "top_species_k9_n_det",
+        "top_species_k9_conf_mean",
+        "top_species_k9_conf_max",
+        "top_species_k9_file",
+        "top_species_k9_t_start",
+        "top_species_k9_t_end",
+        "top_species_k10_name",
+        "top_species_k10_common",
+        "top_species_k10_n_det",
+        "top_species_k10_conf_mean",
+        "top_species_k10_conf_max",
+        "top_species_k10_file",
+        "top_species_k10_t_start",
+        "top_species_k10_t_end",
+        "top_species_k11_name",
+        "top_species_k11_common",
+        "top_species_k11_n_det",
+        "top_species_k11_conf_mean",
+        "top_species_k11_conf_max",
+        "top_species_k11_file",
+        "top_species_k11_t_start",
+        "top_species_k11_t_end",
+        "top_species_k12_name",
+        "top_species_k12_common",
+        "top_species_k12_n_det",
+        "top_species_k12_conf_mean",
+        "top_species_k12_conf_max",
+        "top_species_k12_file",
+        "top_species_k12_t_start",
+        "top_species_k12_t_end",
+        "top_species_k13_name",
+        "top_species_k13_common",
+        "top_species_k13_n_det",
+        "top_species_k13_conf_mean",
+        "top_species_k13_conf_max",
+        "top_species_k13_file",
+        "top_species_k13_t_start",
+        "top_species_k13_t_end",
+        "top_species_k14_name",
+        "top_species_k14_common",
+        "top_species_k14_n_det",
+        "top_species_k14_conf_mean",
+        "top_species_k14_conf_max",
+        "top_species_k14_file",
+        "top_species_k14_t_start",
+        "top_species_k14_t_end",
+        "top_species_k15_name",
+        "top_species_k15_common",
+        "top_species_k15_n_det",
+        "top_species_k15_conf_mean",
+        "top_species_k15_conf_max",
+        "top_species_k15_file",
+        "top_species_k15_t_start",
+        "top_species_k15_t_end",
+        "top_species_k16_name",
+        "top_species_k16_common",
+        "top_species_k16_n_det",
+        "top_species_k16_conf_mean",
+        "top_species_k16_conf_max",
+        "top_species_k16_file",
+        "top_species_k16_t_start",
+        "top_species_k16_t_end",
+        "top_species_k17_name",
+        "top_species_k17_common",
+        "top_species_k17_n_det",
+        "top_species_k17_conf_mean",
+        "top_species_k17_conf_max",
+        "top_species_k17_file",
+        "top_species_k17_t_start",
+        "top_species_k17_t_end",
+        "top_species_k18_name",
+        "top_species_k18_common",
+        "top_species_k18_n_det",
+        "top_species_k18_conf_mean",
+        "top_species_k18_conf_max",
+        "top_species_k18_file",
+        "top_species_k18_t_start",
+        "top_species_k18_t_end",
+        "top_species_k19_name",
+        "top_species_k19_common",
+        "top_species_k19_n_det",
+        "top_species_k19_conf_mean",
+        "top_species_k19_conf_max",
+        "top_species_k19_file",
+        "top_species_k19_t_start",
+        "top_species_k19_t_end",
+        "n_total_species_detected",
+        "n_total_detections",
+        "ACI_mean",
+        "NDSI_mean",
+        "BI_mean",
+        "ADI_mean",
+        "AEI_mean",
+        "Ht_mean",
+        "Hf_mean",
+        "AnthroEnergy_mean",
+        "BioEnergy_mean",
+        "SNRt_mean",
+        "n_species_mean",
+        "n_detections_mean",
+        "NBPEAKS_mean",
+        "EVNspCount_mean",
+        "pca_0",
+        "pca_1",
+        "density",
+        "umap_0",
+        "umap_1",
+        "bio_anthro_balance_norm",
+        "dbscan_cluster",
+        "dbscan_distance",
+        "anomaly_label",
+        "anomaly_score",
+        "kmeans_cluster",
+        "kmeans_0",
+        "kmeans_1",
+        "kmeans_2",
+        "kmeans_3"
+      ],
+      "metadata_columns": [
+        "_id"
+      ],
+      "grouping_column": "year",
+      "transforms": [
+        {
+          "id": "metapass_0",
+          "name": "MetadataPassthrough",
+          "section": "signal",
+          "category": "Passthrough",
+          "transform_def_name": "MetadataPassthrough",
+          "enabled": true,
+          "normalize": "none",
+          "params": {
+            "columns": "_id, year, month, top_species_k0_name, top_species_k0_common, top_species_k0_n_det, top_species_k0_conf_mean, top_species_k0_conf_max, top_species_k0_file, top_species_k0_t_start, top_species_k0_t_end, top_species_k1_name, top_species_k1_common, top_species_k1_n_det, top_species_k1_conf_mean, top_species_k1_conf_max, top_species_k1_file, top_species_k1_t_start, top_species_k1_t_end, top_species_k2_name, top_species_k2_common, top_species_k2_n_det, top_species_k2_conf_mean, top_species_k2_conf_max, top_species_k2_file, top_species_k2_t_start, top_species_k2_t_end, top_species_k3_name, top_species_k3_common, top_species_k3_n_det, top_species_k3_conf_mean, top_species_k3_conf_max, top_species_k3_file, top_species_k3_t_start, top_species_k3_t_end, top_species_k4_name, top_species_k4_common, top_species_k4_n_det, top_species_k4_conf_mean, top_species_k4_conf_max, top_species_k4_file, top_species_k4_t_start, top_species_k4_t_end, top_species_k5_name, top_species_k5_common, top_species_k5_n_det, top_species_k5_conf_mean, top_species_k5_conf_max, top_species_k5_file, top_species_k5_t_start, top_species_k5_t_end, top_species_k6_name, top_species_k6_common, top_species_k6_n_det, top_species_k6_conf_mean, top_species_k6_conf_max, top_species_k6_file, top_species_k6_t_start, top_species_k6_t_end, top_species_k7_name, top_species_k7_common, top_species_k7_n_det, top_species_k7_conf_mean, top_species_k7_conf_max, top_species_k7_file, top_species_k7_t_start, top_species_k7_t_end, top_species_k8_name, top_species_k8_common, top_species_k8_n_det, top_species_k8_conf_mean, top_species_k8_conf_max, top_species_k8_file, top_species_k8_t_start, top_species_k8_t_end, top_species_k9_name, top_species_k9_common, top_species_k9_n_det, top_species_k9_conf_mean, top_species_k9_conf_max, top_species_k9_file, top_species_k9_t_start, top_species_k9_t_end, top_species_k10_name, top_species_k10_common, top_species_k10_n_det, top_species_k10_conf_mean, top_species_k10_conf_max, top_species_k10_file, top_species_k10_t_start, top_species_k10_t_end, top_species_k11_name, top_species_k11_common, top_species_k11_n_det, top_species_k11_conf_mean, top_species_k11_conf_max, top_species_k11_file, top_species_k11_t_start, top_species_k11_t_end, top_species_k12_name, top_species_k12_common, top_species_k12_n_det, top_species_k12_conf_mean, top_species_k12_conf_max, top_species_k12_file, top_species_k12_t_start, top_species_k12_t_end, top_species_k13_name, top_species_k13_common, top_species_k13_n_det, top_species_k13_conf_mean, top_species_k13_conf_max, top_species_k13_file, top_species_k13_t_start, top_species_k13_t_end, top_species_k14_name, top_species_k14_common, top_species_k14_n_det, top_species_k14_conf_mean, top_species_k14_conf_max, top_species_k14_file, top_species_k14_t_start, top_species_k14_t_end, top_species_k15_name, top_species_k15_common, top_species_k15_n_det, top_species_k15_conf_mean, top_species_k15_conf_max, top_species_k15_file, top_species_k15_t_start, top_species_k15_t_end, top_species_k16_name, top_species_k16_common, top_species_k16_n_det, top_species_k16_conf_mean, top_species_k16_conf_max, top_species_k16_file, top_species_k16_t_start, top_species_k16_t_end, top_species_k17_name, top_species_k17_common, top_species_k17_n_det, top_species_k17_conf_mean, top_species_k17_conf_max, top_species_k17_file, top_species_k17_t_start, top_species_k17_t_end, top_species_k18_name, top_species_k18_common, top_species_k18_n_det, top_species_k18_conf_mean, top_species_k18_conf_max, top_species_k18_file, top_species_k18_t_start, top_species_k18_t_end, top_species_k19_name, top_species_k19_common, top_species_k19_n_det, top_species_k19_conf_mean, top_species_k19_conf_max, top_species_k19_file, top_species_k19_t_start, top_species_k19_t_end, n_total_species_detected, n_total_detections"
+          },
+          "input_columns": [
+            "_id",
+            "year",
+            "month",
+            "top_species_k0_name",
+            "top_species_k0_common",
+            "top_species_k0_n_det",
+            "top_species_k0_conf_mean",
+            "top_species_k0_conf_max",
+            "top_species_k0_file",
+            "top_species_k0_t_start",
+            "top_species_k0_t_end",
+            "top_species_k1_name",
+            "top_species_k1_common",
+            "top_species_k1_n_det",
+            "top_species_k1_conf_mean",
+            "top_species_k1_conf_max",
+            "top_species_k1_file",
+            "top_species_k1_t_start",
+            "top_species_k1_t_end",
+            "top_species_k2_name",
+            "top_species_k2_common",
+            "top_species_k2_n_det",
+            "top_species_k2_conf_mean",
+            "top_species_k2_conf_max",
+            "top_species_k2_file",
+            "top_species_k2_t_start",
+            "top_species_k2_t_end",
+            "top_species_k3_name",
+            "top_species_k3_common",
+            "top_species_k3_n_det",
+            "top_species_k3_conf_mean",
+            "top_species_k3_conf_max",
+            "top_species_k3_file",
+            "top_species_k3_t_start",
+            "top_species_k3_t_end",
+            "top_species_k4_name",
+            "top_species_k4_common",
+            "top_species_k4_n_det",
+            "top_species_k4_conf_mean",
+            "top_species_k4_conf_max",
+            "top_species_k4_file",
+            "top_species_k4_t_start",
+            "top_species_k4_t_end",
+            "top_species_k5_name",
+            "top_species_k5_common",
+            "top_species_k5_n_det",
+            "top_species_k5_conf_mean",
+            "top_species_k5_conf_max",
+            "top_species_k5_file",
+            "top_species_k5_t_start",
+            "top_species_k5_t_end",
+            "top_species_k6_name",
+            "top_species_k6_common",
+            "top_species_k6_n_det",
+            "top_species_k6_conf_mean",
+            "top_species_k6_conf_max",
+            "top_species_k6_file",
+            "top_species_k6_t_start",
+            "top_species_k6_t_end",
+            "top_species_k7_name",
+            "top_species_k7_common",
+            "top_species_k7_n_det",
+            "top_species_k7_conf_mean",
+            "top_species_k7_conf_max",
+            "top_species_k7_file",
+            "top_species_k7_t_start",
+            "top_species_k7_t_end",
+            "top_species_k8_name",
+            "top_species_k8_common",
+            "top_species_k8_n_det",
+            "top_species_k8_conf_mean",
+            "top_species_k8_conf_max",
+            "top_species_k8_file",
+            "top_species_k8_t_start",
+            "top_species_k8_t_end",
+            "top_species_k9_name",
+            "top_species_k9_common",
+            "top_species_k9_n_det",
+            "top_species_k9_conf_mean",
+            "top_species_k9_conf_max",
+            "top_species_k9_file",
+            "top_species_k9_t_start",
+            "top_species_k9_t_end",
+            "top_species_k10_name",
+            "top_species_k10_common",
+            "top_species_k10_n_det",
+            "top_species_k10_conf_mean",
+            "top_species_k10_conf_max",
+            "top_species_k10_file",
+            "top_species_k10_t_start",
+            "top_species_k10_t_end",
+            "top_species_k11_name",
+            "top_species_k11_common",
+            "top_species_k11_n_det",
+            "top_species_k11_conf_mean",
+            "top_species_k11_conf_max",
+            "top_species_k11_file",
+            "top_species_k11_t_start",
+            "top_species_k11_t_end",
+            "top_species_k12_name",
+            "top_species_k12_common",
+            "top_species_k12_n_det",
+            "top_species_k12_conf_mean",
+            "top_species_k12_conf_max",
+            "top_species_k12_file",
+            "top_species_k12_t_start",
+            "top_species_k12_t_end",
+            "top_species_k13_name",
+            "top_species_k13_common",
+            "top_species_k13_n_det",
+            "top_species_k13_conf_mean",
+            "top_species_k13_conf_max",
+            "top_species_k13_file",
+            "top_species_k13_t_start",
+            "top_species_k13_t_end",
+            "top_species_k14_name",
+            "top_species_k14_common",
+            "top_species_k14_n_det",
+            "top_species_k14_conf_mean",
+            "top_species_k14_conf_max",
+            "top_species_k14_file",
+            "top_species_k14_t_start",
+            "top_species_k14_t_end",
+            "top_species_k15_name",
+            "top_species_k15_common",
+            "top_species_k15_n_det",
+            "top_species_k15_conf_mean",
+            "top_species_k15_conf_max",
+            "top_species_k15_file",
+            "top_species_k15_t_start",
+            "top_species_k15_t_end",
+            "top_species_k16_name",
+            "top_species_k16_common",
+            "top_species_k16_n_det",
+            "top_species_k16_conf_mean",
+            "top_species_k16_conf_max",
+            "top_species_k16_file",
+            "top_species_k16_t_start",
+            "top_species_k16_t_end",
+            "top_species_k17_name",
+            "top_species_k17_common",
+            "top_species_k17_n_det",
+            "top_species_k17_conf_mean",
+            "top_species_k17_conf_max",
+            "top_species_k17_file",
+            "top_species_k17_t_start",
+            "top_species_k17_t_end",
+            "top_species_k18_name",
+            "top_species_k18_common",
+            "top_species_k18_n_det",
+            "top_species_k18_conf_mean",
+            "top_species_k18_conf_max",
+            "top_species_k18_file",
+            "top_species_k18_t_start",
+            "top_species_k18_t_end",
+            "top_species_k19_name",
+            "top_species_k19_common",
+            "top_species_k19_n_det",
+            "top_species_k19_conf_mean",
+            "top_species_k19_conf_max",
+            "top_species_k19_file",
+            "top_species_k19_t_start",
+            "top_species_k19_t_end",
+            "n_total_species_detected",
+            "n_total_detections"
+          ],
+          "output_columns": [
+            {
+              "column": "_id",
+              "label": "id",
+              "via": "declared"
+            },
+            {
+              "column": "year",
+              "label": "year",
+              "via": "declared"
+            },
+            {
+              "column": "month",
+              "label": "month",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k0_name",
+              "label": "top species k0 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k0_common",
+              "label": "top species k0 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k0_n_det",
+              "label": "top species k0 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k0_conf_mean",
+              "label": "top species k0 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k0_conf_max",
+              "label": "top species k0 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k0_file",
+              "label": "top species k0 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k0_t_start",
+              "label": "top species k0 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k0_t_end",
+              "label": "top species k0 t end",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k1_name",
+              "label": "top species k1 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k1_common",
+              "label": "top species k1 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k1_n_det",
+              "label": "top species k1 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k1_conf_mean",
+              "label": "top species k1 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k1_conf_max",
+              "label": "top species k1 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k1_file",
+              "label": "top species k1 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k1_t_start",
+              "label": "top species k1 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k1_t_end",
+              "label": "top species k1 t end",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k2_name",
+              "label": "top species k2 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k2_common",
+              "label": "top species k2 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k2_n_det",
+              "label": "top species k2 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k2_conf_mean",
+              "label": "top species k2 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k2_conf_max",
+              "label": "top species k2 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k2_file",
+              "label": "top species k2 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k2_t_start",
+              "label": "top species k2 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k2_t_end",
+              "label": "top species k2 t end",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k3_name",
+              "label": "top species k3 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k3_common",
+              "label": "top species k3 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k3_n_det",
+              "label": "top species k3 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k3_conf_mean",
+              "label": "top species k3 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k3_conf_max",
+              "label": "top species k3 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k3_file",
+              "label": "top species k3 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k3_t_start",
+              "label": "top species k3 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k3_t_end",
+              "label": "top species k3 t end",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k4_name",
+              "label": "top species k4 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k4_common",
+              "label": "top species k4 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k4_n_det",
+              "label": "top species k4 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k4_conf_mean",
+              "label": "top species k4 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k4_conf_max",
+              "label": "top species k4 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k4_file",
+              "label": "top species k4 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k4_t_start",
+              "label": "top species k4 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k4_t_end",
+              "label": "top species k4 t end",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k5_name",
+              "label": "top species k5 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k5_common",
+              "label": "top species k5 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k5_n_det",
+              "label": "top species k5 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k5_conf_mean",
+              "label": "top species k5 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k5_conf_max",
+              "label": "top species k5 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k5_file",
+              "label": "top species k5 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k5_t_start",
+              "label": "top species k5 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k5_t_end",
+              "label": "top species k5 t end",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k6_name",
+              "label": "top species k6 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k6_common",
+              "label": "top species k6 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k6_n_det",
+              "label": "top species k6 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k6_conf_mean",
+              "label": "top species k6 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k6_conf_max",
+              "label": "top species k6 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k6_file",
+              "label": "top species k6 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k6_t_start",
+              "label": "top species k6 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k6_t_end",
+              "label": "top species k6 t end",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k7_name",
+              "label": "top species k7 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k7_common",
+              "label": "top species k7 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k7_n_det",
+              "label": "top species k7 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k7_conf_mean",
+              "label": "top species k7 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k7_conf_max",
+              "label": "top species k7 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k7_file",
+              "label": "top species k7 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k7_t_start",
+              "label": "top species k7 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k7_t_end",
+              "label": "top species k7 t end",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k8_name",
+              "label": "top species k8 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k8_common",
+              "label": "top species k8 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k8_n_det",
+              "label": "top species k8 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k8_conf_mean",
+              "label": "top species k8 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k8_conf_max",
+              "label": "top species k8 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k8_file",
+              "label": "top species k8 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k8_t_start",
+              "label": "top species k8 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k8_t_end",
+              "label": "top species k8 t end",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k9_name",
+              "label": "top species k9 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k9_common",
+              "label": "top species k9 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k9_n_det",
+              "label": "top species k9 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k9_conf_mean",
+              "label": "top species k9 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k9_conf_max",
+              "label": "top species k9 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k9_file",
+              "label": "top species k9 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k9_t_start",
+              "label": "top species k9 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k9_t_end",
+              "label": "top species k9 t end",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k10_name",
+              "label": "top species k10 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k10_common",
+              "label": "top species k10 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k10_n_det",
+              "label": "top species k10 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k10_conf_mean",
+              "label": "top species k10 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k10_conf_max",
+              "label": "top species k10 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k10_file",
+              "label": "top species k10 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k10_t_start",
+              "label": "top species k10 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k10_t_end",
+              "label": "top species k10 t end",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k11_name",
+              "label": "top species k11 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k11_common",
+              "label": "top species k11 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k11_n_det",
+              "label": "top species k11 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k11_conf_mean",
+              "label": "top species k11 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k11_conf_max",
+              "label": "top species k11 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k11_file",
+              "label": "top species k11 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k11_t_start",
+              "label": "top species k11 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k11_t_end",
+              "label": "top species k11 t end",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k12_name",
+              "label": "top species k12 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k12_common",
+              "label": "top species k12 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k12_n_det",
+              "label": "top species k12 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k12_conf_mean",
+              "label": "top species k12 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k12_conf_max",
+              "label": "top species k12 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k12_file",
+              "label": "top species k12 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k12_t_start",
+              "label": "top species k12 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k12_t_end",
+              "label": "top species k12 t end",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k13_name",
+              "label": "top species k13 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k13_common",
+              "label": "top species k13 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k13_n_det",
+              "label": "top species k13 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k13_conf_mean",
+              "label": "top species k13 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k13_conf_max",
+              "label": "top species k13 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k13_file",
+              "label": "top species k13 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k13_t_start",
+              "label": "top species k13 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k13_t_end",
+              "label": "top species k13 t end",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k14_name",
+              "label": "top species k14 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k14_common",
+              "label": "top species k14 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k14_n_det",
+              "label": "top species k14 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k14_conf_mean",
+              "label": "top species k14 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k14_conf_max",
+              "label": "top species k14 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k14_file",
+              "label": "top species k14 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k14_t_start",
+              "label": "top species k14 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k14_t_end",
+              "label": "top species k14 t end",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k15_name",
+              "label": "top species k15 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k15_common",
+              "label": "top species k15 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k15_n_det",
+              "label": "top species k15 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k15_conf_mean",
+              "label": "top species k15 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k15_conf_max",
+              "label": "top species k15 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k15_file",
+              "label": "top species k15 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k15_t_start",
+              "label": "top species k15 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k15_t_end",
+              "label": "top species k15 t end",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k16_name",
+              "label": "top species k16 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k16_common",
+              "label": "top species k16 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k16_n_det",
+              "label": "top species k16 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k16_conf_mean",
+              "label": "top species k16 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k16_conf_max",
+              "label": "top species k16 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k16_file",
+              "label": "top species k16 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k16_t_start",
+              "label": "top species k16 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k16_t_end",
+              "label": "top species k16 t end",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k17_name",
+              "label": "top species k17 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k17_common",
+              "label": "top species k17 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k17_n_det",
+              "label": "top species k17 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k17_conf_mean",
+              "label": "top species k17 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k17_conf_max",
+              "label": "top species k17 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k17_file",
+              "label": "top species k17 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k17_t_start",
+              "label": "top species k17 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k17_t_end",
+              "label": "top species k17 t end",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k18_name",
+              "label": "top species k18 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k18_common",
+              "label": "top species k18 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k18_n_det",
+              "label": "top species k18 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k18_conf_mean",
+              "label": "top species k18 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k18_conf_max",
+              "label": "top species k18 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k18_file",
+              "label": "top species k18 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k18_t_start",
+              "label": "top species k18 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k18_t_end",
+              "label": "top species k18 t end",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k19_name",
+              "label": "top species k19 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k19_common",
+              "label": "top species k19 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k19_n_det",
+              "label": "top species k19 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k19_conf_mean",
+              "label": "top species k19 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k19_conf_max",
+              "label": "top species k19 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k19_file",
+              "label": "top species k19 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k19_t_start",
+              "label": "top species k19 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k19_t_end",
+              "label": "top species k19 t end",
+              "via": "declared"
+            },
+            {
+              "column": "n_total_species_detected",
+              "label": "n total species detected",
+              "via": "declared"
+            },
+            {
+              "column": "n_total_detections",
+              "label": "n total detections",
+              "via": "declared"
+            }
+          ],
+          "label": "MetadataPassthrough",
+          "detail": "MetadataPassthrough \u00b7 165 inputs"
+        },
+        {
+          "id": "direct_1",
+          "name": "DirectColumns",
+          "section": "signal",
+          "category": "Passthrough",
+          "transform_def_name": "DirectColumns",
+          "enabled": true,
+          "normalize": "none",
+          "params": {
+            "columns": "ACI_mean, NDSI_mean, BI_mean, ADI_mean, AEI_mean, Ht_mean, Hf_mean, AnthroEnergy_mean, BioEnergy_mean, SNRt_mean, n_species_mean, n_detections_mean, NBPEAKS_mean, EVNspCount_mean",
+            "add_label_distance": false
+          },
+          "input_columns": [
+            "ACI_mean",
+            "NDSI_mean",
+            "BI_mean",
+            "ADI_mean",
+            "AEI_mean",
+            "Ht_mean",
+            "Hf_mean",
+            "AnthroEnergy_mean",
+            "BioEnergy_mean",
+            "SNRt_mean",
+            "n_species_mean",
+            "n_detections_mean",
+            "NBPEAKS_mean",
+            "EVNspCount_mean"
+          ],
+          "output_columns": [
+            {
+              "column": "ACI_mean",
+              "label": "ACI mean",
+              "via": "declared"
+            },
+            {
+              "column": "NDSI_mean",
+              "label": "NDSI mean",
+              "via": "declared"
+            },
+            {
+              "column": "BI_mean",
+              "label": "BI mean",
+              "via": "declared"
+            },
+            {
+              "column": "ADI_mean",
+              "label": "ADI mean",
+              "via": "declared"
+            },
+            {
+              "column": "AEI_mean",
+              "label": "AEI mean",
+              "via": "declared"
+            },
+            {
+              "column": "Ht_mean",
+              "label": "Ht mean",
+              "via": "declared"
+            },
+            {
+              "column": "Hf_mean",
+              "label": "Hf mean",
+              "via": "declared"
+            },
+            {
+              "column": "AnthroEnergy_mean",
+              "label": "AnthroEnergy mean",
+              "via": "declared"
+            },
+            {
+              "column": "BioEnergy_mean",
+              "label": "BioEnergy mean",
+              "via": "declared"
+            },
+            {
+              "column": "SNRt_mean",
+              "label": "SNRt mean",
+              "via": "declared"
+            },
+            {
+              "column": "n_species_mean",
+              "label": "n species mean",
+              "via": "declared"
+            },
+            {
+              "column": "n_detections_mean",
+              "label": "n detections mean",
+              "via": "declared"
+            },
+            {
+              "column": "NBPEAKS_mean",
+              "label": "NBPEAKS mean",
+              "via": "declared"
+            },
+            {
+              "column": "EVNspCount_mean",
+              "label": "EVNspCount mean",
+              "via": "declared"
+            }
+          ],
+          "label": "DirectColumns",
+          "detail": "DirectColumns \u00b7 add_label_distance=False \u00b7 14 inputs"
+        },
+        {
+          "id": "pca_2",
+          "name": "pca",
+          "section": "signal",
+          "category": "Dim Reduction",
+          "transform_def_name": "PCA",
+          "enabled": true,
+          "normalize": "MinMaxScaler",
+          "params": {
+            "n_components": 2
+          },
+          "input_columns": [
+            "ACI_mean",
+            "AEI_mean",
+            "BI_mean",
+            "BioEnergy_mean",
+            "AnthroEnergy_mean",
+            "NBPEAKS_mean",
+            "n_species_mean"
+          ],
+          "output_columns": [
+            {
+              "column": "pca_0",
+              "label": "PCA 1",
+              "via": "indexed"
+            },
+            {
+              "column": "pca_1",
+              "label": "PCA 2",
+              "via": "indexed"
+            }
+          ],
+          "label": "PCA",
+          "detail": "PCA \u00b7 n_components=2 \u00b7 7 inputs \u00b7 MinMaxScaler"
+        },
+        {
+          "id": "density_3",
+          "name": "density",
+          "section": "signal",
+          "category": "Density",
+          "transform_def_name": "DensityEstimation",
+          "enabled": true,
+          "normalize": "MinMaxScaler",
+          "params": {
+            "bandwidth": 0.5
+          },
+          "input_columns": null,
+          "output_columns": [
+            {
+              "column": "density",
+              "label": "DensityEstimation",
+              "via": "exact"
+            }
+          ],
+          "label": "DensityEstimation",
+          "detail": "DensityEstimation \u00b7 bandwidth=0.5 \u00b7 MinMaxScaler"
+        },
+        {
+          "id": "umap_3",
+          "name": "umap",
+          "section": "signal",
+          "category": "Dim Reduction",
+          "transform_def_name": "UMAP",
+          "enabled": true,
+          "normalize": "MinMaxScaler",
+          "params": {
+            "n_components": 2,
+            "n_neighbors": 5,
+            "min_dist": 0.1,
+            "metric": "euclidean"
+          },
+          "input_columns": [
+            "ACI_mean",
+            "AEI_mean",
+            "BI_mean",
+            "BioEnergy_mean",
+            "AnthroEnergy_mean",
+            "NBPEAKS_mean",
+            "n_species_mean"
+          ],
+          "output_columns": [
+            {
+              "column": "umap_0",
+              "label": "UMAP 1",
+              "via": "indexed"
+            },
+            {
+              "column": "umap_1",
+              "label": "UMAP 2",
+              "via": "indexed"
+            }
+          ],
+          "label": "UMAP",
+          "detail": "UMAP \u00b7 n_components=2, n_neighbors=5, min_dist=0.1 \u00b7 7 inputs \u00b7 MinMaxScaler"
+        },
+        {
+          "id": "bab_4",
+          "name": "bio_anthro_balance",
+          "section": "signal",
+          "category": "Custom",
+          "transform_def_name": "CustomCode",
+          "enabled": true,
+          "normalize": "none",
+          "params": {
+            "code": "class ComputeBioAnthroBalance:\n    \"\"\"Normalised biophony\u2194anthrophony balance (NDSI-family index).\n\n    raw    = (BioEnergy - AnthroEnergy) / (BioEnergy + AnthroEnergy)   # [-1, +1]\n    norm   = (raw + 1) / 2                                              # [ 0,  1]\n    scaled = (norm - norm.min()) / (norm.max() - norm.min())            # dataset-local minmax\n    \"\"\"\n    def fit(self, X, y=None):\n        return self\n    def transform(self, X):\n        bio    = X[\"BioEnergy_mean\"].astype(float)\n        anthro = X[\"AnthroEnergy_mean\"].astype(float)\n        eps = 1e-9\n        raw  = (bio - anthro) / (bio + anthro + eps)\n        norm = (raw + 1.0) / 2.0\n        lo, hi = norm.min(), norm.max()\n        if hi > lo:\n            scaled = (norm - lo) / (hi - lo)\n        else:\n            scaled = pd.Series(0.5, index=X.index)\n        return pd.DataFrame({\"bio_anthro_balance_norm\": scaled}, index=X.index)\n"
+          },
+          "input_columns": [
+            "BioEnergy_mean",
+            "AnthroEnergy_mean"
+          ],
+          "output_columns": [],
+          "label": "bio anthro balance",
+          "detail": "CustomCode \u00b7 code=class ComputeBioAnthroBalance:\n    \"\"\"Normalised biophony\u2194anthrophony balance (NDSI-family index).\n\n    raw    = (BioEnergy - AnthroEnergy) / (BioEnergy + AnthroEnergy)   # [-1, +1]\n    norm   = (raw + 1) / 2                                              # [ 0,  1]\n    scaled = (norm - norm.min()) / (norm.max() - norm.min())            # dataset-local minmax\n    \"\"\"\n    def fit(self, X, y=None):\n        return self\n    def transform(self, X):\n        bio    = X[\"BioEnergy_mean\"].astype(float)\n        anthro = X[\"AnthroEnergy_mean\"].astype(float)\n        eps = 1e-9\n        raw  = (bio - anthro) / (bio + anthro + eps)\n        norm = (raw + 1.0) / 2.0\n        lo, hi = norm.min(), norm.max()\n        if hi > lo:\n            scaled = (norm - lo) / (hi - lo)\n        else:\n            scaled = pd.Series(0.5, index=X.index)\n        return pd.DataFrame({\"bio_anthro_balance_norm\": scaled}, index=X.index)\n \u00b7 2 inputs"
+        },
+        {
+          "id": "cluster_7",
+          "name": "dbscan_cluster",
+          "section": "symbol",
+          "category": "Clustering",
+          "transform_def_name": "DBSCAN",
+          "enabled": true,
+          "normalize": "none",
+          "params": {
+            "eps": 0.3499999940395355,
+            "min_samples": 2
+          },
+          "input_columns": [
+            "ACI_mean",
+            "AEI_mean",
+            "BI_mean",
+            "BioEnergy_mean",
+            "AnthroEnergy_mean",
+            "NBPEAKS_mean",
+            "n_species_mean"
+          ],
+          "output_columns": [
+            {
+              "column": "dbscan_cluster",
+              "label": "DBSCAN",
+              "via": "exact"
+            }
+          ],
+          "label": "DBSCAN",
+          "detail": "DBSCAN \u00b7 eps=0.3499999940395355, min_samples=2 \u00b7 7 inputs"
+        },
+        {
+          "id": "dbscan_dist_X",
+          "name": "dbscan_distance",
+          "section": "symbol",
+          "category": "Custom",
+          "transform_def_name": "CustomCode",
+          "enabled": true,
+          "normalize": "none",
+          "params": {
+            "code": "class DBSCANDistance:\n    \"\"\"Binary 'distance' = DBSCAN noise indicator (self-contained).\n\n    Runs DBSCAN internally (same parameters as the dbscan_cluster transform)\n    and emits:\n      0.0 = point belongs to a cluster (close)\n      1.0 = point is noise / label=-1 (far / no cluster)\n\n    Self-contained because the darksonification pipeline does not support\n    reading another symbol transform's output column directly. Keep DBSCAN\n    parameters here in sync with the dbscan_cluster transform.\n    \"\"\"\n    def fit(self, X, y=None):\n        from sklearn.cluster import DBSCAN\n        from sklearn.preprocessing import MinMaxScaler\n        Xs = MinMaxScaler().fit_transform(X.fillna(X.mean()))\n        self._labels = DBSCAN(eps=0.35, min_samples=2).fit_predict(Xs)\n        return self\n\n    def transform(self, X):\n        return pd.DataFrame(\n            {\"dbscan_distance\": (self._labels == -1).astype(float)},\n            index=X.index,\n        )\n"
+          },
+          "input_columns": [
+            "ACI_mean",
+            "AEI_mean",
+            "BI_mean",
+            "BioEnergy_mean",
+            "AnthroEnergy_mean",
+            "NBPEAKS_mean",
+            "n_species_mean"
+          ],
+          "output_columns": [
+            {
+              "column": "dbscan_distance",
+              "label": "dbscan distance",
+              "via": "exact"
+            }
+          ],
+          "label": "dbscan distance",
+          "detail": "CustomCode \u00b7 code=class DBSCANDistance:\n    \"\"\"Binary 'distance' = DBSCAN noise indicator (self-contained).\n\n    Runs DBSCAN internally (same parameters as the dbscan_cluster transform)\n    and emits:\n      0.0 = point belongs to a cluster (close)\n      1.0 = point is noise / label=-1 (far / no cluster)\n\n    Self-contained because the darksonification pipeline does not support\n    reading another symbol transform's output column directly. Keep DBSCAN\n    parameters here in sync with the dbscan_cluster transform.\n    \"\"\"\n    def fit(self, X, y=None):\n        from sklearn.cluster import DBSCAN\n        from sklearn.preprocessing import MinMaxScaler\n        Xs = MinMaxScaler().fit_transform(X.fillna(X.mean()))\n        self._labels = DBSCAN(eps=0.35, min_samples=2).fit_predict(Xs)\n        return self\n\n    def transform(self, X):\n        return pd.DataFrame(\n            {\"dbscan_distance\": (self._labels == -1).astype(float)},\n            index=X.index,\n        )\n \u00b7 7 inputs"
+        },
+        {
+          "id": "anomaly_8",
+          "name": "anomaly",
+          "section": "symbol",
+          "category": "Anomaly",
+          "transform_def_name": "LocalOutlierFactor",
+          "enabled": true,
+          "normalize": "MinMaxScaler",
+          "params": {
+            "n_neighbors": 5,
+            "contamination": 0.1,
+            "novelty": true
+          },
+          "input_columns": [
+            "ACI_mean",
+            "AEI_mean",
+            "BI_mean",
+            "BioEnergy_mean",
+            "AnthroEnergy_mean",
+            "NBPEAKS_mean",
+            "n_species_mean"
+          ],
+          "output_columns": [
+            {
+              "column": "anomaly_label",
+              "label": "LocalOutlierFactor label",
+              "via": "suffix"
+            },
+            {
+              "column": "anomaly_score",
+              "label": "LocalOutlierFactor score",
+              "via": "suffix"
+            }
+          ],
+          "label": "LocalOutlierFactor",
+          "detail": "LocalOutlierFactor \u00b7 n_neighbors=5, contamination=0.1, novelty=True \u00b7 7 inputs \u00b7 MinMaxScaler"
+        },
+        {
+          "id": "km_9",
+          "name": "kmeans",
+          "section": "symbol",
+          "category": "Clustering",
+          "transform_def_name": "KMeans",
+          "enabled": true,
+          "normalize": "MinMaxScaler",
+          "params": {
+            "n_clusters": 4,
+            "n_init": 10,
+            "max_iter": 300
+          },
+          "input_columns": [
+            "ACI_mean",
+            "AEI_mean",
+            "BI_mean",
+            "BioEnergy_mean",
+            "AnthroEnergy_mean",
+            "NBPEAKS_mean",
+            "n_species_mean"
+          ],
+          "output_columns": [
+            {
+              "column": "kmeans_0",
+              "label": "KMeans 1",
+              "via": "indexed"
+            },
+            {
+              "column": "kmeans_1",
+              "label": "KMeans 2",
+              "via": "indexed"
+            },
+            {
+              "column": "kmeans_2",
+              "label": "KMeans 3",
+              "via": "indexed"
+            },
+            {
+              "column": "kmeans_3",
+              "label": "KMeans 4",
+              "via": "indexed"
+            },
+            {
+              "column": "kmeans_cluster",
+              "label": "KMeans cluster",
+              "via": "suffix"
+            }
+          ],
+          "label": "KMeans",
+          "detail": "KMeans \u00b7 n_clusters=4, n_init=10, max_iter=300 \u00b7 7 inputs \u00b7 MinMaxScaler"
+        }
+      ],
+      "column_provenance": {
+        "_id": {
+          "label": "id",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "year": {
+          "label": "year",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "month": {
+          "label": "month",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k0_name": {
+          "label": "top species k0 name",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k0_common": {
+          "label": "top species k0 common",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k0_n_det": {
+          "label": "top species k0 n det",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k0_conf_mean": {
+          "label": "top species k0 conf mean",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k0_conf_max": {
+          "label": "top species k0 conf max",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k0_file": {
+          "label": "top species k0 file",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k0_t_start": {
+          "label": "top species k0 t start",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k0_t_end": {
+          "label": "top species k0 t end",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k1_name": {
+          "label": "top species k1 name",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k1_common": {
+          "label": "top species k1 common",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k1_n_det": {
+          "label": "top species k1 n det",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k1_conf_mean": {
+          "label": "top species k1 conf mean",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k1_conf_max": {
+          "label": "top species k1 conf max",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k1_file": {
+          "label": "top species k1 file",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k1_t_start": {
+          "label": "top species k1 t start",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k1_t_end": {
+          "label": "top species k1 t end",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k2_name": {
+          "label": "top species k2 name",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k2_common": {
+          "label": "top species k2 common",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k2_n_det": {
+          "label": "top species k2 n det",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k2_conf_mean": {
+          "label": "top species k2 conf mean",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k2_conf_max": {
+          "label": "top species k2 conf max",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k2_file": {
+          "label": "top species k2 file",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k2_t_start": {
+          "label": "top species k2 t start",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k2_t_end": {
+          "label": "top species k2 t end",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k3_name": {
+          "label": "top species k3 name",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k3_common": {
+          "label": "top species k3 common",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k3_n_det": {
+          "label": "top species k3 n det",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k3_conf_mean": {
+          "label": "top species k3 conf mean",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k3_conf_max": {
+          "label": "top species k3 conf max",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k3_file": {
+          "label": "top species k3 file",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k3_t_start": {
+          "label": "top species k3 t start",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k3_t_end": {
+          "label": "top species k3 t end",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k4_name": {
+          "label": "top species k4 name",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k4_common": {
+          "label": "top species k4 common",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k4_n_det": {
+          "label": "top species k4 n det",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k4_conf_mean": {
+          "label": "top species k4 conf mean",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k4_conf_max": {
+          "label": "top species k4 conf max",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k4_file": {
+          "label": "top species k4 file",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k4_t_start": {
+          "label": "top species k4 t start",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k4_t_end": {
+          "label": "top species k4 t end",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k5_name": {
+          "label": "top species k5 name",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k5_common": {
+          "label": "top species k5 common",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k5_n_det": {
+          "label": "top species k5 n det",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k5_conf_mean": {
+          "label": "top species k5 conf mean",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k5_conf_max": {
+          "label": "top species k5 conf max",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k5_file": {
+          "label": "top species k5 file",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k5_t_start": {
+          "label": "top species k5 t start",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k5_t_end": {
+          "label": "top species k5 t end",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k6_name": {
+          "label": "top species k6 name",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k6_common": {
+          "label": "top species k6 common",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k6_n_det": {
+          "label": "top species k6 n det",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k6_conf_mean": {
+          "label": "top species k6 conf mean",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k6_conf_max": {
+          "label": "top species k6 conf max",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k6_file": {
+          "label": "top species k6 file",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k6_t_start": {
+          "label": "top species k6 t start",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k6_t_end": {
+          "label": "top species k6 t end",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k7_name": {
+          "label": "top species k7 name",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k7_common": {
+          "label": "top species k7 common",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k7_n_det": {
+          "label": "top species k7 n det",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k7_conf_mean": {
+          "label": "top species k7 conf mean",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k7_conf_max": {
+          "label": "top species k7 conf max",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k7_file": {
+          "label": "top species k7 file",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k7_t_start": {
+          "label": "top species k7 t start",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k7_t_end": {
+          "label": "top species k7 t end",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k8_name": {
+          "label": "top species k8 name",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k8_common": {
+          "label": "top species k8 common",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k8_n_det": {
+          "label": "top species k8 n det",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k8_conf_mean": {
+          "label": "top species k8 conf mean",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k8_conf_max": {
+          "label": "top species k8 conf max",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k8_file": {
+          "label": "top species k8 file",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k8_t_start": {
+          "label": "top species k8 t start",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k8_t_end": {
+          "label": "top species k8 t end",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k9_name": {
+          "label": "top species k9 name",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k9_common": {
+          "label": "top species k9 common",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k9_n_det": {
+          "label": "top species k9 n det",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k9_conf_mean": {
+          "label": "top species k9 conf mean",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k9_conf_max": {
+          "label": "top species k9 conf max",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k9_file": {
+          "label": "top species k9 file",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k9_t_start": {
+          "label": "top species k9 t start",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k9_t_end": {
+          "label": "top species k9 t end",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k10_name": {
+          "label": "top species k10 name",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k10_common": {
+          "label": "top species k10 common",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k10_n_det": {
+          "label": "top species k10 n det",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k10_conf_mean": {
+          "label": "top species k10 conf mean",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k10_conf_max": {
+          "label": "top species k10 conf max",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k10_file": {
+          "label": "top species k10 file",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k10_t_start": {
+          "label": "top species k10 t start",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k10_t_end": {
+          "label": "top species k10 t end",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k11_name": {
+          "label": "top species k11 name",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k11_common": {
+          "label": "top species k11 common",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k11_n_det": {
+          "label": "top species k11 n det",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k11_conf_mean": {
+          "label": "top species k11 conf mean",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k11_conf_max": {
+          "label": "top species k11 conf max",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k11_file": {
+          "label": "top species k11 file",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k11_t_start": {
+          "label": "top species k11 t start",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k11_t_end": {
+          "label": "top species k11 t end",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k12_name": {
+          "label": "top species k12 name",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k12_common": {
+          "label": "top species k12 common",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k12_n_det": {
+          "label": "top species k12 n det",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k12_conf_mean": {
+          "label": "top species k12 conf mean",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k12_conf_max": {
+          "label": "top species k12 conf max",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k12_file": {
+          "label": "top species k12 file",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k12_t_start": {
+          "label": "top species k12 t start",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k12_t_end": {
+          "label": "top species k12 t end",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k13_name": {
+          "label": "top species k13 name",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k13_common": {
+          "label": "top species k13 common",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k13_n_det": {
+          "label": "top species k13 n det",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k13_conf_mean": {
+          "label": "top species k13 conf mean",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k13_conf_max": {
+          "label": "top species k13 conf max",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k13_file": {
+          "label": "top species k13 file",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k13_t_start": {
+          "label": "top species k13 t start",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k13_t_end": {
+          "label": "top species k13 t end",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k14_name": {
+          "label": "top species k14 name",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k14_common": {
+          "label": "top species k14 common",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k14_n_det": {
+          "label": "top species k14 n det",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k14_conf_mean": {
+          "label": "top species k14 conf mean",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k14_conf_max": {
+          "label": "top species k14 conf max",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k14_file": {
+          "label": "top species k14 file",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k14_t_start": {
+          "label": "top species k14 t start",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k14_t_end": {
+          "label": "top species k14 t end",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k15_name": {
+          "label": "top species k15 name",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k15_common": {
+          "label": "top species k15 common",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k15_n_det": {
+          "label": "top species k15 n det",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k15_conf_mean": {
+          "label": "top species k15 conf mean",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k15_conf_max": {
+          "label": "top species k15 conf max",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k15_file": {
+          "label": "top species k15 file",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k15_t_start": {
+          "label": "top species k15 t start",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k15_t_end": {
+          "label": "top species k15 t end",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k16_name": {
+          "label": "top species k16 name",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k16_common": {
+          "label": "top species k16 common",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k16_n_det": {
+          "label": "top species k16 n det",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k16_conf_mean": {
+          "label": "top species k16 conf mean",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k16_conf_max": {
+          "label": "top species k16 conf max",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k16_file": {
+          "label": "top species k16 file",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k16_t_start": {
+          "label": "top species k16 t start",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k16_t_end": {
+          "label": "top species k16 t end",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k17_name": {
+          "label": "top species k17 name",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k17_common": {
+          "label": "top species k17 common",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k17_n_det": {
+          "label": "top species k17 n det",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k17_conf_mean": {
+          "label": "top species k17 conf mean",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k17_conf_max": {
+          "label": "top species k17 conf max",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k17_file": {
+          "label": "top species k17 file",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k17_t_start": {
+          "label": "top species k17 t start",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k17_t_end": {
+          "label": "top species k17 t end",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k18_name": {
+          "label": "top species k18 name",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k18_common": {
+          "label": "top species k18 common",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k18_n_det": {
+          "label": "top species k18 n det",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k18_conf_mean": {
+          "label": "top species k18 conf mean",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k18_conf_max": {
+          "label": "top species k18 conf max",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k18_file": {
+          "label": "top species k18 file",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k18_t_start": {
+          "label": "top species k18 t start",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k18_t_end": {
+          "label": "top species k18 t end",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k19_name": {
+          "label": "top species k19 name",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k19_common": {
+          "label": "top species k19 common",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k19_n_det": {
+          "label": "top species k19 n det",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k19_conf_mean": {
+          "label": "top species k19 conf mean",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k19_conf_max": {
+          "label": "top species k19 conf max",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k19_file": {
+          "label": "top species k19 file",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k19_t_start": {
+          "label": "top species k19 t start",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "top_species_k19_t_end": {
+          "label": "top species k19 t end",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "n_total_species_detected": {
+          "label": "n total species detected",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "n_total_detections": {
+          "label": "n total detections",
+          "transform_id": "metapass_0",
+          "via": "declared"
+        },
+        "ACI_mean": {
+          "label": "ACI mean",
+          "transform_id": "direct_1",
+          "via": "declared"
+        },
+        "NDSI_mean": {
+          "label": "NDSI mean",
+          "transform_id": "direct_1",
+          "via": "declared"
+        },
+        "BI_mean": {
+          "label": "BI mean",
+          "transform_id": "direct_1",
+          "via": "declared"
+        },
+        "ADI_mean": {
+          "label": "ADI mean",
+          "transform_id": "direct_1",
+          "via": "declared"
+        },
+        "AEI_mean": {
+          "label": "AEI mean",
+          "transform_id": "direct_1",
+          "via": "declared"
+        },
+        "Ht_mean": {
+          "label": "Ht mean",
+          "transform_id": "direct_1",
+          "via": "declared"
+        },
+        "Hf_mean": {
+          "label": "Hf mean",
+          "transform_id": "direct_1",
+          "via": "declared"
+        },
+        "AnthroEnergy_mean": {
+          "label": "AnthroEnergy mean",
+          "transform_id": "direct_1",
+          "via": "declared"
+        },
+        "BioEnergy_mean": {
+          "label": "BioEnergy mean",
+          "transform_id": "direct_1",
+          "via": "declared"
+        },
+        "SNRt_mean": {
+          "label": "SNRt mean",
+          "transform_id": "direct_1",
+          "via": "declared"
+        },
+        "n_species_mean": {
+          "label": "n species mean",
+          "transform_id": "direct_1",
+          "via": "declared"
+        },
+        "n_detections_mean": {
+          "label": "n detections mean",
+          "transform_id": "direct_1",
+          "via": "declared"
+        },
+        "NBPEAKS_mean": {
+          "label": "NBPEAKS mean",
+          "transform_id": "direct_1",
+          "via": "declared"
+        },
+        "EVNspCount_mean": {
+          "label": "EVNspCount mean",
+          "transform_id": "direct_1",
+          "via": "declared"
+        },
+        "pca_0": {
+          "label": "PCA 1",
+          "transform_id": "pca_2",
+          "via": "indexed"
+        },
+        "pca_1": {
+          "label": "PCA 2",
+          "transform_id": "pca_2",
+          "via": "indexed"
+        },
+        "density": {
+          "label": "DensityEstimation",
+          "transform_id": "density_3",
+          "via": "exact"
+        },
+        "umap_0": {
+          "label": "UMAP 1",
+          "transform_id": "umap_3",
+          "via": "indexed"
+        },
+        "umap_1": {
+          "label": "UMAP 2",
+          "transform_id": "umap_3",
+          "via": "indexed"
+        },
+        "bio_anthro_balance_norm": {
+          "label": "bio anthro balance norm",
+          "transform_id": null,
+          "via": "unclaimed"
+        },
+        "dbscan_cluster": {
+          "label": "DBSCAN",
+          "transform_id": "cluster_7",
+          "via": "exact"
+        },
+        "dbscan_distance": {
+          "label": "dbscan distance",
+          "transform_id": "dbscan_dist_X",
+          "via": "exact"
+        },
+        "anomaly_label": {
+          "label": "LocalOutlierFactor label",
+          "transform_id": "anomaly_8",
+          "via": "suffix"
+        },
+        "anomaly_score": {
+          "label": "LocalOutlierFactor score",
+          "transform_id": "anomaly_8",
+          "via": "suffix"
+        },
+        "kmeans_cluster": {
+          "label": "KMeans cluster",
+          "transform_id": "km_9",
+          "via": "suffix"
+        },
+        "kmeans_0": {
+          "label": "KMeans 1",
+          "transform_id": "km_9",
+          "via": "indexed"
+        },
+        "kmeans_1": {
+          "label": "KMeans 2",
+          "transform_id": "km_9",
+          "via": "indexed"
+        },
+        "kmeans_2": {
+          "label": "KMeans 3",
+          "transform_id": "km_9",
+          "via": "indexed"
+        },
+        "kmeans_3": {
+          "label": "KMeans 4",
+          "transform_id": "km_9",
+          "via": "indexed"
+        }
+      },
+      "combos": [
+        {
+          "id": "xy_pca_0_pca_1",
+          "x": "pca_0",
+          "y": "pca_1",
+          "x_label": "PCA 1",
+          "y_label": "PCA 2",
+          "label": "PCA 1 \u00d7 PCA 2",
+          "source": "dim_reduction",
+          "enabled": true
+        },
+        {
+          "id": "xy_umap_0_umap_1",
+          "x": "umap_0",
+          "y": "umap_1",
+          "x_label": "UMAP 1",
+          "y_label": "UMAP 2",
+          "label": "UMAP 1 \u00d7 UMAP 2",
+          "source": "dim_reduction",
+          "enabled": true
+        },
+        {
+          "id": "xy_Ht_richness",
+          "x": "Ht_mean",
+          "y": "n_species_mean",
+          "x_label": "Ht mean",
+          "y_label": "n species mean",
+          "label": "Ht mean \u00d7 n species mean",
+          "source": "correlation",
+          "enabled": true
+        },
+        {
+          "id": "xy_anthro_bio",
+          "x": "AnthroEnergy_mean",
+          "y": "BioEnergy_mean",
+          "x_label": "AnthroEnergy mean",
+          "y_label": "BioEnergy mean",
+          "label": "AnthroEnergy mean \u00d7 BioEnergy mean",
+          "source": "correlation",
+          "enabled": true
+        },
+        {
+          "id": "xy_nbpeaks_richness",
+          "x": "NBPEAKS_mean",
+          "y": "n_species_mean",
+          "x_label": "NBPEAKS mean",
+          "y_label": "n species mean",
+          "label": "NBPEAKS mean \u00d7 n species mean",
+          "source": "correlation",
+          "enabled": true
+        }
+      ],
+      "column_groups": [],
+      "symbols": [
+        {
+          "id": "sym_density_density",
+          "name": "density",
+          "subcategory": "density",
+          "enabled": true,
+          "columns": [
+            "density"
+          ],
+          "labels": [
+            "DensityEstimation"
+          ]
+        },
+        {
+          "id": "sym_outlier_flag_anomaly_label",
+          "name": "anomaly_label",
+          "subcategory": "outlier_flag",
+          "enabled": true,
+          "columns": [
+            "anomaly_label"
+          ],
+          "labels": [
+            "LocalOutlierFactor label"
+          ]
+        },
+        {
+          "id": "sym_outlier_score_anomaly_score",
+          "name": "anomaly_score",
+          "subcategory": "outlier_score",
+          "enabled": true,
+          "columns": [
+            "anomaly_score"
+          ],
+          "labels": [
+            "LocalOutlierFactor score"
+          ]
+        },
+        {
+          "id": "sym_distance_kmeans_0__kmeans_3",
+          "name": "kmeans_0..kmeans_3",
+          "subcategory": "distance",
+          "enabled": false,
+          "columns": [
+            "kmeans_0",
+            "kmeans_1",
+            "kmeans_2",
+            "kmeans_3"
+          ],
+          "labels": [
+            "KMeans 1",
+            "KMeans 2",
+            "KMeans 3",
+            "KMeans 4"
+          ]
+        },
+        {
+          "id": "sym_clustering_kmeans_cluster",
+          "name": "kmeans_cluster",
+          "subcategory": "clustering",
+          "enabled": true,
+          "columns": [
+            "kmeans_cluster"
+          ],
+          "labels": [
+            "KMeans cluster"
+          ]
+        },
+        {
+          "id": "sym_clustering_dbscan_cluster",
+          "name": "dbscan_cluster",
+          "subcategory": "clustering",
+          "enabled": false,
+          "columns": [
+            "dbscan_cluster"
+          ],
+          "labels": [
+            "DBSCAN"
+          ]
+        },
+        {
+          "id": "sym_distance_bio_anthro_balance_norm",
+          "name": "bio_anthro_balance_norm",
+          "subcategory": "distance",
+          "enabled": true,
+          "columns": [
+            "bio_anthro_balance_norm"
+          ],
+          "labels": [
+            "bio anthro balance norm"
+          ]
+        },
+        {
+          "id": "sym_distance_dbscan_distance",
+          "name": "dbscan_distance",
+          "subcategory": "distance",
+          "enabled": false,
+          "columns": [
+            "dbscan_distance"
+          ],
+          "labels": [
+            "dbscan distance"
+          ]
+        }
+      ],
+      "drivers": {
+        "viz": {
+          "scatter": {
+            "name": "scatter",
+            "signal": [
+              {
+                "key": "x",
+                "combo_key": "x,y",
+                "function": null,
+                "follows": "combo_xy",
+                "label": "active axis"
+              },
+              {
+                "key": "y",
+                "combo_key": "x,y",
+                "function": null,
+                "follows": "combo_xy",
+                "label": "active axis"
+              },
+              {
+                "key": "size",
+                "combo_key": "density",
+                "function": "compute_size_from_value",
+                "column": "density",
+                "label": "DensityEstimation"
+              },
+              {
+                "key": "hover_id",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "hover_cluster",
+                "combo_key": "clustering",
+                "function": null,
+                "column": "kmeans_cluster",
+                "label": "KMeans cluster"
+              }
+            ],
+            "symbol": [
+              {
+                "key": "RGB",
+                "combo_key": "clustering",
+                "function": "assign_cluster_colors",
+                "column": "kmeans_cluster",
+                "label": "KMeans cluster"
+              },
+              {
+                "key": "alpha",
+                "combo_key": "outlier_score",
+                "function": "compute_alpha",
+                "column": "anomaly_score",
+                "label": "LocalOutlierFactor score"
+              },
+              {
+                "key": "brightness",
+                "combo_key": "density",
+                "function": "compute_brightness",
+                "column": "density",
+                "label": "DensityEstimation"
+              },
+              {
+                "key": "saturation",
+                "combo_key": "distance",
+                "function": "compute_saturation"
+              }
+            ]
+          },
+          "dark_viz_scatter": {
+            "name": "dark_viz_scatter",
+            "signal": [
+              {
+                "key": "x",
+                "combo_key": "x,y",
+                "function": null,
+                "follows": "combo_xy",
+                "label": "active axis"
+              },
+              {
+                "key": "y",
+                "combo_key": "x,y",
+                "function": null,
+                "follows": "combo_xy",
+                "label": "active axis"
+              },
+              {
+                "key": "size",
+                "combo_key": "density",
+                "function": "compute_size_from_value",
+                "column": "density",
+                "label": "DensityEstimation"
+              },
+              {
+                "key": "radial",
+                "combo_key": "darkcolumns",
+                "function": "expand_columns"
+              },
+              {
+                "key": "radial_scale",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "hover_id",
+                "combo_key": "_id",
+                "function": null
+              },
+              {
+                "key": "hover_cluster",
+                "combo_key": "clustering",
+                "function": null,
+                "column": "kmeans_cluster",
+                "label": "KMeans cluster"
+              }
+            ],
+            "symbol": [
+              {
+                "key": "RGB",
+                "combo_key": "clustering",
+                "function": "assign_cluster_colors",
+                "column": "kmeans_cluster",
+                "label": "KMeans cluster"
+              },
+              {
+                "key": "brightness",
+                "combo_key": "density",
+                "function": "compute_brightness",
+                "column": "density",
+                "label": "DensityEstimation"
+              },
+              {
+                "key": "alpha",
+                "combo_key": "outlier_score",
+                "function": "compute_alpha",
+                "column": "anomaly_score",
+                "label": "LocalOutlierFactor score"
+              },
+              {
+                "key": "noise",
+                "combo_key": "outlier_score",
+                "function": "compute_noise",
+                "column": "anomaly_score",
+                "label": "LocalOutlierFactor score"
+              },
+              {
+                "key": "saturation",
+                "combo_key": "distance",
+                "function": "compute_saturation"
+              }
+            ]
+          },
+          "dark_viz_world": {
+            "name": "dark_viz_world",
+            "signal": [
+              {
+                "key": "terrain",
+                "combo_key": "darkcolumns",
+                "function": "expand_columns"
+              },
+              {
+                "key": "r_min",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "r_max",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "smoothing",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "use_tropics",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "mesh_lat",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "mesh_lon",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "pole_mode",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "auto_depth",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "hover_id",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "hover_cluster",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "geometry",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "pole_damp",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "pole_margin",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "cap_taper",
+                "combo_key": "",
+                "function": null
+              }
+            ],
+            "symbol": [
+              {
+                "key": "RGB",
+                "combo_key": "clustering",
+                "function": "assign_cluster_colors",
+                "column": "kmeans_cluster",
+                "label": "KMeans cluster"
+              },
+              {
+                "key": "brightness",
+                "combo_key": "density",
+                "function": "compute_brightness",
+                "column": "density",
+                "label": "DensityEstimation"
+              },
+              {
+                "key": "saturation",
+                "combo_key": "distance",
+                "function": "compute_saturation"
+              },
+              {
+                "key": "noise",
+                "combo_key": "",
+                "function": null
+              }
+            ]
+          }
+        },
+        "sound": {
+          "dark_son_world": {
+            "name": "dark_son_world",
+            "signal": [
+              {
+                "key": "terrain",
+                "combo_key": "darkcolumns",
+                "function": "expand_columns"
+              },
+              {
+                "key": "enable_feedback",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "enable_overtones",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "enable_pulsar",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "enable_pitch_shift",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "enable_eq",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "modal_base_freq",
+                "combo_key": "x,y",
+                "function": "compute_from_1tuple",
+                "follows": "combo_xy",
+                "label": "active axis"
+              },
+              {
+                "key": "modal_freq_scale",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "modal_l_spacing",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "modal_m_detuning",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "modal_high_boost",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "sh_l_max",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "pitch_deviation_range",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "low_shelf_gain_db",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "low_shelf_freq",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "mid_cut_db",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "mid_cut_freq",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "mid_cut_q",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "high_shelf_gain_db",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "high_shelf_freq",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "global_lowpass_freq",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "content_theta_func",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "sort_rows_by_content",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "nav_base_level",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "nav_focus_level",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "max_overtone",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "overtone_decay",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "overtone_mix",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "feedback_amount",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "feedback_damping",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "feedback_mix",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "feedback_freq_min",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "feedback_freq_max",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "comb_pre_roll_s",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "pulsar_mix",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "pulsar_duty_base",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "pulsar_attack",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "pulsar_release",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "pulsar_nav_rate_mod",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "pulsar_duty_nav_mod",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "pulsar_amp_mod",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "pulsar_accent",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "pulse_echo_amount",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "pulsar_freq_min",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "pulsar_freq_max",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "pulsar_freq_override",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "use_numpy_renderer",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "buffer_duration",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "prerender_radius",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "prerender_full_dataset",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "buffer_crossfade_ms",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "master_amplitude",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "drone_master_amplitude",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "pulsar_master_amplitude",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "nav_glide_smoothing",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "attack",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "decay",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "sustain_level",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "release",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "corpus_mix",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "corpus_granular_enabled",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "corpus_grain_size_s",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "corpus_grain_density_hz",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "corpus_grain_rate",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "corpus_grain_wrap",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "corpus",
+                "combo_key": "darkcorpus",
+                "function": "expand_corpus_columns"
+              },
+              {
+                "key": "corpus_stagger_s",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "corpus_amp_floor",
+                "combo_key": "",
+                "function": null
+              }
+            ],
+            "symbol": []
+          }
+        }
+      },
+      "runtime_combos": [
+        {
+          "index": 0,
+          "x": "pca_0",
+          "y": "pca_1",
+          "x_label": "PCA 1",
+          "y_label": "PCA 2",
+          "label": "PCA 1 \u00d7 PCA 2",
+          "signal_keys": [
+            "darkcolumns",
+            "darkcorpus"
+          ],
+          "symbol": {
+            "outlier_score": "anomaly_score",
+            "density": "density",
+            "clustering": "kmeans_cluster",
+            "outlier_flag": "anomaly_label",
+            "distance": "bio_anthro_balance_norm"
+          }
+        },
+        {
+          "index": 1,
+          "x": "umap_0",
+          "y": "umap_1",
+          "x_label": "UMAP 1",
+          "y_label": "UMAP 2",
+          "label": "UMAP 1 \u00d7 UMAP 2",
+          "signal_keys": [
+            "darkcolumns",
+            "darkcorpus"
+          ],
+          "symbol": {
+            "outlier_score": "anomaly_score",
+            "density": "density",
+            "clustering": "kmeans_cluster",
+            "outlier_flag": "anomaly_label",
+            "distance": "bio_anthro_balance_norm"
+          }
+        },
+        {
+          "index": 2,
+          "x": "Ht_mean",
+          "y": "n_species_mean",
+          "x_label": "Ht mean",
+          "y_label": "n species mean",
+          "label": "Ht mean \u00d7 n species mean",
+          "signal_keys": [
+            "darkcolumns",
+            "darkcorpus"
+          ],
+          "symbol": {
+            "outlier_score": "anomaly_score",
+            "density": "density",
+            "clustering": "kmeans_cluster",
+            "outlier_flag": "anomaly_label",
+            "distance": "bio_anthro_balance_norm"
+          }
+        },
+        {
+          "index": 3,
+          "x": "AnthroEnergy_mean",
+          "y": "BioEnergy_mean",
+          "x_label": "AnthroEnergy mean",
+          "y_label": "BioEnergy mean",
+          "label": "AnthroEnergy mean \u00d7 BioEnergy mean",
+          "signal_keys": [
+            "darkcolumns",
+            "darkcorpus"
+          ],
+          "symbol": {
+            "outlier_score": "anomaly_score",
+            "density": "density",
+            "clustering": "kmeans_cluster",
+            "outlier_flag": "anomaly_label",
+            "distance": "bio_anthro_balance_norm"
+          }
+        },
+        {
+          "index": 4,
+          "x": "NBPEAKS_mean",
+          "y": "n_species_mean",
+          "x_label": "NBPEAKS mean",
+          "y_label": "n species mean",
+          "label": "NBPEAKS mean \u00d7 n species mean",
+          "signal_keys": [
+            "darkcolumns",
+            "darkcorpus"
+          ],
+          "symbol": {
+            "outlier_score": "anomaly_score",
+            "density": "density",
+            "clustering": "kmeans_cluster",
+            "outlier_flag": "anomaly_label",
+            "distance": "bio_anthro_balance_norm"
+          }
+        }
+      ]
+    },
+    "l1": {
+      "n_rows": 2388,
+      "columns": [
+        "_id",
+        "ecological_window",
+        "day",
+        "top_species_k0_name",
+        "top_species_k0_common",
+        "top_species_k0_n_det",
+        "top_species_k0_conf_mean",
+        "top_species_k0_conf_max",
+        "top_species_k0_file",
+        "top_species_k0_t_start",
+        "top_species_k0_t_end",
+        "top_species_k1_name",
+        "top_species_k1_common",
+        "top_species_k1_n_det",
+        "top_species_k1_conf_mean",
+        "top_species_k1_conf_max",
+        "top_species_k1_file",
+        "top_species_k1_t_start",
+        "top_species_k1_t_end",
+        "top_species_k2_name",
+        "top_species_k2_common",
+        "top_species_k2_n_det",
+        "top_species_k2_conf_mean",
+        "top_species_k2_conf_max",
+        "top_species_k2_file",
+        "top_species_k2_t_start",
+        "top_species_k2_t_end",
+        "top_species_k3_name",
+        "top_species_k3_common",
+        "top_species_k3_n_det",
+        "top_species_k3_conf_mean",
+        "top_species_k3_conf_max",
+        "top_species_k3_file",
+        "top_species_k3_t_start",
+        "top_species_k3_t_end",
+        "top_species_k4_name",
+        "top_species_k4_common",
+        "top_species_k4_n_det",
+        "top_species_k4_conf_mean",
+        "top_species_k4_conf_max",
+        "top_species_k4_file",
+        "top_species_k4_t_start",
+        "top_species_k4_t_end",
+        "top_species_k5_name",
+        "top_species_k5_common",
+        "top_species_k5_n_det",
+        "top_species_k5_conf_mean",
+        "top_species_k5_conf_max",
+        "top_species_k5_file",
+        "top_species_k5_t_start",
+        "top_species_k5_t_end",
+        "top_species_k6_name",
+        "top_species_k6_common",
+        "top_species_k6_n_det",
+        "top_species_k6_conf_mean",
+        "top_species_k6_conf_max",
+        "top_species_k6_file",
+        "top_species_k6_t_start",
+        "top_species_k6_t_end",
+        "top_species_k7_name",
+        "top_species_k7_common",
+        "top_species_k7_n_det",
+        "top_species_k7_conf_mean",
+        "top_species_k7_conf_max",
+        "top_species_k7_file",
+        "top_species_k7_t_start",
+        "top_species_k7_t_end",
+        "ACI_mean",
+        "NDSI_mean",
+        "BI_mean",
+        "ADI_mean",
+        "AEI_mean",
+        "Ht_mean",
+        "Hf_mean",
+        "AnthroEnergy_mean",
+        "BioEnergy_mean",
+        "SNRt_mean",
+        "n_species_mean",
+        "n_detections_mean",
+        "NBPEAKS_mean",
+        "EVNspCount_mean",
+        "monthly_ACI_mean_mean",
+        "monthly_NDSI_mean_mean",
+        "monthly_BI_mean_mean",
+        "monthly_ADI_mean_mean",
+        "monthly_AEI_mean_mean",
+        "monthly_Ht_mean_mean",
+        "monthly_Hf_mean_mean",
+        "monthly_AnthroEnergy_mean_mean",
+        "monthly_BioEnergy_mean_mean",
+        "monthly_SNRt_mean_mean",
+        "monthly_n_species_mean_mean",
+        "monthly_n_detections_mean_mean",
+        "monthly_NBPEAKS_mean_mean",
+        "monthly_EVNspCount_mean_mean"
+      ],
+      "metadata_columns": [
+        "_id"
+      ],
+      "grouping_column": "",
+      "transforms": [
+        {
+          "id": "metapass_4",
+          "name": "MetadataPassthrough",
+          "section": "signal",
+          "category": "Passthrough",
+          "transform_def_name": "MetadataPassthrough",
+          "enabled": true,
+          "normalize": "none",
+          "params": {
+            "columns": "_id, ecological_window, day, top_species_k0_name, top_species_k0_common, top_species_k0_n_det, top_species_k0_conf_mean, top_species_k0_conf_max, top_species_k0_file, top_species_k0_t_start, top_species_k0_t_end, top_species_k1_name, top_species_k1_common, top_species_k1_n_det, top_species_k1_conf_mean, top_species_k1_conf_max, top_species_k1_file, top_species_k1_t_start, top_species_k1_t_end, top_species_k2_name, top_species_k2_common, top_species_k2_n_det, top_species_k2_conf_mean, top_species_k2_conf_max, top_species_k2_file, top_species_k2_t_start, top_species_k2_t_end, top_species_k3_name, top_species_k3_common, top_species_k3_n_det, top_species_k3_conf_mean, top_species_k3_conf_max, top_species_k3_file, top_species_k3_t_start, top_species_k3_t_end, top_species_k4_name, top_species_k4_common, top_species_k4_n_det, top_species_k4_conf_mean, top_species_k4_conf_max, top_species_k4_file, top_species_k4_t_start, top_species_k4_t_end, top_species_k5_name, top_species_k5_common, top_species_k5_n_det, top_species_k5_conf_mean, top_species_k5_conf_max, top_species_k5_file, top_species_k5_t_start, top_species_k5_t_end, top_species_k6_name, top_species_k6_common, top_species_k6_n_det, top_species_k6_conf_mean, top_species_k6_conf_max, top_species_k6_file, top_species_k6_t_start, top_species_k6_t_end, top_species_k7_name, top_species_k7_common, top_species_k7_n_det, top_species_k7_conf_mean, top_species_k7_conf_max, top_species_k7_file, top_species_k7_t_start, top_species_k7_t_end"
+          },
+          "input_columns": [
+            "_id",
+            "ecological_window",
+            "day",
+            "top_species_k0_name",
+            "top_species_k0_common",
+            "top_species_k0_n_det",
+            "top_species_k0_conf_mean",
+            "top_species_k0_conf_max",
+            "top_species_k0_file",
+            "top_species_k0_t_start",
+            "top_species_k0_t_end",
+            "top_species_k1_name",
+            "top_species_k1_common",
+            "top_species_k1_n_det",
+            "top_species_k1_conf_mean",
+            "top_species_k1_conf_max",
+            "top_species_k1_file",
+            "top_species_k1_t_start",
+            "top_species_k1_t_end",
+            "top_species_k2_name",
+            "top_species_k2_common",
+            "top_species_k2_n_det",
+            "top_species_k2_conf_mean",
+            "top_species_k2_conf_max",
+            "top_species_k2_file",
+            "top_species_k2_t_start",
+            "top_species_k2_t_end",
+            "top_species_k3_name",
+            "top_species_k3_common",
+            "top_species_k3_n_det",
+            "top_species_k3_conf_mean",
+            "top_species_k3_conf_max",
+            "top_species_k3_file",
+            "top_species_k3_t_start",
+            "top_species_k3_t_end",
+            "top_species_k4_name",
+            "top_species_k4_common",
+            "top_species_k4_n_det",
+            "top_species_k4_conf_mean",
+            "top_species_k4_conf_max",
+            "top_species_k4_file",
+            "top_species_k4_t_start",
+            "top_species_k4_t_end",
+            "top_species_k5_name",
+            "top_species_k5_common",
+            "top_species_k5_n_det",
+            "top_species_k5_conf_mean",
+            "top_species_k5_conf_max",
+            "top_species_k5_file",
+            "top_species_k5_t_start",
+            "top_species_k5_t_end",
+            "top_species_k6_name",
+            "top_species_k6_common",
+            "top_species_k6_n_det",
+            "top_species_k6_conf_mean",
+            "top_species_k6_conf_max",
+            "top_species_k6_file",
+            "top_species_k6_t_start",
+            "top_species_k6_t_end",
+            "top_species_k7_name",
+            "top_species_k7_common",
+            "top_species_k7_n_det",
+            "top_species_k7_conf_mean",
+            "top_species_k7_conf_max",
+            "top_species_k7_file",
+            "top_species_k7_t_start",
+            "top_species_k7_t_end"
+          ],
+          "output_columns": [
+            {
+              "column": "_id",
+              "label": "id",
+              "via": "declared"
+            },
+            {
+              "column": "ecological_window",
+              "label": "ecological window",
+              "via": "declared"
+            },
+            {
+              "column": "day",
+              "label": "day",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k0_name",
+              "label": "top species k0 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k0_common",
+              "label": "top species k0 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k0_n_det",
+              "label": "top species k0 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k0_conf_mean",
+              "label": "top species k0 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k0_conf_max",
+              "label": "top species k0 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k0_file",
+              "label": "top species k0 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k0_t_start",
+              "label": "top species k0 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k0_t_end",
+              "label": "top species k0 t end",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k1_name",
+              "label": "top species k1 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k1_common",
+              "label": "top species k1 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k1_n_det",
+              "label": "top species k1 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k1_conf_mean",
+              "label": "top species k1 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k1_conf_max",
+              "label": "top species k1 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k1_file",
+              "label": "top species k1 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k1_t_start",
+              "label": "top species k1 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k1_t_end",
+              "label": "top species k1 t end",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k2_name",
+              "label": "top species k2 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k2_common",
+              "label": "top species k2 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k2_n_det",
+              "label": "top species k2 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k2_conf_mean",
+              "label": "top species k2 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k2_conf_max",
+              "label": "top species k2 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k2_file",
+              "label": "top species k2 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k2_t_start",
+              "label": "top species k2 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k2_t_end",
+              "label": "top species k2 t end",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k3_name",
+              "label": "top species k3 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k3_common",
+              "label": "top species k3 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k3_n_det",
+              "label": "top species k3 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k3_conf_mean",
+              "label": "top species k3 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k3_conf_max",
+              "label": "top species k3 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k3_file",
+              "label": "top species k3 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k3_t_start",
+              "label": "top species k3 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k3_t_end",
+              "label": "top species k3 t end",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k4_name",
+              "label": "top species k4 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k4_common",
+              "label": "top species k4 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k4_n_det",
+              "label": "top species k4 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k4_conf_mean",
+              "label": "top species k4 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k4_conf_max",
+              "label": "top species k4 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k4_file",
+              "label": "top species k4 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k4_t_start",
+              "label": "top species k4 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k4_t_end",
+              "label": "top species k4 t end",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k5_name",
+              "label": "top species k5 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k5_common",
+              "label": "top species k5 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k5_n_det",
+              "label": "top species k5 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k5_conf_mean",
+              "label": "top species k5 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k5_conf_max",
+              "label": "top species k5 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k5_file",
+              "label": "top species k5 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k5_t_start",
+              "label": "top species k5 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k5_t_end",
+              "label": "top species k5 t end",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k6_name",
+              "label": "top species k6 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k6_common",
+              "label": "top species k6 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k6_n_det",
+              "label": "top species k6 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k6_conf_mean",
+              "label": "top species k6 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k6_conf_max",
+              "label": "top species k6 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k6_file",
+              "label": "top species k6 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k6_t_start",
+              "label": "top species k6 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k6_t_end",
+              "label": "top species k6 t end",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k7_name",
+              "label": "top species k7 name",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k7_common",
+              "label": "top species k7 common",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k7_n_det",
+              "label": "top species k7 n det",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k7_conf_mean",
+              "label": "top species k7 conf mean",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k7_conf_max",
+              "label": "top species k7 conf max",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k7_file",
+              "label": "top species k7 file",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k7_t_start",
+              "label": "top species k7 t start",
+              "via": "declared"
+            },
+            {
+              "column": "top_species_k7_t_end",
+              "label": "top species k7 t end",
+              "via": "declared"
+            }
+          ],
+          "label": "MetadataPassthrough",
+          "detail": "MetadataPassthrough \u00b7 67 inputs"
+        },
+        {
+          "id": "direct_5",
+          "name": "DirectColumns",
+          "section": "signal",
+          "category": "Passthrough",
+          "transform_def_name": "DirectColumns",
+          "enabled": true,
+          "normalize": "none",
+          "params": {
+            "columns": "ACI_mean, NDSI_mean, BI_mean, ADI_mean, AEI_mean, Ht_mean, Hf_mean, AnthroEnergy_mean, BioEnergy_mean, SNRt_mean, n_species_mean, n_detections_mean, NBPEAKS_mean, EVNspCount_mean",
+            "add_label_distance": false
+          },
+          "input_columns": [
+            "ACI_mean",
+            "NDSI_mean",
+            "BI_mean",
+            "ADI_mean",
+            "AEI_mean",
+            "Ht_mean",
+            "Hf_mean",
+            "AnthroEnergy_mean",
+            "BioEnergy_mean",
+            "SNRt_mean",
+            "n_species_mean",
+            "n_detections_mean",
+            "NBPEAKS_mean",
+            "EVNspCount_mean"
+          ],
+          "output_columns": [
+            {
+              "column": "ACI_mean",
+              "label": "ACI mean",
+              "via": "declared"
+            },
+            {
+              "column": "NDSI_mean",
+              "label": "NDSI mean",
+              "via": "declared"
+            },
+            {
+              "column": "BI_mean",
+              "label": "BI mean",
+              "via": "declared"
+            },
+            {
+              "column": "ADI_mean",
+              "label": "ADI mean",
+              "via": "declared"
+            },
+            {
+              "column": "AEI_mean",
+              "label": "AEI mean",
+              "via": "declared"
+            },
+            {
+              "column": "Ht_mean",
+              "label": "Ht mean",
+              "via": "declared"
+            },
+            {
+              "column": "Hf_mean",
+              "label": "Hf mean",
+              "via": "declared"
+            },
+            {
+              "column": "AnthroEnergy_mean",
+              "label": "AnthroEnergy mean",
+              "via": "declared"
+            },
+            {
+              "column": "BioEnergy_mean",
+              "label": "BioEnergy mean",
+              "via": "declared"
+            },
+            {
+              "column": "SNRt_mean",
+              "label": "SNRt mean",
+              "via": "declared"
+            },
+            {
+              "column": "n_species_mean",
+              "label": "n species mean",
+              "via": "declared"
+            },
+            {
+              "column": "n_detections_mean",
+              "label": "n detections mean",
+              "via": "declared"
+            },
+            {
+              "column": "NBPEAKS_mean",
+              "label": "NBPEAKS mean",
+              "via": "declared"
+            },
+            {
+              "column": "EVNspCount_mean",
+              "label": "EVNspCount mean",
+              "via": "declared"
+            }
+          ],
+          "label": "DirectColumns",
+          "detail": "DirectColumns \u00b7 add_label_distance=False \u00b7 14 inputs"
+        },
+        {
+          "id": "monthly_stats_6",
+          "name": "monthly_stats",
+          "section": "signal",
+          "category": "Statistics",
+          "transform_def_name": "ComputeStats",
+          "enabled": true,
+          "normalize": "none",
+          "params": {
+            "target_columns": "ACI_mean, NDSI_mean, BI_mean, ADI_mean, AEI_mean, Ht_mean, Hf_mean, AnthroEnergy_mean, BioEnergy_mean, SNRt_mean, n_species_mean, n_detections_mean, NBPEAKS_mean, EVNspCount_mean",
+            "stats_list": "mean",
+            "prefix": "monthly_"
+          },
+          "input_columns": [
+            "_id",
+            "ecological_window",
+            "ACI_mean",
+            "NDSI_mean",
+            "BI_mean",
+            "ADI_mean",
+            "AEI_mean",
+            "Ht_mean",
+            "Hf_mean",
+            "AnthroEnergy_mean",
+            "BioEnergy_mean",
+            "SNRt_mean",
+            "n_species_mean",
+            "n_detections_mean",
+            "NBPEAKS_mean",
+            "EVNspCount_mean"
+          ],
+          "output_columns": [],
+          "label": "ComputeStats",
+          "detail": "ComputeStats \u00b7 target_columns=ACI_mean, NDSI_mean, BI_mean, ADI_mean, AEI_mean, Ht_mean, Hf_mean, AnthroEnergy_mean, BioEnergy_mean, SNRt_mean, n_species_mean, n_detections_mean, NBPEAKS_mean, EVNspCount_mean, stats_list=mean, prefix=monthly_ \u00b7 16 inputs"
+        }
+      ],
+      "column_provenance": {
+        "_id": {
+          "label": "id",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "ecological_window": {
+          "label": "ecological window",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "day": {
+          "label": "day",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k0_name": {
+          "label": "top species k0 name",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k0_common": {
+          "label": "top species k0 common",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k0_n_det": {
+          "label": "top species k0 n det",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k0_conf_mean": {
+          "label": "top species k0 conf mean",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k0_conf_max": {
+          "label": "top species k0 conf max",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k0_file": {
+          "label": "top species k0 file",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k0_t_start": {
+          "label": "top species k0 t start",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k0_t_end": {
+          "label": "top species k0 t end",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k1_name": {
+          "label": "top species k1 name",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k1_common": {
+          "label": "top species k1 common",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k1_n_det": {
+          "label": "top species k1 n det",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k1_conf_mean": {
+          "label": "top species k1 conf mean",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k1_conf_max": {
+          "label": "top species k1 conf max",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k1_file": {
+          "label": "top species k1 file",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k1_t_start": {
+          "label": "top species k1 t start",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k1_t_end": {
+          "label": "top species k1 t end",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k2_name": {
+          "label": "top species k2 name",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k2_common": {
+          "label": "top species k2 common",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k2_n_det": {
+          "label": "top species k2 n det",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k2_conf_mean": {
+          "label": "top species k2 conf mean",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k2_conf_max": {
+          "label": "top species k2 conf max",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k2_file": {
+          "label": "top species k2 file",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k2_t_start": {
+          "label": "top species k2 t start",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k2_t_end": {
+          "label": "top species k2 t end",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k3_name": {
+          "label": "top species k3 name",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k3_common": {
+          "label": "top species k3 common",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k3_n_det": {
+          "label": "top species k3 n det",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k3_conf_mean": {
+          "label": "top species k3 conf mean",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k3_conf_max": {
+          "label": "top species k3 conf max",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k3_file": {
+          "label": "top species k3 file",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k3_t_start": {
+          "label": "top species k3 t start",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k3_t_end": {
+          "label": "top species k3 t end",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k4_name": {
+          "label": "top species k4 name",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k4_common": {
+          "label": "top species k4 common",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k4_n_det": {
+          "label": "top species k4 n det",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k4_conf_mean": {
+          "label": "top species k4 conf mean",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k4_conf_max": {
+          "label": "top species k4 conf max",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k4_file": {
+          "label": "top species k4 file",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k4_t_start": {
+          "label": "top species k4 t start",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k4_t_end": {
+          "label": "top species k4 t end",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k5_name": {
+          "label": "top species k5 name",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k5_common": {
+          "label": "top species k5 common",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k5_n_det": {
+          "label": "top species k5 n det",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k5_conf_mean": {
+          "label": "top species k5 conf mean",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k5_conf_max": {
+          "label": "top species k5 conf max",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k5_file": {
+          "label": "top species k5 file",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k5_t_start": {
+          "label": "top species k5 t start",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k5_t_end": {
+          "label": "top species k5 t end",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k6_name": {
+          "label": "top species k6 name",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k6_common": {
+          "label": "top species k6 common",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k6_n_det": {
+          "label": "top species k6 n det",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k6_conf_mean": {
+          "label": "top species k6 conf mean",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k6_conf_max": {
+          "label": "top species k6 conf max",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k6_file": {
+          "label": "top species k6 file",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k6_t_start": {
+          "label": "top species k6 t start",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k6_t_end": {
+          "label": "top species k6 t end",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k7_name": {
+          "label": "top species k7 name",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k7_common": {
+          "label": "top species k7 common",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k7_n_det": {
+          "label": "top species k7 n det",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k7_conf_mean": {
+          "label": "top species k7 conf mean",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k7_conf_max": {
+          "label": "top species k7 conf max",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k7_file": {
+          "label": "top species k7 file",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k7_t_start": {
+          "label": "top species k7 t start",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "top_species_k7_t_end": {
+          "label": "top species k7 t end",
+          "transform_id": "metapass_4",
+          "via": "declared"
+        },
+        "ACI_mean": {
+          "label": "ACI mean",
+          "transform_id": "direct_5",
+          "via": "declared"
+        },
+        "NDSI_mean": {
+          "label": "NDSI mean",
+          "transform_id": "direct_5",
+          "via": "declared"
+        },
+        "BI_mean": {
+          "label": "BI mean",
+          "transform_id": "direct_5",
+          "via": "declared"
+        },
+        "ADI_mean": {
+          "label": "ADI mean",
+          "transform_id": "direct_5",
+          "via": "declared"
+        },
+        "AEI_mean": {
+          "label": "AEI mean",
+          "transform_id": "direct_5",
+          "via": "declared"
+        },
+        "Ht_mean": {
+          "label": "Ht mean",
+          "transform_id": "direct_5",
+          "via": "declared"
+        },
+        "Hf_mean": {
+          "label": "Hf mean",
+          "transform_id": "direct_5",
+          "via": "declared"
+        },
+        "AnthroEnergy_mean": {
+          "label": "AnthroEnergy mean",
+          "transform_id": "direct_5",
+          "via": "declared"
+        },
+        "BioEnergy_mean": {
+          "label": "BioEnergy mean",
+          "transform_id": "direct_5",
+          "via": "declared"
+        },
+        "SNRt_mean": {
+          "label": "SNRt mean",
+          "transform_id": "direct_5",
+          "via": "declared"
+        },
+        "n_species_mean": {
+          "label": "n species mean",
+          "transform_id": "direct_5",
+          "via": "declared"
+        },
+        "n_detections_mean": {
+          "label": "n detections mean",
+          "transform_id": "direct_5",
+          "via": "declared"
+        },
+        "NBPEAKS_mean": {
+          "label": "NBPEAKS mean",
+          "transform_id": "direct_5",
+          "via": "declared"
+        },
+        "EVNspCount_mean": {
+          "label": "EVNspCount mean",
+          "transform_id": "direct_5",
+          "via": "declared"
+        },
+        "monthly_ACI_mean_mean": {
+          "label": "monthly ACI mean mean",
+          "transform_id": null,
+          "via": "unclaimed"
+        },
+        "monthly_NDSI_mean_mean": {
+          "label": "monthly NDSI mean mean",
+          "transform_id": null,
+          "via": "unclaimed"
+        },
+        "monthly_BI_mean_mean": {
+          "label": "monthly BI mean mean",
+          "transform_id": null,
+          "via": "unclaimed"
+        },
+        "monthly_ADI_mean_mean": {
+          "label": "monthly ADI mean mean",
+          "transform_id": null,
+          "via": "unclaimed"
+        },
+        "monthly_AEI_mean_mean": {
+          "label": "monthly AEI mean mean",
+          "transform_id": null,
+          "via": "unclaimed"
+        },
+        "monthly_Ht_mean_mean": {
+          "label": "monthly Ht mean mean",
+          "transform_id": null,
+          "via": "unclaimed"
+        },
+        "monthly_Hf_mean_mean": {
+          "label": "monthly Hf mean mean",
+          "transform_id": null,
+          "via": "unclaimed"
+        },
+        "monthly_AnthroEnergy_mean_mean": {
+          "label": "monthly AnthroEnergy mean mean",
+          "transform_id": null,
+          "via": "unclaimed"
+        },
+        "monthly_BioEnergy_mean_mean": {
+          "label": "monthly BioEnergy mean mean",
+          "transform_id": null,
+          "via": "unclaimed"
+        },
+        "monthly_SNRt_mean_mean": {
+          "label": "monthly SNRt mean mean",
+          "transform_id": null,
+          "via": "unclaimed"
+        },
+        "monthly_n_species_mean_mean": {
+          "label": "monthly n species mean mean",
+          "transform_id": null,
+          "via": "unclaimed"
+        },
+        "monthly_n_detections_mean_mean": {
+          "label": "monthly n detections mean mean",
+          "transform_id": null,
+          "via": "unclaimed"
+        },
+        "monthly_NBPEAKS_mean_mean": {
+          "label": "monthly NBPEAKS mean mean",
+          "transform_id": null,
+          "via": "unclaimed"
+        },
+        "monthly_EVNspCount_mean_mean": {
+          "label": "monthly EVNspCount mean mean",
+          "transform_id": null,
+          "via": "unclaimed"
+        }
+      },
+      "combos": [
+        {
+          "id": "xy_ADI_mean_AEI_mean",
+          "x": "ADI_mean",
+          "y": "AEI_mean",
+          "x_label": "ADI mean",
+          "y_label": "AEI mean",
+          "label": "ADI mean \u00d7 AEI mean",
+          "source": "correlation",
+          "enabled": false
+        },
+        {
+          "id": "xy_NDSI_mean_Hf_mean",
+          "x": "NDSI_mean",
+          "y": "Hf_mean",
+          "x_label": "NDSI mean",
+          "y_label": "Hf mean",
+          "label": "NDSI mean \u00d7 Hf mean",
+          "source": "correlation",
+          "enabled": false
+        },
+        {
+          "id": "xy_monthly_ACI_mean_mean_ACI_mean",
+          "x": "monthly_ACI_mean_mean",
+          "y": "ACI_mean",
+          "x_label": "monthly ACI mean mean",
+          "y_label": "ACI mean",
+          "label": "monthly ACI mean mean \u00d7 ACI mean",
+          "source": "stats_pair",
+          "enabled": true
+        },
+        {
+          "id": "xy_monthly_NDSI_mean_mean_NDSI_mean",
+          "x": "monthly_NDSI_mean_mean",
+          "y": "NDSI_mean",
+          "x_label": "monthly NDSI mean mean",
+          "y_label": "NDSI mean",
+          "label": "monthly NDSI mean mean \u00d7 NDSI mean",
+          "source": "stats_pair",
+          "enabled": false
+        },
+        {
+          "id": "xy_monthly_BI_mean_mean_BI_mean",
+          "x": "monthly_BI_mean_mean",
+          "y": "BI_mean",
+          "x_label": "monthly BI mean mean",
+          "y_label": "BI mean",
+          "label": "monthly BI mean mean \u00d7 BI mean",
+          "source": "stats_pair",
+          "enabled": false
+        },
+        {
+          "id": "xy_monthly_ADI_mean_mean_ADI_mean",
+          "x": "monthly_ADI_mean_mean",
+          "y": "ADI_mean",
+          "x_label": "monthly ADI mean mean",
+          "y_label": "ADI mean",
+          "label": "monthly ADI mean mean \u00d7 ADI mean",
+          "source": "stats_pair",
+          "enabled": false
+        },
+        {
+          "id": "xy_monthly_AEI_mean_mean_AEI_mean",
+          "x": "monthly_AEI_mean_mean",
+          "y": "AEI_mean",
+          "x_label": "monthly AEI mean mean",
+          "y_label": "AEI mean",
+          "label": "monthly AEI mean mean \u00d7 AEI mean",
+          "source": "stats_pair",
+          "enabled": false
+        },
+        {
+          "id": "xy_monthly_Ht_mean_mean_Ht_mean",
+          "x": "monthly_Ht_mean_mean",
+          "y": "Ht_mean",
+          "x_label": "monthly Ht mean mean",
+          "y_label": "Ht mean",
+          "label": "monthly Ht mean mean \u00d7 Ht mean",
+          "source": "stats_pair",
+          "enabled": false
+        },
+        {
+          "id": "xy_monthly_Hf_mean_mean_Hf_mean",
+          "x": "monthly_Hf_mean_mean",
+          "y": "Hf_mean",
+          "x_label": "monthly Hf mean mean",
+          "y_label": "Hf mean",
+          "label": "monthly Hf mean mean \u00d7 Hf mean",
+          "source": "stats_pair",
+          "enabled": false
+        },
+        {
+          "id": "xy_monthly_AnthroEnergy_mean_mean_AnthroEnergy_mean",
+          "x": "monthly_AnthroEnergy_mean_mean",
+          "y": "AnthroEnergy_mean",
+          "x_label": "monthly AnthroEnergy mean mean",
+          "y_label": "AnthroEnergy mean",
+          "label": "monthly AnthroEnergy mean mean \u00d7 AnthroEnergy mean",
+          "source": "stats_pair",
+          "enabled": false
+        },
+        {
+          "id": "xy_monthly_BioEnergy_mean_mean_BioEnergy_mean",
+          "x": "monthly_BioEnergy_mean_mean",
+          "y": "BioEnergy_mean",
+          "x_label": "monthly BioEnergy mean mean",
+          "y_label": "BioEnergy mean",
+          "label": "monthly BioEnergy mean mean \u00d7 BioEnergy mean",
+          "source": "stats_pair",
+          "enabled": false
+        },
+        {
+          "id": "xy_monthly_SNRt_mean_mean_SNRt_mean",
+          "x": "monthly_SNRt_mean_mean",
+          "y": "SNRt_mean",
+          "x_label": "monthly SNRt mean mean",
+          "y_label": "SNRt mean",
+          "label": "monthly SNRt mean mean \u00d7 SNRt mean",
+          "source": "stats_pair",
+          "enabled": false
+        },
+        {
+          "id": "xy_monthly_n_species_mean_mean_n_species_mean",
+          "x": "monthly_n_species_mean_mean",
+          "y": "n_species_mean",
+          "x_label": "monthly n species mean mean",
+          "y_label": "n species mean",
+          "label": "monthly n species mean mean \u00d7 n species mean",
+          "source": "stats_pair",
+          "enabled": false
+        },
+        {
+          "id": "xy_monthly_n_detections_mean_mean_n_detections_mean",
+          "x": "monthly_n_detections_mean_mean",
+          "y": "n_detections_mean",
+          "x_label": "monthly n detections mean mean",
+          "y_label": "n detections mean",
+          "label": "monthly n detections mean mean \u00d7 n detections mean",
+          "source": "stats_pair",
+          "enabled": false
+        },
+        {
+          "id": "xy_monthly_NBPEAKS_mean_mean_NBPEAKS_mean",
+          "x": "monthly_NBPEAKS_mean_mean",
+          "y": "NBPEAKS_mean",
+          "x_label": "monthly NBPEAKS mean mean",
+          "y_label": "NBPEAKS mean",
+          "label": "monthly NBPEAKS mean mean \u00d7 NBPEAKS mean",
+          "source": "stats_pair",
+          "enabled": false
+        },
+        {
+          "id": "xy_monthly_EVNspCount_mean_mean_EVNspCount_mean",
+          "x": "monthly_EVNspCount_mean_mean",
+          "y": "EVNspCount_mean",
+          "x_label": "monthly EVNspCount mean mean",
+          "y_label": "EVNspCount mean",
+          "label": "monthly EVNspCount mean mean \u00d7 EVNspCount mean",
+          "source": "stats_pair",
+          "enabled": false
+        }
+      ],
+      "column_groups": [],
+      "symbols": [],
+      "drivers": {
+        "viz": {
+          "dark_viz_linear": {
+            "name": "dark_viz_linear",
+            "signal": [
+              {
+                "key": "x",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "y",
+                "combo_key": "stats,y",
+                "function": null
+              },
+              {
+                "key": "stats",
+                "combo_key": "stats,y",
+                "function": null
+              },
+              {
+                "key": "heatmap",
+                "combo_key": "darkcolumns",
+                "function": "expand_columns"
+              },
+              {
+                "key": "index_group",
+                "combo_key": "day",
+                "function": null
+              },
+              {
+                "key": "heatmap_hue",
+                "combo_key": "solar_window",
+                "function": "col_to_palette"
+              }
+            ],
+            "symbol": [
+              {
+                "key": "alpha",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "brightness",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "heatmap_alpha",
+                "combo_key": "",
+                "function": null
+              }
+            ]
+          },
+          "dark_viz_world": {
+            "name": "dark_viz_world",
+            "signal": [
+              {
+                "key": "terrain",
+                "combo_key": "darkcolumns",
+                "function": "expand_columns"
+              },
+              {
+                "key": "r_min",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "r_max",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "smoothing",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "use_tropics",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "mesh_lat",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "mesh_lon",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "pole_mode",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "auto_depth",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "hover_id",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "hover_cluster",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "geometry",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "pole_damp",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "pole_margin",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "cap_taper",
+                "combo_key": "",
+                "function": null
+              }
+            ],
+            "symbol": [
+              {
+                "key": "RGB",
+                "combo_key": "clustering",
+                "function": "assign_cluster_colors"
+              },
+              {
+                "key": "brightness",
+                "combo_key": "density",
+                "function": "compute_brightness"
+              },
+              {
+                "key": "saturation",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "noise",
+                "combo_key": "",
+                "function": null
+              }
+            ]
+          }
+        },
+        "sound": {
+          "dark_son_linear": {
+            "name": "Dark Son Linear",
+            "signal": [
+              {
+                "key": "carrier",
+                "combo_key": "darkcolumns",
+                "function": "expand_columns"
+              },
+              {
+                "key": "modulators",
+                "combo_key": "stats,y",
+                "function": "expand_modulator_columns"
+              },
+              {
+                "key": "voice_source",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "voice_mix_sine",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "sine_freq_low",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "sine_freq_high",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "noise_lowpass_enabled",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "noise_lowpass_hz",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "envelope_period_s",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "envelope_period_spread",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "envelope_phase_spread",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "modulator_period_s",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "mod_target",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "mod_bipolar",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "mod_combine",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "mod_depth",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "filter_base_hz",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "filter_mod_range_hz",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "filter_nav_range_hz",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "filter_resonance",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "stereo",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "master_amplitude",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "filter_resonances",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "mod_filter_type",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "dry_mix",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "filter_weights",
+                "combo_key": "",
+                "function": null
+              },
+              {
+                "key": "pitch_detune_cents",
+                "combo_key": "",
+                "function": null
+              }
+            ],
+            "symbol": []
+          }
+        }
+      },
+      "runtime_combos": [
+        {
+          "index": 0,
+          "signal_keys": [
+            "x",
+            "stats,y",
+            "darkcolumns",
+            "darkcorpus",
+            "solar_window"
+          ],
+          "symbol": {}
+        }
+      ]
+    }
+  }
+}

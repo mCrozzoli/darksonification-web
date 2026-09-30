@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dark Re-wilding · about</title>
+<style>
+  :root { color-scheme: dark; --bg:#0b0e1a; --ink:#c8d0ee; --dim:#67708c; --rule:#222948; --acc:#ffe14a; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.6 -apple-system,"Segoe UI",Roboto,sans-serif; }
+  main { max-width:720px; margin:0 auto; padding:40px 20px 64px; }
+  h1 { font-size:28px; margin:0 0 4px; } h2 { font-size:15px; margin:32px 0 8px; text-transform:uppercase; letter-spacing:.08em; color:var(--dim); }
+  p, li { color:var(--ink); } .dim { color:var(--dim); }
+  a { color:var(--acc); } ul { padding-left:18px; } li { margin:4px 0; }
+  code { font:13px ui-monospace,Menlo,monospace; color:var(--dim); }
+  /* the look chosen in the views (the style kit): light and paper; dark keeps the values above */
+  :root[data-theme="light"], :root[data-theme="paper"] { color-scheme:light; --bg:var(--ds-panel); --ink:var(--ds-txt);
+    --dim:var(--ds-dim); --rule:var(--ds-line); --acc:var(--ds-cur-txt); }
+  :root[data-theme="paper"] body { background-image:var(--ds-grain); font-family:var(--ds-font-ui); font-size:16px; }
+  :root[data-theme="paper"] h1 { font-family:var(--ds-font-display); font-weight:300; font-size:34px; }
+</style>
+<link rel="stylesheet" href="view/darkstyle/darkstyle.css">
+<script src="view/darkstyle/darkstyle.js"></script>
+</head>
+<body>
+<main>
+<h1>Dark Re-wilding</h1>
+<p class="dim">Three years of the Knepp Estate soundscape, March 2023 – February 2026, read by eye and by sound.</p>
+
+<p>Knepp, in West Sussex, is a former farm that has been rewilding since 2001. A microphone and a hydrophone
+have recorded it hour after hour since March 2023. Every recorded minute was turned into acoustic indices
+(numbers that describe the sound: how even it is, how much sits in the bird band, how much in the low
+band where engines and aircraft sit), and the air channel was listened to by BirdNET, which names the
+species it believes it hears. The display shows all of that by month and by day, split into four windows
+of the day: dawn and dusk (1.5 hours either side of sunrise and sunset), the day between, and the night.</p>
+
+<p>Six views. The <b>scatter</b> places every month, or every day of a year, by two measures. The <b>roses</b>
+draw each month's day as a clock. The <b>biplot</b> lays the months out by what makes them alike. The
+<b>linear</b> view follows one month day by day. The <b>spectrogram</b> shows a month's energy by hour and
+frequency band, and the <b>mfcc</b> view its cepstral fingerprint. The weather lens (rain, wind, temperature)
+sits on top of any of them.</p>
+
+<p>The sound starts at your first click or key press. Four layers read four different things. A <b>drone</b> and a
+<b>clave</b> (a rhythmic strike) read the acoustic indices: the measurements. An <b>arpeggio</b> reads the species
+BirdNET heard in the window: an inference, which can be wrong. When you commit a window, short pieces
+of the real recordings of its top bird play: the evidence. When the layers move together the picture is
+consistent; when they pull apart, that is the finding. Press <b>L</b> for the legend: hold a chip to hear one
+change by itself. The sound tab has a fader for every layer. Headphones help.</p>
+
+<h2>Credits</h2>
+<ul>
+  <li>Design, sound and code: <b>Miguel Crozzoli</b>, as part of a PhD supervised by <b>Prof. Alice Eldridge</b>
+      (University of Sussex), whose questions shaped what the display tries to show.</li>
+  <li>The recordings come from the Knepp passive acoustic monitoring deployment of <b>Wilding Radio</b>,
+      run by <b>Nicolas Seymour-Smith</b> (University of Sussex).</li>
+  <li>Built with <a href="https://github.com/Intelligent-Instruments-Lab/darksonification" target="_blank" rel="noopener">DarkSonification</a>.</li>
+</ul>
+
+<h2>Data</h2>
+<ul>
+  <li>Recordings: hourly files from an airborne microphone and a hydrophone at Knepp Estate (50.93° N, 0.37° W),
+      March 2023 to February 2026. Two months (December 2023, April 2025) are missing and a few others are
+      thin: the display fades what has little recording behind it rather than hiding it.</li>
+  <li>Acoustic indices: computed per minute with
+      <a href="https://github.com/scikit-maad/scikit-maad" target="_blank" rel="noopener">scikit-maad</a>
+      (Ulloa, J. S., et al., 2021, <i>Methods in Ecology and Evolution</i> 12,
+      <a href="https://doi.org/10.1111/2041-210X.13711" target="_blank" rel="noopener">doi:10.1111/2041-210X.13711</a>),
+      then averaged by month and by day-window. One caution: the acoustic complexity index (ACI) is shown as
+      the pipeline measured it, summed over the whole spectrogram (0–22 kHz) and not only over the analysed
+      band (air 100 Hz – 10 kHz, water 50 Hz – 8 kHz). Part of its number therefore comes from frequencies
+      where the recordings hold almost nothing. Read ACI here as a description of the recordings, not as a
+      trend in the soundscape; a band-limited version is planned.</li>
+  <li>Species: <a href="https://birdnet.cornell.edu/" target="_blank" rel="noopener">BirdNET</a> v2.4 on the air channel
+      (Kahl, S., Wood, C. M., Eibl, M., &amp; Klinck, H., 2021, <i>Ecological Informatics</i> 61,
+      <a href="https://doi.org/10.1016/j.ecoinf.2021.101236" target="_blank" rel="noopener">doi:10.1016/j.ecoinf.2021.101236</a>).
+      A detection is BirdNET's claim, not a confirmed record; the clips let you check it by ear.</li>
+  <li>Weather and sunrise/sunset: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>
+      (historical weather, ERA5 reanalysis; data under CC BY 4.0). The recorder's clock is UTC, and so is the display.</li>
+</ul>
+
+<h2>Sound</h2>
+<p>The sound is made by <b>SuperCollider running inside this page</b>: its synthesis server
+(<code>scsynth</code>) and its language (<code>sclang</code>), compiled to WebAssembly. They run the
+design's own SuperCollider files, the same ones the desktop version plays, unchanged. The part of the
+desktop version that turns a hover or a selection into sound messages is a Python program; it runs in
+this page too, unchanged, through Pyodide (CPython compiled to WebAssembly). The recordings are served as
+short compressed clips, decoded by the browser and handed to the synthesis server in memory.</p>
+
+<h2>Software and licences</h2>
+<ul>
+  <li><a href="https://supercollider.github.io/" target="_blank" rel="noopener">SuperCollider</a>, WebAssembly
+      build from the development branch at commit
+      <a href="https://github.com/supercollider/supercollider/tree/5d47207bb313684e81ebe729a5f714f50761c6c7" target="_blank" rel="noopener"><code>5d47207</code></a>
+      (unreleased). scsynth and sclang: GPL-3.0; the WebAssembly bindings: AGPL-3.0. Unmodified; the
+      licence text is in <code>engine/LICENSE</code>.</li>
+  <li><a href="https://pyodide.org/" target="_blank" rel="noopener">Pyodide</a> release 314.0.7
+      (MPL-2.0), carrying CPython 3.14 (PSF licence). Unmodified; only the standard library is loaded.</li>
+  <li><a href="https://d3js.org/" target="_blank" rel="noopener">D3</a> v7.9.0 (ISC licence).</li>
+  <li>The clips are Opus (and AAC for browsers without Opus) transcodes of the recordings above.</li>
+  <li>This page's own code: <a href="https://github.com/mCrozzoli/darksonification-web" target="_blank" rel="noopener">github.com/mCrozzoli/darksonification-web</a>.</li>
+</ul>
+
+<p class="dim"><a href="./">← back to the display</a></p>
+</main>
+</body>
+</html>

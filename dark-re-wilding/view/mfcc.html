@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<!-- dark_re_wilding · MFCC cepstral fingerprint (REAL server data).
+     Per month: a coefficient x hour-of-day heatmap of the 13 mel-frequency
+     cepstral coefficients the server actually computed. MFCC describes the
+     spectral SHAPE (envelope), not per-frequency energy — a cepstral fingerprint,
+     complementary to the REAL TOL energy spectrogram now live in spectro.html.
+     (The Towsey 3-index false-colour — per-band ACI/ENT/EVN — is a separate future step.)
+       c0  ~ loudness (log-energy)      c1  ~ brightness / spectral tilt
+       c2+ ~ finer detail of the spectral envelope
+     Reveals WHEN the soundscape's timbre changes through the day: the dawn/dusk
+     chorus shifts brightness (c1) and loudness (c0) vs the flat cepstrum of night.
+     x = hour of day in UTC; the diel strip (diel.js) marks the four windows the sound uses.
+     MONTH resolution: the month's average hour (L0); DAY: one day's own 24 hours (L1).
+     hourview.js owns the resolution, the one-month / one-day selection, the day data, the sound. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>dark_re_wilding · cepstral fingerprint</title>
+<link rel="stylesheet" href="darkstyle/darkstyle.css">
+<script src="darkstyle/darkstyle.js"></script>   <!-- the style kit: dark · light · paper (projects/web/style) -->
+<link rel="stylesheet" href="rewild_tokens.css">   <!-- this design's tokens: dark = the values below used to be literals -->
+<script src="vendor/d3.v7.min.js"></script>
+<script src="../web_bridge.js"></script>
+<!-- web build: web_control.js (darkui GUI link) removed -->
+<script src="looks.js"></script>   <!-- the looks' data colours (after d3, before the modules) -->
+<script src="wc.js"></script>
+<script src="panel.js"></script>
+<script src="viewnav.js"></script>
+<script src="monthbar.js"></script>
+<script src="legend.js"></script>
+<script src="diel.js"></script>
+<script src="hourview.js"></script>
+<style>
+  :root{ --bg:var(--rw-bg); --panel:var(--rw-panel); --line:var(--rw-line); --txt:var(--rw-txt); --dim:var(--rw-dim); --cur:var(--rw-cur); }   /* rewild_tokens.css */
+  html,body{ margin:0; height:100%; background:var(--bg); color:var(--txt);
+    font:var(--ds-font-size)/1.45 var(--ds-font-ui); }
+  #wrap{ display:grid; grid-template-rows:46px auto minmax(0,1fr); grid-template-columns:1fr 244px;
+    height:100%; gap:1px; background:var(--line); }
+  header{ grid-area:1/1/2/3; display:flex; align-items:center; gap:14px; padding:0 14px; background:var(--panel); }
+  header b{ letter-spacing:.12em; }
+  #what{ color:var(--txt); font-size:12px; }
+  .ctl{ display:flex; align-items:center; gap:6px; } .ctl label{ color:var(--dim); }
+  select,button{ background:var(--rw-ctl); color:var(--txt); border:1px solid var(--rw-ctl-line); border-radius:6px; padding:3px 8px; font:inherit; cursor:pointer; }
+  #note{ grid-area:2/1/3/3; background:var(--rw-note-bg); color:var(--rw-note-txt); border-bottom:1px solid var(--line);
+    padding:5px 14px; font-size:11px; letter-spacing:.03em; }
+  #note b{ color:var(--txt); }
+  #plot-wrap{ grid-area:3/1/4/2; background:var(--bg); background-image:var(--ds-grain); position:relative; min-height:0; overflow:hidden; }
+  #side{ grid-area:3/2/4/3; background:var(--panel); padding:12px; overflow-y:auto; }
+  svg{ display:block; width:100%; height:100%; }
+  .axis text{ fill:var(--dim); font-size:9px; }
+  .axis .title{ fill:var(--dim); font-size:10px; letter-spacing:.05em; }
+  #chip{ font-size:11px; padding:3px 9px; border-radius:11px; border:1px solid var(--rw-ctl-line); display:flex; align-items:center; gap:6px; }
+  #chip::before{ content:""; width:8px; height:8px; border-radius:50%; background:var(--rw-chip-dot); }
+  #chip.disconnected{ color:var(--rw-off); } #chip.disconnected::before{ background:var(--rw-off-dot); }
+  #chip.streaming{ color:var(--rw-ok); } #chip.streaming::before{ background:var(--rw-ok-dot); }
+  h4{ margin:10px 0 6px; color:var(--dim); font-size:11px; letter-spacing:.1em; }
+  .row{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin:3px 0; }
+  .k{ color:var(--dim); flex:0 0 auto; }
+  .v{ flex:1 1 auto; min-width:0; text-align:right; overflow-wrap:anywhere; color:var(--txt); }
+  .ck{ display:flex; gap:7px; margin:2px 0; font-size:11px; } .ck .i{ color:var(--cur); min-width:22px; }
+  .ck .k{ flex:1 1 auto; min-width:0; }            /* wrap: a long key line pushed the sidebar 22px wide */
+  #scale{ height:12px; border-radius:3px; margin:4px 0 2px;
+    background:var(--rw-magma); }
+  .scl{ display:flex; justify-content:space-between; color:var(--dim); font-size:10px; }
+  a{ color:var(--dim); text-decoration:none; } a:hover{ color:var(--txt); }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <header>
+    <b><a href="../about.html" target="_blank" rel="noopener" title="about, credits and licences" style="color:inherit;text-decoration:none">dark_re_wilding ⓘ</a></b><span class="k">cepstral fingerprint</span>
+    <div id="chip" class="disconnected">disconnected</div>
+    <span id="what"></span>
+    <span style="flex:1"></span>
+    <nav id="viewnav"></nav>
+  </header>
+  <div id="note"><b>How the timbre changes through the day.</b> Each row is one number describing the
+    <b>shape</b> of the sound, not how loud one pitch is: <b>c0</b> ≈ overall loudness, <b>c1</b> ≈ brightness
+    (more high than low), higher rows ≈ finer detail of that shape. Each row has its own colour scale, so compare
+    <b>along a row</b>, never one row with another. Energy per frequency band is in <b>spectro</b>.</div>
+  <div id="plot-wrap"><svg id="plot"></svg></div>
+  <div id="side">
+    <h4 id="c-title">HOVER A CELL</h4>
+    <div class="row"><span class="k">coeff</span><span class="v" id="c-coeff">—</span></div>
+    <div class="row"><span class="k">hour</span><span class="v" id="c-hour">—</span></div>
+    <div class="row"><span class="k">sounds as</span><span class="v" id="c-win">—</span></div>
+    <div class="row"><span class="k">value</span><span class="v" id="c-raw">—</span></div>
+    <div class="row"><span class="k">recorded</span><span class="v" id="c-sup">—</span></div>
+    <h4>DIEL WINDOWS</h4>
+    <div id="diel-key"></div>
+    <h4>INTENSITY</h4>
+    <div id="scale"></div>
+    <div class="scl"><span>low (for this coeff)</span><span>high</span></div>
+    <div class="k" id="scale-note" style="font-size:11px;margin-top:4px;line-height:1.5"></div>
+    <h4>COEFFICIENTS</h4>
+    <div class="ck"><span class="i">c0</span><span class="k">loudness · overall log-energy</span></div>
+    <div class="ck"><span class="i">c1</span><span class="k">brightness · low↔high tilt</span></div>
+    <div class="ck"><span class="i">c2+</span><span class="k">finer spectral-envelope detail (↑)</span></div>
+    <div class="wc-seglabel" style="color:var(--dim);font-size:11px;letter-spacing:.1em;margin:10px 0 6px">RESOLUTION</div>
+    <div class="wcgrid" id="res-toggle" style="margin-bottom:8px">
+      <button class="wbtn" data-res="month" title="the month's average hour">month</button>
+      <button class="wbtn" data-res="day" title="one day's own 24 hours">day</button>
+    </div>
+    <div id="monthbar" style="margin-bottom:6px"></div>
+    <div id="daybar" style="margin-bottom:6px;display:none"></div>
+    <div id="wc"></div>
+  </div>
+</div>
+
+<script>
+const MON=["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+let mfcc=[], byKey=new Map(), meta={}, ws=null, l0months=[];
+let channel="air", channels=[], _wcInited=false;   // air/water switch
+const svg=d3.select("#plot");
+const gCells=svg.append("g"), gAxis=svg.append("g").attr("class","axis"), gDiel=svg.append("g"),
+      gMsg=svg.append("text").style("fill","var(--dim)").attr("font-size",12).attr("text-anchor","middle"),
+      gHi=svg.append("rect").attr("fill","none").attr("stroke","var(--cur)").attr("stroke-width",1.5).style("display","none");
+const wsSend=o=>{ if(ws&&ws.readyState===1) ws.send(JSON.stringify(o)); };
+
+// THE CONTROLLER (hourview.js): month/day, the single-choice month strip, the day calendar, the
+// day data, the sound. This page only says what a row is (a coefficient) and how a cell is coloured.
+const HV=HourView.create({ kind:"mfcc", send:wsSend, channel:()=>channel,
+  months:()=>mfcc.map(s=>s.key).sort(), monthEntry:mk=>byKey.get(mk),
+  onChange:()=>{ draw(); HV.renderControls(); }, rowName:"coefficient" });
+
+function draw(){
+  const e=HV.entry();
+  const w=document.getElementById("plot-wrap"), W=w.clientWidth, H=w.clientHeight;
+  document.getElementById("what").textContent = e ? `${HV.label(e)} · ${HV.isDay()?"one day":"month average"}` : "";
+  d3.select("#scale-note").text(HV.scaleNote());
+  const mL=52, mR=14, mT=40, mB=30;                    // mT holds the diel strip
+  if(H-mT-mB<40 || W-mL-mR<40) return;              // a collapsed pane: nothing sensible to draw
+  svg.attr("width",W).attr("height",H);
+  if(!e){                                           // DAY resolution, before the month's days arrive
+    gCells.selectAll("*").remove(); gAxis.selectAll("*").remove(); gDiel.selectAll("*").remove(); gHi.style("display","none");
+    gMsg.attr("x",W/2).attr("y",H/2).text(HV.pending ? "loading the month's days…" : (HV.why || "nothing to draw"));
+    updTrace();                                     // the frame follows what is (not) on screen
+    return;
+  }
+  gMsg.text("");
+  const nc=meta.n_coeffs||e.mat.length, hours=meta.hours||d3.range(24), nh=hours.length;
+  const cw=(W-mL-mR)/nh, ch=(H-mT-mB)/nc;
+  const xy=(c,h)=>[mL+h*cw, mT+(nc-1-c)*ch];             // c0 at bottom, detail rising
+  const fade=hours.map(h=>{ const i=HV.info(h); return i ? i.fade : 1; });
+  const drawn=(c,h)=>DIEL.recorded(e,h) && e.mat[c] && e.mat[c][h]!=null;
+  const cells=[];
+  for(let c=0;c<nc;c++) for(let h=0;h<nh;h++) cells.push({c,h});
+  gCells.selectAll("rect").data(cells).join("rect")
+    .attr("x",d=>xy(d.c,d.h)[0]).attr("y",d=>xy(d.c,d.h)[1]).attr("width",cw+0.6).attr("height",ch+0.6)
+    .attr("fill",d=>drawn(d.c,d.h) ? RWLook.d.magma(e.mat[d.c][d.h]) : DIEL.hatch(svg))   // hatched = not recorded
+    .attr("fill-opacity",d=>drawn(d.c,d.h) ? fade[d.h] : 1)                                       // faded = little recording
+    .on("pointerover",(ev,d)=>hover(d.c,d.h,cw,ch,xy))
+    .on("pointermove",(ev,d)=>showTip(ev,d.c,d.h));
+  gCells.on("pointerleave",()=>{ tip.hide(); gHi.style("display","none"); });
+  // axes
+  gAxis.selectAll("*").remove();
+  for(let c=0;c<nc;c++) gAxis.append("text").attr("x",mL-6).attr("y",xy(c,0)[1]+ch/2+3)
+    .attr("text-anchor","end").text("c"+c);
+  hours.forEach((h,i)=>{ if(h%3===0) gAxis.append("text").attr("x",mL+i*cw+cw/2).attr("y",H-14)
+    .attr("text-anchor","middle").text(h); });
+  gAxis.append("text").attr("class","title").attr("x",(mL+W-mR)/2).attr("y",H-2)
+    .attr("text-anchor","middle").text("hour of day · UTC  (UK clock = UTC + 1 h in summer time)");
+  gAxis.append("text").attr("class","title").attr("transform",`translate(11,${(mT+H-mB)/2}) rotate(-90)`)
+    .attr("text-anchor","middle").text("MFCC coeff  (0=loud · 1=bright · ↑detail)");
+  // THE DIEL STRIP + its edges, where the sound actually changes (diel.js).
+  DIEL.draw(gDiel,{ hours, x:h=>mL+h*cw, y0:mT, y1:H-mB, stripY:6, stripH:16,
+                    sun:DIEL.sunOf(e), month:HV.traceKey() });
+  const extra=`<div class="k" style="margin-top:6px;font-size:11px;line-height:1.5">${HV.supportKey()}</div>`;
+  d3.select("#diel-key").html(DIEL.keyHTML(DIEL.sunOf(e), HV.traceKey(), "coefficient", e, extra));
+  svg.node().__geo={xy,cw,ch,nc,nh};
+  updTrace();
+}
+// THE TRACE RING at this view's resolution: one month (or one day) fills the plot, so the ring is
+// the plot's own frame. TRACED ONLY — looking at something is not tracing it (Miguel 2026-09-24).
+function updTrace(){
+  // keyed on what is DRAWN: while a month's days load, traceKey() can still name a day of the
+  // month you left, and the frame would show ITS state (review 2026-09-28)
+  const k=HV.entry()?HV.traceKey():null, wrap=document.getElementById("plot-wrap");
+  const tr=!!(k && window.WC && WC.isTraced(k)), ec=!tr && !!(k && window.WC && WC.isEcho && WC.isEcho(k));
+  wrap.style.boxShadow = tr ? `inset 0 0 0 2px ${WC.traceColor(k)||WC.GOLD}` : "none";
+  // ECHO: the same month (or date) as a trace, another year - the frame DASHED, in that
+  // trace's colour (wc.js ECHOES). Step to May 2024 with May 2025 traced and the frame says so.
+  wrap.style.outline = ec ? `2px dashed ${WC.echoColor(k)||WC.GOLD}` : "";
+  wrap.style.outlineOffset = ec ? "-2px" : "";
+  wrap.classList.toggle("wc-echo", ec);
+  if(window.WC) WC.refresh();
+}
+
+const cname=c=>(meta.labels&&meta.labels[c]) ? meta.labels[c].replace(/^MFCC\d+\s*·\s*/,"") : "spectral detail";
+const rawTxt=(e,c,h)=>{ const v=e.raw&&e.raw[c]?e.raw[c][h]:null; return v==null ? null : (+v).toFixed(1); };
+function hover(c,h,cw,ch,xy){
+  const e=HV.entry(); if(!e) return;
+  gHi.style("display",null).attr("x",xy(c,h)[0]).attr("y",xy(c,h)[1]).attr("width",cw).attr("height",ch);
+  d3.select("#c-title").text((meta.labels&&meta.labels[c])||("MFCC"+c));
+  d3.select("#c-coeff").text("c"+c);
+  d3.select("#c-hour").text(DIEL.hourSpan(h));
+  const i=HV.voiceHour(h);                          // the sound: this hour's window, nothing else
+  if(!i || !i.recorded){ d3.select("#c-win").text((i&&i.drop ? "dropout" : "not recorded")
+      + (i&&i.still ? ` · sound unchanged (${i.still})` : " · sound unchanged"));
+    d3.select("#c-raw").text("—"); d3.select("#c-sup").text("—"); return; }
+  d3.select("#c-win").html(i.sound==="month" ? `${HV.label(e)} · whole month`
+    : i.sound ? `${DIEL.dot(DIEL.COLOR[i.sound])}${HV.label(e)} · ${i.sound}` : "sound unchanged");
+  d3.select("#c-raw").text(rawTxt(e,c,h)||"—");
+  d3.select("#c-sup").text(i.support||"—");
+}
+// THE HOVER BOX — the scatter's look. "colour" is where this hour sits in the coefficient's own
+// range; "value" is the coefficient itself (the month's mean, or the day's hour).
+const tip=DIEL.tip(document.getElementById("plot-wrap"));
+function showTip(ev,c,h){
+  const e=HV.entry(); if(!e) return tip.hide();
+  const i=HV.info(h); if(!i) return tip.hide();
+  if(i.drop) return tip.show(ev, `<div><b>${HV.label(e)}</b> · ${DIEL.hourSpan(h)}</div>`
+    + `<div class="k">dropout — the recorder wrote digital silence this hour; nothing to see</div>`
+    + `<div class="k">the sound stays on ${i.still||"the last hour you heard"}</div>`);
+  if(!i.recorded) return tip.show(ev, `<div><b>${HV.label(e)}</b> · ${DIEL.hourSpan(h)}</div>`
+    + `<div class="k">not recorded — nothing to see</div>`
+    + `<div class="k">the sound stays on ${i.still||"the last hour you heard"}</div>`);
+  const ts=DIEL.traceSummary(HV.traceKey()), hot=ts&&i.win&&(ts.whole||ts.wins[i.win]);
+  const v=e.mat[c]?e.mat[c][h]:null;
+  tip.show(ev,
+      `<div>${DIEL.dot(DIEL.COLOR[i.win]||"#888")}<b>${HV.label(e)}</b> · ${i.win||"—"}</div>`
+    + `<div><span class="k">hour</span>${DIEL.hourSpan(h)}</div>`
+    + `<div><span class="k">c${c}</span>${cname(c)}</div>`
+    + (rawTxt(e,c,h) ? `<div><span class="k">value</span>${rawTxt(e,c,h)}</div>` : "")
+    + (v!=null ? `<div><span class="k">colour</span>${v.toFixed(2)} <span class="k">of its range</span></div>` : "")
+    + (i.support ? `<div><span class="k">recorded</span>${i.support}</div>` : "")
+    + (i.why ? `<div class="k">${i.why}</div>` : "")
+    + (hot ? (ts.echo   // an ECHO (the same month/day traced in another year) is not "traced" (review 2026-09-28)
+              ? `<div style="color:${ts.color}">◌ echo · ${WC.label(ts.at)} is traced</div>`
+              : `<div style="color:${ts.color}">◎ traced</div>`) : ""));
+}
+
+// ←/→ step through the recorded days at DAY resolution (the calendar's ◀ ▶)
+document.addEventListener("keydown",ev=>{
+  if(!HV.isDay() || ev.metaKey || ev.ctrlKey || ev.altKey || ev.target.closest("input,select,textarea")) return;
+  if(ev.key!=="ArrowLeft" && ev.key!=="ArrowRight") return;
+  const b=document.querySelector("#daybar .dbhead button:"+(ev.key==="ArrowLeft"?"first-child":"last-child"));
+  if(b && !b.disabled){ b.click(); ev.preventDefault(); }
+});
+
+async function resolveWsPort(){
+  const q=new URLSearchParams(location.search).get("ws"); if(q) return q;
+  try{ const r=await Promise.reject(new Error("web build: no bridge")); const j=await r.json(); if(j&&j.ws) return String(j.ws);}catch(e){}
+  return "8765";
+}
+function setConn(s,t){ const c=document.getElementById("chip"); c.className=s; c.textContent=t; }
+async function connect(){
+  const port=await resolveWsPort();
+  ws=(window.__darkWeb ? window.__darkWeb.socket() : new WebSocket(`ws://127.0.0.1:${port}`));   // WEB BUILD (build_web.py)
+  ws.onopen=()=>setConn("streaming","connected");
+  ws.onclose=()=>{ setConn("disconnected","disconnected · retrying"); setTimeout(connect,1500); };
+  ws.onerror=()=>ws.close();
+  ws.onmessage=ev=>{ const m=JSON.parse(ev.data);
+    if(m.type==="mix"){ if(window.WC) WC.applyMix(m); return; }   // the bridge owns the mix; the faders render it
+    if(HV.onMessage(m)) return;                                    // a month of days (DAY resolution)
+    if(m.type==="init"){
+      window.RW_COVERAGE = m.coverage || {};           // per month: hours, windows, partial (bridge month_coverage)
+      channel=m.channel||"air"; channels=m.channels||[];
+      if(window.WC && WC.channelPref()!==channel && channels.includes(WC.channelPref())){
+        ws.send(JSON.stringify({type:"channel",channel:WC.channelPref()})); return; }
+      mfcc=m.mfcc||[]; meta=m.mfcc_meta||{}; byKey=new Map(mfcc.map(s=>[s.key,s]));
+      l0months=m.l0months||[];                       // kept for the legend's catalogue (drv + n_species)
+      if(!mfcc.length){ setConn("streaming","no MFCC data — run gen_mfcc.py"); return; }
+      setConn("streaming",`${channel} · ${mfcc.length} months · ${meta.n_coeffs||13} coeffs`);
+      if(window.WC) wsSend({type:"loop",on:WC.loopPref()?1:0});
+      if(window.WC) wsSend({type:"stat",stat:WC.statPref()});
+      wsSend({type:"mixquery"});                     // adopt the engine's mix, do not assume it
+      HV.onInit(); draw();
+      if(!_wcInited){ _wcInited=true;
+        WC.init({ container:document.getElementById("wc"), level:"l0",
+          months:()=>mfcc.map(s=>s.key), current:()=>HV.entry()?HV.traceKey():null, channel:()=>channel, channels:()=>channels,
+          onChannel:ch=>wsSend({type:"channel",channel:ch}),
+          sound:()=>WC.soundPref(), brush:false,
+          onMaster:p=>wsSend({type:"master",...p}),
+          onMix:p=>wsSend({type:"mix",...p}),
+          onStat:s=>wsSend({type:"stat",stat:s}),
+          onLoop:v=>wsSend({type:"loop",on:v}),
+          select:k=>HV.pickMonth(k),
+          // traces only: this view no longer follows the shared SHOWN filter (one month at a time)
+          onChange:()=>{ if(mfcc.length) draw(); HV.renderControls(); if(window.LEG) LEG.refresh(); } });
+        WC.handleWebControl(m.web_control);
+        HV.seedFromShown(); HV.renderControls(); draw();   // one-shot: open on a month you are already showing
+        // perceptual legend (C5 §19): on every view now, not just the scatter
+        LEG.init({
+          send: wsSend,
+          months: ()=>l0months, current: ()=>HV.monthKey, channel: ()=>channel,
+          point: ()=>HV.pointKey(),                   // what is actually sounding (month×window or day×window)
+          // A chip has already voiced its L0 month. Follow it — to month resolution if need be —
+          // without sounding anything, and without touching SHOWN: this view picks one month.
+          select: k=>HV.followChip(k),
+          onToggle: ()=>{ if(mfcc.length) draw(); } });        // the panel docks left; reflow
+        // the legend opens from its own left edge tab (legend.js) and the L key
+      } else { WC.refresh(); if(window.LEG) LEG.refresh(); }
+    }
+    if(m.type==="web_control"){ WC.handleWebControl(m); }
+  };
+}
+window.addEventListener("resize",()=>{ if(mfcc.length) draw(); });
+connect();
+</script>
+</body>
+</html>

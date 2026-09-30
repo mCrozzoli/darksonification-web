@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<!-- dark_re_wilding · J1 — all-windows faceted scatter.
+     Every ecological window (~2388) as a dot, coloured by month, faceted by
+     diel phase (dawn/day/dusk/night). Answers Alice's N1: "where were all the
+     dawns in May similar?" Press a dot -> hear that window (sc/ engine). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>dark_re_wilding · faceted windows</title>
+<link rel="stylesheet" href="darkstyle/darkstyle.css">
+<script src="darkstyle/darkstyle.js"></script>   <!-- the style kit: dark · light · paper (projects/web/style) -->
+<link rel="stylesheet" href="rewild_tokens.css">   <!-- this design's tokens: dark = the values below used to be literals -->
+<script src="vendor/d3.v7.min.js"></script>
+<script src="../web_bridge.js"></script>
+<!-- web build: web_control.js (darkui GUI link) removed -->
+<script src="looks.js"></script>   <!-- the looks' data colours (after d3, before the modules) -->
+<script src="wc.js"></script>
+<script src="brush.js"></script>
+<script src="monthbar.js"></script>
+<script src="panel.js"></script>
+<script src="viewnav.js"></script>
+<script src="legend.js"></script>
+<style>
+svg text { cursor:default }
+  :root{ --bg:var(--rw-bg); --panel:var(--rw-panel); --line:var(--rw-line); --txt:var(--rw-txt); --dim:var(--rw-dim); --cur:var(--rw-cur); }   /* rewild_tokens.css */
+  html,body{ margin:0; height:100%; background:var(--bg); color:var(--txt);
+    font:var(--ds-font-size)/1.45 var(--ds-font-ui); }
+  #wrap{ display:grid; grid-template-rows:46px minmax(0,1fr) auto; grid-template-columns:1fr 236px;
+    height:100%; gap:1px; background:var(--line); }
+  header{ grid-column:1/3; display:flex; align-items:center; gap:14px; padding:0 14px; background:var(--panel); }
+  header b{ letter-spacing:.12em; }
+  .ctl{ display:flex; align-items:center; gap:6px; }
+  .ctl label{ color:var(--dim); }
+  select,button{ background:var(--rw-ctl); color:var(--txt); border:1px solid var(--rw-ctl-line);
+    border-radius:6px; padding:3px 8px; font:inherit; cursor:pointer; }
+  button.on{ background:var(--rw-on); border-color:var(--rw-on-line); }
+  #facets{ background:var(--bg); background-image:var(--ds-grain); position:relative; display:grid;
+    grid-template-columns:repeat(4,1fr); gap:1px; min-height:0; overflow:hidden; }
+  .facet{ position:relative; background:var(--bg); min-height:0; overflow:hidden; }
+  .facet svg{ cursor:crosshair; }
+  /* the caption is also the DIEL GROUPING control, lit while it is in force */
+  .facet .title{ position:absolute; top:6px; left:10px; color:var(--dim); letter-spacing:.14em;
+    font-size:11px; cursor:pointer; z-index:1; }   /* above a dimmed svg: opacity stacks it on top */
+  .facet .title.on{ color:var(--cur); }
+  /* a facet outside the DIEL GROUPING (P34): dimmed and inert, its caption still a control */
+  .facet.out svg{ opacity:.3; cursor:not-allowed; }
+  body .facet.out svg.rwbrush-host{ cursor:not-allowed !important; }   /* beats the armed brush's cursor (brush.js, !important) */
+  #side{ background:var(--panel); padding:12px; overflow-y:auto; }
+  /* the weather gradient only - the month strip moved to the sidebar, where the other five
+     views keep it. Hidden with the lens, so the band is not dead space. */
+  #legend{ grid-column:1/3; background:var(--panel); padding:7px 14px; overflow:auto;
+    display:flex; align-items:center; gap:20px; }
+  #wxkey{ flex:0 0 auto; white-space:nowrap; }
+  svg{ display:block; width:100%; height:100%; }
+  .axis text{ fill:var(--dim); font-size:9px; } .axis line,.axis path{ stroke:var(--line); }
+  #chip{ font-size:11px; padding:3px 9px; border-radius:11px; border:1px solid var(--rw-ctl-line); display:flex; align-items:center; gap:6px; }
+  #chip::before{ content:""; width:8px; height:8px; border-radius:50%; background:var(--rw-chip-dot); }
+  #chip.disconnected{ color:var(--rw-off); } #chip.disconnected::before{ background:var(--rw-off-dot); }
+  #chip.waiting{ color:var(--rw-wait); } #chip.waiting::before{ background:var(--rw-wait-dot); }
+  #chip.streaming{ color:var(--rw-ok); } #chip.streaming::before{ background:var(--rw-ok-dot); }
+  h4{ margin:8px 0 6px; color:var(--dim); font-size:11px; letter-spacing:.1em; }
+  .row{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin:3px 0; }
+  .k{ color:var(--dim); flex:0 0 auto; }
+  .v{ flex:1 1 auto; min-width:0; text-align:right; overflow-wrap:anywhere; }
+  .axlbl{ fill:var(--dim); font-size:10px; }
+  /* HOVER READOUT — the same box linear.html carries, so the two views read as one
+     instrument. It lives inside #facets (position:relative) and is positioned in that
+     element's pixels, so it can cross a facet boundary and still be placed correctly. */
+  #tip{ position:absolute; display:none; pointer-events:none; z-index:4; max-width:200px;
+    background:var(--rw-pop); border:1px solid var(--rw-pop-line); border-radius:7px; padding:5px 8px;
+    font-size:11px; line-height:1.45; box-shadow:var(--rw-pop-shadow); }
+  #tip .k{ margin-right:5px; }
+  /* the TRACE ring: a glowing, gently pulsing halo so a traced point shines out of the
+     coloured data. Only a TRACE wears it — a month you are merely looking at does not. */
+  @keyframes wcpulse{ 0%,100%{ filter:drop-shadow(0 0 2px var(--rw-gold)); } 50%{ filter:drop-shadow(0 0 7px var(--rw-gold-hi)); } }
+  circle.wc-ring{ animation:wcpulse 1.6s ease-in-out infinite; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <header>
+    <b><a href="../about.html" target="_blank" rel="noopener" title="about, credits and licences" style="color:inherit;text-decoration:none">dark_re_wilding ⓘ</a></b>
+    <span class="k" id="count">0 windows</span>
+    <div id="chip" class="disconnected">disconnected</div>
+    <span style="flex:1"></span>
+    <nav id="viewnav"></nav>
+  </header>
+
+  <div id="facets"><div id="tip"></div></div>
+
+  <div id="side">
+    <h4 id="i-head">WINDOW <span class="k" style="font-weight:normal">· drag to hear</span></h4>
+    <div class="row"><span class="k">when</span><span class="v" id="i-when">—</span></div>
+    <div class="row"><span class="k">phase</span><span class="v" id="i-win">—</span></div>
+    <div class="row"><span class="k">n_species</span><span class="v" id="i-nsp">—</span></div>
+    <div class="row"><span class="k">top bird</span><span class="v" id="i-sp">—</span></div>
+    <div id="i-ret" style="color:var(--rw-dawn); margin:3px 0"></div>
+    <div class="row"><span class="k">weather</span><span class="v" id="i-wx">—</span></div>
+    <div id="i-ax" style="margin-top:8px"></div>
+    <div class="wc-seglabel" style="color:var(--dim);font-size:11px;letter-spacing:.1em;margin:10px 0 6px">VIEW</div>
+    <select id="reading" style="width:100%;margin-bottom:6px"></select>
+    <div class="wc-seglabel" style="color:var(--dim);font-size:11px;letter-spacing:.1em;margin:8px 0 6px">RESOLUTION</div>
+    <div class="wcgrid" id="res-toggle" style="margin-bottom:8px">
+      <button class="wbtn" data-res="month">month</button>
+      <button class="wbtn" data-res="day">day</button>
+    </div>
+    <div id="years" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px"></div>
+    <div id="monthbar" style="margin-bottom:5px"></div>
+    <button class="wbtn" id="mb-all" style="width:100%" title="show every month again">↺ all</button>
+    <div class="wc-seglabel" style="color:var(--dim);font-size:11px;letter-spacing:.1em;margin:8px 0 6px">WEATHER LENS</div>
+    <div class="wcgrid" style="margin-bottom:5px"><button class="wbtn" id="wx-toggle" style="grid-column:1/-1">☁ weather lens · off</button></div>
+    <div class="wcgrid wcgrid3" id="wx-vars" style="margin-bottom:8px;display:none">
+      <button class="wbtn" data-color="rain">rain</button>
+      <button class="wbtn" data-color="wind">wind</button>
+      <button class="wbtn" data-color="temp">temp</button>
+    </div>
+    <div id="wx-corr" class="k" style="display:none;margin-bottom:8px;font-size:11px"></div>
+    <div id="wc"></div>
+  </div>
+
+  <div id="legend">
+    <div id="wxkey"></div>
+  </div>
+</div>
+
+<script>
+// ---------- config ----------
+const DIEL = ["dawn","day","dusk","night"];
+const MONTHS = ["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+// window readings (point = WINDOW). Air uses BirdNET n_species; water has none, so
+// its readings are index-only pairs. Rebuilt per channel by buildReadings().
+const WINDOW_AIR = [
+  {key:"Ht × n_species",       x:"Ht",      y:"n_species"},
+  {key:"Anthro × Bio",         x:"Anthro",  y:"Bio"},
+  {key:"NBPEAKS × n_species",  x:"NBPEAKS", y:"n_species"},
+  {key:"ACI × n_species",      x:"ACI",     y:"n_species"},
+];
+const WINDOW_WATER = [
+  {key:"ACI × Bio",     x:"ACI",     y:"Bio"},
+  {key:"Anthro × Bio",  x:"Anthro",  y:"Bio"},
+  {key:"NBPEAKS × Bio", x:"NBPEAKS", y:"Bio"},
+  {key:"Ht × ACI",      x:"Ht",      y:"ACI"},
+];
+// embedding readings (point = MONTH per diel, shared space) — work for both channels.
+// Built from the embeddings file ITSELF (meta.methods / its top-level keys, cooked by
+// gen_embeddings.py) — never hard-coded (display-mode norm, C8.8): a re-cook with a
+// different method relabels the picker. EMBED_AXIS_PRETTY = design phrasing keyed by
+// method id; anything unlisted gets the mechanical fallback (ID uppercased).
+const EMBED_AXIS_PRETTY = { pca:["PC1","PC2"], som:["SOM x","SOM y"] };
+function embedReadings(emb){
+  const methods = ((emb||{}).meta && emb.meta.methods) ||
+                  Object.keys(emb||{}).filter(k=>k!=="meta");
+  return methods.filter(mth=>emb[mth]).map(mth=>{
+    const U = String(mth).toUpperCase();
+    const ax = EMBED_AXIS_PRETTY[mth] || [U+" 1", U+" 2"];
+    return { key:U, embed:mth, x:ax[0], y:ax[1] };
+  });
+}
+let READINGS = WINDOW_AIR.slice();
+const monthColor = m => d3.interpolateSinebow(((m-1)%12)/12);   // cyclic: seasons align across years
+// colour for a normalised [0,1] value of the active weather var. rain is sqrt'd (precip
+// is zero-inflated, esp. per-window — sqrt lifts light rain off white); temp is reversed
+// so cold reads blue / warm reads red. Points AND the legend gradient use this, so they match.
+function wxColorAt(t){
+  const lens=WX_LENS[colorMode];
+  const ct = colorMode==="rain" ? Math.sqrt(t) : (colorMode==="temp" ? 1-t : t);
+  return lens.interp(ct);
+}
+// point fill: by month (default) or by a weather variable (the lens); no-data -> muted grey.
+function colorOf(d){
+  if(colorMode==="month") return monthColor(monthNum(d));
+  const w=d.wx && d.wx[WX_LENS[colorMode].key];
+  return (w==null) ? RWLook.d.nowx : wxColorAt(wxScale(w));
+}
+function pearson(xs, ys){
+  const n=xs.length; if(n<5) return null;
+  const mx=d3.mean(xs), my=d3.mean(ys); let sxy=0, sxx=0, syy=0;
+  for(let i=0;i<n;i++){ const dx=xs[i]-mx, dy=ys[i]-my; sxy+=dx*dy; sxx+=dx*dx; syy+=dy*dy; }
+  return (sxx>0 && syy>0) ? sxy/Math.sqrt(sxx*syy) : 0;
+}
+// FULLER READOUT: over the visible windows, correlate the active weather variable with
+// each acoustic index (a diverging bar per index, ranked by |r|). Answers "which indices
+// track rain/wind?" — the confound made quantitative (cf. Finding 01's window-dependence).
+function renderWxCorr(){
+  const host=d3.select("#wx-corr");
+  if(colorMode==="month"){ host.style("display","none").html(""); return; }
+  const key=WX_LENS[colorMode].key;
+  const pts=[]; DIEL.forEach(w=>((activeEmb()[reading.embed||"pca"]||{})[w]||[]).forEach(p=>{
+    if((yearFilter==="all"||p.year===+yearFilter) && p.wx && p.wx[key]!=null && p.ax) pts.push(p); }));
+  if(pts.length<5){ host.style("display","none").html(""); return; }
+  // per index, over the points that HAVE it: n_species is null where BirdNET analysed nothing,
+  // and a null would enter the sums as 0
+  const rs=Object.keys(pts[0].ax)
+    .map(k=>{ const q=pts.filter(p=>p.ax[k]!=null);
+      return {k, r:pearson(q.map(p=>p.ax[k]), q.map(p=>p.wx[key]))}; }).filter(d=>d.r!=null)
+    .sort((a,b)=>Math.abs(b.r)-Math.abs(a.r));
+  let html=`<div style="opacity:.7;margin:0 0 3px">${colorMode} × index · r <span style="opacity:.7">(n=${pts.length})</span></div>`;
+  rs.forEach(d=>{ const pos=d.r>=0, mag=Math.min(1,Math.abs(d.r))*50, col=pos?RWLook.d.corrPos:RWLook.d.corrNeg;
+    html+=`<div style="display:flex;align-items:center;gap:5px;margin:1px 0">`
+      + `<span style="width:58px">${d.k}</span>`
+      + `<span style="flex:1;height:6px;background:var(--rw-bar-track);border-radius:3px;position:relative">`
+      + `<span style="position:absolute;left:50%;top:0;bottom:0;background:${col};border-radius:3px;`
+      + `width:${mag}%;${pos?'':'transform:translateX(-100%)'}"></span></span>`
+      + `<span style="width:34px;text-align:right;color:${col}">${pos?'+':''}${d.r.toFixed(2)}</span></div>`;
+  });
+  host.style("display",null).html(html);
+}
+// the "returner" = phenological surprise (migrant back after an absence)
+const retText = r => !r ? "—" : (r.kind==="return"
+  ? `${r.common} · back ${r.gap}mo` : `${r.common} · first record`);
+// weather lens: rain/wind/temp attached per point (Open-Meteo, fetch_weather.py)
+const wxText = w => !w ? "—" :
+  `${w.temp!=null?Math.round(w.temp)+"°C":"—"} · ${w.precip!=null?(w.precip<10?w.precip.toFixed(1):Math.round(w.precip))+"mm":"—"} · ${w.wind!=null?Math.round(w.wind)+"km/h":"—"}`;
+const WX_LENS = { rain:{key:"precip",label:"rain (mm)",get interp(){ return RWLook.lens.rain; }},       // the ramps follow the look (looks.js)
+                  wind:{key:"wind", label:"wind (km/h)", get interp(){ return RWLook.lens.wind; }},
+                  temp:{key:"temp", label:"temp (°C)",  get interp(){ return RWLook.lens.temp; }} };  // temp reversed at use
+const monthKeyOf = d => `${d.y}-${String(d.m).padStart(2,"0")}`;
+// mode-aware accessors so windows and embed-months share the same draw machinery
+const monthNum = d => d.month!=null ? d.month : d.m;   // embed vs window
+const keyOf    = d => d.key || monthKeyOf(d);          // month key for the trace ring
+const idOf     = d => d.idx!=null ? d.idx : (d.key + ":" + (d.win||""));   // stable id per drawn point (join + drag dedup)
+const selKey   = d => (d.day!=null) ? ("w:"+d.key+":"+d.win) : keyOf(d);   // SELECTION key — day-res: the WINDOW (one dot glows); month-res: the month
+const monthKeyFor = d => keyOf(d).slice(0,7);          // "YYYY-MM" at either resolution (a day key is "YYYY-MM-DD")
+
+// ---------- state ----------
+let rows=[], embeddings={}, day_embeddings={}, l0months=[], monthKeys=[], reading=READINGS[0], yearFilter="all", ws=null, curKey=null;
+// THE DIEL GROUPING set by the facet captions: which windows the drone's body is built from.
+// L1 owns diel:*; the L0 subset vocabulary has year and season only, so month resolution drops it.
+let dielFilter=null;
+// resolution = which point set the scatter draws. MONTH = ~119 (month,diel) aggregates;
+// DAY = ~2388 raw L1 windows. BOTH the feature-pair readings AND PCA/UMAP/SOM switch
+// together (each point carries `ax` + embedding coords), so the whole view stays at one
+// consistent grain instead of feature-pairs (daily) disagreeing with embeddings (monthly).
+let resolution = localStorage.getItem("rewild_resolution") || "month";
+// weather lens: colorMode "month" = lens OFF (season colours); "rain"/"wind"/"temp" = lens ON,
+// coloured by that variable. weatherVar remembers the last chosen variable so the toggle restores it.
+let colorMode = localStorage.getItem("rewild_colormode") || "month";
+let weatherVar = (colorMode!=="month") ? colorMode : (localStorage.getItem("rewild_weathervar") || "rain");
+let wxScale = v=>0.5, wxLo=0, wxHi=1;   // active weather-var domain (recomputed per draw when the lens is on)
+let _rowIdx = {};       // "YYYY-MM-DD:win" -> rows idx, so a day point still triggers its per-window corpus clip
+let curPoint=null, curId=null;         // the focused datum (window or embed month) + its id
+let channel="air", channels=[], _wcInited=false, noNsp=false;   // air/water switch state
+let rSize=d3.scaleSqrt().range([1.6,7]);
+// NO BIRDNET HERE (2026-09-29): n_species is null where BirdNET could not analyse any of the
+// point's audio - UNKNOWN, not zero - so the point is drawn HOLLOW at a middling size rather than
+// as the smallest dot, which would say "no species". (d3's scale(null) is undefined: the dot
+// would silently lose its radius and vanish.) Such a point has no place in an embedding
+// reading (x = y = null) and is left out of it.
+const NO_BN_R = 3.2;
+const noBn = d => !noNsp && d.nsp == null;
+const rOf = d => noNsp ? 4.5 : (d.nsp == null ? NO_BN_R : rSize(d.nsp));   // water: uniform dot size
+// which embedding point set is active (combined channel is month-only -> always month)
+const activeEmb = () => (resolution==="day" && channel!=="air+water" && (day_embeddings||{}).pca) ? day_embeddings : embeddings;
+
+// ---------- controls ----------
+const rsel=d3.select("#reading");
+rsel.on("change",function(){ reading=READINGS.find(r=>r.key===this.value); curPoint=null; curId=null; draw(true); });   // animate the "unfold"
+
+// RESOLUTION toggle — DAY (raw L1 windows) <-> MONTH (per-(month,diel) aggregates).
+// Both feature-pairs and PCA/UMAP/SOM switch together, so the view is one consistent grain.
+function markRes(){
+  const combined = channel==="air+water";
+  d3.selectAll("#res-toggle .wbtn").each(function(){
+    const r=this.getAttribute("data-res");
+    this.classList.toggle("on", r===resolution);
+    this.disabled = combined && r==="day";                 // combined = month-only joint embeddings
+    this.style.opacity = (combined && r==="day") ? 0.4 : 1;
+    this.title = (combined && r==="day") ? "the air+water joint view is month-only" : "";
+  });
+  const e=activeEmb(), n = (e&&e.pca) ? DIEL.reduce((s,w)=>s+((e.pca[w]||[]).length),0) : rows.length;
+  document.getElementById("count").textContent = `${n} ${resolution==="day"?"windows":"months"}`;
+}
+// factored out of the toggle because the legend's catalogue has to come back here too: a
+// chip names a MONTH, and at day resolution no single point IS that month.
+function setResolution(r){
+  if(r===resolution) return;
+  resolution=r; localStorage.setItem("rewild_resolution",r);
+  // L0 (month) opens with the arp and corpus silent: a month's species list is a top-20
+  // over thirty days, a far weaker claim than one window's, so the months give you the
+  // acoustic character and the machine's claims arrive when you drill in. User-adjustable.
+  // THE BRIDGE applies those defaults when the first point of the new level sounds, and only
+  // until the listener has moved a fader; this call no longer touches the mix (P26).
+  if(window.WC && WC.setLevelDefaults) WC.setLevelDefaults(r);
+  if(r!=="day") dielFilter=null;                       // released: L0 cannot group by diel
+  sendSelection();
+  curPoint=null; curId=null; markRes(); markDiel();
+  setConn("streaming",`${channel} · ${resolution} · drag to hear`);
+  draw(true); drawLegend();   // resolution changes the weather-lens domain -> refresh the gradient range
+}
+d3.selectAll("#res-toggle .wbtn").on("click",function(){
+  if(this.disabled) return;
+  setResolution(this.getAttribute("data-res"));
+});
+// WEATHER LENS — a toggle: OFF = season colours; ON = recolour by rain/wind/temp (the confound lens).
+function markColor(){
+  const on = colorMode!=="month";
+  d3.select("#wx-toggle").classed("on",on).text(`☁ weather lens · ${on?"on":"off"}`);
+  d3.select("#wx-vars").style("display", on?null:"none");
+  d3.selectAll("#wx-vars .wbtn").each(function(){ this.classList.toggle("on", this.getAttribute("data-color")===colorMode); });
+}
+d3.select("#wx-toggle").on("click",()=>{
+  colorMode = (colorMode!=="month") ? "month" : weatherVar;   // toggle off <-> the remembered variable
+  localStorage.setItem("rewild_colormode",colorMode);
+  markColor(); draw(); drawLegend();
+});
+// ↺ all — drop the month filter: show every month again. It says NOTHING about traces.
+// A ring is an annotation on the data and outlives whatever you are looking through, so
+// clearing the view does not silently throw your traces away (the TRACE tab clears those).
+d3.select("#mb-all").on("click",()=>{ MonthBar.showAll(); });
+d3.selectAll("#wx-vars .wbtn").on("click",function(){
+  const c=this.getAttribute("data-color"); if(c===colorMode) return;
+  colorMode=c; weatherVar=c;
+  localStorage.setItem("rewild_colormode",c); localStorage.setItem("rewild_weathervar",c);
+  markColor(); draw(); drawLegend();
+});
+// (re)build the reading dropdown for the active channel:
+//   air  = n_species readings · water = index-only · air+water = cross-channel + joint embed
+const XLBL = {aci:"ACI", bright:"brightness", bio:"BioEnergy", anthro:"AnthroEnergy", nbpeaks:"NBPEAKS"};
+function buildReadings(){
+  if(channel==="air+water"){
+    const xk = (embeddings.meta&&embeddings.meta.xchan) || [];
+    const cross = xk.map(k=>({ key:`${XLBL[k]||k}: air × water`, xchan:k, x:"air", y:"water" }));
+    const joint = embedReadings(embeddings).map(r=>({ ...r, key:r.key+" · joint" }));
+    READINGS = cross.concat(joint);
+  } else {
+    READINGS = (noNsp ? WINDOW_WATER : WINDOW_AIR).concat(embedReadings(embeddings));
+  }
+  reading = READINGS[0];
+  rsel.selectAll("option").data(READINGS,d=>d.key).join("option").attr("value",d=>d.key).text(d=>d.key);
+  rsel.property("value", reading.key);
+}
+
+// Press-selected neighbours are the 6 nearest points in the CURRENT reading's 2D
+// layout, same diel facet (drawNeighbours) — view-relative and always among the
+// visible (year-filtered) points, at either resolution. (Earlier builds precomputed
+// a fixed index-space kNN over the daily windows; the resolution toggle made that
+// grain-specific, so neighbours are now geometric — consistent across day/month.)
+
+// ---------- facet svgs ----------
+const facets = d3.select("#facets").selectAll(".facet").data(DIEL).join("div")
+  .attr("class","facet");
+// THE DIEL GROUPING. Press DAWN and the drone's body is built from the dawn windows alone;
+// press it again to release. L1 only — the L0 vocabulary has no diel subset — so the captions
+// go inert at month resolution rather than lying about what they would do.
+facets.append("div").attr("class","title").text(d=>d.toUpperCase())
+  .on("click",(e,w)=>{ if(resolution!=="day") return;
+    dielFilter=(dielFilter===w)?null:w; markDiel(); sendSelection(); draw(); });
+facets.append("svg");
+function markDiel(){
+  const live = resolution==="day";
+  facets.select(".title").classed("on",w=>live && dielFilter===w)
+    .attr("title", live ? "group the drone's body by this diel window (press again to release)"
+                        : "diel is an L1 grouping — switch to day resolution");
+  facets.classed("out", outOfGroup);
+  markHead();
+}
+// THE GROUPING IS WHAT CAN BE PRESSED (TASKS P34, 2026-09-27). With DAWN lit the drone's room is
+// diel:dawn, which holds dawn windows only. The other three facets used to stay pressable, and a
+// dusk window is not in the dawn room: the bridge played it in `all` and kept `all`, so the next
+// dawn press was heard in the whole record while DAWN still looked lit. They are now dimmed and
+// inert - out of the quadtree, the brush and the neighbours, exactly as a filtered-out month is -
+// and hovering one says how to get it back. Their captions stay live: pressing DUSK moves the
+// grouping to dusk, pressing DAWN again releases it.
+const outOfGroup = w => resolution==="day" && !!dielFilter && w!==dielFilter;
+function groupNote(e){
+  const g=dielFilter.toUpperCase();
+  tip.style("display","block").style("left","0px").style("top","0px")
+     .html(`<div>outside the <b>${g}</b> grouping</div><div class="k">press ${g} to release it</div>`);
+  const host=document.getElementById("facets"), b=tip.node().getBoundingClientRect();
+  const [mx,my]=d3.pointer(e,host);
+  tip.style("left",Math.max(0,(mx+14+b.width >host.clientWidth ) ? mx-14-b.width  : mx+14)+"px")
+     .style("top" ,Math.max(0,(my+12+b.height>host.clientHeight) ? my-12-b.height : my+12)+"px");
+}
+// the sidebar's heading: what a press does, or - when the point you are on lies outside the
+// grouping (you lit DAWN while standing on a dusk window) - that it does (its clave, arp and
+// corpus still sound; the drone rests in the dawn room until you press a dawn window)
+function markHead(){
+  const d=curPoint;
+  // no point in focus (a resolution / reading / channel change clears it): the claim goes, or a
+  // released grouping would outlive its own caption in this line (review 2026-09-27)
+  if(!d){ d3.select("#i-head .k").text("· drag to hear"); return; }
+  const out = d.day!=null && outOfGroup(d.win);
+  d3.select("#i-head").html(`${d.day==null?"MONTH":"WINDOW"} <span class="k" style="font-weight:normal">· `
+    + (out ? `outside the ${dielFilter.toUpperCase()} grouping` : "drag to hear") + `</span>`);
+}
+
+// press-and-drag to scrub (like darkpulsar/dark_skyr): pointer DOWN + move maps to
+// the nearest window in that facet and sounds it, following the drag. Passive hover NAMES
+// the point under the cursor in the tooltip and does nothing else — selection, detail,
+// neighbours + sound are all still a deliberate press.
+let dragging=false, downXY=null, moved=false;
+// THE SONIFICATION FOLLOWS WHAT IS SHOWN — and there is nothing left here to check, because
+// the quadtree is built from the SHOWN points alone (draw()): a month you filtered out is
+// simply not in it. The old isLit() + "hear shadowed points" pair existed because ONE set
+// both dimmed and ringed, so tracing a point shadowed every other point and you needed an
+// escape hatch to hear them again. SHOWN and TRACED are separate sets now: if a point is
+// drawn you can hear it, and a trace hides nothing.
+const NEAR_PX=26;                 // the hover box's reach - and the brush dab's (brush.js `reach`)
+function nearestInFacet(node,e){
+  const q=node.__quad; if(!q) return null;
+  const [mx,my]=d3.pointer(e,node);
+  return q.find(mx,my,NEAR_PX);   // within reach, else null (empty area)
+}
+facets.select("svg")
+  .on("pointerdown",function(e){
+    // the brush owns the drag while it is armed (RWBrush.armed, true for a whole stroke):
+    // without this a tracing stroke would also scrub every point it passes — some fifty
+    // sonification commits per sweep — and the capture below would steal the gesture.
+    if(outOfGroup(d3.select(this).datum())) return groupNote(e);   // inert while grouped out (P34), brush armed or not
+    if(RWBrush.armed(e)) return;
+    dragging=true; moved=false; downXY=[e.clientX,e.clientY];
+    try{ this.setPointerCapture(e.pointerId); }catch(_){}
+    const d=nearestInFacet(this,e); showTip(e,d); if(d){ hover(d); pickSound(d); } })
+  .on("pointermove",function(e){
+    if(outOfGroup(d3.select(this).datum())) return groupNote(e);
+    // the box goes only while a STROKE is in flight (the trail owns the facet then); an armed
+    // brush that is merely hovering still names what is under it - that is how you aim a dab
+    if(RWBrush.stroking()) return hideTip();
+    const d=nearestInFacet(this,e);
+    showTip(e,d);                                   // hover AND press-drag: name what is under you
+    if(RWBrush.armed(e)) return;                    // the brush owns the gesture: no scrub
+    if(!dragging) return;                           // passive hover still sounds nothing
+    if(downXY && Math.hypot(e.clientX-downXY[0],e.clientY-downXY[1])>4) moved=true;
+    if(d && idOf(d)!==curId){ hover(d); pickSound(d); } })
+  .on("pointerleave",hideTip)
+  .on("pointerup",function(e){
+    // NAVIGATION DOES NOT TRACE. A plain press moves the sonification to the point and
+    // changes nothing else; a press used to add it to the selection set, so a listening
+    // session silently accumulated dozens of rings. Tracing is deliberate: SHIFT-press
+    // here, the ◎ button in the sidebar, or the brush. It rings the point and leaves
+    // every other point exactly as visible as it was.
+    // not while the brush is armed (alt held at release): alt+shift is the ERASER's chord, and
+    // it must not toggle one trace instead (the biplot's guard; review 2026-09-28)
+    if(dragging && !moved && !RWBrush.armed(e) && (e.shiftKey || e.metaKey)){
+      const d=nearestInFacet(this,e);
+      if(d && window.WC){ WC.toggleTrace(selKey(d)); draw(); drawLegend&&drawLegend(); } }
+    dragging=false; })
+  .on("pointercancel",function(){ dragging=false; hideTip(); });
+
+// ---------- HOVER READOUT ----------
+// "in scatter it would be great to have the little popup info window when we navigate the
+// data points. now it is just the data point with no visual information" (Miguel). The same
+// box linear.html carries, built and placed the same way, so the two views feel like one
+// instrument. Deliberately SHORT: the INFORMATION panel in the sidebar keeps the whole
+// record (weather, returner, every index) — this is for the eyes that are on the plot, and
+// names the point they are on. It follows a press-and-drag as well as a plain hover, because
+// in this view NAVIGATING the data IS a press-and-drag.
+const tip=d3.select("#tip");
+function hideTip(){ tip.style("display","none"); }
+// the two values on the CURRENT axes, NAMED BY THE READING: "ACI"/"n_species" for a feature
+// pair, "PC1"/"SOM y" for an embedding, "ACI air"/"ACI water" for a cross-channel reading.
+// Never "x" and "y" — that would tell the reader less than the axis labels already do.
+function tipAxes(d){
+  const f=v=>(v==null||Number.isNaN(+v))?"—":(+v).toFixed(2);
+  const row=(k,v)=>`<div><span class="k">${k}</span>${f(v)}</div>`;
+  if(reading.xchan){ const lbl=XLBL[reading.xchan]||reading.xchan;
+    return row(lbl+" air", d.air&&d.air[reading.xchan]) + row(lbl+" water", d.water&&d.water[reading.xchan]); }
+  if(reading.embed) return row(reading.x,d.x) + row(reading.y,d.y);
+  return row(reading.x, d.ax&&d.ax[reading.x]) + row(reading.y, d.ax&&d.ax[reading.y]);
+}
+function showTip(e,d){
+  if(!d) return hideTip();                          // nothing within reach — say nothing
+  // NOT when n_species is already one of the axes. tipAxes prints the UNIT-NORMALISED value
+  // and this line prints the RAW count, so on a "Ht x n_species" reading the box said
+  // "n_species 0.00" and "n_species 0" one under the other - the same word for two different
+  // quantities, which reads as a bug even though both numbers are right. The sidebar carries
+  // the raw count either way.
+  const onAxis = !reading.embed && !reading.xchan
+              && (reading.x === "n_species" || reading.y === "n_species");
+  const nsp = (noNsp || onAxis) ? "" : d.nsp==null ? `<div><span class="k">n_species</span>not analysed</div>` :
+    `<div><span class="k">n_species</span>${(+d.nsp).toFixed(Number.isInteger(+d.nsp)?0:1)}</div>`;
+  const when = (d.day==null) ? `${MONTHS[monthNum(d)]} ${d.year}`
+                             : `${MONTHS[monthNum(d)]} ${d.day}, ${d.year}`;
+  // measured at the origin first: an absolutely-positioned box shrink-to-fits against the
+  // room left to its right, so measuring it where it last sat would read a wrapped width
+  // near the edge and the flip below would be computed from a lie.
+  tip.style("display","block").style("left","0px").style("top","0px").html(
+      `<div><i style="display:inline-block;width:8px;height:8px;border-radius:50%;`
+    + `background:${colorOf(d)};margin-right:5px;vertical-align:0"></i>`
+    + `<b>${when}</b> · ${d.win}</div>`
+    + tipAxes(d) + nsp
+    + (d.sp ? `<div><span class="k">top bird</span>${d.sp}</div>` : "")
+    + (window.WC && WC.traceNote ? WC.traceNote(selKey(d)) : "")
+    + (resolution==="month" && window.WC && WC.partialNote ? WC.partialNote(selKey(d)) : ""));
+  // placed in #facets' own pixels, so the last facet flips against the RIGHT EDGE OF THE
+  // GRID rather than off it, and the box never sits on top of the point it describes.
+  const host=document.getElementById("facets"), b=tip.node().getBoundingClientRect();
+  const [mx,my]=d3.pointer(e,host);
+  tip.style("left",Math.max(0,(mx+14+b.width >host.clientWidth ) ? mx-14-b.width  : mx+14)+"px")
+     .style("top" ,Math.max(0,(my+12+b.height>host.clientHeight) ? my-12-b.height : my+12)+"px");
+}
+
+// One brush per facet: the four panels are four different plots, not four views of one, so a
+// stroke over DAWN traces the dawn windows it passes and not their siblings elsewhere.
+const brushes={};
+facets.each(function(win){
+  const host=this, node=d3.select(this).select("svg").node();
+  brushes[win]=RWBrush.mount({ svg:node, reach:NEAR_PX,
+    extent:()=>[[0,0],[host.clientWidth,host.clientHeight]],
+    // the LIVE points in this svg's pixels — draw() parks both on the node. __live, not
+    // every drawn point: a stroke should not trace the ghosts of months you filtered out.
+    points:()=>{ const sc=node.__scales; if(!sc) return [];
+      return (node.__live||[]).reduce((out,d)=>{ const X=sc.px(d), Y=sc.py(d);
+        if(X!=null && Y!=null && !Number.isNaN(X) && !Number.isNaN(Y))
+          out.push({key:selKey(d), x:sc.x(X), y:sc.y(Y)});
+        return out; },[]); },
+    onCommit:(keys,mode)=>{ WC.setTraced(keys,mode); } });   // one mutation, one redraw, via onChange
+});
+
+function draw(animate=false){
+  const maxNsp = d3.max(rows,r=>r.nsp)||1;
+  rSize.domain([0,maxNsp]);
+  noNsp = (d3.max(rows,r=>r.nsp)||0) <= 0.01;              // water: no species richness
+  const isEmbed=!!reading.embed;                               // month-embedding reading?
+  const isXchan=!!reading.xchan;                               // air-index × water-index (combined)
+  const emethod=reading.embed||"pca";                         // xchan uses any method's points
+  const px = isXchan ? (d=>d.air?d.air[reading.xchan]:null) : isEmbed ? (d=>d.x) : (d=>d.ax[reading.x]);
+  const py = isXchan ? (d=>d.water?d.water[reading.xchan]:null) : isEmbed ? (d=>d.y) : (d=>d.ax[reading.y]);
+  // TWO INDEPENDENT RULES, and keeping them apart is the whole of this view's interaction.
+  //   DIMMING follows SHOWN  — which months the grid has you looking at. An empty filter
+  //     means every month, so the default state of the world is bright.
+  //   THE RING follows TRACED — and nothing else. A month you chose to LOOK at gets no ring
+  //     (Miguel: "the selected months ... should be without the extra shiny circle"), and a
+  //     traced point dims nobody ("i should still be able to see feb and mar, but jan gets
+  //     the circle"). One set used to do both jobs, which is exactly how it lied.
+  const shownPt=d=>!(window.WC&&WC.isShown)||WC.isShown(selKey(d));
+  const op=d=>shownPt(d)?0.72:0.06;
+  // selKey is the month at month resolution and the window at day resolution, and WC
+  // resolves a traced day upward to its windows, so this one test is the whole ring rule.
+  // A trace whose month is filtered out draws no ring: it is not on show, and it keeps its
+  // place in the set for when you bring the month back.
+  const isTr=d=>!!(window.WC&&WC.isTraced(selKey(d)))&&shownPt(d);
+  // ECHO: the same time as a trace, another year (wc.js ECHOES) - a dashed outline in the
+  // trace's colour, no glow. Same key, same folds, so it answers at either resolution.
+  const isEc=d=>!isTr(d)&&!!(window.WC&&WC.isEcho&&WC.isEcho(selKey(d)))&&shownPt(d);
+  // PARTIAL MONTH (month resolution): half-filled, its hollow half outlined in its own colour
+  const isPt=d=>resolution==="month"&&!!(window.WC&&WC.isPartial&&WC.isPartial(selKey(d)));
+  const fillPt=d=>noBn(d)?"none":isPt(d)?WC.halfFill(colorOf(d)):colorOf(d);   // hollow = no BirdNET
+  if(colorMode!=="month"){                                     // weather lens: domain over the visible points
+    const key=WX_LENS[colorMode].key, vals=[];
+    DIEL.forEach(w=>((activeEmb()[emethod]||{})[w]||[]).forEach(p=>{
+      if((yearFilter==="all"||p.year===+yearFilter) && p.wx && p.wx[key]!=null) vals.push(p.wx[key]); }));
+    wxLo=d3.min(vals)??0; wxHi=d3.max(vals)??1; wxScale=v=>(wxHi>wxLo)?(v-wxLo)/(wxHi-wxLo):0.5;
+  }
+  DIEL.forEach(win=>{
+    const facet=facets.filter(d=>d===win);
+    const svg=facet.select("svg");
+    const node=facet.node(), W=node.clientWidth, H=node.clientHeight;
+    svg.attr("width",W).attr("height",H);
+    const x=d3.scaleLinear().domain([0,1]).range([34,W-12]);
+    const y=d3.scaleLinear().domain([0,1]).range([H-26,20]);
+    let ax=svg.select("g.axis"); if(ax.empty()) ax=svg.append("g").attr("class","axis");
+    ax.selectAll("*").remove();
+    ax.append("g").attr("transform",`translate(0,${H-26})`).call(d3.axisBottom(x).ticks(4).tickFormat(d3.format(".1f")));
+    ax.append("g").attr("transform","translate(34,0)").call(d3.axisLeft(y).ticks(4).tickFormat(d3.format(".1f")));
+    ax.append("text").attr("class","axlbl").attr("x",W-12).attr("y",H-30).attr("text-anchor","end").text(reading.x);
+    ax.append("text").attr("class","axlbl").attr("transform",`translate(11,${(H-26)/2}) rotate(-90)`)
+      .attr("text-anchor","middle").text(reading.y);
+    // layers, created once, in z-order: points < spokes < highlight
+    let g=svg.select("g.pts"); if(g.empty()) g=svg.append("g").attr("class","pts");
+    let spk=svg.select("g.spokes"); if(spk.empty()) spk=svg.append("g").attr("class","spokes");
+    let eg=svg.select("g.echo"); if(eg.empty()) eg=svg.insert("g","g.spokes").attr("class","echo")
+      .style("pointer-events","none");                     // echo rings: over the points, under the spokes
+    spk.selectAll("*").remove();                              // clear stale spokes (re-drawn for curPoint after the loop)
+    let hl=svg.select("circle.hl"); if(hl.empty())
+      hl=svg.append("circle").attr("class","hl").attr("fill","none")
+            .attr("stroke","var(--cur)").attr("stroke-width",2).style("display","none");
+    // ONE point set per resolution drives every reading: feature-pairs read `.ax`,
+    // embeddings read `.x/.y`. (emethod = the reading's method, or "pca" for a
+    // feature-pair — any method's points carry the same `ax`.)
+    let data = ((activeEmb()[emethod]||{})[win]||[]).filter(d=>yearFilter==="all"||d.year===+yearFilter);
+    if(!isEmbed && !isXchan) data = data.filter(d=>d.ax && d.ax[reading.x]!=null && d.ax[reading.y]!=null);
+    if(isEmbed) data = data.filter(d=>d.x!=null && d.y!=null);   // not placed: BirdNET analysed none of it
+    const sel=g.selectAll("circle").data(data,idOf);
+    sel.exit().remove();
+    const ent=sel.enter().append("circle").attr("stroke","none")
+      .attr("cx",d=>x(px(d))).attr("cy",d=>y(py(d)))
+      .attr("r",d=>rOf(d)).attr("fill",colorOf).attr("opacity",op);
+      // NB: no pointerover/out — selection is press-only (press-drag on the svg below)
+    const mrg=ent.merge(sel).attr("fill",fillPt).attr("r",d=>rOf(d)).attr("opacity",op)
+      .attr("stroke",d=>isTr(d)?(WC.traceColor(selKey(d))||WC.GOLD):(isPt(d)||noBn(d))?colorOf(d):"none")
+      .attr("stroke-width",d=>isTr(d)?2.8:1.1)
+      .classed("wc-ring",isTr)                                   // glow+pulse
+      .classed("wc-partial",isPt);
+    mrg.transition().duration(animate?650:0)               // eased "unfold" on reading switch (position only)
+       .attr("cx",d=>x(px(d))).attr("cy",d=>y(py(d)));
+    // THE ECHO RING: its OWN ring AROUND the dot - dashed, in the trace's colour, over a dark
+    // casing so it reads on any fill. The first version dashed the dot's own edge, and at this
+    // dot size it sank into the fill (Miguel 2026-09-28: "it is difficult to see the echoed
+    // traces in scatter"). It moves with its dot on a reading switch.
+    const at=d=>`translate(${x(px(d))},${y(py(d))})`;
+    const er=eg.selectAll("g.wc-echo").data(data.filter(isEc),idOf);
+    er.exit().remove();
+    const ee=er.enter().append("g").attr("class","wc-echo").attr("transform",at);
+    ee.append("circle").attr("class","case").attr("fill","none").attr("stroke",RWLook.d.casing)
+      .attr("stroke-width",3.6).attr("stroke-opacity",0.8);
+    ee.append("circle").attr("class","ring").attr("fill","none").attr("stroke-width",1.6)
+      .attr("stroke-dasharray","2.6,1.8");
+    const em=ee.merge(er);
+    em.each(function(d){ const r=rOf(d)+3.4, c=WC.echoColor(selKey(d))||WC.GOLD;
+      d3.select(this).selectAll("circle").attr("r",r);
+      d3.select(this).select("circle.ring").attr("stroke",c); });
+    em.transition().duration(animate?650:0).attr("transform",at);
+    // DRAWN vs LIVE. A month outside the filter stays on the plot as a ghost (0.06) so the
+    // shape of the whole record is still visible behind what you singled out — but it is
+    // not LIVE: it is out of the quadtree, so it cannot be scrubbed or sounded, and
+    // neighbours and the brush pass over it. "If a point is drawn you can hear it" holds,
+    // with the ghosts honestly not counted as drawn.
+    const live = outOfGroup(win) ? [] : data.filter(shownPt);   // the grouping, too (P34)
+    svg.node().__scales={x,y,win,px,py};
+    svg.node().__live=live;                            // neighbour search + the brush
+    // nearest-point index for press-and-drag scrub (screen space, this reading)
+    svg.node().__quad=d3.quadtree().x(d=>x(px(d))).y(d=>y(py(d))).addAll(live);
+  });
+  placeHighlight();
+  if(curPoint) drawNeighbours(curPoint);   // keep neighbours across redraws (resize/filter)
+  // last, so the brush trails sit above every layer appended since (the stroke listens on the
+  // svg itself: nothing can block the gesture, this only keeps the trail visible)
+  DIEL.forEach(w=>{ const b=brushes[w]; if(b) b.resize().raise(); });
+}
+
+function hover(d){
+  const isMonthPt = d.day==null;                      // month aggregate vs day window (both carry `ax`)
+  const wasMonth = curPoint ? monthKeyFor(curPoint) : null;
+  // curKey is what ◎ traces, so it is the TRACE key: keyOf would hand the traced set a
+  // bare "YYYY-MM-DD" at day resolution, which resolves to nothing and traces invisibly.
+  curPoint=d; curId=idOf(d); curKey=selKey(d); if(window.WC) WC.refresh();
+  if(mbar && monthKeyFor(d)!==wasMonth) mbar.render();   // only on a crossing: a scrub calls this per point
+  markHead();
+  const host=d3.select("#i-ax"); host.selectAll("*").remove();
+  d3.select("#i-when").text(isMonthPt ? `${MONTHS[d.month]} ${d.year}` : `${MONTHS[d.month]} ${d.day}, ${d.year}`);
+  const tag = reading.xchan ? "air × water" : (reading.embed ? reading.embed.toUpperCase() : "");
+  d3.select("#i-win").text(tag ? `${d.win} · ${tag}` : d.win);
+  d3.select("#i-nsp").text(d.nsp==null ? (noNsp ? "—" : "not analysed") : d.nsp); d3.select("#i-sp").text(d.sp||"—");
+  d3.select("#i-ret").text(d.returner ? "returner · "+retText(d.returner) : "returner —");
+  d3.select("#i-wx").text(wxText(d.wx));
+  if(d.air){                                          // combined: both channels' index values
+    Object.keys(d.air).forEach(k=>host.append("div").attr("class","row")
+      .html(`<span class="k">${XLBL[k]||k}</span><span class="v">air ${d.air[k].toFixed(2)} · wat ${d.water[k].toFixed(2)}</span>`));
+  } else {                                            // month + day points both carry `ax` (index values)
+    Object.entries(d.ax||{}).forEach(([k,v])=>host.append("div").attr("class","row")
+      .html(`<span class="k">${k}</span><span class="v">${v==null?"—":(+v).toFixed(2)}</span>`));
+  }
+  drawNeighbours(d);
+  placeHighlight();
+}
+// sound is DELIBERATE (press-and-drag, not hover): a window sounds its own audio,
+// an embed month sounds its aggregated diel drivers (~cookL1).
+function pickSound(d){   // send the datum's own driver vector + its bird (channel-agnostic)
+  if(!(ws&&ws.readyState===1)) return;
+  // a day window sounds its own top bird (single note); a month sounds its chord.
+  // LEVEL follows the datum, not the view: a day window is L1, a month is L0. This was
+  // pinned to 1, so month-resolution points were voiced from the L1 tables - the wrong
+  // instrument entirely (L0 has its own terrain, its own subsets, and top-20 species
+  // against L1's top-8, so the same bird sits at a different pitch).
+  const msg={type:"drv", level:(d.day!=null?1:0), drv:d.drv, channel};
+  if(d.day!=null){                                    // day window
+    msg.sp=d.sp||null;
+    const ri=_rowIdx[d.key+":"+d.win];                // map back to the L1 row -> per-window corpus clip
+    if(ri!=null) msg.widx=ri;
+  } else {
+    // month -> the L0 month tables, AND which window of it. Without `win` every month's
+    // dawn, day, dusk and night sent a bit-identical drone while the readout beside them
+    // printed four different index vectors - 85 of the 119 points were duplicates. The
+    // bridge falls back to the month key when the finer one is not in the tables.
+    msg.mkey=keyOf(d); msg.win=d.win;
+  }
+  ws.send(JSON.stringify(msg));
+}
+function unhover(){ /* keep last (sound sustains; ring + spokes stay) */ }
+
+// press-selected neighbours: links + rings to the 6 nearest points in the CURRENT
+// reading's 2D layout, same diel facet — "the most similar points in this view".
+// Works for any reading (feature-pair or embedding) at either resolution, and only
+// among the points you can actually reach, since it reads __live (year filter + the
+// SHOWN month filter). Neighbours of a point should be points you can go and hear.
+function drawNeighbours(d){
+  facets.each(function(){ d3.select(this).select("svg .spokes").selectAll("*").remove(); });
+  const svg=facets.filter(w=>w===d.win).select("svg"), node=svg.node();
+  const sc=node&&node.__scales, data=node&&node.__live;
+  if(!sc||!sc.px||!data) return;
+  const X0=sc.px(d), Y0=sc.py(d); if(X0==null||Y0==null) return;
+  const near=data.filter(o=>o!==d && sc.px(o)!=null && sc.py(o)!=null)
+    .map(o=>[o,(sc.px(o)-X0)**2+(sc.py(o)-Y0)**2]).sort((a,b)=>a[1]-b[1]).slice(0,6);
+  const spk=svg.select("g.spokes"), x0=sc.x(X0), y0=sc.y(Y0);
+  near.forEach(([o])=>{ const x1=sc.x(sc.px(o)), y1=sc.y(sc.py(o));
+    spk.append("line").attr("x1",x0).attr("y1",y0).attr("x2",x1).attr("y2",y1)
+      .attr("stroke","var(--cur)").attr("stroke-width",0.9).attr("opacity",0.5);
+    spk.append("circle").attr("cx",x1).attr("cy",y1).attr("r",rOf(o)+2)
+      .attr("fill","none").attr("stroke","var(--cur)").attr("stroke-width",1).attr("opacity",0.85); });
+}
+
+function placeHighlight(){
+  const d=curPoint;
+  facets.each(function(win){
+    const svg=d3.select(this).select("svg"), hl=svg.select("circle.hl");
+    const sc=svg.node()&&svg.node().__scales;
+    const val = (d&&sc) ? sc.px(d) : null;
+    if(!d||!sc||d.win!==win||val==null||Number.isNaN(val)){ hl.style("display","none"); return; }
+    hl.style("display",null).attr("cx",sc.x(sc.px(d))).attr("cy",sc.y(sc.py(d))).attr("r",rOf(d)+4);
+  });
+}
+
+// ---------- bottom strip: the shared month grid, + the weather gradient when a lens is on ----------
+let mbar=null;
+function drawLegend(){
+  renderWxCorr();                                           // keep the per-index correlation readout in sync
+  if(!mbar) mbar=MonthBar.mount({ host:"#monthbar", months:()=>monthKeys,
+    current:()=>curPoint?monthKeyFor(curPoint):null, onPick:pickMonth });
+  mbar.render();                                            // the grid's sinebow IS the month colour key
+  const host=d3.select("#wxkey"); host.selectAll("*").remove();
+  // the band exists only to carry the gradient, so it goes away with it
+  d3.select("#legend").style("display", colorMode==="month" ? "none" : null);
+  if(colorMode==="month") return;                           // lens off: the dots wear the grid's own colours
+  const lens=WX_LENS[colorMode];                            // lens on: low→high gradient + range
+  host.append("span").attr("class","k").text(lens.label+":  ");
+  const bar=host.append("span").style("display","inline-flex").style("vertical-align","middle")
+    .style("border-radius","3px").style("overflow","hidden");
+  for(let i=0;i<28;i++){ const t=i/27; bar.append("span").style("width","6px").style("height","11px")
+    .style("background",wxColorAt(t)); }
+  const fmt=v=>colorMode==="temp"?Math.round(v)+"°":(colorMode==="rain"?Math.round(v)+"mm":Math.round(v));
+  host.append("span").attr("class","k").style("margin-left","8px")
+    .text(`${fmt(wxLo)} → ${fmt(wxHi)}   (grey = no data)`);   // bar left=low, right=high (temp: cold→warm)
+}
+// ONE month policy, shared by all six views (MonthBar.pick): a press SHOWS that month, a
+// second press on the same one hides it again, many can be shown at once. A swatch is a
+// month KEY now, not a month number — the strip is a year × month grid, so Sep 2023 and Sep
+// 2024 are two cells and what you pick means the same thing here as in the other five
+// views. The grid writes SHOWN only: it never traces, so choosing what to look at no longer
+// leaves rings behind it. The scatter draws every month at once, so pick's answer to "which
+// month should the view show" has nothing to steer here; only its toggle matters.
+function pickMonth(mk){
+  MonthBar.pick(mk, null);                                  // WC.onChange redraws and re-lights the grid
+  // a month you chose to show but cannot see is the bug this replaces. When the press
+  // EMPTIED the filter there is nothing to bring forward — empty means everything is shown.
+  if(window.WC && WC.shownCount() && WC.isShownMonth(mk)) bringYear(mk);
+}
+// SELECTING MUST SHOW YOU WHAT YOU SELECTED: a key the year filter hides drops the filter
+// instead of being marked off-screen. The filter IS the L0 subset, so the grouping follows it.
+function bringYear(key){
+  const y=+String(key).slice(0,4);
+  if(yearFilter==="all" || +yearFilter===y) return;
+  yearFilter="all"; drawYears(); sendSelection(); draw(); drawLegend();
+}
+// a month is one point per diel facet; put the cursor in the busiest facet, where the
+// month's data actually is
+function findMonthPoint(key){
+  const e=activeEmb(), meth=reading.embed||"pca";
+  let best=null, bestN=-1;
+  DIEL.forEach(w=>{ const arr=(e[meth]||{})[w]||[];
+    const p=arr.find(d=>keyOf(d)===key && (!reading.embed || d.x!=null));   // a placed point
+    if(p && arr.length>bestN){ best=p; bestN=arr.length; } });
+  return best;
+}
+
+// ---------- year filter ----------
+function drawYears(){
+  const yrs=["all",...Array.from(new Set(rows.map(r=>r.y))).sort()];
+  const host=d3.select("#years"); host.selectAll("*").remove();
+  host.selectAll("button").data(yrs).join("button")
+    .attr("class",d=>String(d)===String(yearFilter)?"on":null)
+    .text(d=>d).on("click",function(e,d){ yearFilter=d;
+      host.selectAll("button").classed("on",b=>String(b)===String(d)); draw(); drawLegend();
+      sendSelection(); });   // neighbours re-derive + weather-lens range refreshes
+}
+
+// The SELECTION drives the drone: the sonification's first layer is the body of whatever
+// you currently have selected, so the bridge has to be told when that changes. Without
+// this the engine stayed pinned to all:2023-2026 and every year sounded identical.
+// Narrowest claim first: a diel facet, then the year filter, then everything. The scatter
+// has no season control — its strip chooses which months are VISIBLE here rather than
+// narrowing the engine's subset — so that rung of RW's vocabulary never fires here. L0 has no diel subset either,
+// so the first rung is L1's alone and L0 falls through to the year.
+function sendSelection(){
+  if(!(ws && ws.readyState===1)) return;
+  const year = (yearFilter==="all") ? "all:2023-2026" : ("year:"+yearFilter);
+  const l1 = (resolution==="day" && dielFilter) ? ("diel:"+dielFilter) : year;
+  ws.send(JSON.stringify({type:"select", level:1, subset:l1}));
+  ws.send(JSON.stringify({type:"select", level:0, subset:year}));
+}
+
+// ---------- websocket ----------
+// Port from ?ws=N (run.command bakes it in); else discover from .viz_ports.json
+// (so opening the bare root URL — preview panel / double-click — also works).
+async function resolveWsPort(){
+  const q=new URLSearchParams(location.search).get("ws");
+  if(q) return q;
+  try{ const r=await Promise.reject(new Error("web build: no bridge")); const j=await r.json();
+       if(j&&j.ws) return String(j.ws); }catch(e){}
+  return "8765";
+}
+function setConn(s,t){ const c=document.getElementById("chip"); c.className=s; c.textContent=t; }
+async function connect(){
+  const wsPort=await resolveWsPort();
+  ws=(window.__darkWeb ? window.__darkWeb.socket() : new WebSocket(`ws://127.0.0.1:${wsPort}`));   // WEB BUILD (build_web.py)
+  ws.onopen=()=>setConn("waiting","connected");
+  ws.onclose=()=>{ setConn("disconnected","disconnected · retrying"); setTimeout(connect,1500); };
+  ws.onerror=()=>ws.close();
+  ws.onmessage=ev=>{
+    const m=JSON.parse(ev.data);
+    if(m.type==="mix"){ if(window.WC) WC.applyMix(m); return; }   // the bridge owns the mix; the faders render it
+    if(m.type==="init"){
+      window.RW_COVERAGE = m.coverage || {};           // per month: hours, windows, partial (bridge month_coverage)
+      channel=m.channel||"air"; channels=m.channels||[];
+      if(window.WC && WC.channelPref()!==channel && channels.includes(WC.channelPref())){
+        ws.send(JSON.stringify({type:"channel",channel:WC.channelPref()})); return; }   // honour saved choice
+      rows=m.rows||[]; embeddings=m.embeddings||{}; day_embeddings=m.day_embeddings||{}; l0months=m.l0months||[];
+      monthKeys=[...new Set(rows.map(monthKeyOf))].sort();   // the month strip's cells, and WC's step order
+      _rowIdx={}; rows.forEach(r=>{ _rowIdx[`${r.y}-${String(r.m).padStart(2,"0")}-${String(r.d).padStart(2,"0")}:${r.win}`]=r.idx; });
+      curPoint=null; curId=null;                          // clear focus on (re)load
+      noNsp = channel!=="air";                            // water has no BirdNET n_species
+      if(channel==="air+water"){ resolution="month"; dielFilter=null; }   // combined channel is month-only
+      buildReadings();                                    // channel-appropriate reading list
+      markRes(); markColor(); markDiel();                 // toggle state + resolution-aware count + colour-lens + diel grouping
+      setConn("streaming",`${channel} · ${resolution} · drag to hear`);
+      sendSelection();                                   // tell the engine what is selected NOW
+      if(window.WC && ws&&ws.readyState===1) ws.send(JSON.stringify({type:"loop",on:WC.loopPref()?1:0}));
+      if(window.WC && ws&&ws.readyState===1) ws.send(JSON.stringify({type:"stat",stat:WC.statPref()}));
+      if(ws&&ws.readyState===1) ws.send(JSON.stringify({type:"mixquery"}));   // adopt the engine's mix, do not assume it
+      drawLegend(); drawYears(); draw();
+      if(!_wcInited){ _wcInited=true;
+        WC.init({ container:document.getElementById("wc"), level:"l0",
+          months:()=>monthKeys,
+          current:()=>curKey, channel:()=>channel, channels:()=>channels,
+          onChannel:ch=>{ if(ch!==channel && ws&&ws.readyState===1) ws.send(JSON.stringify({type:"channel",channel:ch})); },
+          sound:()=>WC.soundPref(),
+          onMaster:p=>{ if(ws&&ws.readyState===1) ws.send(JSON.stringify({type:"master",...p})); },
+          onMix:m=>{ if(ws&&ws.readyState===1) ws.send(JSON.stringify({type:"mix",...m})); },
+          // which reading of the data the body is under; the legend states it, so it refreshes
+          onStat:st=>{ if(ws&&ws.readyState===1) ws.send(JSON.stringify({type:"stat",stat:st}));
+                       if(window.LEG) LEG.refresh(); },
+          onLoop:v=>{ if(ws&&ws.readyState===1) ws.send(JSON.stringify({type:"loop",on:v})); },
+          select:k=>{ curKey=k; WC.refresh(); },
+          // ONE onChange for BOTH sets: the strip re-lights when the months you are looking
+          // at change, and the rings redraw when a trace is made by shift-press, by ◎, by
+          // the brush or in another tab
+          onChange:()=>{ draw(); if(mbar) mbar.render(); if(window.LEG) LEG.refresh(); } });
+        WC.handleWebControl(m.web_control);
+        // perceptual legend (C5 §19): the docked legend panel; its holds reach SC as /rw_preview
+        LEG.init({
+          send: obj => { if(ws&&ws.readyState===1) ws.send(JSON.stringify(obj)); },
+          months: ()=>l0months, current: ()=>curKey, channel: ()=>channel,
+          // re-probe on the ROOM as well as the point: a year button or a diel caption can put
+          // the drone at rest in a room the point is not in (P20), and the chips must say so
+          point: ()=>[curKey||"", resolution, yearFilter, dielFilter||""].join("|"),
+          // WHEN YOU PRESS THE CATALOGUE THE VISUALS FOLLOW: the month comes out from behind
+          // whatever hides it, the cursor moves there so "white = where the sound is" stays
+          // true, and it is SHOWN — a chip means "look at this record-holder", which is a
+          // visibility act, not a trace, so it lights no ring. Added, not toggled, since
+          // eleven chips resolve to about seven months and a toggle would have the second
+          // chip for a month undo the first.
+          select: (k,o)=>{ const opt=o||{};
+            if(opt.bring!==false){ bringYear(k); setResolution("month"); }
+            const p=findMonthPoint(k);
+            if(p) hover(p); else curKey=k;
+            // ONLY IF IT IS HIDDEN (P25, 2026-09-27). An EMPTY filter already shows every month,
+            // and adding one to it narrowed the scatter - and every other view sharing SHOWN - to
+            // that single month. The biplot and the roses always did it this way.
+            if(opt.show!==false && window.WC && !WC.isShownMonth(k)) WC.setShown([k],"add");
+            draw(); drawLegend(); },
+          onToggle: ()=>{ if(rows.length) draw(); },
+          soundBtn: null });          // MASTER in the SOUND tab owns mute; two mute buttons
+                                      // with two independent flags desynced on first use
+        // the legend opens from its own left edge tab (legend.js) and the L key
+      } else { WC.refresh(); if(window.LEG) LEG.refresh(); }   // channel re-init: data-only swap
+    }
+    if(m.type==="web_control"){ WC.handleWebControl(m); }
+  };
+}
+window.addEventListener("resize",()=>{ if(rows.length) draw(); });
+connect();
+</script>
+</body>
+</html>

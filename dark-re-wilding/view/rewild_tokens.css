@@ -1,0 +1,107 @@
+/* rewild_tokens.css — dark_re_wilding's colours as tokens (style kit adoption, 2026-09-30).
+   Loaded right after the kit (darkstyle/darkstyle.css + darkstyle.js) in every view.
+
+   DARK holds EXACTLY the values the six pages and the shared modules used before the kit, so the dark look
+   is unchanged pixel for pixel (dev/web_check/kit_capture.py + kit_compare.py). The kit's own dark tokens are
+   dark_ocean's values, which differ slightly from this design's, so this file, not the kit, is dark's source.
+   LIGHT and PAPER map each token onto the kit's (--ds-*) or onto a value checked against that look's ground
+   (dev/web_check/kit_palettes.py; the rules: projects/web/style/README.md). Canvas-free design: everything
+   here is CSS; the JS that needs a colour reads it through RWLook (looks.js), never a literal. */
+
+:root, [data-theme="dark"] {
+  /* the page's own names (each view's :root used to hold these literals) */
+  --rw-bg:#0b0e1a; --rw-panel:#10142a; --rw-line:#222948; --rw-txt:#c8d0ee; --rw-dim:#67708c; --rw-cur:#fff1a8;
+  --rw-txt-hi:#fff; --rw-label:#7d86a8; --rw-load:#e6b45f;
+  /* controls */
+  --rw-ctl:#141a34; --rw-ctl-line:#2a3150; --rw-ctl-line-hi:#4a5ad0; --rw-on:#2a3aa0; --rw-on-line:#4a5ad0; --rw-on2-line:#2a3a6a;
+  /* the hover boxes */
+  --rw-pop:#0d1224; --rw-pop-line:#2a3150; --rw-pop-shadow:0 4px 14px rgba(0,0,0,.55);
+  /* the TRACE gold, the cursor, the casing under rings and brush strokes */
+  --rw-gold:#ffe14a; --rw-gold-hi:#fff3a0; --rw-gold-line:#5a4a1a; --rw-gold-wash:rgba(255,225,74,.07); --rw-gold-glow:rgba(255,225,74,.85);
+  --rw-cursor:#fff; --rw-casing:#05070f; --rw-del:#e07f7f; --rw-warm:#e2a25f;
+  /* the header chip */
+  --rw-chip-dot:#888; --rw-off:#ff8a8a; --rw-off-dot:#ff5a5a; --rw-wait:#ffc278; --rw-wait-dot:#ffb74d; --rw-ok:#8ce6a8; --rw-ok-dot:#46e07a;
+  /* the legend panel (legend.js) */
+  --rw-legend-bg:#080b16; --rw-legend-edge:#1a2140; --rw-chip:#11162b; --rw-chip-line:#2a3150; --rw-chip-line-hi:#4a5ad0;
+  --rw-chip-hold:#1d2a4a; --rw-chip-hold-line:#6a7ad8; --rw-iso-line:#4a5580; --rw-row-line:#141a31; --rw-twin:#c0a35a; --rw-why:#8a93b4;
+  --rw-deaf:#39406a; --rw-tag:#9aa4c8; --rw-tag-line:#3a4470; --rw-hnow-bg:#0d1222; --rw-hnow-line:#1d2440; --rw-held:#ffd54a;
+  --rw-held-line:#3a3a20; --rw-block:#d8a35a; --rw-resbox:#0d1124; --rw-tip-line:#3a4470; --rw-tip-shadow:0 8px 26px rgba(0,0,0,.55);
+  --rw-hatch-key:#39406a;
+  /* the month strip (monthbar.js) */
+  --rw-mb-hd:#5a6472; --rw-mb-yl:#7a8494; --rw-mb-gone:#191c22; --rw-mb-gone-txt:#3a4050; --rw-half-fill:#eef0f8; --rw-mb-glow:rgba(255,255,255,.55);
+  /* spectro's banner, mfcc's note */
+  --rw-banner-bg:#3a1414; --rw-banner-txt:#ff9a9a; --rw-banner-line:#5a2020; --rw-note-bg:#141a2e; --rw-note-txt:#8f9bc4;
+  /* marks on the plots */
+  --rw-partial:#c9cfe6; --rw-hatch:#0e1222; --rw-hatch-line:#2a3150; --rw-dayband:#ffffff; --rw-daylabel:#0b0e1a;
+  --rw-nowx:#39405a; --rw-anom:#556; --rw-anom2:#667; --rw-anom-edge:#99a; --rw-anom-wash:rgba(102,102,119,.4);
+  --rw-corr-pos:#6ea8e6; --rw-corr-neg:#e0a060; --rw-bar-track:#20242e; --rw-air:#9fb4e6; --rw-water:#7fd6a0;
+  /* time of day (diel.js, linear's PHASE_COLOR, legend.js's fallback) */
+  --rw-dawn:#f0c674; --rw-day:#8ce6a8; --rw-dusk:#e6905f; --rw-night:#7f9cd8;
+  /* the eight trace slots (wc.js PALETTE): a trace keeps its SLOT across looks */
+  --rw-t0:#9fb4e6; --rw-t1:#e2a25f; --rw-t2:#7fd6a0; --rw-t3:#d87fbf; --rw-t4:#d8d07f; --rw-t5:#7fc4d8; --rw-t6:#e07f7f; --rw-t7:#a0d87f;
+  /* scale bars */
+  --rw-magma:linear-gradient(90deg,#000004,#3b0f70,#8c2981,#de4968,#fe9f6d,#fcfdbf);
+  --rw-months:linear-gradient(90deg,#ff5a5a,#ffd54a,#8ce6a8,#5a9cff,#c07fff);
+  /* the armed brush's cursor (a gold ring on a casing), used to live in wc.js's injected CSS */
+  --rw-brush-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='12' cy='12' r='8' fill='none' stroke='%2305070f' stroke-width='3.6'/%3E%3Ccircle cx='12' cy='12' r='8' fill='none' stroke='%23ffe14a' stroke-width='1.6'/%3E%3Ccircle cx='12' cy='12' r='1.6' fill='%23ffe14a'/%3E%3C/svg%3E") 12 12, cell;
+}
+
+[data-theme="light"] {
+  --rw-bg:var(--ds-bg); --rw-panel:var(--ds-panel); --rw-line:var(--ds-line); --rw-txt:var(--ds-txt); --rw-dim:var(--ds-dim); --rw-cur:var(--ds-cur);
+  --rw-txt-hi:var(--ds-txt-hi); --rw-label:var(--ds-label); --rw-load:var(--ds-accent);
+  --rw-ctl:var(--ds-ctl); --rw-ctl-line:var(--ds-ctl-line); --rw-ctl-line-hi:var(--ds-ctl-line-hi); --rw-on:#dfe5f3; --rw-on-line:var(--ds-chip-line-hi); --rw-on2-line:var(--ds-chip-line-hi);
+  --rw-pop:var(--ds-pop); --rw-pop-line:var(--ds-pop-line); --rw-pop-shadow:var(--ds-pop-shadow);
+  --rw-gold:var(--ds-ring); --rw-gold-hi:var(--ds-cur-line); --rw-gold-line:var(--ds-cur-line); --rw-gold-wash:rgba(168,111,0,.08); --rw-gold-glow:rgba(168,111,0,.55);
+  --rw-cursor:var(--ds-txt-hi); --rw-casing:var(--ds-map-bg); --rw-del:var(--ds-danger); --rw-warm:#c45a1e;
+  --rw-chip-dot:var(--ds-ctl-line-hi); --rw-off:var(--ds-danger); --rw-off-dot:var(--ds-danger); --rw-wait:var(--ds-accent); --rw-wait-dot:var(--ds-cur-line); --rw-ok:var(--ds-ok); --rw-ok-dot:var(--ds-avail);
+  --rw-legend-bg:var(--ds-panel); --rw-legend-edge:var(--ds-edge); --rw-chip:var(--ds-chip); --rw-chip-line:var(--ds-chip-line); --rw-chip-line-hi:var(--ds-chip-line-hi);
+  --rw-chip-hold:var(--ds-chip-hold); --rw-chip-hold-line:var(--ds-cur-line); --rw-iso-line:var(--ds-ctl-line-hi); --rw-row-line:var(--ds-line); --rw-twin:var(--ds-cur-txt); --rw-why:var(--ds-dim);
+  --rw-deaf:var(--ds-ctl-line-hi); --rw-tag:var(--ds-label); --rw-tag-line:var(--ds-ctl-line); --rw-hnow-bg:var(--ds-raised); --rw-hnow-line:var(--ds-line); --rw-held:var(--ds-cur-txt);
+  --rw-held-line:var(--ds-cur-line); --rw-block:var(--ds-accent); --rw-resbox:var(--ds-raised); --rw-tip-line:var(--ds-pop-line); --rw-tip-shadow:var(--ds-pop-shadow);
+  --rw-hatch-key:var(--ds-ctl-line-hi);
+  --rw-mb-hd:var(--ds-dim); --rw-mb-yl:var(--ds-label); --rw-mb-gone:var(--ds-wheel-fill); --rw-mb-gone-txt:var(--ds-ctl-line-hi); --rw-half-fill:var(--ds-txt); --rw-mb-glow:rgba(27,35,64,.35);
+  --rw-banner-bg:#fbe3e5; --rw-banner-txt:var(--ds-danger); --rw-banner-line:#e7b3b8; --rw-note-bg:var(--ds-raised); --rw-note-txt:var(--ds-label);
+  --rw-partial:var(--ds-label); --rw-hatch:var(--ds-bg); --rw-hatch-line:var(--ds-ctl-line); --rw-dayband:var(--ds-txt); --rw-daylabel:var(--ds-map-bg);
+  --rw-nowx:#cfd6e4; --rw-anom:#9aa3b8; --rw-anom2:#aab2c4; --rw-anom-edge:#6a7288; --rw-anom-wash:rgba(154,163,184,.5);
+  --rw-corr-pos:#2c6fb3; --rw-corr-neg:#c4761e; --rw-bar-track:var(--ds-line); --rw-air:#1b5fa8; --rw-water:#1f8a5a;
+  /* the four times of day, checked on this ground (kit rule 3, dev/web_check/kit_palettes.py): amber, green, rust,
+     indigo step down in lightness so they stay apart under colour blindness (worst pair ΔE 9.0; normal vision 18.3) */
+  --rw-dawn:#a67a1a; --rw-day:#1f6f3d; --rw-dusk:#7b2004; --rw-night:#1a2c77;
+  --rw-t0:#1b5fa8; --rw-t1:#c45a1e; --rw-t2:#1f8a5a; --rw-t3:#7a45cc; --rw-t4:#a87400; --rw-t5:#15706a; --rw-t6:#cd1540; --rw-t7:#784204;
+  --rw-magma:linear-gradient(90deg,#fcfdbf,#fe9f6d,#de4968,#8c2981,#3b0f70,#000004);
+  --rw-months:linear-gradient(90deg,#ff5a5a,#ffd54a,#8ce6a8,#5a9cff,#c07fff);
+  --rw-brush-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='12' cy='12' r='8' fill='none' stroke='%23f4f6fa' stroke-width='3.6'/%3E%3Ccircle cx='12' cy='12' r='8' fill='none' stroke='%23a86f00' stroke-width='1.6'/%3E%3Ccircle cx='12' cy='12' r='1.6' fill='%23a86f00'/%3E%3C/svg%3E") 12 12, cell;
+}
+
+[data-theme="paper"] {
+  --rw-bg:var(--ds-bg); --rw-panel:var(--ds-panel); --rw-line:var(--ds-line); --rw-txt:var(--ds-txt); --rw-dim:var(--ds-dim); --rw-cur:var(--ds-cur);
+  --rw-txt-hi:var(--ds-txt-hi); --rw-label:var(--ds-label); --rw-load:var(--ds-accent);
+  --rw-ctl:var(--ds-ctl); --rw-ctl-line:var(--ds-ctl-line); --rw-ctl-line-hi:var(--ds-ctl-line-hi); --rw-on:var(--ds-chip-hold); --rw-on-line:var(--ds-cur-line); --rw-on2-line:var(--ds-chip-line-hi);
+  --rw-pop:var(--ds-pop); --rw-pop-line:var(--ds-pop-line); --rw-pop-shadow:var(--ds-pop-shadow);
+  --rw-gold:var(--ds-ring); --rw-gold-hi:var(--ds-cur-line); --rw-gold-line:var(--ds-cur-line); --rw-gold-wash:rgba(156,103,16,.08); --rw-gold-glow:rgba(156,103,16,.5);
+  --rw-cursor:var(--ds-txt-hi); --rw-casing:var(--ds-map-bg); --rw-del:var(--ds-danger); --rw-warm:#a8502e;
+  --rw-chip-dot:var(--ds-ctl-line-hi); --rw-off:var(--ds-danger); --rw-off-dot:var(--ds-danger); --rw-wait:var(--ds-accent); --rw-wait-dot:var(--ds-cur-line); --rw-ok:var(--ds-ok); --rw-ok-dot:var(--ds-avail);
+  --rw-legend-bg:var(--ds-panel); --rw-legend-edge:var(--ds-edge); --rw-chip:var(--ds-chip); --rw-chip-line:var(--ds-chip-line); --rw-chip-line-hi:var(--ds-chip-line-hi);
+  --rw-chip-hold:var(--ds-chip-hold); --rw-chip-hold-line:var(--ds-cur-line); --rw-iso-line:var(--ds-ctl-line-hi); --rw-row-line:var(--ds-line); --rw-twin:var(--ds-cur-txt); --rw-why:var(--ds-dim);
+  --rw-deaf:var(--ds-ctl-line-hi); --rw-tag:var(--ds-label); --rw-tag-line:var(--ds-ctl-line); --rw-hnow-bg:var(--ds-raised); --rw-hnow-line:var(--ds-line); --rw-held:var(--ds-cur-txt);
+  --rw-held-line:var(--ds-cur-line); --rw-block:var(--ds-accent); --rw-resbox:var(--ds-raised); --rw-tip-line:var(--ds-pop-line); --rw-tip-shadow:var(--ds-pop-shadow);
+  --rw-hatch-key:var(--ds-ctl-line-hi);
+  --rw-mb-hd:var(--ds-dim); --rw-mb-yl:var(--ds-label); --rw-mb-gone:var(--ds-wheel-fill); --rw-mb-gone-txt:var(--ds-ctl-line-hi); --rw-half-fill:var(--ds-txt); --rw-mb-glow:rgba(51,32,58,.3);
+  --rw-banner-bg:#f6dfe0; --rw-banner-txt:var(--ds-danger); --rw-banner-line:#e5b8bd; --rw-note-bg:var(--ds-raised); --rw-note-txt:var(--ds-label);
+  --rw-partial:var(--ds-label); --rw-hatch:var(--ds-wheel-fill); --rw-hatch-line:var(--ds-ctl-line); --rw-dayband:var(--ds-txt); --rw-daylabel:var(--ds-map-bg);
+  --rw-nowx:#dccbbf; --rw-anom:#a8968f; --rw-anom2:#b3a29a; --rw-anom-edge:#6f5c69; --rw-anom-wash:rgba(168,150,143,.5);
+  /* air and water on paper: blue and bottle-green inks. Water sits dark so that trace slot 2 (= water) stays apart from
+     slot 1 (rust) under deuteranopia (adjacent ΔE 8.0; air vs water 19.6 / 20.8 normal vision) */
+  --rw-corr-pos:#1d5a80; --rw-corr-neg:#b85a4b; --rw-bar-track:var(--ds-line); --rw-air:#1b5f96; --rw-water:#155003;
+  /* the four times of day on paper: the light look's amber, green, rust with a greyer indigo (kit rule 3: worst
+     pair ΔE 9.0 under colour blindness, 18.3 normal vision, all ≥ 3.1:1 on the paper) */
+  --rw-dawn:#a67a1a; --rw-day:#1f6f3d; --rw-dusk:#7b2004; --rw-night:#1e2f6e;
+  --rw-t0:#1b5f96; --rw-t1:#a8502e; --rw-t2:#155003; --rw-t3:#6b3c7a; --rw-t4:#9c6c12; --rw-t5:#1f6f68; --rw-t6:#c12740; --rw-t7:#5a3a1e;
+  --rw-magma:linear-gradient(90deg,#f3e5da,#d8c5c4,#b9a3ad,#735c73,#33203a);
+  --rw-months:linear-gradient(90deg,#ff5a5a,#ffd54a,#8ce6a8,#5a9cff,#c07fff);
+  --rw-brush-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='12' cy='12' r='8' fill='none' stroke='%23f3e5da' stroke-width='3.6'/%3E%3Ccircle cx='12' cy='12' r='8' fill='none' stroke='%239c6710' stroke-width='1.6'/%3E%3Ccircle cx='12' cy='12' r='1.6' fill='%239c6710'/%3E%3C/svg%3E") 12 12, cell;
+}
+
+/* the legend's "white = cursor" line: the word follows the look (the swatch already does) */
+#rwleg .lcurword::after { content: "white"; }
+[data-theme="light"] #rwleg .lcurword::after, [data-theme="paper"] #rwleg .lcurword::after { content: "ink"; }

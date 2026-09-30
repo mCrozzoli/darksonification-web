@@ -1,0 +1,204 @@
+{
+  "built": "2026-09-30 23:37:27",
+  "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
+  "sources": {
+    "viz/index.html": "911b28553b3222a8",
+    "viz/rose.html": "2fa04dd534e34d0b",
+    "viz/biplot.html": "c18677e31353aa68",
+    "viz/linear.html": "f7c734b0ac90dfcf",
+    "viz/spectro.html": "0a7ecfcf14547bd5",
+    "viz/mfcc.html": "6544701f24a2a120",
+    "viz/wc.js": "60273fe3773f7a63",
+    "viz/legend.js": "fcdb5742166241b2",
+    "viz/panel.js": "778a28a3555b778e",
+    "viz/monthbar.js": "84c118427bb92383",
+    "viz/viewnav.js": "652200a2a4ede0bd",
+    "viz/diel.js": "75e2390eb007b1df",
+    "viz/hourview.js": "f198b1ef208f4eb4",
+    "viz/brush.js": "c2d598bc6bedb1a6",
+    "viz/looks.js": "01330702291d1d09",
+    "viz/rewild_tokens.css": "3d397d83629d4d1f",
+    "viz/darkstyle/KIT.json": "49e79b417cebbb70",
+    "viz/darkstyle/darkstyle.css": "a2c1507972554138",
+    "viz/darkstyle/darkstyle.js": "a5a154247a75ed38",
+    "darkdata/manifest.json": "5269c7d07726aa7a",
+    "sc/dark_re_wilding_synths.scd": "5f92b0cd9fa752e6",
+    "sc/parse_dark_re_wilding.scd": "904b5876dd9fc05e",
+    "sc/rw_preview.scd": "eb85df98d8dea1d6",
+    "viz/bridge.py": "310635d2639c0c07",
+    "sc/web_clips.scd (web only, hand-written)": "ee600e54d9f7e7fa"
+  },
+  "patches": {
+    "index.html": [
+      "d3 vendored: cross-origin isolation blocks the d3js.org CDN; web_bridge.js must run after d3 and before the page script",
+      "web_control.js only links to the darkui GUI, which does not exist on the web (every DarkWebControl use in wc.js is guarded)",
+      "the transport (the scatter names its port wsPort)",
+      "no bridge, no ports file: the fetch would 404 on a static host and trigger Chrome's local-network check; the try/catch around it stays",
+      "the header's title links to credits + licences (a new tab, so the sound keeps playing); each page carries the title exactly once"
+    ],
+    "rose.html": [
+      "d3 vendored: cross-origin isolation blocks the d3js.org CDN; web_bridge.js must run after d3 and before the page script",
+      "web_control.js only links to the darkui GUI, which does not exist on the web (every DarkWebControl use in wc.js is guarded)",
+      "the transport: the fake socket (web_bridge.js) instead of a WebSocket to the bridge; every other line of the page's connect() stays",
+      "no bridge, no ports file: the fetch would 404 on a static host and trigger Chrome's local-network check; the try/catch around it stays",
+      "the header's title links to credits + licences (a new tab, so the sound keeps playing); each page carries the title exactly once"
+    ],
+    "biplot.html": [
+      "d3 vendored: cross-origin isolation blocks the d3js.org CDN; web_bridge.js must run after d3 and before the page script",
+      "web_control.js only links to the darkui GUI, which does not exist on the web (every DarkWebControl use in wc.js is guarded)",
+      "the transport: the fake socket (web_bridge.js) instead of a WebSocket to the bridge; every other line of the page's connect() stays",
+      "no bridge, no ports file: the fetch would 404 on a static host and trigger Chrome's local-network check; the try/catch around it stays",
+      "the header's title links to credits + licences (a new tab, so the sound keeps playing); each page carries the title exactly once"
+    ],
+    "linear.html": [
+      "d3 vendored: cross-origin isolation blocks the d3js.org CDN; web_bridge.js must run after d3 and before the page script",
+      "web_control.js only links to the darkui GUI, which does not exist on the web (every DarkWebControl use in wc.js is guarded)",
+      "the transport: the fake socket (web_bridge.js) instead of a WebSocket to the bridge; every other line of the page's connect() stays",
+      "no bridge, no ports file: the fetch would 404 on a static host and trigger Chrome's local-network check; the try/catch around it stays",
+      "the header's title links to credits + licences (a new tab, so the sound keeps playing); each page carries the title exactly once"
+    ],
+    "spectro.html": [
+      "d3 vendored: cross-origin isolation blocks the d3js.org CDN; web_bridge.js must run after d3 and before the page script",
+      "web_control.js only links to the darkui GUI, which does not exist on the web (every DarkWebControl use in wc.js is guarded)",
+      "the transport: the fake socket (web_bridge.js) instead of a WebSocket to the bridge; every other line of the page's connect() stays",
+      "no bridge, no ports file: the fetch would 404 on a static host and trigger Chrome's local-network check; the try/catch around it stays",
+      "the header's title links to credits + licences (a new tab, so the sound keeps playing); each page carries the title exactly once"
+    ],
+    "mfcc.html": [
+      "d3 vendored: cross-origin isolation blocks the d3js.org CDN; web_bridge.js must run after d3 and before the page script",
+      "web_control.js only links to the darkui GUI, which does not exist on the web (every DarkWebControl use in wc.js is guarded)",
+      "the transport: the fake socket (web_bridge.js) instead of a WebSocket to the bridge; every other line of the page's connect() stays",
+      "no bridge, no ports file: the fetch would 404 on a static host and trigger Chrome's local-network check; the try/catch around it stays",
+      "the header's title links to credits + licences (a new tab, so the sound keeps playing); each page carries the title exactly once"
+    ]
+  },
+  "data": {
+    "built": "2026-09-30 22:28:05",
+    "bridge_sha": "310635d2639c0c07",
+    "bridge_lines": 3265,
+    "files": {
+      "init_air.json.gz": {
+        "raw": 6378610,
+        "gz": 1273679,
+        "keys": 21,
+        "rows": 2388
+      },
+      "init_water.json.gz": {
+        "raw": 5275588,
+        "gz": 1058815,
+        "keys": 21,
+        "rows": 2379
+      },
+      "init_air+water.json.gz": {
+        "raw": 2550705,
+        "gz": 691352,
+        "keys": 21,
+        "rows": 2388
+      },
+      "core/rows_air.json.gz": {
+        "raw": 1380403,
+        "gz": 333035
+      },
+      "core/rows_water.json.gz": {
+        "raw": 1146632,
+        "gz": 279968
+      },
+      "core/returner.json.gz": {
+        "raw": 386169,
+        "gz": 16956
+      },
+      "core/raw_series.json.gz": {
+        "raw": 1166745,
+        "gz": 354108
+      },
+      "core/tables/air/rw_tables_L0_gradient.json.gz": {
+        "raw": 569028,
+        "gz": 131437,
+        "sha": "fba6f8ba6ebb0a97"
+      },
+      "core/tables/air/rw_tables_L0_variance.json.gz": {
+        "raw": 569017,
+        "gz": 131462,
+        "sha": "e3b0c0b8400b7f8f"
+      },
+      "core/tables/air/rw_tables_L1_gradient.json.gz": {
+        "raw": 5256979,
+        "gz": 1270518,
+        "sha": "e1f9c8819a63b022"
+      },
+      "core/tables/air/rw_tables_L1_variance.json.gz": {
+        "raw": 5256981,
+        "gz": 1271444,
+        "sha": "c7265a4599c51913"
+      },
+      "core/push/air/rw_push_L0.json.gz": {
+        "raw": 13583,
+        "gz": 6490,
+        "sha": "959728ec4b20594a"
+      },
+      "core/push/air/rw_push_L1.json.gz": {
+        "raw": 260578,
+        "gz": 110383,
+        "sha": "f2a68a87061777e1"
+      },
+      "core/tables/water/rw_tables_L0_gradient.json.gz": {
+        "raw": 223669,
+        "gz": 61696,
+        "sha": "dccf3514eac06bc7"
+      },
+      "core/tables/water/rw_tables_L0_variance.json.gz": {
+        "raw": 223667,
+        "gz": 61648,
+        "sha": "f4dd437ce4a4f498"
+      },
+      "core/tables/water/rw_tables_L1_gradient.json.gz": {
+        "raw": 2904920,
+        "gz": 792930,
+        "sha": "97e74aadbccca08e"
+      },
+      "core/tables/water/rw_tables_L1_variance.json.gz": {
+        "raw": 2904910,
+        "gz": 793148,
+        "sha": "63185db01bd4279e"
+      },
+      "core/push/water/rw_push_L0.json.gz": {
+        "raw": 13159,
+        "gz": 6241,
+        "sha": "4c910c620cb37cec"
+      },
+      "core/push/water/rw_push_L1.json.gz": {
+        "raw": 241864,
+        "gz": 101747,
+        "sha": "00aecc0b7e3a3fac"
+      }
+    },
+    "spectral_day": {
+      "files": 136,
+      "gz_total": 3486418,
+      "empty": []
+    },
+    "total_gz": 12233475,
+    "seconds": 4.8
+  },
+  "pyodide": "vendored (web_implementation/pyodide/)",
+  "engine_js_source": {
+    "file": "projects/designs/dark_ocean/web_implementation/engine.js",
+    "sha256_16": "988b2ee03ef4aa46",
+    "note": "engine.js here is a copy adapted on 2026-09-30 (D8); the guard fix goes to both by hand"
+  },
+  "clips": {
+    "built": "2026-09-30 22:43:59",
+    "clips": 386,
+    "encoded_now": 386,
+    "opus_bytes": 14694798,
+    "m4a_bytes": 24021253,
+    "frames_min": 220500,
+    "frames_max": 220500,
+    "rates": [
+      44100
+    ],
+    "peak_before_min": 0.008,
+    "peak_before_max": 1.0,
+    "seconds": 29.2
+  }
+}

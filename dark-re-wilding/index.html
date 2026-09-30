@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dark Re-wilding</title>
+<meta name="description" content="Three years of the Knepp Estate soundscape, as sound and image. SuperCollider and the design's own bridge run in this page.">
+<style>
+  html { background: #0b0e1a; }
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  iframe { border: 0; display: block; width: 100%; height: 100%; }
+</style>
+<script>
+  // The style kit's look (Phase 6): the shell's ground follows it, so no dark frame shows around a light or
+  // paper view. Until the six pages carry the kit, the ground is the pages' own --bg.
+  (function () {
+    var bg = { dark: "#0b0e1a", light: "#e8ecf3", paper: "#f3e5da" }, look = null;
+    try { look = new URLSearchParams(location.search).get("theme") || localStorage.getItem("darkstyle.theme"); } catch (e) {}
+    var set = function (l) { document.documentElement.style.background = bg[l] || bg.dark; };
+    set(look);
+    addEventListener("storage", function (e) { if (e.key === "darkstyle.theme") set(e.newValue); });
+  })();
+</script>
+</head>
+<body>
+<iframe id="view" title="Dark Re-wilding"></iframe>
+<script type="module">
+  // Hosts that cannot send headers (GitHub Pages): a service worker adds the COOP/COEP headers that
+  // SuperCollider's WebAssembly build needs. It covers this folder only: view/, engine/, core/, data/, sc/.
+  let reloading = false;
+  if (!self.crossOriginIsolated && "serviceWorker" in navigator) {
+    await navigator.serviceWorker.register("./coi-sw.js");
+    if (!sessionStorage.getItem("darkRewildCoi")) {
+      sessionStorage.setItem("darkRewildCoi", "1");
+      await navigator.serviceWorker.ready;
+      reloading = true;
+      location.reload();
+    }
+  } else {
+    sessionStorage.removeItem("darkRewildCoi");
+  }
+  if (!reloading) {
+    const { darkEngine } = await import("./engine.js");
+    window.darkEngine = darkEngine;
+    darkEngine.preload().catch(() => {});      // engine + class library + the bridge core + the first init; sound at the first gesture
+    // The six views are the desktop pages, one at a time in this frame. ?view=<name> picks one (scatter is
+    // the default), ?m= and ?d= pass through to it; the view keeps this address bar in step (web_bridge.js).
+    const VIEWS = { scatter: "index.html", index: "index.html", rose: "rose.html", biplot: "biplot.html",
+                    linear: "linear.html", spectro: "spectro.html", mfcc: "mfcc.html" };
+    const q = new URLSearchParams(location.search), sub = new URLSearchParams();
+    const page = VIEWS[q.get("view") || "scatter"] || "index.html";
+    for (const k of ["m", "d", "theme"]) if (q.get(k)) sub.set(k, q.get(k));   // theme: the kit reads it inside the view (and remembers it)
+    const view = document.getElementById("view");
+    view.addEventListener("load", () => { try { view.contentWindow.focus(); } catch (_) {} });   // keys (L, i, ←→) reach the view
+    view.src = "view/" + page + (sub.toString() ? "?" + sub.toString() : "") + location.hash;
+  }
+</script>
+</body>
+</html>
