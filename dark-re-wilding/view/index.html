@@ -246,7 +246,12 @@ let wxScale = v=>0.5, wxLo=0, wxHi=1;   // active weather-var domain (recomputed
 let _rowIdx = {};       // "YYYY-MM-DD:win" -> rows idx, so a day point still triggers its per-window corpus clip
 let curPoint=null, curId=null;         // the focused datum (window or embed month) + its id
 let channel="air", channels=[], _wcInited=false, noNsp=false;   // air/water switch state
-let rSize=d3.scaleSqrt().range([1.6,7]);
+// A dot's AREA follows its BirdNET species per minute (Miguel, 2026-10-01, as on the biplot): a square root from 0,
+// the largest value this resolution draws at 7 px (the largest radius before), never drawn under R_MIN, so a
+// window with 0 species stays visible (and pressable: a press takes the nearest point within NEAR_PX). It was
+// 1.6-7 px over the L1 windows' largest value at both resolutions.
+let rSize=d3.scaleSqrt().range([0,7]);
+const R_MIN=2;
 // NO BIRDNET HERE (2026-09-29): n_species is null where BirdNET could not analyse any of the
 // point's audio - UNKNOWN, not zero - so the point is drawn HOLLOW at a middling size rather than
 // as the smallest dot, which would say "no species". (d3's scale(null) is undefined: the dot
@@ -254,7 +259,7 @@ let rSize=d3.scaleSqrt().range([1.6,7]);
 // reading (x = y = null) and is left out of it.
 const NO_BN_R = 3.2;
 const noBn = d => !noNsp && d.nsp == null;
-const rOf = d => noNsp ? 4.5 : (d.nsp == null ? NO_BN_R : rSize(d.nsp));   // water: uniform dot size
+const rOf = d => noNsp ? 4.5 : (d.nsp == null ? NO_BN_R : Math.max(R_MIN, rSize(d.nsp)));   // water: uniform dot size
 // which embedding point set is active (combined channel is month-only -> always month)
 const activeEmb = () => (resolution==="day" && channel!=="air+water" && (day_embeddings||{}).pca) ? day_embeddings : embeddings;
 
@@ -515,7 +520,8 @@ facets.each(function(win){
 
 function draw(animate=false){
   drawAxKey();              // FIRST (P44): the line under the panels can wrap, which changes their height
-  const maxNsp = d3.max(rows,r=>r.nsp)||1;
+  // the size domain: the largest value among the points this resolution draws (it was the L1 windows' at both)
+  const maxNsp = d3.max(DIEL.flatMap(w=>((activeEmb().pca||{})[w]||[])), p=>p.nsp) || d3.max(rows,r=>r.nsp) || 1;
   rSize.domain([0,maxNsp]);
   noNsp = (d3.max(rows,r=>r.nsp)||0) <= 0.01;              // water: no species richness
   const isEmbed=!!reading.embed;                               // month-embedding reading?

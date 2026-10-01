@@ -108,7 +108,21 @@ const HV=HourView.create({ kind:"tol", send:wsSend, channel:()=>channel,
   months:()=>spectral.map(s=>s.key).sort(), monthEntry:mk=>byKey.get(mk),
   onChange:()=>{ draw(); HV.renderControls(); }, rowName:"frequency band" });
 
-// the bands that are never drawn as data: DEAD (never measured) and FLOOR (at the recorder's floor)
+// the bands that are never drawn as data: DEAD (not measured) and FLOOR (at the recorder's floor)
+// WHY THE LOWEST ROWS ARE EMPTY (P46, Miguel 2026-10-01). The recordings DO hold sound there. The analysis
+// measures in 21.5 Hz steps (44.1 kHz / 2048), wider than these third-octave bands, so they come out empty.
+// The levels are the recordings' own, per channel: docs/alice_feedback/figures/display_checks_summary.json,
+// p3.spectro_rows.levels_as_recorded, the 25-125 Hz rows.
+//   - air: -57.8 to -53.0 dB, louder than every row the page draws (those reach -59.0 at most);
+//   - water: -75.6 to -62.6 dB. That is not louder than all of the drawn rows (they reach -71.1), so water's
+//     sentence gives the numbers without the comparison.
+const DEAD_WHY = {
+  air: "The recordings do hold sound here (in air about −58 to −53 dB, louder than the rows the page draws), but the "
+     + "analysis measures in 21.5 Hz steps, wider than these bands, so they come out empty.",
+  water: "The recordings do hold sound here (in water about −76 to −63 dB), but the analysis measures in 21.5 Hz "
+     + "steps, wider than these bands, so they come out empty." };
+const DEAD_FACE = "not measured: narrower than the analysis's steps";
+const deadWhy = () => DEAD_WHY[channel==="water" ? "water" : "air"];
 const deadSet =()=>new Set(meta.dead_bands||[]);
 const floorSet=()=>new Set(meta.floor_bands||(HV.dayMeta&&HV.dayMeta.floor_bands)||[]);
 
@@ -141,7 +155,7 @@ function draw(){
   for(let b=0;b<nb;b++) for(let h=0;h<nh;h++) cells.push({b,h});
   gCells.selectAll("rect").data(cells).join("rect")
     .attr("x",d=>xy(d.b,d.h)[0]).attr("y",d=>xy(d.b,d.h)[1]).attr("width",cw+0.6).attr("height",ch+0.6)
-    .attr("fill",d=>drawn(d.b,d.h) ? color(d.b,d.h) : DIEL.hatch(svg))     // hatched = not recorded / never measured
+    .attr("fill",d=>drawn(d.b,d.h) ? color(d.b,d.h) : DIEL.hatch(svg))     // hatched = not recorded / not measured
     .attr("fill-opacity",d=>drawn(d.b,d.h) ? fade[d.h] : 1)               // faded = little recording behind it
     .on("pointerover",(e2,d)=>hover(d.b,d.h,cw,ch,xy))
     .on("pointermove",(e2,d)=>showTip(e2,d.b,d.h));
@@ -157,10 +171,10 @@ function draw(){
   // THE DIEL STRIP + its edges, where the sound actually changes (diel.js).
   DIEL.draw(gDiel,{ hours, x:h=>mL+h*cw, y0:mT, y1:H-mB, stripY:6, stripH:16,
                     sun:DIEL.sunOf(e), month:HV.traceKey() });
-  const note=t=>`<div class="k" style="margin-top:6px;font-size:11px;line-height:1.5">${t}</div>`;
+  const note=(t,hover)=>`<div class="k" style="margin-top:6px;font-size:11px;line-height:1.5"${hover?` title="${hover}"`:""}>${t}</div>`;
   const rng=s=>{ const a=[...s]; return `${fmtHz(bands[Math.min(...a)])}${a.length>1?"–"+fmtHz(bands[Math.max(...a)]):""} Hz`; };
   const extra = note(HV.supportKey())
-    + (dead.size ? note(`▨ ${rng(dead)}: never measured — empty in the recordings, not quiet.`) : "")
+    + (dead.size ? note(`▨ ${rng(dead)}: ${DEAD_FACE}.`, deadWhy()) : "")     // P46: the face minimal, the levels in the hover
     + (floor.size ? note(`▨ ${rng(floor)}: at the recorder's floor (−120 dB or below almost every hour), so not drawn.`) : "");
   d3.select("#diel-key").html(DIEL.keyHTML(DIEL.sunOf(e), HV.traceKey(), "frequency band", e, extra));
   buildLegend();
@@ -205,7 +219,7 @@ const tip=DIEL.tip(document.getElementById("plot-wrap"));
 function showTip(ev,b,h){
   const e=HV.entry(); if(!e) return tip.hide();
   const bn=`${fmtHz(meta.bands_hz[b])} Hz`;
-  if(deadSet().has(b)) return tip.show(ev, `<div><b>${bn}</b></div><div class="k">never measured — this band is empty in the recordings</div>`);
+  if(deadSet().has(b)) return tip.show(ev, `<div><b>${bn}</b> · ${DEAD_FACE}</div><div class="k">${deadWhy()}</div>`);   // P46
   const i=HV.info(h); if(!i) return tip.hide();
   if(i.drop) return tip.show(ev, `<div><b>${HV.label(e)}</b> · ${DIEL.hourSpan(h)}</div>`
     + `<div class="k">dropout — the recorder wrote digital silence this hour; nothing to see</div>`
