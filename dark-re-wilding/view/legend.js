@@ -266,7 +266,10 @@ window.LEG = (function () {
   let LASTPREV = null;               // last {type:"legend_preview"} reply (kept for debugging)
 
   const CSS = `
-  #rwleg{ position:fixed; top:0; left:0; width:430px; height:100%; z-index:40; display:none;
+  /* border-box (2026-10-01): 471 px wide as before (430 of content + 2 x 20 padding + 1 border), and the height is
+     now the window's - with the padding outside it the panel was 40 px taller, and its last lines never scrolled
+     into view */
+  #rwleg{ position:fixed; top:0; left:0; box-sizing:border-box; width:471px; height:100%; z-index:40; display:none;
     background:var(--rw-legend-bg); border-right:1px solid var(--rw-legend-edge); overflow:auto; padding:16px 20px 24px;
     font:var(--ds-font-size)/1.5 var(--ds-font-ui); color:var(--txt,#c8d0ee); }
   /* the panel's whole width: 430 + 2 x 20 padding + 1 border. It was 430, and the first 41 px of every view
@@ -390,9 +393,14 @@ window.LEG = (function () {
   #rwleg .lnote{ color:var(--dim,#67708c); font-size:10.5px; line-height:1.5; margin:0 0 8px; }
   #rwleg .lrow{ margin:3px 0; font-size:11px; } #rwleg .lrow i{ display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:7px; vertical-align:-1px; }
   #rwleg .sw{ display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:6px; vertical-align:-1px; }
-  #rwleg-close{ position:absolute; top:12px; right:14px; background:var(--rw-chip); border:1px solid var(--rw-chip-line);
+  /* THE HEADER ROW (2026-10-01): the title, the ◆ PREVIEW HELD badge and the close button in one flex row, so the
+     badge can never sit on the button (both were placed absolutely, and overlapped); it wraps if a look's type is
+     ever too wide */
+  #rwleg-head{ display:flex; align-items:center; flex-wrap:wrap; gap:4px 12px; margin:0 0 4px; }
+  #rwleg-head h2{ margin:0; }
+  #rwleg-close{ margin-left:auto; background:var(--rw-chip); border:1px solid var(--rw-chip-line);
     border-radius:6px; color:var(--dim,#67708c); cursor:pointer; padding:3px 8px; font:inherit; }
-  #rwleg-badge{ position:absolute; top:14px; right:64px; color:var(--rw-held); font-size:10px; letter-spacing:.15em; display:none; }`;
+  #rwleg-badge{ color:var(--rw-held); font-size:10px; letter-spacing:.15em; display:none; }`;
 
   function send(o) { if (opts.send) opts.send(Object.assign({ type: "legend" }, o)); }
   function badge(on) { if (badgeEl) badgeEl.style.display = on ? "block" : "none"; }
@@ -841,8 +849,7 @@ window.LEG = (function () {
     const st = document.createElement("style"); st.textContent = CSS; document.head.appendChild(st);
     panel = document.createElement("div"); panel.id = "rwleg";
     panel.innerHTML =
-      `<button id="rwleg-close">✕ close (L)</button><span id="rwleg-badge">◆ PREVIEW HELD</span>
-       <h2>PERCEPTUAL LEGEND</h2>
+      `<div id="rwleg-head"><h2>PERCEPTUAL LEGEND</h2><span id="rwleg-badge">◆ PREVIEW HELD</span><button id="rwleg-close">✕ close (L)</button></div>
        <div class="lsec" data-sec="cat">catalogue — real months (click = hear + see + select)</div><div id="rwleg-cat" class="lgrid"></div>
        <div class="lsec" data-sec="hear">select a data point, then hold a chip to hear the difference</div><div id="rwleg-hear"></div>
        <div class="lsec" data-sec="see">see · how to read this view</div><div id="rwleg-see"></div>`;

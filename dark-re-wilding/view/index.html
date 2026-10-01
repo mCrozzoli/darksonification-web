@@ -668,7 +668,8 @@ function hover(d){
   d3.select("#i-when").text(isMonthPt ? `${MONTHS[d.month]} ${d.year}` : `${MONTHS[d.month]} ${d.day}, ${d.year}`);
   const tag = reading.xchan ? "air × water" : (reading.embed ? reading.embed.toUpperCase() : "");
   d3.select("#i-win").text(tag ? `${d.win} · ${tag}` : d.win);
-  d3.select("#i-nsp").text(d.nsp==null ? (noNsp ? "—" : "not analysed") : d.nsp); d3.select("#i-sp").text(d.sp||"—");
+  // water has no BirdNET: its points carry n_species 0, which is not "0 species" (2026-10-01, as on the biplot)
+  d3.select("#i-nsp").text(noNsp ? "—" : d.nsp==null ? "not analysed" : d.nsp); d3.select("#i-sp").text(d.sp||"—");
   d3.select("#i-ret").text(d.returner ? "returner · "+retText(d.returner) : "returner —");
   d3.select("#i-wx").text(wxText(d.wx));
   if(d.air){                                          // combined: both channels' index values

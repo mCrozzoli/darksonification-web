@@ -80,6 +80,8 @@
   #sizekey.row{ display:flex; align-items:center; gap:14px; } #sizekey.row .cap{ margin:0; white-space:nowrap; }
   /* the n_species arrow in plain words (P45), haloed so it reads over the dots */
   .arrgloss{ fill:var(--load); font-size:10px; paint-order:stroke; stroke:var(--bg); stroke-width:3px; stroke-linejoin:round; }
+  /* the arrow names wear the same halo: they sit over the dots now (2026-10-01) */
+  #plot g.arr text{ paint-order:stroke; stroke:var(--bg); stroke-width:3px; stroke-linejoin:round; }
 </style>
 </head>
 <body>
@@ -206,8 +208,13 @@ function wxColor(m){
 const fillOf = m => (colorMode==="month") ? (m.anomaly?RWLook.d.anom2:clColor(clOf(m))) : wxColor(m);
 
 const svg=d3.select("#plot");
-const gEll=svg.append("g"), gArr=svg.append("g"), gYears=svg.append("g").attr("class","years").style("pointer-events","none"),
-      gPts=svg.append("g"), gTrace=svg.append("g"), gAxis=svg.append("g").attr("class","axis"),
+// Z-ORDER, bottom to top: ellipses, the traced months' year lines, the dots, THE LOADING ARROWS (at day resolution
+// their names were hidden under the dots - 2026-10-01; each g.arr keeps its line and its name, which the deck's
+// scripts read), the trace rings, the axes, the n_species words. The arrows take no pointer events: a press or a
+// hover reaches the svg as before (the nearest dot is found from the quadtree).
+const gEll=svg.append("g"), gYears=svg.append("g").attr("class","years").style("pointer-events","none"),
+      gPts=svg.append("g"), gArr=svg.append("g").style("pointer-events","none"),
+      gTrace=svg.append("g"), gAxis=svg.append("g").attr("class","axis"),
       gArrW=svg.append("g").style("pointer-events","none");   // the n_species arrow's plain words (P45)
 const gCur=svg.append("circle").attr("fill","none").attr("stroke","var(--cur)").attr("stroke-width",2).style("display","none");
 const gEmpty=svg.append("text").attr("text-anchor","middle").attr("fill","var(--dim)")
@@ -439,11 +446,15 @@ function updateWxInfo(shown){
   const an=mean(shown.filter(m=>m.anomaly && m.wx && m.wx[key]!=null).map(m=>m.wx[key]));
   const no=mean(shown.filter(m=>!m.anomaly && m.wx && m.wx[key]!=null).map(m=>m.wx[key]));
   if(an!=null && no!=null){
-    const ratio=no>0?an/no:1, dp=colorMode==="rain"?1:0;
+    // A RATIO only where it means something (2026-10-01): rain (mm) and wind (km/h) are amounts, but a ratio of two
+    // °C means is not (it read "1.00× cooler"), so temperature gives the difference in °C, with its means to 1 dp
+    // to match. The points are months at month resolution and days at day resolution.
+    const ratio=no>0?an/no:1, dp=colorMode==="wind"?0:1;
     const word=colorMode==="temp"?(an>no?"warmer":"cooler"):(colorMode==="rain"?(an>no?"wetter":"drier"):(an>no?"windier":"calmer"));
     const hot=(colorMode!=="temp" && ratio>=1.3);   // notably worse weather on fault days
-    html+=`<div style="margin-top:4px"><b style="color:var(--rw-txt-hi)">⌗ anomaly days</b> avg <b>${an.toFixed(dp)}</b> vs normal ${no.toFixed(dp)} ${unit} `
-        + `<span style="color:${hot?'var(--rw-warm)':'var(--dim)'}">(${ratio.toFixed(2)}× ${word})</span></div>`;
+    const diff=colorMode==="temp" ? `${Math.abs(an-no).toFixed(1)} °C ${word}` : `${ratio.toFixed(2)}× ${word}`;
+    html+=`<div style="margin-top:4px"><b style="color:var(--rw-txt-hi)">⌗ anomaly ${resolution==="day"?"days":"months"}</b> avg <b>${an.toFixed(dp)}</b> vs normal ${no.toFixed(dp)} ${unit} `
+        + `<span style="color:${hot?'var(--rw-warm)':'var(--dim)'}">(${diff})</span></div>`;
   }
   host.style("display",null).html(html);
 }
@@ -482,8 +493,11 @@ function hover(m){
   hovered=m.idx; curKey=(m.day!=null?m.key.slice(0,7):m.key); if(window.WC) WC.refresh();   // day -> its month (for drill / cross-view current)
   d3.select("#m-title").text(m.label);
   const pl = placedM(m);
-  d3.select("#m-cl").text(!pl ? "—" : mode==="kmeans"?`${CLUSTER_LABELS.kmeans} ${m.kmeans}`:(m.dbscan<0?`${CLUSTER_LABELS.dbscan} noise`:`${CLUSTER_LABELS.dbscan} ${m.dbscan}`)+(m.anomaly?" · anomaly":""));
-  d3.select("#m-nsp").text(m.nsp==null ? (channel==="water" ? "—" : "not analysed") : m.nsp);
+  // " · anomaly" in BOTH modes (2026-10-01): the ternary bound it to the dbscan branch, so in k-means (the default)
+  // the panel never named a flagged point, although the hover box did
+  d3.select("#m-cl").text(!pl ? "—" : (mode==="kmeans"?`${CLUSTER_LABELS.kmeans} ${m.kmeans}`:(m.dbscan<0?`${CLUSTER_LABELS.dbscan} noise`:`${CLUSTER_LABELS.dbscan} ${m.dbscan}`))+(m.anomaly?" · anomaly":""));
+  // water has no BirdNET: its months and days carry n_species 0, which is not "0 species" (2026-10-01)
+  d3.select("#m-nsp").text(channel==="water" ? "—" : m.nsp==null ? "not analysed" : m.nsp);
   d3.select("#m-pca").text(pl ? `${m.pca_0.toFixed(2)}, ${m.pca_1.toFixed(2)}` : "not placed (no BirdNET)");
   d3.select("#m-ret").text(m.returner ? "returner · "+retText(m.returner) : "returner —");
   d3.select("#m-wx").text(wxText(m.wx));
