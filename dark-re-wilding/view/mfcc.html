@@ -165,7 +165,8 @@ function draw(){
   // THE DIEL STRIP + its edges, where the sound actually changes (diel.js).
   DIEL.draw(gDiel,{ hours, x:h=>mL+h*cw, y0:mT, y1:H-mB, stripY:6, stripH:16,
                     sun:DIEL.sunOf(e), month:HV.traceKey() });
-  const extra=`<div class="k" style="margin-top:6px;font-size:11px;line-height:1.5">${HV.supportKey()}</div>`;
+  const extra=`<div class="k" style="margin-top:6px;font-size:11px;line-height:1.5">${HV.supportKey()}</div>`
+    + (window.WC && WC.faultKeyNote ? WC.faultKeyNote(HV.traceKey()) : "");   // P52: a fault day (or its month), on water
   d3.select("#diel-key").html(DIEL.keyHTML(DIEL.sunOf(e), HV.traceKey(), "coefficient", e, extra));
   svg.node().__geo={xy,cw,ch,nc,nh};
   updTrace();
@@ -256,6 +257,7 @@ async function connect(){
     if(HV.onMessage(m)) return;                                    // a month of days (DAY resolution)
     if(m.type==="init"){
       window.RW_COVERAGE = m.coverage || {};           // per month: hours, windows, partial (bridge month_coverage)
+      window.RW_FAULTS = m.faults || [];               // P52: probable recorder-fault days (findings/14); [] on air
       channel=m.channel||"air"; channels=m.channels||[];
       if(window.WC && WC.channelPref()!==channel && channels.includes(WC.channelPref())){
         ws.send(JSON.stringify({type:"channel",channel:WC.channelPref()})); return; }

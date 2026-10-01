@@ -1021,7 +1021,7 @@ window.LEG = (function () {
   // and nothing from the socket is ever interpolated into this markup.
   const VIEWS = {
     "index.html":  ["scatter", "each dot is one time of day (dawn, day, dusk or night) of a month, or of one day"],
-    "rose.html":   ["roses", "one rose per month; its four spokes are dawn, day, dusk and night — press a spoke to hear it. At day resolution the band is the middle half of the month's days, the line its median day, and the month opens below as a calendar of days. A hollow dot on a spoke = nothing recorded there; a faint stretch = fewer than 4 days behind it (on a calendar day, under 30 min recorded)"],
+    "rose.html":   ["roses", "one rose per month; its four spokes are dawn, day, dusk and night — press a spoke to hear it. Shaded: the middle half of the month's days, on the focused rose; its line is the average, which a few extreme days can pull outside the shading. At day resolution every rose is drawn that way, its line the median day, and the month opens below as a calendar of days. A hollow dot on a spoke = nothing recorded there; a faint stretch = fewer than 4 days behind it (on a calendar day, under 30 min recorded)"],
     // "similar MEASURES", never "sound alike": closeness is a PCA over seven measures, while the
     // sound follows the gradient / variance / mean ranks and BirdNET (review 2026-09-26)
     "biplot.html": ["biplot", "a similarity map: months that sit close have similar measures; arrows show which measures pull where"],
@@ -1083,6 +1083,12 @@ window.LEG = (function () {
   function buildSee() {
     const view = here(), v = VIEWS[view] || null, hv = HOUR_VIEWS[view];
     const pageChan = () => (opts.channel ? opts.channel() : "air");   // the channel the page draws
+    // P52 (2026-10-01): the hydrophone's probable recorder-fault days (findings/14) - one line, on water, with the mark
+    const faultLine = pageChan() === "water" && (window.RW_FAULTS || []).length
+      ? `<div class="lrow"><svg width="12" height="12" viewBox="-6 -6 12 12" style="vertical-align:-1px;margin-right:6px;overflow:visible">`
+        + `<path d="M-3.5,-3.5L3.5,3.5M3.5,-3.5L-3.5,3.5" fill="none" stroke="var(--rw-casing)" stroke-width="3.4" stroke-linecap="round"/>`
+        + `<path d="M-3.5,-3.5L3.5,3.5M3.5,-3.5L-3.5,3.5" fill="none" stroke="var(--rw-fault)" stroke-width="1.6" stroke-linecap="round"/></svg>`
+        + `probable recorder fault (findings/14)</div>` : "";
     const s = stat();                                   // the shipped default — must track WC.statPref()
     const dim = 'style="color:var(--dim,#67708c)"';
     // THE KEY IS PER VIEW, because the views do not share an encoding (review 2026-09-26):
@@ -1132,7 +1138,7 @@ window.LEG = (function () {
     const indexLine = cut > 0
       ? `<div class="lrow" style="margin-bottom:8px">${INDEX_KEY[view]} = <b>${ig.slice(0, cut)}</b> · ${ig.slice(cut + 3)}</div>` : "";
     d3.select("#rwleg-see").html(
-      (v ? `<div class="lrow" style="margin-bottom:8px"><b>${v[0]}</b> · ${v[1]}</div>` : "") + indexLine + key +
+      (v ? `<div class="lrow" style="margin-bottom:8px"><b>${v[0]}</b> · ${v[1]}</div>` : "") + indexLine + key + faultLine +
       `<div class="lsub" style="margin:12px 0 4px">sound</div>
        <div class="lrow"><b>drone</b> · the low hum</div>
        <div class="lrow"><b>clave</b> · the woodblock tick</div>

@@ -1,23 +1,23 @@
 {
-  "built": "2026-10-01 10:58:02",
+  "built": "2026-10-01 12:53:05",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "sources": {
-    "viz/index.html": "6f7a45a31338a54a",
-    "viz/rose.html": "ed2b88243426b3b7",
-    "viz/biplot.html": "ad4568976918c57c",
-    "viz/linear.html": "3b514fc8f17c4630",
-    "viz/spectro.html": "d1cb192bff07990c",
-    "viz/mfcc.html": "4aa51280b847aa8c",
-    "viz/wc.js": "58b4f2ba76fe320c",
-    "viz/legend.js": "8cb8b2543a6cc367",
+    "viz/index.html": "9162370a6d88a00d",
+    "viz/rose.html": "58b62d07733ca829",
+    "viz/biplot.html": "36a321a757e5256c",
+    "viz/linear.html": "ee6df42f3533adea",
+    "viz/spectro.html": "31bc745ead5c2744",
+    "viz/mfcc.html": "dc432d438928a98c",
+    "viz/wc.js": "185199b212af0439",
+    "viz/legend.js": "85bd669f96a38bc7",
     "viz/panel.js": "778a28a3555b778e",
-    "viz/monthbar.js": "84c118427bb92383",
+    "viz/monthbar.js": "3e0cab894b28d6e7",
     "viz/viewnav.js": "652200a2a4ede0bd",
     "viz/diel.js": "75e2390eb007b1df",
     "viz/hourview.js": "f198b1ef208f4eb4",
     "viz/brush.js": "c2d598bc6bedb1a6",
     "viz/looks.js": "01330702291d1d09",
-    "viz/rewild_tokens.css": "507f7428d4624df5",
+    "viz/rewild_tokens.css": "4d753f9477d9bff2",
     "viz/darkstyle/KIT.json": "49e79b417cebbb70",
     "viz/darkstyle/darkstyle.css": "a2c1507972554138",
     "viz/darkstyle/darkstyle.js": "a5a154247a75ed38",
@@ -26,7 +26,7 @@
     "sc/parse_dark_re_wilding.scd": "904b5876dd9fc05e",
     "sc/rw_preview.scd": "eb85df98d8dea1d6",
     "viz/rw_core.py": "eedac0f80128a788",
-    "viz/bridge.py (the shell; build_data.py's loaders, not shipped)": "233d51a63897c9b4",
+    "viz/bridge.py (the shell; build_data.py's loaders, not shipped)": "19f7022ff92d8b81",
     "sc/web_clips.scd (web only, hand-written)": "ee600e54d9f7e7fa"
   },
   "patches": {
@@ -74,27 +74,27 @@
     ]
   },
   "data": {
-    "built": "2026-10-01 05:41:49",
-    "bridge_sha": "233d51a63897c9b4",
-    "bridge_lines": 1517,
-    "rw_core_sha": "f88fbb07bb8a4c05",
+    "built": "2026-10-01 12:53:05",
+    "bridge_sha": "19f7022ff92d8b81",
+    "bridge_lines": 1530,
+    "rw_core_sha": "eedac0f80128a788",
     "files": {
       "init_air.json.gz": {
-        "raw": 6378610,
-        "gz": 1273679,
-        "keys": 21,
+        "raw": 6378622,
+        "gz": 1273688,
+        "keys": 22,
         "rows": 2388
       },
       "init_water.json.gz": {
-        "raw": 5275588,
-        "gz": 1058815,
-        "keys": 21,
+        "raw": 5277269,
+        "gz": 1059445,
+        "keys": 22,
         "rows": 2379
       },
       "init_air+water.json.gz": {
-        "raw": 2550705,
-        "gz": 691352,
-        "keys": 21,
+        "raw": 2550717,
+        "gz": 691364,
+        "keys": 22,
         "rows": 2388
       },
       "core/rows_air.json.gz": {
@@ -191,7 +191,7 @@
       "gz_total": 3486418,
       "empty": []
     },
-    "total_gz": 12123784,
+    "total_gz": 12124435,
     "seconds": 5.4
   },
   "pyodide": "vendored (web_implementation/pyodide/)",

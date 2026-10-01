@@ -76,6 +76,7 @@
     <div class="row"><span class="k">day · phase</span><span class="v" id="w-when">—</span></div>
     <div class="row"><span class="k">top bird</span><span class="v" id="w-sp">—</span></div>
     <div id="w-ret" style="color:var(--rw-dawn); margin:3px 0"></div>
+    <div id="w-fault"></div>   <!-- P52: a probable recorder fault (findings/14), on water -->
     <div id="w-ax" style="margin-top:6px"></div>
     <div class="wc-seglabel" style="color:var(--dim);font-size:11px;letter-spacing:.1em;margin:10px 0 6px">VIEW</div>
     <div id="monthbar" style="margin-bottom:5px"></div>
@@ -118,6 +119,13 @@ function drawEchoRings(list){                     // list: [{x, y, r, key}] in s
     g.append("circle").attr("r",p.r).attr("fill","none").attr("stroke",echoRing(p.key))
       .attr("stroke-width",1.5).attr("stroke-dasharray","2.4,1.6"); });
 }
+// P52: a PROBABLE RECORDER FAULT (findings/14) - a small × over each window of a fault day (water)
+function drawFaultMarks(list){                   // list: [{x, y, r, dk}] in svg pixels
+  gFault.selectAll("*").remove();
+  if(!(window.WC && WC.isFault)) return;
+  list.filter(p=>WC.isFault(p.dk)).forEach(p=>WC.faultX(gFault.append("g").attr("class","wc-fault-mark")
+    .attr("transform",`translate(${p.x},${p.y})`), p.r));
+}
 // A WHOLE-MONTH trace (made in a month view) has no window to ring here, so it marks the MONTH:
 // one month drawn -> the plot's own frame, as on spectro/mfcc (solid = traced; dashed = an echo,
 // the same month traced in another year); several compared -> their lines (drawCompare). Before
@@ -157,6 +165,7 @@ const gBands=svg.append("g"), gAxis=svg.append("g").attr("class","axis"),
       gLine=svg.append("path").attr("fill","none").attr("stroke",RWLook.d.air).attr("stroke-width",1.4),
       gPts=svg.append("g"), gCompare=svg.append("g"),
       gEcho=svg.append("g").attr("class","echo").style("pointer-events","none"),   // echo rings, over the points
+      gFault=svg.append("g").attr("class","faults").style("pointer-events","none"),   // P52: the × over a fault day's windows
       gScrub=svg.append("line").attr("stroke","var(--cur)").attr("stroke-width",1.5).style("display","none");
 let X=d3.scaleLinear(), Y=d3.scaleLinear().domain([0,1]);
 
@@ -227,6 +236,7 @@ function draw(){
     .classed("wc-ring",d=>isTracedKey(tkey(d)));                       // glow+pulse
   drawEchoRings(seq.filter(has).map(d=>({ x:X(seqI.get(d)), y:Y(d.ax[index]), r:6.2, key:tkey(d), d:d.d, win:d.win }))
     .filter(p=>isEchoKey(p.key)));
+  drawFaultMarks(seq.filter(has).map(d=>({ x:X(seqI.get(d)), y:Y(d.ax[index]), r:3, dk:`${monthKey}-${String(d.d).padStart(2,"0")}` })));
   updMonthFrame(monthKey);
   svg.node().__X=X;
   svg.node().__cmp=null;                                    // the compare paths own this; stale it here
@@ -244,6 +254,7 @@ function draw(){
     gScrub.style("display","none"); hovered=-1;
     if(!(heard && heard.key===rowsKey)){                 // the rows are not the numbers of what sounds
       d3.select("#w-sp").text("—"); d3.select("#w-ret").text(""); d3.select("#w-ax").selectAll("*").remove();
+      d3.select("#w-fault").html("");
       rowsKey=null;
     }
     const hl=heardLabel(heard);
@@ -348,6 +359,7 @@ function drawCompare(keys){
       echoes.push({ x:xs(v.x), y:Y(v.v), r:rad+3.6, key:tk(v), d:v.d, win:v.ph, mk:v.mk }); });
   });
   drawEchoRings(echoes);
+  drawFaultMarks(profiles.flatMap(p=>p.vals.filter(v=>v.v!=null && !v.gap).map(v=>({ x:xs(v.x), y:Y(v.v), r:rad, dk:`${v.mk}-${String(v.d).padStart(2,"0")}` }))));
   svg.node().__cmp={xs,profiles,mode:"day"};
   const hits=[];                                 // gap sentinels are line breaks, not points
   profiles.forEach(p=>p.vals.forEach(v=>{ if(v.gap||v.v==null) return;
@@ -355,6 +367,7 @@ function drawCompare(keys){
   svg.node().__qt=d3.quadtree().x(p=>p.x).y(p=>p.y).addAll(hits);
   d3.select("#w-title").text(`COMPARE \u00b7 ${keys.length} months`);
   d3.select("#w-when").text("scrub a day"); d3.select("#w-sp").text("\u2014"); d3.select("#w-ret").text(""); rowsKey=null;
+  d3.select("#w-fault").html("");
   d3.select("#w-ax").selectAll("*").remove();
   drawCompareLegend(profiles);
   syncWC();
@@ -517,6 +530,7 @@ function scrubTo(i,quiet){
   d3.select("#w-when").text(`day ${d.d} · ${d.win}`);
   d3.select("#w-sp").text(d.sp||"—");
   d3.select("#w-ret").text(d.returner ? "returner · "+retText(d.returner) : "returner —");
+  d3.select("#w-fault").html(window.WC && WC.faultNote ? WC.faultNote(`${monthKey}-${String(d.d).padStart(2,"0")}`) : "");   // P52
   const host=d3.select("#w-ax"); host.selectAll("*").remove();
   AXK.forEach(k=>host.append("div").attr("class","row").attr("title",glossOf(k))
     .html(`<span class="k">${k}</span><span class="v">${d.ax[k]!=null ? d.ax[k].toFixed(2)
@@ -562,7 +576,8 @@ function showTip(e){
     // UNKNOWN richness is named, never dropped or shown as 0 (2026-09-29), as on the scatter
     + (p.nsp!=null ? `<div><span class="k">n_species</span>${p.nsp}</div>`
        : noNsp ? "" : `<div><span class="k">n_species</span>not analysed</div>`)
-    + (window.WC && WC.traceNote && p.mk ? WC.traceNote(winKey(p.mk,p.d,p.ph)) : ""));
+    + (window.WC && WC.traceNote && p.mk ? WC.traceNote(winKey(p.mk,p.d,p.ph)) : "")
+    + (window.WC && WC.faultNote && p.mk ? WC.faultNote(`${p.mk}-${String(p.d).padStart(2,"0")}`) : ""));   // P52
   // flip to the other side of the cursor rather than overflow the plot
   const w=document.getElementById("plot-wrap"), b=tip.node().getBoundingClientRect();
   tip.style("left",Math.max(0,(mx+14+b.width >w.clientWidth ) ? mx-14-b.width  : mx+14)+"px")
@@ -716,6 +731,7 @@ async function connect(){
     if(m.type==="master"){ if(window.WC && WC.applyMaster) WC.applyMaster(m); return; }   // the master too (volume + mute): the bridge echoes it, the panel paints it
     if(m.type==="init"){
       window.RW_COVERAGE = m.coverage || {};           // per month: hours, windows, partial (bridge month_coverage)
+      window.RW_FAULTS = m.faults || [];               // P52: probable recorder-fault days (findings/14); [] on air
       channel=m.channel||"air"; channels=m.channels||[];
       if(window.WC && WC.channelPref()!==channel && channels.includes(WC.channelPref())){
         ws.send(JSON.stringify({type:"channel",channel:WC.channelPref()})); return; }

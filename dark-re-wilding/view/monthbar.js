@@ -76,6 +76,8 @@ window.MonthBar = (function(){
         border-radius:50%; background:var(--rw-bg); box-shadow:0 0 0 1.5px var(--tc,var(--rw-gold)), 0 0 0 2.5px var(--rw-bg); }
       .mbgrid.single .mb-cell.cur{ opacity:1; box-shadow:0 0 6px 1px var(--rw-mb-glow); }
       .dbgrid{ display:grid; grid-template-columns:repeat(7,1fr); gap:2px; align-items:center; }
+      .dbgrid .mb-cell.flt::before{ content:"×"; position:absolute; left:1px; top:0; font-size:10px; line-height:9px; font-weight:700;
+        color:var(--rw-fault); text-shadow:0 0 2px var(--rw-casing),0 0 2px var(--rw-casing); }   /* P52: a probable recorder fault */
       .dbgrid .mb-cell{ height:17px; font-size:9px; line-height:15px; text-align:center; color:var(--rw-daylabel); font-weight:600; }
       .dbgrid .mb-cell.gone{ color:var(--rw-mb-gone-txt); font-weight:400; }
       .dbhead{ display:flex; justify-content:space-between; align-items:center; margin:2px 0 4px;
@@ -127,7 +129,8 @@ window.MonthBar = (function(){
             .attr("class","mb-cell"+(exists?"":" gone")+(sel.has(mk)?" sel":"")+(mk===cur?" cur":"")+(trc?" trc":"")+(ech?" ech":"")+(part?" part":""))
             .style("background",exists?monthColor(m):null)
             .style("--tc",trc?(WC.traceColor(mk)||WC.GOLD):ech?(WC.echoColor(mk)||WC.GOLD):null)
-            .attr("title",exists?`${MON[m]} ${y}${trc?" · traced":ech?` · echo of ${WC.label(WC.echoOf(mk))}`:""}${part?` · partial: ${cov.why}`:""}`:"");
+            .attr("title",exists?`${MON[m]} ${y}${trc?" · traced":ech?` · echo of ${WC.label(WC.echoOf(mk))}`:""}${part?` · partial: ${cov.why}`:""}`
+              + (exists && window.WC && WC.faultMonthText && WC.faultMonthText(mk) ? " · " + WC.faultMonthText(mk) : ""):"");   // P52
           if(!exists) continue;          // `continue`, NOT return: return would exit the YEAR
           // single choice: a click and nothing else, so the module-level drag is never armed
           // here and the window pointerup listener can never write SHOWN from these pages
@@ -186,12 +189,13 @@ window.MonthBar = (function(){
         const dk = `${mk}-${String(d).padStart(2,"0")}`, r = recs.get(dk);
         const trc = r && window.WC && WC.isTraced && WC.isTraced("w:"+dk);
         const ech = r && !trc && window.WC && WC.isEcho && WC.isEcho("w:"+dk);
+        const flt = r && window.WC && WC.isFault && WC.isFault(dk);              // P52: a probable recorder fault
         const cell = grid.append("div").text(d)
-          .attr("class","mb-cell"+(r?"":" gone")+(dk===cur?" cur":"")+(trc?" trc":"")+(ech?" ech":""))
+          .attr("class","mb-cell"+(r?"":" gone")+(dk===cur?" cur":"")+(trc?" trc":"")+(ech?" ech":"")+(flt?" flt":""))
           .style("background", r ? monthColor(m) : null)
           .style("opacity", r ? (dk===cur ? 1 : 0.35 + 0.6*Math.min(1, (r.minutes||0)/1440)) : null)
           .style("--tc", trc ? (WC.traceColor("w:"+dk)||WC.GOLD) : ech ? (WC.echoColor("w:"+dk)||WC.GOLD) : null)
-          .attr("title", r ? `${d} ${MON[m]} ${y} · ${(r.minutes/60).toFixed(1)} h recorded${trc?" · traced":ech?` · echo of ${WC.label(WC.echoOf("w:"+dk))}`:""}`
+          .attr("title", r ? `${d} ${MON[m]} ${y} · ${(r.minutes/60).toFixed(1)} h recorded${trc?" · traced":ech?` · echo of ${WC.label(WC.echoOf("w:"+dk))}`:""}${flt?" · "+WC.faultText(dk):""}`
                            : `${d} ${MON[m]} ${y} · no recording`);
         if(r) cell.on("click", () => opts.onPick(dk));
       }

@@ -10,7 +10,9 @@
      the band is the middle half of its days (25th-75th percentile) at each time of day, the
      line its median day (B: many months, compared by shape AND steadiness) - and the focused
      month opens below as a CALENDAR of day roses (A: one month at a time; press a day to hear
-     that day's window, at L1). -->
+     that day's window, at L1). At MONTH resolution the focused month shades the same middle half
+     (2026-10-01, Miguel; it was the lowest to the highest day, which one storm day set), its bold
+     line still the month's average. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -56,6 +58,7 @@
   .dcell{ position:relative; min-height:0; }
   .dcell svg{ display:block; width:100%; height:100%; cursor:crosshair; }
   .dcell .dn{ position:absolute; left:3px; top:1px; font-size:10px; color:var(--dim); pointer-events:none; }
+  .dcell .dn .wc-fault-dn{ color:var(--rw-fault); font-weight:700; text-shadow:0 0 2px var(--rw-casing),0 0 2px var(--rw-casing); }   /* P52 */
   .dcell.none{ opacity:.3; } .dcell.none svg{ cursor:default; }
   .dcell.tracing{ outline:1px dashed var(--rw-gold); outline-offset:-2px; }
   /* the ARMED trace-drag (the ◫ switch, or alt held) wears the brush tip (wc.js), not the
@@ -190,7 +193,9 @@ function grandMean(){
   roses.forEach(mo=>DIEL_CLOCK.forEach(w=>{ const v=winMean(mo,w); if(v!=null){ acc[w]+=v; n[w]++; } }));
   const gm={}; DIEL_CLOCK.forEach(w=> gm[w]= n[w]? acc[w]/n[w] : 0); return gm;
 }
-// day-to-day spread (min/max across the month's days) per window
+// THE MONTH'S DAY RANGE (its lowest and highest day) per window. NOT DRAWN since 2026-10-01: the focused
+// rose shades the middle half of the days (monthRibbon), as the day ribbons do. Kept because the deck's screen
+// checks call it in the page (docs/alice_feedback/deck/render/screens_q1.py, screens_q1b.py: the day range).
 function monthBand(mo){
   const b={}; DIEL_CLOCK.forEach(w=>{
     const vs=mo.days.map(d=> d[w]? d[w][index] : null).filter(v=>v!=null);
@@ -200,6 +205,7 @@ function monthBand(mo){
 
 // THE RIBBON (day resolution): per window, the MIDDLE HALF of the month's days (25th-75th
 // percentile) and the median day. Not min-max: one storm day would set a month's whole band.
+// Its middle half is also the focused month's band at MONTH resolution (drawFocus, 2026-10-01).
 function quant(sorted, p){
   if(!sorted.length) return null;
   const i=(sorted.length-1)*p, lo=Math.floor(i), hi=Math.ceil(i);
@@ -325,7 +331,7 @@ function drawYearKey(svg, ys, mo, W, H){
      .text(`${o===mo?"\u2501":"\u2504"} ${o.year}`));
 }
 
-// ---- focus: grand mean (dashed) + day-spread band + mean + the traced months ----
+// ---- focus: grand mean (dashed) + the middle half of the month's days (shaded) + mean + the traced months ----
 function drawFocus(svg, mo){
   const node=svg.node(), W=node.clientWidth, H=node.clientHeight, cx=W/2, cy=H/2, RR=Math.min(W,H)/2-28;
   svg.attr("width",W).attr("height",H).selectAll("*").remove();
@@ -336,12 +342,21 @@ function drawFocus(svg, mo){
      .attr("fill","none").attr("stroke","var(--dim)").attr("stroke-width",1).attr("stroke-dasharray","2,3");
   if(!mo) return;
   if(isDay()) return drawFocusDay(svg, mo, RR, cx, cy);
-  const col=monthColor(mo.month), band=monthBand(mo);
-  // variance band = area between per-window max and min (evenodd hole)
-  const outer=ptsOf(w=> band[w]?band[w][1]:winMean(mo,w), RR, cx, cy);
-  const inner=ptsOf(w=> band[w]?band[w][0]:winMean(mo,w), RR, cx, cy);
-  svg.append("path").attr("d", line(outer)+line(inner))
-     .attr("fill",col).attr("fill-opacity",0.14).attr("fill-rule","evenodd").attr("stroke","none");
+  const col=monthColor(mo.month), rb=monthRibbon(mo);
+  // THE BAND: the MIDDLE HALF of the month's days (25th-75th percentile) at each time of day, as the day
+  // ribbons draw it (Miguel, 2026-10-01; it was the lowest to the highest day, which one storm day set).
+  // Thin support as on the ribbon: a quarter of the clock touching a spoke with fewer than THIN_N days is
+  // faint, and a spoke with no days keeps the month's mean (no width) and its hollow mark below. Four
+  // wedges, not one path, so only the thin quarters fade. The bold line below stays the month's AVERAGE, unfilled.
+  // Opacity 0.3, the day focus's own (2026-10-01): at 0.14 the band sat 4.4-6.1 OKLab dE off the panel's ground in
+  // the three looks, under the style kit's 7 for a fill that reads.
+  const at=(w,k)=> rb[w] ? rb[w][k] : winMean(mo,w);
+  const outer=ptsOf(w=>at(w,"hi"), RR, cx, cy), inner=ptsOf(w=>at(w,"lo"), RR, cx, cy);
+  const thin=i=>{ const r=rb[DIEL_CLOCK[i]]; return !r || r.n<THIN_N; };
+  const gb=svg.append("g").attr("class","focus-band");
+  DIEL_CLOCK.forEach((w,i)=>{ const j=(i+1)%4, f=(thin(i)||thin(j))?THIN_FADE:1;
+    gb.append("path").attr("d",`M${outer[i]}L${outer[j]}L${inner[j]}L${inner[i]}Z`).attr("data-w",w)
+      .attr("fill",col).attr("fill-opacity",0.3*f).attr("stroke","none"); });
   // every OTHER TRACED month, dashed in its trace colour. Tracing is "keep an eye on this",
   // so the traced roses are the ones worth superimposing on the one you are hearing — and a
   // trace whose month you have hidden is skipped, not drawn from behind the filter.
@@ -357,9 +372,10 @@ function drawFocus(svg, mo){
        .attr("d",line(ptsOf(w=>winMean(o,w),RR,cx,cy))).attr("fill","none").attr("stroke",monthColor(o.month))
        .attr("stroke-width",1.5).attr("stroke-dasharray","4,3").attr("opacity",ys.op(o)));
     drawYearKey(svg, ys, mo, W, H); }
-  // this month's mean (bold)
+  // this month's mean (bold): a LINE with no fill (Miguel, 2026-10-01), so the middle-half band is never hidden
+  // under it - a few extreme days can pull the average outside the band, and the band must still show there
   const p=ptsOf(w=>winMean(mo,w),RR,cx,cy);
-  svg.append("path").attr("d",line(p)).attr("fill",col).attr("fill-opacity",0.18)
+  svg.append("path").attr("d",line(p)).attr("fill","none")
      .attr("stroke",col).attr("stroke-width",2);
   svg.selectAll("circle.vtx").data(DIEL_CLOCK).join("circle").attr("class","vtx")
      .attr("cx",(w,i)=>p[i][0]).attr("cy",(w,i)=>p[i][1]).attr("r",3).attr("fill",col);
@@ -583,6 +599,7 @@ function focusDraw(mo){
           // panel), and stays in the hover box of the month's ribbon
           + (dr&&dr[w]&&dr.nm&&dr.nm[w]!=null ? `<span class="k">${dr.nm[w]} min · </span>` : "")
           + `<span class="k">${r?`median ${r.med.toFixed(2)}${dr?"":` · ${r.n} days`}`:"no days"}</span></span>`); });
+    if(window.WC && WC.faultNote && lastDay) host.append("div").html(WC.faultNote(lastDay));   // P52
     d3.select("#r-ret").text(retText(mo.returner));
     return;
   }
@@ -591,6 +608,10 @@ function focusDraw(mo){
     host.append("div").attr("class","row").style("color", w===lastWin?"var(--cur)":null)   // the window you are hearing
       .html(`<span class="k">${w}</span><span class="v">${v==null?"—":v.toFixed(2)} <span class="k">(n=${c?c.n:0})</span></span>`);
   });
+  // what the focus rose's shading and line are (2026-10-01). Not a .row: the deck's screen checks read the rows.
+  host.append("div").attr("class","k f-band").style("font-size","11px").style("margin-top","4px")
+    .text("shaded: the middle half of the month's days · line: the month's average (a few extreme days can pull it outside the shading)");
+  if(window.WC && WC.faultMonthNote) host.append("div").html(WC.faultMonthNote(mo.key));   // P52
   d3.select("#r-ret").text(retText(mo.returner));
 }
 // THE GROUPING. The grid's rows ARE years, so the row you are pressing in is the selection
@@ -666,7 +687,9 @@ function drawCalendar(){
   for(let d=1; d<=nDays; d++){
     const dk=dayKeyOf(mo,d), dr=dayRec(mo,dk);
     const cell=cal.append("div").attr("class","dcell"+(dr?"":" none"));
-    cell.append("span").attr("class","dn").text(d);
+    const dn=cell.append("span").attr("class","dn").text(d);
+    // P52: a PROBABLE RECORDER FAULT (findings/14) - the × right after the day's own number (its hover box names it)
+    if(window.WC && WC.isFault && WC.isFault(dk)) dn.append("b").attr("class","wc-fault-dn").text(" \u00d7");
     const svg=cell.append("svg");
     cell.node().__dk=dk; cell.node().__svg=svg;
     if(dr){
@@ -774,13 +797,15 @@ function showCellTip(e, mo, w){
            + (r.n<THIN_N   // too few days for a middle half: say so, the faint band is not a steady one
               ? `<div class="k">${r.n===1?"one day, no spread":`only ${r.n} days, too few for a spread`}</div>`
               : `<div><span class="k">middle half</span>${fmtv(r.lo)}–${fmtv(r.hi)} · ${r.n} days</div>`))
-      + (WC.traceNote ? WC.traceNote(mo.key) : "") + (WC.partialNote ? WC.partialNote(mo.key) : ""));
+      + (WC.traceNote ? WC.traceNote(mo.key) : "") + (WC.partialNote ? WC.partialNote(mo.key) : "")
+      + (WC.faultMonthNote ? WC.faultMonthNote(mo.key) : ""));   // P52
   } else {
     const c=mo.win[w];
     tip.show(e, `<div>${DIEL.dot(col)}<b>${MONTHS[mo.month]} ${mo.year}</b> · ${w}</div>`
       + (c ? `<div><span class="k">${index}</span>${fmtv(c.ax[index])} <span class="k">mean of ${c.n} days</span></div>` + glossTip()
            : `<div class="k">no ${w} windows this month</div>`)
-      + (WC.traceNote ? WC.traceNote(mo.key) : "") + (WC.partialNote ? WC.partialNote(mo.key) : ""));
+      + (WC.traceNote ? WC.traceNote(mo.key) : "") + (WC.partialNote ? WC.partialNote(mo.key) : "")
+      + (WC.faultMonthNote ? WC.faultMonthNote(mo.key) : ""));   // P52
   }
 }
 function showDayTip(e, mo, dk, w){
@@ -792,7 +817,8 @@ function showDayTip(e, mo, dk, w){
        : dr&&dr[w] ? `<div class="k">${index} not measured in this window — you hear it all the same</div>` + glossTip()
                : `<div class="k">no ${w} window this day${hw?` — you hear its ${hw}`:""}</div>`)
     + (dr&&dr[w]&&dr.nm&&dr.nm[w]!=null ? `<div class="k">${minText(dr.nm[w])}</div>` : "")
-    + (window.WC && WC.traceNote ? WC.traceNote("w:"+dk) : ""));
+    + (window.WC && WC.traceNote ? WC.traceNote("w:"+dk) : "")
+    + (window.WC && WC.faultNote ? WC.faultNote(dk) : ""));   // P52
 }
 
 // ---- resolution toggle ----
@@ -856,6 +882,7 @@ async function connect(){
     if(m.type==="master"){ if(window.WC && WC.applyMaster) WC.applyMaster(m); return; }   // the master too (volume + mute): the bridge echoes it, the panel paints it
     if(m.type==="init"){
       window.RW_COVERAGE = m.coverage || {};           // per month: hours, windows, partial (bridge month_coverage)
+      window.RW_FAULTS = m.faults || [];               // P52: probable recorder-fault days (findings/14); [] on air
       channel=m.channel||"air"; channels=m.channels||[];
       if(window.WC && WC.channelPref()!==channel && channels.includes(WC.channelPref())){
         ws.send(JSON.stringify({type:"channel",channel:WC.channelPref()})); return; }

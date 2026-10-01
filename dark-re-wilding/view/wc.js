@@ -317,6 +317,40 @@ window.WC = (function () {
     defs.appendChild(g);
     const url = `url(#${id})`; _half.set(col, url); return url;
   }
+  // ---- PROBABLE RECORDER FAULTS (P52, 2026-10-01; findings/14; Miguel, option b) ------------
+  // The channel's fault days come in the bridge's init (`faults`; viz/gen_faults.py writes them from the notebook's
+  // scan): [{date "YYYY-MM-DD", month, hours, heard, month_flag, note, month_note, month_flag_note}]. Only water has any. A view that
+  // draws a day marks a fault day with a small × over its mark (faultX) and names it in its hover box and
+  // INFORMATION panel (faultNote); a month that carries one says so (faultMonthNote). The values stay as measured.
+  const faults = () => (Array.isArray(window.RW_FAULTS) ? window.RW_FAULTS : []);
+  function dateOf(key) {
+    const m = /^(?:w:)?(\d{4}-\d{2}-\d{2})/.exec(typeof key === "string" ? key : "");
+    return m ? m[1] : null;
+  }
+  function faultOf(key) { const d = dateOf(key); return d ? (faults().find(f => f.date === d) || null) : null; }
+  const isFault = key => !!faultOf(key);
+  const faultsIn = key => { const mk = dateOf(key) ? null : monthOf(key); return mk ? faults().filter(f => f.month === mk) : []; };
+  const escHTML = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const faultLine = t => `<div class="k wc-fault-note" style="margin-top:3px"><b style="color:var(--rw-fault)">\u00d7</b> ${escHTML(t)}</div>`;
+  const faultText = key => { const f = faultOf(key); return f ? f.note : ""; };          // plain text (a title)
+  const faultMonthText = key => faultsIn(key).map(f => f.month_note).join(" ");
+  const faultNote = key => { const t = faultText(key); return t ? faultLine(t) : ""; };   // the day's line (HTML)
+  const faultMonthNote = key => faultsIn(key).map(f => faultLine(f.month_note)).join("");   // the month's (HTML)
+  // the same, where the month map's ANOMALY FLAG is drawn (the biplot): why the month is flagged (2026-10-01: a view
+  // that draws no flag says only that the month includes a fault day, which raises its values)
+  const faultMonthFlagNote = key => faultsIn(key).map(f => faultLine(f.month_flag_note || f.month_note)).join("");
+  const faultKeyNote = key => faultNote(key) || faultMonthNote(key);   // a day or a month (the hour views' traceKey)
+  // THE MARK: a small × over the point, on the casing the echo rings use, so it reads on any fill. `g` is an svg
+  // group translated to the point, `r` the point's radius.
+  function faultX(g, r) {
+    const h = Math.max(3.5, (r || 0) * 0.85), d = `M${-h},${-h}L${h},${h}M${h},${-h}L${-h},${h}`;
+    g.append("path").attr("class", "wc-fault-case").attr("d", d).attr("fill", "none").attr("stroke", "var(--rw-casing)")
+      .attr("stroke-width", 3.4).attr("stroke-linecap", "round").attr("stroke-opacity", 0.85);
+    g.append("path").attr("class", "wc-fault").attr("d", d).attr("fill", "none").attr("stroke", "var(--rw-fault)")
+      .attr("stroke-width", 1.6).attr("stroke-linecap", "round");
+    return g;
+  }
+
   // a trace or echo key in words, for the hover boxes: "May 2025", "12 May 2025 · dawn"
   const MON3 = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   function label(key) {
@@ -765,6 +799,12 @@ window.WC = (function () {
     isPartial,                               // key -> bool: a time of day missing, or under half the usual hours
     partialNote,                             // key -> the hover box's "◐ partial month · ..." line (HTML)
     halfFill,                                // colour -> url(#gradient): the left half filled, the right empty
+    // ---- PROBABLE RECORDER FAULTS (P52; the init's `faults`) ----------------------------------
+    isFault, faultOf,                        // key (a day, "w:" day or window) -> bool / its entry
+    faultNote, faultMonthNote, faultKeyNote, // key -> the hover box / INFORMATION line (HTML), day / month / either
+    faultMonthFlagNote,                      // key -> the month's line where the map's anomaly flag is drawn (the biplot)
+    faultText, faultMonthText,               // the same, plain text (a title)
+    faultX,                                  // (svg group at the point, its radius) -> the × mark
     PALETTE,
 
     // level-dependent defaults, applied when the RESOLUTION changes (month <-> day)

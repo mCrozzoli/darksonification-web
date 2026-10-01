@@ -102,6 +102,7 @@
     <div class="row"><span class="k">n_species</span><span class="v" id="m-nsp">—</span></div>
     <div class="row"><span class="k">pca</span><span class="v" id="m-pca">—</span></div>
     <div id="m-ret" style="color:var(--rw-dawn); margin:3px 0"></div>
+    <div id="m-fault"></div>   <!-- P52: a probable recorder fault (findings/14), on water -->
     <div class="row"><span class="k">weather</span><span class="v" id="m-wx">—</span></div>
     <div id="m-feats" style="margin-top:6px"></div>
     <div class="wc-seglabel" style="color:var(--dim);font-size:11px;letter-spacing:.1em;margin:10px 0 6px">RESOLUTION</div>
@@ -214,6 +215,7 @@ const svg=d3.select("#plot");
 // hover reaches the svg as before (the nearest dot is found from the quadtree).
 const gEll=svg.append("g"), gYears=svg.append("g").attr("class","years").style("pointer-events","none"),
       gPts=svg.append("g"), gArr=svg.append("g").style("pointer-events","none"),
+      gFault=svg.append("g").attr("class","faults").style("pointer-events","none"),   // P52: the × over a fault day
       gTrace=svg.append("g"), gAxis=svg.append("g").attr("class","axis"),
       gArrW=svg.append("g").style("pointer-events","none");   // the n_species arrow's plain words (P45)
 const gCur=svg.append("circle").attr("fill","none").attr("stroke","var(--cur)").attr("stroke-width",2).style("display","none");
@@ -426,6 +428,11 @@ function draw(){
     .attr("class","wc-echo")
     .attr("cx",m=>X(m.pca_0)).attr("cy",m=>Y(m.pca_1)).attr("r",m=>rSize(m.nsp)+4).attr("fill","none")
     .attr("stroke",echColor).attr("stroke-width",1.5).attr("stroke-dasharray","3,2.5").attr("opacity",0.9);
+  // P52: a PROBABLE RECORDER FAULT (findings/14) - a small × over a fault day's dot (water, day resolution)
+  gFault.selectAll("*").remove();
+  if(resolution==="day" && window.WC && WC.isFault)
+    shown.filter(m=>WC.isFault(m.key)).forEach(m=>WC.faultX(gFault.append("g").attr("class","wc-fault-mark")
+      .attr("transform",`translate(${X(m.pca_0)},${Y(m.pca_1)})`), rSize(m.nsp)));
   // Both filters can close over each other (e.g. year 2024 + only 2023 months shown). Say so
   // rather than showing an empty square and letting it read as missing data.
   gEmpty.style("display", shown.length ? "none" : null)
@@ -491,7 +498,8 @@ function showTip(e,m){
     + nsp
     + (lens ? `<div><span class="k">${lens.label}</span>${wv==null?"—":(+wv).toFixed(1)}</div>` : "")
     + (window.WC && WC.traceNote ? WC.traceNote(selK(m)) : "")
-    + (isPart(m) ? WC.partialNote(m.key) : ""));
+    + (isPart(m) ? WC.partialNote(m.key) : "")
+    + (window.WC && WC.faultNote ? (resolution==="day" ? WC.faultNote(m.key) : WC.faultMonthFlagNote(m.key)) : ""));   // P52
   const host=document.getElementById("plot-wrap"), b=tip.node().getBoundingClientRect();
   const [mx,my]=d3.pointer(e,host);
   tip.style("left",Math.max(0,(mx+14+b.width >host.clientWidth ) ? mx-14-b.width  : mx+14)+"px")
@@ -508,6 +516,7 @@ function hover(m){
   d3.select("#m-nsp").text(channel==="water" ? "—" : m.nsp==null ? "not analysed" : m.nsp);
   d3.select("#m-pca").text(pl ? `${m.pca_0.toFixed(2)}, ${m.pca_1.toFixed(2)}` : "not placed (no BirdNET)");
   d3.select("#m-ret").text(m.returner ? "returner · "+retText(m.returner) : "returner —");
+  d3.select("#m-fault").html(window.WC && WC.faultNote ? (resolution==="day" ? WC.faultNote(m.key) : WC.faultMonthFlagNote(m.key)) : "");   // P52
   d3.select("#m-wx").text(wxText(m.wx));
   const host=d3.select("#m-feats"); host.selectAll("*").remove();
   Object.entries(m.feats).forEach(([k,v])=>host.append("div").attr("class","row")
@@ -617,7 +626,7 @@ function applyRes(){
   loadings = (resolution==="day" ? day_loadings : month_loadings);
   hovered=-1; curKey=null; gCur.style("display","none");
   d3.select("#m-cl").text("—"); d3.select("#m-nsp").text("—"); d3.select("#m-pca").text("—");
-  d3.select("#m-ret").text(""); d3.select("#m-feats").selectAll("*").remove();
+  d3.select("#m-ret").text(""); d3.select("#m-feats").selectAll("*").remove(); d3.select("#m-fault").html("");
   markRes(); drawYears(); renderMonthBar(); draw();
 }
 // year filter (mirrors the scatter): all | 2023.. — filters the shown points
@@ -691,6 +700,7 @@ async function connect(){
     if(m.type==="master"){ if(window.WC && WC.applyMaster) WC.applyMaster(m); return; }   // the master too (volume + mute): the bridge echoes it, the panel paints it
     if(m.type==="init"){
       window.RW_COVERAGE = m.coverage || {};           // per month: hours, windows, partial (bridge month_coverage)
+      window.RW_FAULTS = m.faults || [];               // P52: probable recorder-fault days (findings/14); [] on air
       channel=m.channel||"air"; channels=m.channels||[];
       if(window.WC && WC.channelPref()!==channel && channels.includes(WC.channelPref())){
         ws.send(JSON.stringify({type:"channel",channel:WC.channelPref()})); return; }

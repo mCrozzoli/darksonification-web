@@ -101,6 +101,7 @@ svg text { cursor:default }
     <div class="row"><span class="k">n_species</span><span class="v" id="i-nsp">—</span></div>
     <div class="row"><span class="k">top bird</span><span class="v" id="i-sp">—</span></div>
     <div id="i-ret" style="color:var(--rw-dawn); margin:3px 0"></div>
+    <div id="i-fault"></div>   <!-- P52: a probable recorder fault (findings/14), on water -->
     <div class="row"><span class="k">weather</span><span class="v" id="i-wx">—</span></div>
     <div id="i-ax" style="margin-top:8px"></div>
     <div class="wc-seglabel" style="color:var(--dim);font-size:11px;letter-spacing:.1em;margin:10px 0 6px">VIEW</div>
@@ -389,7 +390,7 @@ function markHead(){
   const d=curPoint;
   // no point in focus (a resolution / reading / channel change clears it): the claim goes, or a
   // released grouping would outlive its own caption in this line (review 2026-09-27)
-  if(!d){ d3.select("#i-head .k").text("· drag to hear"); return; }
+  if(!d){ d3.select("#i-head .k").text("· drag to hear"); d3.select("#i-fault").html(""); return; }
   const out = d.day!=null && outOfGroup(d.win);
   d3.select("#i-head").html(`${d.day==null?"MONTH":"WINDOW"} <span class="k" style="font-weight:normal">· `
     + (out ? `outside the ${dielFilter.toUpperCase()} grouping` : "drag to hear") + `</span>`);
@@ -492,7 +493,8 @@ function showTip(e,d){
     + tipAxes(d) + nsp
     + (d.sp ? `<div><span class="k">top bird</span>${d.sp}</div>` : "")
     + (window.WC && WC.traceNote ? WC.traceNote(selKey(d)) : "")
-    + (resolution==="month" && window.WC && WC.partialNote ? WC.partialNote(selKey(d)) : ""));
+    + (resolution==="month" && window.WC && WC.partialNote ? WC.partialNote(selKey(d)) : "")
+    + (window.WC && WC.faultNote ? (d.day!=null ? WC.faultNote(d.key) : WC.faultMonthNote(keyOf(d))) : ""));   // P52
   // placed in #facets' own pixels, so the last facet flips against the RIGHT EDGE OF THE
   // GRID rather than off it, and the box never sits on top of the point it describes.
   const host=document.getElementById("facets"), b=tip.node().getBoundingClientRect();
@@ -623,6 +625,14 @@ function draw(animate=false){
       d3.select(this).selectAll("circle").attr("r",r);
       d3.select(this).select("circle.ring").attr("stroke",c); });
     em.transition().duration(animate?650:0).attr("transform",at);
+    // P52: a PROBABLE RECORDER FAULT (findings/14) - a small × over each window of a fault day (water, day
+    // resolution), on a casing so it reads on any fill; it moves with its dot
+    let fg=svg.select("g.faults"); if(fg.empty()) fg=svg.insert("g","g.spokes").attr("class","faults").style("pointer-events","none");
+    const fx=fg.selectAll("g.wc-fault-mark").data(data.filter(d=>d.day!=null && shownPt(d) && window.WC && WC.isFault && WC.isFault(d.key)),idOf);
+    fx.exit().remove();
+    const fe=fx.enter().append("g").attr("class","wc-fault-mark").attr("transform",at);
+    fe.each(function(d){ WC.faultX(d3.select(this), rOf(d)); });
+    fe.merge(fx).transition().duration(animate?650:0).attr("transform",at);
     // DRAWN vs LIVE. A month outside the filter stays on the plot as a ghost (0.06) so the
     // shape of the whole record is still visible behind what you singled out — but it is
     // not LIVE: it is out of the quadtree, so it cannot be scrubbed or sounded, and
@@ -677,6 +687,7 @@ function hover(d){
   // water has no BirdNET: its points carry n_species 0, which is not "0 species" (2026-10-01, as on the biplot)
   d3.select("#i-nsp").text(noNsp ? "—" : d.nsp==null ? "not analysed" : d.nsp); d3.select("#i-sp").text(d.sp||"—");
   d3.select("#i-ret").text(d.returner ? "returner · "+retText(d.returner) : "returner —");
+  d3.select("#i-fault").html(window.WC && WC.faultNote ? (d.day!=null ? WC.faultNote(d.key) : WC.faultMonthNote(keyOf(d))) : "");   // P52
   d3.select("#i-wx").text(wxText(d.wx));
   if(d.air){                                          // combined: both channels' index values
     Object.keys(d.air).forEach(k=>host.append("div").attr("class","row")
@@ -846,6 +857,7 @@ async function connect(){
     if(m.type==="master"){ if(window.WC && WC.applyMaster) WC.applyMaster(m); return; }   // the master too (volume + mute): the bridge echoes it, the panel paints it
     if(m.type==="init"){
       window.RW_COVERAGE = m.coverage || {};           // per month: hours, windows, partial (bridge month_coverage)
+      window.RW_FAULTS = m.faults || [];               // P52: probable recorder-fault days (findings/14); [] on air
       channel=m.channel||"air"; channels=m.channels||[];
       if(window.WC && WC.channelPref()!==channel && channels.includes(WC.channelPref())){
         ws.send(JSON.stringify({type:"channel",channel:WC.channelPref()})); return; }   // honour saved choice
