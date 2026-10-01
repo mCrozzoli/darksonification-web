@@ -1,5 +1,5 @@
 {
-  "built": "2026-10-01 07:18:38",
+  "built": "2026-10-01 10:58:02",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "sources": {
     "viz/index.html": "6f7a45a31338a54a",
@@ -8,7 +8,7 @@
     "viz/linear.html": "3b514fc8f17c4630",
     "viz/spectro.html": "d1cb192bff07990c",
     "viz/mfcc.html": "4aa51280b847aa8c",
-    "viz/wc.js": "865a9eba248db295",
+    "viz/wc.js": "58b4f2ba76fe320c",
     "viz/legend.js": "8cb8b2543a6cc367",
     "viz/panel.js": "778a28a3555b778e",
     "viz/monthbar.js": "84c118427bb92383",
@@ -25,7 +25,7 @@
     "sc/dark_re_wilding_synths.scd": "5f92b0cd9fa752e6",
     "sc/parse_dark_re_wilding.scd": "904b5876dd9fc05e",
     "sc/rw_preview.scd": "eb85df98d8dea1d6",
-    "viz/rw_core.py": "f88fbb07bb8a4c05",
+    "viz/rw_core.py": "eedac0f80128a788",
     "viz/bridge.py (the shell; build_data.py's loaders, not shipped)": "233d51a63897c9b4",
     "sc/web_clips.scd (web only, hand-written)": "ee600e54d9f7e7fa"
   },

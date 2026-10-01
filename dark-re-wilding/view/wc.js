@@ -94,7 +94,8 @@ window.WC = (function () {
   const MIX_DEFAULTS = { month: [1, 1, 0, 0], day: [1, 1, 1, 1] };   // L0 / L1
   let mix = [1, 1, 1, 1];
   // MASTER volume + mute, as the bridge last echoed them ({type:"master", vol, mute} -> applyMaster).
-  // The bridge owns them since 2026-10-01 (rw_core SOUND["master"], which follows SC's own rule) and
+  // The bridge owns them since 2026-10-01 (rw_core SOUND["master"]: what SC plays; an un-mute returns
+  // to the volume before the mute, P51) and
   // echoes them when a page connects, after every change and on mixquery - so a view link no longer
   // restarts the slider at 0.8, unmuted, over an engine that is somewhere else. 0.8 / unmuted is only
   // what the panel shows until the first echo arrives.
@@ -784,8 +785,9 @@ window.WC = (function () {
     },
     // Paint MASTER from what the SERVER says ({type:"master", vol, mute}), as applyMix paints the
     // faders, and for the same reason: no onMaster, or the echo would bounce back as a gesture. The
-    // volume and the mute follow SC (rw_core SOUND["master"]): a volume move un-mutes, and an un-mute
-    // comes back at 1.00, because that is what SuperCollider's /rw_master does with them.
+    // volume and the mute are what SC plays (rw_core SOUND["master"]): a volume move un-mutes, and an
+    // un-mute comes back at the volume you had before muting (P51: the bridge sends that volume, which
+    // un-mutes SC by itself).
     applyMaster(p) {
       if (!p) return;
       if (typeof p.vol === "number") master.vol = Math.max(0, Math.min(1, p.vol));

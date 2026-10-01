@@ -1926,12 +1926,9 @@ def legend_relay(m: dict):
     if cmd == "mute":
         if _osc_ok():
             try:
-                _mute = int(m.get("value", 0))
-                _SEND_OSC("/rw_master", ["mute", _mute])
+                _rw_master_mute(int(m.get("value", 0)))   # an un-mute brings the volume back (P51)
             except OSError:
-                pass
-            else:
-                _rw_master_sent("mute", _mute)       # the master echo follows (dispatch)
+                pass                                      # the master echo follows (dispatch)
         return None
     if cmd:
         print(f"  [rw] legend: unknown command {cmd!r}, ignored")
@@ -1943,8 +1940,9 @@ def master_relay(m: dict):
 
     This was still addressed to /dark_master after the v2 port, which nothing listens for,
     so the master fader and mute were silently dead. Since 2026-10-01 each message that went
-    out also moves SOUND["master"] the way SC moves its bus (_rw_master_sent, below);
-    dispatch echoes it."""
+    out also moves SOUND["master"] the way SC moves its bus (_rw_master_sent, below), an
+    un-mute is sent as the volume the listener had (_rw_master_mute, P51), and dispatch
+    echoes the result."""
     if not _osc_ok():
         return
     try:
@@ -1953,9 +1951,7 @@ def master_relay(m: dict):
             _SEND_OSC("/rw_master", ["vol", _vol])
             _rw_master_sent("vol", _vol)
         if m.get("mute") is not None:
-            _mute = int(bool(m["mute"]))
-            _SEND_OSC("/rw_master", ["mute", _mute])
-            _rw_master_sent("mute", _mute)
+            _rw_master_mute(int(bool(m["mute"])))      # an un-mute brings the volume back (P51)
     except (OSError, TypeError, ValueError):
         pass
 
@@ -2023,19 +2019,27 @@ def load_push(ch: str, level: str, side: dict):
 # Now the bridge OWNS the master, as it owns the mix: SOUND["master"] is what SC is doing, echoed
 # as {type:"master", vol, mute} to every page after each change, to a page when it attaches, and
 # on mixquery; wc.js paints the slider and the mute button from it (applyMaster).
-# IT FOLLOWS SC'S OWN RULE, not the page's picture of two separate controls. OSCdef(\rwMaster)
-# (sc/parse_dark_re_wilding.scd:286-289) keeps ONE bus: `vol v` sets it to v - so moving the
-# volume also un-mutes - `mute 1` sets it to 0 and any other mute value to 1. So an UN-MUTE IS
-# HEARD AT 1.0, not at the slider's last volume, and the echo then says 1.0. Nothing new goes to
-# SC: the OSC is exactly what it was. The start, 1.0 and unmuted, is SC's own (parse:32 sets the
-# bus to 1); SC sends nothing back, so a bridge restarted against an engine someone had muted
-# shows it unmuted until the master is next touched. The web sets its own start (0.8, D10)
-# before a page attaches.
+# SC KEEPS ONE BUS. OSCdef(\rwMaster) (sc/parse_dark_re_wilding.scd:286-289): `vol v` sets it to
+# v - so moving the volume also un-mutes, the rule kept here - `mute 1` sets it to 0, and any
+# other mute value sets it to 1.0 (the bridge sends none any more: an un-mute goes out as `vol`).
+# _rw_master_sent applies that rule to each message that went out, so SOUND is what SC is doing
+# after every one of them.
+# AN UN-MUTE RETURNS TO THE VOLUME YOU HAD (Miguel 2026-10-01, TASKS P51), SENT AS THAT VOLUME
+# ALONE: _rw_master_mute turns every un-mute - the MASTER button's or the legend's - into
+# /rw_master vol <the volume before the mute>. SC's `vol` sets the bus, so it un-mutes by itself,
+# straight from 0 to the volume. Not `mute 0` + `vol`: SC's `mute 0` sets the bus to 1.0, and an
+# scsynth audio callback falling between the two would play it for ~11.6 ms, a bump through
+# \rwLimiter's 0.05 s Lag (DECISIONS 2026-10-01). A volume of 0.0 un-mutes at silence: it is the
+# volume you had, and the slider shows 0.00. A mute is still `mute 1`. Until 2026-10-01 an un-mute
+# was SC's own `mute 0`, heard at 1.0 whatever the slider showed.
+# The start, 1.0 and unmuted, is SC's own (parse:32 sets the bus to 1); SC sends nothing back, so
+# a bridge restarted against an engine someone had muted shows it unmuted until the master is
+# next touched. The web sets its own start (0.8, D10) before a page attaches.
 SOUND = {"master": {"vol": 1.0, "mute": 0}}
 
 
 def _rw_master_sent(verb: str, x):
-    """SOUND["master"] after SC applied one /rw_master message (the rule above)."""
+    """SOUND["master"] after SC applied one /rw_master message (SC's rule, above)."""
     s = SOUND["master"]
     if verb == "vol":
         s["vol"], s["mute"] = float(x), 0
@@ -2043,6 +2047,19 @@ def _rw_master_sent(verb: str, x):
         s["mute"] = 1
     else:
         s["vol"], s["mute"] = 1.0, 0
+
+
+def _rw_master_mute(x: int):
+    """A MUTE (x == 1) is /rw_master mute 1. An UN-MUTE (any other x, as SC reads it) is sent as
+    /rw_master vol <the volume before the mute> (P51): SC's `vol` un-mutes by itself, straight from
+    0 to that volume, where its own un-mute would set 1.0. SOUND follows SC after the message."""
+    if int(x) == 1:
+        _SEND_OSC("/rw_master", ["mute", x])
+        _rw_master_sent("mute", x)
+    else:
+        vol = float(SOUND["master"]["vol"])
+        _SEND_OSC("/rw_master", ["vol", vol])
+        _rw_master_sent("vol", vol)
 
 
 def master_echo() -> dict:
