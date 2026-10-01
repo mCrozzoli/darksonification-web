@@ -1,793 +1,109 @@
 #!/usr/bin/env python3
-"""J1 — all-windows faceted scatter bridge for dark_re_wilding.
+"""dark_re_wilding - the bridge's COOKING, without its sockets (web Phase 1, 2026-10-01).
 
-Standalone (no GUI): loads the raw L1 CSV (~2388 day×ecological-window rows),
-serves them to the browser over WebSocket, and relays browser hover → SC as
-/dark_nav so every window is AUDIBLE via the sound engine (sc/).
+Plan: lab/WEB_PLAN.md (P1, section 3.3). Decision: lab/DECISIONS.md 2026-10-01. Hand-off to the web
+session: viz/HANDOFF_WEB_2026-10-01.md.
 
-This answers Alice's N1: the FINE points (every ecological window), coloured by
-month, faceted by diel phase — not the mean-collapsed monthly scatter.
+What decides what SuperCollider hears and what the pages are told back, and the state it keeps: the
+navigation (a press -> a precomputed point -> /rw_drone /rw_clave /rw_arp /rw_corpus /rw_point), the
+identity (/rw_identity, re-sent when the room, the level or the table channel changes), the rooms of
+each open view and their owner (P35), the silence of a channel without tables, the drone reading
+(stat), the mix and its echo, the master and its echo, the legend's push tier (/rw_preview: hold,
+release, probe) and the routing of the page protocol. It was viz/bridge.py's body until 2026-10-01;
+the code moved here as it was (the transport calls aside), so the three harnesses still compare it
+byte for byte. viz/bridge.py is now the SHELL around it (HTTP, the WebSocket loop, python-osc, the
+loaders, the GUI link) and the web version runs this same file in the browser (Pyodide). Hence:
 
-Data flow:
-  L1 CSV ── load+normalize ──▶ WS init(rows) ──▶ browser faceted scatter
-  browser hover {idx} ── WS ──▶ bridge ── /dark_nav ──▶ SC :57120 (bed+drone morph)
+  * STANDARD LIBRARY ONLY (bisect, math, time), and importing it does nothing: no file, no socket,
+    no print.
+  * THE TRANSPORT IS INJECTED, never imported:
+        bind(send_osc, send_json=None, broadcast=None, osc_live=None)  -> the binding it replaced
+            send_osc(addr, args)    python-osc style. Every arg keeps its Python type - a float stays
+                                    a float, an int an int - because python-osc (and the web's shim)
+                                    picks the OSC type from it.
+            send_json(client, d)    a reply to ONE page (a dict; the transport serialises it)
+            broadcast(d)            an echo to EVERY page; None = send_json to each attached client
+            osc_live()              optional: is there an engine to send to (the desktop: sc_client set)
+  * THE DATA IS HANDED OVER as plain data, never read here (the desktop's loaders are in bridge.py):
+        load_channel(ch, payload)           rows / returner / raw_series of one display channel
+        load_tables(ch, stat, level, d)     one rw_tables_<level>_<stat>.json, its corpus as clip IDS
+        load_push(ch, level, d)             one rw_push_<level>.json
+        provide(init_payload=, spectral_day=, tables=, push=)   optional sources the core calls on
+                                            demand (the desktop binds its loaders; the web need not)
+  * THE PAGE PROTOCOL, synchronous; `client` is any hashable object (a websocket, a page id):
+        attach(client)        a page connected   -> to it: init (if a source is bound), the master echo
+        dispatch(client, m)   one page message   -> OSC out; replies to it; echoes to every page
+        detach(client)        a page went away   -> its rooms go; a held legend chip is released
 
-Keeps the C5 §5.0 hardening: HTTP/WS auto-pick, .viz_ports.json contract,
-per-launch cache-bust token, no-cache HTTP, parent-death watch.
-Run via viz/dark_re_wilding_viz.command, or:  <venv>/bin/python bridge.py
+CLIP IDS. A corpus clip is named by its path RELATIVE TO darkdata/corpus/, POSIX, e.g.
+"turdus_merula/turdus_merula_2023_03_0.wav" - in the tables' corpus, in RETURNER, and in /rw_corpus as
+it leaves here. The desktop's send_osc joins the corpus root back on for SC (bridge.clip_path); the
+web maps the same ids to its Opus files.
 """
 from __future__ import annotations
-import asyncio
 import bisect
-import csv
-import json
-import statistics
 import math
-import os
-import socket
-import sys
-import threading
 import time
-from http.server import HTTPServer, SimpleHTTPRequestHandler
-from pathlib import Path
-
-_INSTALL = ("  Install into a Python that also has pandas/pyarrow:\n"
-            "      pip install websockets python-osc\n"
-            "  (or use the repo .darkson.venv)\n")
-try:
-    import websockets
-except ImportError:
-    sys.exit("error: websockets not installed.\n" + _INSTALL)
-try:
-    from pythonosc.udp_client import SimpleUDPClient
-except ImportError:
-    sys.exit("error: python-osc not installed.\n" + _INSTALL)
-
-ROOT = Path(__file__).resolve().parent          # viz/
-DESIGN = ROOT.parent                            # dark_re_wilding/
-CSV_PATH = DESIGN / "data" / "wildnings_air_L1.csv"
-WEB_CONTROL = DESIGN / ".AIhelper" / "web_control.json"   # GUI 'web' controller port (§B2.21)
-
-
-_WC_PROBE = {"key": None, "ok": False, "t": 0.0}
-
-
-def _web_ws_alive(host: str, port: int) -> bool:
-    """True iff a live WebSocket server answers on the advertised control port.
-
-    web_control.json can be a leftover from a darkui session that died without
-    cleanup; forwarding its dead port would send the page into an endless WS
-    reconnect loop. A real (0.3 s-capped) WS handshake tells live from stale —
-    and stays silent GUI-side, where a bare TCP poke would make the
-    WebController log a handshake-failure traceback on every probe. Falls back
-    to a plain TCP connect on websockets builds without the sync client.
-    Cached ~2 s per (host, port): callers poll several times a second.
-    """
-    key = (host, port)
-    now = time.monotonic()
-    if _WC_PROBE["key"] == key and now - _WC_PROBE["t"] < 2.0:
-        return _WC_PROBE["ok"]
-    try:
-        from websockets.sync.client import connect as _ws_connect
-        try:
-            with _ws_connect(f"ws://{host}:{port}", open_timeout=0.3,
-                             close_timeout=0.3):
-                ok = True
-        except Exception:
-            ok = False
-    except ImportError:
-        try:
-            with socket.create_connection((host, port), timeout=0.3):
-                ok = True
-        except OSError:
-            ok = False
-    _WC_PROBE.update(key=key, ok=ok, t=now)
-    return ok
-
-
-def read_web_control():
-    """GUI WebController discovery file -> {"web_ws": port} or None (§B2.21).
-    Lets the page's DarkWebControl connect when darkui runs the 'web' controller."""
-    try:
-        d = json.loads(WEB_CONTROL.read_text(encoding="utf-8"))
-        if not (isinstance(d, dict) and d.get("web_ws")):
-            return None
-        # Stale-file guard: a darkui session that died uncleanly leaves this
-        # file behind; only forward a port something actually listens on.
-        if not _web_ws_alive(str(d.get("host") or "127.0.0.1"), int(d["web_ws"])):
-            return None
-        return d
-    except (OSError, ValueError, TypeError):
-        return None
-
-# =========================================================================
-# DESIGN CONFIG
-# =========================================================================
-# SC sound engine (sc/) listens for /dark_nav on this port (langPort).
-SC_HOST = "127.0.0.1"
-SC_PORT = int(os.environ.get("SC_PORT_OVERRIDE", 57120))
-
-# CSV column -> the plot-axis key the browser uses. All min-max normalised 0..1
-# (shared across facets so the 4 diel panels are comparable).
-# BIRDNET RICHNESS IS `n_species_analysed` (2026-09-29, dev/precompute/birdnet_nsp_fix.py): species
-# per minute over the minutes BirdNET ANALYSED. `n_species_mean` counted every minute of the 1,572
-# hour files BirdNET could not decode as a minute with no species; it stays in the CSV, untouched,
-# and nothing here reads it any more. Where BirdNET analysed no minute (40 windows) the value is
-# UNKNOWN: None on the wire, never 0.0 - a "0 species" there was the very lie the fix removes.
-NSP_COL = "n_species_analysed"
-BN_COL = "birdnet_minutes"
-# THE INDEX PICKER'S LIST (roses + linear), in the pickers' order. AEI and BI joined on 2026-09-30
-# (Miguel's design, lab/DECISIONS.md 2026-09-30): two of the biplot's seven measures the pickers
-# lacked, so Alice's Q1b "AEI fell in both" can be seen on a rose. AEI is drawn AS MEASURED - higher =
-# more uneven, never flipped - and the pages gloss both wherever they name them (legend.js GLOSS).
-# The picker only changes the picture: nothing here reaches the engine. The scatter's readings are
-# NOT this list (gen_embeddings.py AX_SHORT keeps its six, and the biplot has its own seven).
-AX_COLS = {
-    "ACI":       "ACI_mean",
-    "AEI":       "AEI_mean",
-    "BI":        "BI_mean",
-    "Ht":        "Ht_mean",
-    "n_species": NSP_COL,
-    "Anthro":    "AnthroEnergy_mean",
-    "Bio":       "BioEnergy_mean",
-    "NBPEAKS":   "NBPEAKS_mean",
-}
-# CSV column -> SC driver name (~cookL1 keys, all 0..1). balance is derived.
-DRV_COLS = {
-    "aci":          "ACI_mean",
-    "bioenergy":    "BioEnergy_mean",
-    "anthroenergy": "AnthroEnergy_mean",
-    "nbpeaks":      "NBPEAKS_mean",
-    "bright":       "Ht_mean",
-}
-NDSI_COL = "NDSI_mean"          # -> 'balance' driver, mapped (x+1)/2
-SPECIES_COL = "top_species_k0_common"
-DIEL_ORDER = ["dawn", "day", "dusk", "night"]
-
-# =========================================================================
-# Port policy (C5 §5.0). HTTP/WS auto-picked; no OSC-in (J1 is browser-driven).
-# =========================================================================
-WS_PORT_DEFAULT = 8765
-HTTP_PORT_DEFAULT = 8000
-PORT_SPAN = 100
-
-
-def _find_free_port(start: int, span: int = PORT_SPAN) -> int:
-    for p in range(start, start + span):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            try:
-                s.bind(("127.0.0.1", p))
-                return p
-            except OSError:
-                continue
-    raise RuntimeError(f"No free port in [{start}, {start+span}).")
-
-
-def _start_parent_death_watch() -> None:
-    """Self-terminate when the launching shell dies (SIGKILL/force-quit)."""
-    original_parent = os.getppid()
-    if original_parent <= 1:
-        return
-
-    def _watch():
-        while True:
-            try:
-                cur = os.getppid()
-            except OSError:
-                return
-            if cur != original_parent or cur <= 1:
-                os._exit(0)
-            time.sleep(2.0)
-
-    threading.Thread(target=_watch, daemon=True, name="parent-watch").start()
-
-
-def _arg(flag: str):
-    """Read `--flag VALUE` from argv (house convention, matches sibling bridges)."""
-    if flag in sys.argv:
-        i = sys.argv.index(flag)
-        if i + 1 < len(sys.argv):
-            return sys.argv[i + 1]
-    return None
-
-
-_http_pin = int(_arg("--http") or os.environ.get("HTTP_PORT_OVERRIDE") or 0)
-_ws_pin = int(_arg("--ws") or os.environ.get("WS_PORT_OVERRIDE") or 0)
-try:
-    HTTP_PORT = _http_pin or _find_free_port(HTTP_PORT_DEFAULT)
-    WS_PORT = _ws_pin or _find_free_port(WS_PORT_DEFAULT)
-except RuntimeError as _e:
-    sys.exit(f"error: {_e}")
-
-_SESSION_TOKEN = int(time.time_ns())
-_VIZ_URL = (f"http://127.0.0.1:{HTTP_PORT}/index.html"
-            f"?ws={WS_PORT}&_sid={_SESSION_TOKEN}")
-
-clients: set = set()
-main_loop: asyncio.AbstractEventLoop | None = None
-rows: list = []
-roses: list = []
-l0months: list = []       # J4 biplot: engine's L0 months (pca_0/pca_1 + clusters)
-loadings: dict = {}       # J4 biplot: engine PCA loadings (from gen_pca_loadings.py)
-spectral: list = []       # spectrogram: per-month freq-band x hour LDFC matrices
-spectral_meta: dict = {}  # {bands_hz, hours, synthetic}
-mfcc: list = []           # cepstral fingerprint: per-month coeff x hour matrices (REAL)
-mfcc_meta: dict = {}      # {n_coeffs, hours, labels, ranges, synthetic}
-embeddings: dict = {}     # scatter month-readings: per-(month,diel) PCA/UMAP/SOM (shared space)
-sc_client: SimpleUDPClient | None = None
-_MON = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-
 
 # ---------------------------------------------------------------------------
-# load + normalise the L1 windows
+# shared with the loaders (bridge.py takes these two from here)
 # ---------------------------------------------------------------------------
-def _to_float(v):
-    try:
-        f = float(v)
-        return f if f == f else None      # drop NaN
-    except (TypeError, ValueError):
-        return None
+DIEL_ORDER = ["dawn", "day", "dusk", "night"]   # the TIME order of a key's last part
+NSP_COL = "n_species_analysed"                  # BirdNET richness, the column the push tier names
+                                                # (why this column: bridge.py, above AX_COLS)
+
+# ============================================================================
+# THE TRANSPORT AND THE DATA SOURCES - injected, never imported (see the docstring)
+# ============================================================================
+_SEND_OSC = None         # send_osc(addr, args)
+_SEND_JSON = None        # send_json(client, dict)
+_BROADCAST = None        # broadcast(dict); None = send_json to every attached client
+_OSC_LIVE = None         # osc_live() -> bool; None = live whenever send_osc is bound
+_INIT_PAYLOAD = None     # init_payload(channel) -> the `init` dict        (desktop: bridge.init_payload)
+_SPECTRAL_DAY = None     # spectral_day(msg) -> the `spectral_day` reply   (desktop: bridge.spectral_day_reply)
+_TABLES_SOURCE = None    # tables(ch, stat, level) -> a table dict, None if never built (bridge.read_rw_tables)
+_PUSH_SOURCE = None      # push(ch, level) -> a side-file dict, None if never built     (bridge.read_rw_push)
+CLIENTS: list = []       # the attached pages, oldest first (attach / detach)
 
 
-def load_rows(channel="air"):
-    csv_path = DESIGN / "data" / f"wildnings_{channel}_L1.csv"
-    if not csv_path.exists():
-        print(f"  [load:{channel}] {csv_path.name} not found."); return []
-    with open(csv_path, newline="") as fh:
-        raw = list(csv.DictReader(fh))
-    needed = set(AX_COLS.values()) | set(DRV_COLS.values()) | {NDSI_COL}
-    # per-column robust min/max (1st..99th pct) for stable axes despite outliers
-    stats = {}
-    for col in needed:
-        vals = sorted(v for v in (_to_float(r.get(col)) for r in raw) if v is not None)
-        if not vals:
-            stats[col] = (0.0, 1.0); continue
-        lo = vals[int(0.01 * (len(vals) - 1))]
-        hi = vals[int(0.99 * (len(vals) - 1))]
-        stats[col] = (lo, hi if hi > lo else lo + 1e-9)
-
-    def norm(col, v):
-        if v is None:
-            return None
-        lo, hi = stats[col]
-        return max(0.0, min(1.0, (v - lo) / (hi - lo)))
-
-    out = []
-    # THE RAW COLUMN, KEPT FOR RANKING ONLY. `norm` above clamps to the 1st-99th percentile,
-    # so on 2388 windows about 24 sit at exactly 0.0 and 24 at exactly 1.0 for every
-    # percentile-normalised driver. The legend used to sort those (value, key) pairs,
-    # which broke a 25-WAY TIE ALPHABETICALLY BY DATE STRING - so the legend's "hold for the
-    # most X window" played the alphabetically last member of the tie, not the record-holder.
-    # Measured 2026-09-24: the Anthro chip played a window at raw 24.25 when the record is
-    # 113.8, and five of the seven rows were wrong the same way, while the bridge's own
-    # docstring promised "the superlatives, without inventing anything". Ranking has to see
-    # the unclamped number. This never reaches the browser - init_payload names its keys.
-    raw_series = {f: [] for f in RW_FEATURES}
-    for i, r in enumerate(raw):
-        win = (r.get("ecological_window") or "").strip().lower()
-        if win not in DIEL_ORDER:
-            continue
-        ax = {k: norm(c, _to_float(r.get(c))) for k, c in AX_COLS.items()}
-        drv = {k: norm(c, _to_float(r.get(c))) for k, c in DRV_COLS.items()}
-        ndsi = _to_float(r.get(NDSI_COL))
-        drv["balance"] = None if ndsi is None else max(0.0, min(1.0, (ndsi + 1.0) / 2.0))
-        nsp = _to_float(r.get(NSP_COL))            # None = BirdNET analysed no minute of it
-        _rk = f"{int(_to_float(r.get('year')) or 0)}|{int(_to_float(r.get('month')) or 0)}|" \
-              f"{int(_to_float(r.get('day')) or 0)}|{win}"
-        for _f, _c in DRV_COLS.items():
-            _v = _to_float(r.get(_c))
-            if _v is not None:
-                raw_series[_f].append((_v, _rk))
-        if ndsi is not None:                       # NDSI is [-1,1] and never clamped, but rank
-            raw_series["balance"].append((ndsi, _rk))   # it on the raw value for consistency
-        if nsp is not None:                        # an unknown richness is not ranked (it is not 0)
-            raw_series["nsp"].append((nsp, _rk))
-        out.append({
-            "idx": len(out),
-            "y": int(_to_float(r.get("year")) or 0),
-            "m": int(_to_float(r.get("month")) or 0),
-            "d": int(_to_float(r.get("day")) or 0),
-            "win": win,
-            # recorded minutes behind this window (L1 n_minutes): what the roses' calendar fades by
-            # (TASKS P33), like spectro/mfcc's DAY cells - under 30 min faded, 5 or fewer fainter
-            "nmin": int(_to_float(r.get("n_minutes")) or 0),
-            "nsp": None if nsp is None else round(nsp, 2),
-            # the minutes BirdNET analysed: what the roses weight the n_species vertex by
-            "bnm": int(_to_float(r.get(BN_COL)) or 0),
-            "sp": (r.get(SPECIES_COL) or "").strip() or None,
-            "ax": ax,
-            "drv": {k: (0.0 if v is None else round(v, 4)) for k, v in drv.items()},
-            "_corpus": _corpus_focal(r.get),    # focal top-bird clip; popped before WS (build_channel)
-        })
-    for _f in raw_series:
-        raw_series[_f].sort(key=lambda t: t[0])    # on the RAW value; ties keep input order
-    _RW_RAW_SERIES[("L1", channel)] = raw_series
-    _RW_LEVEL_STATS.pop("L1", None)                # a rebuild must not serve a stale ranking
-    counts = {w: sum(1 for r in out if r["win"] == w) for w in DIEL_ORDER}
-    print(f"  [load] {len(out)} L1 windows  "
-          + "  ".join(f"{w}:{counts[w]}" for w in DIEL_ORDER))
-    return out
+def bind(send_osc, send_json=None, broadcast=None, osc_live=None) -> dict:
+    """Inject the transport. Returns the binding it replaced, so a check can put it back:
+    prev = bind(...); ...; bind(**prev)."""
+    global _SEND_OSC, _SEND_JSON, _BROADCAST, _OSC_LIVE
+    prev = {"send_osc": _SEND_OSC, "send_json": _SEND_JSON, "broadcast": _BROADCAST,
+            "osc_live": _OSC_LIVE}
+    _SEND_OSC, _SEND_JSON, _BROADCAST, _OSC_LIVE = send_osc, send_json, broadcast, osc_live
+    return prev
 
 
-def build_roses(win_rows):
-    """Aggregate windows -> per-month diel roses (J3). Each month = the mean of
-    each index per ecological window (the 4 rose vertices) + the mean SC drivers
-    (for hover-sound) + per-day ax values (for the faint variability overlay)."""
-    from collections import defaultdict
-    groups = defaultdict(list)
-    for r in win_rows:
-        groups[(r["y"], r["m"])].append(r)
-    ax_keys = list(AX_COLS.keys())
-    drv_keys = list(DRV_COLS.keys()) + ["balance"]
-
-    def mean(vals):
-        vals = [v for v in vals if v is not None]
-        return round(sum(vals) / len(vals), 4) if vals else None
-
-    def wmean(pairs):
-        # n_species: weighted by the minutes BirdNET analysed, the one aggregate of that column
-        # (birdnet_nsp_fix.py) - a window with 10 analysed minutes must not count as much as one
-        # with 300; a window with none has no value and no weight
-        pairs = [(v, w) for v, w in pairs if v is not None and w and w > 0]
-        den = sum(w for _, w in pairs)
-        return round(sum(v * w for v, w in pairs) / den, 4) if den > 0 else None
-
-    out = []
-    for (yr, mo), rs in sorted(groups.items()):
-        win = {}
-        for w in DIEL_ORDER:
-            wr = [r for r in rs if r["win"] == w]
-            win[w] = None if not wr else {
-                "ax": {k: (wmean([(r["ax"][k], r.get("bnm", 0)) for r in wr]) if k == "n_species"
-                           else mean([r["ax"][k] for r in wr])) for k in ax_keys},
-                "drv": {k: mean([r["drv"][k] for r in wr]) for k in drv_keys},
-                "n": len(wr),
-            }
-        byday = defaultdict(dict)
-        bymin = defaultdict(dict)                  # day -> {window: recorded minutes}
-        for r in rs:
-            byday[r["d"]][r["win"]] = r["ax"]
-            bymin[r["d"]][r["win"]] = r.get("nmin", 0)
-        days = [{"d": d, **{w: byday[d].get(w) for w in DIEL_ORDER}, "nm": bymin[d]}
-                for d in sorted(byday)]
-        out.append({"key": f"{yr}-{mo:02d}", "year": yr, "month": mo,
-                    "ndays": len(days), "win": win, "days": days})
-    print(f"  [roses] {len(out)} month roses "
-          f"({min(r['year'] for r in out)}-{max(r['year'] for r in out)})")
-    return out
+def provide(init_payload=None, spectral_day=None, tables=None, push=None) -> dict:
+    """Inject the data sources, all optional. Returns the ones it replaced: provide(**prev)."""
+    global _INIT_PAYLOAD, _SPECTRAL_DAY, _TABLES_SOURCE, _PUSH_SOURCE
+    prev = {"init_payload": _INIT_PAYLOAD, "spectral_day": _SPECTRAL_DAY,
+            "tables": _TABLES_SOURCE, "push": _PUSH_SOURCE}
+    _INIT_PAYLOAD, _SPECTRAL_DAY, _TABLES_SOURCE, _PUSH_SOURCE = init_payload, spectral_day, tables, push
+    return prev
 
 
-def compute_returners(l0months):
-    """Per month, the 'returner' = the most phenologically-surprising species: one
-    that reappears after a calendar-month absence (migrant return), weighted by
-    rarity (globally uncommon) x confidence. conf>=0.5 gating happens upstream
-    (avoids BirdNET false positives, cf. Alice). A species never seen before is
-    flagged kind='first' (verify by ear) and only wins when no real return exists.
-    Sets m['returner'] = {common, conf, ndet, gap(months|None), kind} or None."""
-    order = sorted(l0months, key=lambda m: (m["year"], m["month"]))
-    total = {}
-    for m in order:
-        for (common, _c, _n) in m.get("_species", []):
-            total[common] = total.get(common, 0) + 1
-    last = {}                                   # species -> (year, month) last seen
-    for m in order:
-        best = None
-        for (common, conf, ndet) in m.get("_species", []):
-            rarity = 1.0 / total.get(common, 1)
-            prev = last.get(common)
-            if prev is None:
-                score, gap, kind = 0.5 * conf * rarity, None, "first"
-            else:
-                gap = (m["year"] - prev[0]) * 12 + (m["month"] - prev[1])
-                if gap < 2:                     # seen recently -> resident, not surprising
-                    continue
-                score, kind = min(gap, 18) * conf * rarity, "return"
-            cand = {"common": common, "conf": round(conf, 2), "ndet": int(ndet),
-                    "gap": gap, "kind": kind, "_score": score}
-            if best is None or cand["_score"] > best["_score"]:
-                best = cand
-        for (common, _c, _n) in m.get("_species", []):
-            last[common] = (m["year"], m["month"])
-        m["returner"] = {k: v for k, v in best.items() if k != "_score"} if best else None
+def _osc_ok() -> bool:
+    """Is there an engine to send to? What `sc_client is not None` said before the split."""
+    return _SEND_OSC is not None and (_OSC_LIVE is None or bool(_OSC_LIVE()))
 
 
-def load_l0(channel="air"):
-    """J4 biplot L0 months. AIR = the ENGINE's darkdata/darkdf_l0.parquet for the months, their
-    drivers and their BirdNET species (-> returner, corpus), with the BirdNET-dependent ordination
-    taken from data/l0.json (below). WATER = the project-side reproduction data/water_l0.json (no
-    BirdNET/returner).
-
-    THE AIR ORDINATION IS THE ENGINE'S RECIPE RE-FITTED ON THE CORRECTED COLUMN (2026-09-29).
-    The parquet was built by the GUI from n_species_mean, which counted every minute BirdNET could
-    not decode as zero species, and it can only be rebuilt in darkui (Run All + Save). Its `nsp`
-    was also the engine's MinMax-NORMALISED richness (0..1), not species per minute, so the dot
-    size and the hover were never species. viz/gen_l0.py air month re-fits the engine's own recipe
-    (read off the .darkproj; it reproduces the parquet exactly on the original column) on
-    n_species_analysed and writes data/l0.json; its pca_0/1, kmeans, dbscan, anomaly, nsp and feats
-    replace the parquet's here. Everything else stays the parquet's, and ALL 34 months stay: the
-    returner and the corpus (both navigation OSC) are month properties that do not depend on the
-    richness value, and dropping a month would change them. A month BirdNET never analysed
-    (2023-08) arrives with pca_0 = pca_1 = null and nsp = null: kept, not placed."""
-    if channel != "air":
-        p = DESIGN / "data" / f"{channel}_l0.json"
-        if not p.exists():
-            print(f"  [l0:{channel}] {p.name} not found; biplot disabled"); return []
-        try:
-            out = json.loads(p.read_text())
-        except (OSError, ValueError) as e:
-            print(f"  [l0:{channel}] failed: {e}"); return []
-        print(f"  [l0:{channel}] {len(out)} months (biplot, project-side; no BirdNET/returner)")
-        return out
-    try:
-        import pandas as pd
-    except ImportError:
-        print("  [l0] pandas unavailable; biplot disabled"); return []
-    pq = DESIGN / "darkdata" / "darkdf_l0.parquet"
-    if not pq.exists():
-        print(f"  [l0] {pq.name} not found; biplot disabled"); return []
-    df = pd.read_parquet(pq)
-    CUR = {"ACI": "ACI_mean", "AEI": "AEI_mean", "BI": "BI_mean", "Bio": "BioEnergy_mean",
-           "Anthro": "AnthroEnergy_mean", "NBPEAKS": "NBPEAKS_mean", "n_species": "n_species_mean"}
-    DRV = {"aci": "ACI_mean", "bioenergy": "BioEnergy_mean", "anthroenergy": "AnthroEnergy_mean",
-           "nbpeaks": "NBPEAKS_mean", "bright": "Ht_mean"}
-
-    def scaler(col):
-        if col not in df.columns:
-            return lambda v: None
-        s = df[col].astype(float); lo, hi = s.quantile(0.01), s.quantile(0.99)
-        rng = (hi - lo) or 1e-9
-        return lambda v: None if pd.isna(v) else max(0.0, min(1.0, (float(v) - lo) / rng))
-
-    cur_sc = {k: scaler(c) for k, c in CUR.items()}
-    drv_sc = {k: scaler(c) for k, c in DRV.items()}
-    out = []
-    for i, (_, r) in enumerate(df.iterrows()):
-        try:
-            mm, yy = str(r["_id"]).split("_")[:2]; month, year = int(mm), int(yy)
-        except (ValueError, KeyError):
-            month, year = 0, 0
-        ndsi = r.get("NDSI_mean")
-        drv = {k: (drv_sc[k](r.get(DRV[k])) or 0.0) for k in DRV}
-        drv["balance"] = 0.0 if (ndsi is None or pd.isna(ndsi)) else max(0.0, min(1.0, (float(ndsi) + 1) / 2))
-        # conf-gated top-K species -> feeds the returner (phenological surprise)
-        species = []
-        for k in range(20):
-            common = r.get(f"top_species_k{k}_common")
-            conf = r.get(f"top_species_k{k}_conf_mean")
-            ndet = r.get(f"top_species_k{k}_n_det")
-            if isinstance(common, str) and common.strip() and conf is not None \
-                    and not pd.isna(conf) and float(conf) >= 0.5:
-                species.append((common.strip(), float(conf),
-                                float(ndet) if (ndet is not None and not pd.isna(ndet)) else 0.0))
-        out.append({
-            "idx": i, "key": f"{year}-{month:02d}", "label": f"{_MON[month]} {year}" if month else str(r.get("_id")),
-            "year": year, "month": month,
-            "pca_0": float(r["pca_0"]), "pca_1": float(r["pca_1"]),
-            "kmeans": int(r.get("kmeans_cluster", -1)), "dbscan": int(r.get("dbscan_cluster", -1)),
-            "anomaly": int(r.get("anomaly_label", 1)) == -1,
-            "nsp": round(float(r.get("n_species_mean") or 0), 2),
-            "feats": {k: (round(cur_sc[k](r.get(CUR[k])), 3) if cur_sc[k](r.get(CUR[k])) is not None else None) for k in CUR},
-            "drv": {k: round(v, 4) for k, v in drv.items()},
-            "_species": species,
-            "_corpus": _corpus_focal(r.get),    # focal top-bird clip; popped before WS
-            "_spfiles": _species_files(r.get),  # common->file, for the returner clip; popped below
-        })
-    # the BirdNET-dependent ordination, from the corrected re-fit (see the docstring)
-    refit_p = DESIGN / "data" / "l0.json"
-    try:
-        refit = {p["key"]: p for p in json.loads(refit_p.read_text())}
-    except (OSError, ValueError) as e:
-        refit = {}
-        print(f"  [l0] {refit_p.name} unavailable ({e}) - the biplot shows the ENGINE's ordination, "
-              f"built on the uncorrected n_species_mean; run viz/gen_l0.py air month")
-    if refit:
-        miss = 0
-        for m in out:
-            r = refit.get(m["key"])
-            if r is None:
-                miss += 1
-                continue
-            for k in ("pca_0", "pca_1", "kmeans", "dbscan", "anomaly", "nsp", "feats"):
-                m[k] = r.get(k)
-        unplaced = [m["key"] for m in out if m.get("pca_0") is None]
-        print(f"  [l0] ordination + n_species from {refit_p.name} (engine recipe on n_species_analysed)"
-              + (f"; {miss} month(s) missing from it" if miss else "")
-              + (f"; not placed (no BirdNET minute): {', '.join(unplaced)}" if unplaced else ""))
-    compute_returners(out)                       # sets m["returner"] from m["_species"]
-    # resolve each month's RETURNER clip from its own species→file map (the returner
-    # is one of the conf-gated species, so its clip is in the corpus). _ret_clip is
-    # internal — popped before the WS payload so no path reaches the browser.
-    for m in out:
-        ret = m.get("returner")
-        m["_ret_clip"] = (m.get("_spfiles") or {}).get(ret["common"]) if ret else None
-        m.pop("_spfiles", None)
-    # NB: _species is kept on each month here so build_channel can harvest it for
-    # the /dark_arp chorus; build_channel pops it before the WS payload is built.
-    n_ret = sum(1 for m in out if m.get("returner"))
-    print(f"  [l0] {len(out)} months (biplot); {n_ret} with a returner")
-    return out
+def _reply(client, d: dict):
+    """To ONE page: a legend reply, a spectral_day month, an init, the master on attach."""
+    if _SEND_JSON is not None:
+        _SEND_JSON(client, d)
 
 
-def load_day_sun(channel="air"):
-    """Each DAY's sunrise/sunset, UTC, exactly as the L1 CSV carries it: the numbers that day's
-    ecological windows were cut with (constant within a day; every spectral day has one).
-    Returns {"YYYY-MM-DD": (sr, ss)}; {} when the L1 CSV is absent."""
-    p = DESIGN / "data" / f"wildnings_{channel}_L1.csv"
-    if not p.exists():
-        return {}
-    out = {}
-    try:
-        with open(p, newline="") as fh:
-            for r in csv.DictReader(fh):
-                sr, ss = _to_float(r.get("sunrise_hour")), _to_float(r.get("sunset_hour"))
-                y, m, d = (int(_to_float(r.get(k)) or 0) for k in ("year", "month", "day"))
-                if sr is not None and ss is not None and y and m and d:
-                    out[f"{y}-{m:02d}-{d:02d}"] = (sr, ss)
-    except (OSError, ValueError) as e:
-        print(f"  [sun:{channel}] load failed: {e}")
-        return {}
-    return out
+def _broadcast(d: dict):
+    """To EVERY page: the mix echo, the master echo."""
+    if _BROADCAST is not None:
+        _BROADCAST(d)
+    elif _SEND_JSON is not None:
+        for c in list(CLIENTS):
+            _SEND_JSON(c, d)
 
-
-def load_spectral_days(channel="air"):
-    """The DAY resolution of spectro/mfcc + the month cells' support, from viz/gen_spectral_days.py
-    (data/{pfx}spectral_days.json, ~5 MB, stdlib json, ~0.1 s). Kept in memory and served one
-    month at a time on request ({type:"spectral_day"}), never in init. {} when absent."""
-    pfx = "" if channel == "air" else f"{channel}_"
-    p = DESIGN / "data" / f"{pfx}spectral_days.json"
-    if not p.exists():
-        print(f"  [days:{channel}] no {p.name} — run viz/gen_spectral_days.py {channel}")
-        return {}
-    try:
-        D = json.loads(p.read_text())
-    except (OSError, ValueError) as e:
-        print(f"  [days:{channel}] load failed: {e}")
-        return {}
-    by_month = {}
-    for dk in sorted(D.get("days", {})):
-        by_month.setdefault(dk[:7], []).append(dk)
-    D["by_month"] = by_month
-    print(f"  [days:{channel}] {len(D.get('days', {}))} days · {len(by_month)} months")
-    return D
-
-
-def load_month_sun(channel="air"):
-    """The month's sunrise/sunset IN THE DATA'S OWN CLOCK, for the hour-of-day views.
-
-    Everything these views plot is UTC: the recorder writes UTC file hours, and the server's
-    `sunrise_hour`/`sunset_hour` (the numbers `ecological_window` was cut with) are UTC too -
-    June sunrise 3.81, not 4.8. Measured 2026-09-26: the dawn chorus crosses half its rise
-    0.88 h before UTC sunrise in BST months (n=14) and 0.93 h before it in GMT months (n=4);
-    a local-clock file hour would put the BST months an hour later. spectro.html used to add
-    BST to its own NOAA sun, so from April to October its dawn/dusk guides - and the diel
-    window a hovered hour voiced - sat one hour late against the data underneath them.
-
-    Mean over the month's days, plus the range: sunrise moves ~1 h across a March, so a
-    month's window edge is a band, not a line. Returns {"YYYY-MM": {sr, ss, sr_lo, sr_hi,
-    ss_lo, ss_hi}} in fractional UTC hours; {} when the L1 CSV is absent."""
-    from collections import defaultdict
-    days = defaultdict(dict)                       # (y, m) -> {day: (sr, ss)}: one per DAY, not per window
-    for dk, v in load_day_sun(channel).items():
-        y, m, d = (int(x) for x in dk.split("-"))
-        days[(y, m)][d] = v
-    out = {}
-    for (y, m), dd in days.items():
-        srs = [v[0] for v in dd.values()]; sss = [v[1] for v in dd.values()]
-        out[f"{y}-{m:02d}"] = {"sr": round(sum(srs) / len(srs), 3), "ss": round(sum(sss) / len(sss), 3),
-                               "sr_lo": round(min(srs), 3), "sr_hi": round(max(srs), 3),
-                               "ss_lo": round(min(sss), 3), "ss_hi": round(max(sss), 3)}
-    return out
-
-
-def load_spectral(channel="air"):
-    """Extended-spectrogram data: per month, a freq-band x hour-of-day matrix per
-    LAYER (indices from spectral_bands.json). Real TOL energy (['tol']) or the
-    air-only synthetic false-colour placeholder. Per channel."""
-    pfx = "" if channel == "air" else f"{channel}_"
-    real = DESIGN / "data" / f"{pfx}spectral_ldfc_monthly.csv"
-    syn = DESIGN / "data" / "SYNTHETIC_spectral_ldfc_monthly.csv"     # air-only placeholder
-    csv_p = real if real.exists() else (syn if channel == "air" else real)
-    meta_p = DESIGN / "data" / f"{pfx}spectral_bands.json"
-    if not csv_p.exists() or not meta_p.exists():
-        print(f"  [spectral:{channel}] no spectral CSV — run fetch_spectral.py {channel}")
-        return [], {}
-    try:
-        meta = json.loads(meta_p.read_text())
-        bands = meta["bands_hz"]; nb = len(bands)
-        hours = meta.get("hours", list(range(24)))
-        indices = meta.get("indices", ["aci", "ent", "evn"])
-        with open(csv_p, newline="") as fh:
-            raw = list(csv.DictReader(fh))
-    except (OSError, ValueError, KeyError) as e:
-        print(f"  [spectral] load failed: {e}"); return [], {}
-    from collections import defaultdict
-    by_month = defaultdict(dict)
-    for r in raw:
-        by_month[(int(r["year"]), int(r["month"]))][int(r["hour"])] = r
-    sun = load_month_sun(channel)                 # the data's own UTC sun, per month
-    out = []
-    for (y, m), hrows in sorted(by_month.items()):
-        def layer(name):
-            # empty/NaN cells (e.g. real TOL's lowest bands, below the Welch
-            # resolution floor) -> 0.0 rather than crashing on float("")
-            def cell(h, b):
-                v = _to_float(hrows[h].get(f"{name}_b{b:02d}")) if h in hrows else None
-                return round(v, 4) if v is not None else 0.0
-            return [[cell(h, b) for h in hours] for b in range(nb)]  # [band][hour]
-        # `have`: the hours that were RECORDED. A missing hour is filled 0.0 below, and 0.0
-        # draws as the darkest magma - "the quietest hour" - when it is no recording at all.
-        # 13 of 34 air months have holes (winter 2024-12..2026-02 is ~10:00-18:00 only).
-        entry = {"key": f"{y}-{m:02d}", "year": y, "month": m, "sun": sun.get(f"{y}-{m:02d}"),
-                 "have": sorted(h for h in hrows if h in hours)}
-        for name in indices:
-            entry[name] = layer(name)
-        out.append(entry)
-    # DEAD BANDS: zero in every month and every hour. In the hourly source 25, 31.5 and 50 Hz are
-    # all-NaN and 40, 63, 80, 100, 125 Hz a constant -120.0 dB; fetch_spectral.py turns both into
-    # a clean 0.0 (air AND water), and like a missing hour that 0.0 would draw as "quiet" when it
-    # was never measured. The FLOOR band (20 kHz) is added from the day file in build_channel.
-    dead = [b for b in range(nb)
-            if out and all(v == 0.0 for e in out for v in e[indices[0]][b])]
-    smeta = {"bands_hz": bands, "hours": hours, "indices": indices, "clock": "UTC",
-             "dead_bands": dead, "synthetic": bool(meta.get("synthetic"))}
-    tag = "SYNTHETIC" if smeta["synthetic"] else "real"
-    print(f"  [spectral] {len(out)} months x {nb} bands x {len(hours)} h ({tag}, layers={indices})")
-    return out, smeta
-
-
-def load_mfcc(channel="air"):
-    """REAL MFCC 'cepstral fingerprint' heatmap: per month, a coefficient x hour
-    matrix (spectral SHAPE). From viz/gen_mfcc.py. Each month carries `mat`
-    (per-coeff 0..1 normalised, for magma colour) and `raw` (the raw means). Per channel."""
-    pfx = "" if channel == "air" else f"{channel}_"
-    csv_p = DESIGN / "data" / f"{pfx}mfcc_monthly.csv"
-    meta_p = DESIGN / "data" / f"{pfx}mfcc_meta.json"
-    if not csv_p.exists() or not meta_p.exists():
-        print(f"  [mfcc:{channel}] no mfcc CSV — run gen_mfcc.py {channel}")
-        return [], {}
-    try:
-        meta = json.loads(meta_p.read_text())
-        nc = int(meta["n_coeffs"])
-        hours = meta.get("hours", list(range(24)))
-        with open(csv_p, newline="") as fh:
-            raw = list(csv.DictReader(fh))
-    except (OSError, ValueError, KeyError) as e:
-        print(f"  [mfcc] load failed: {e}")
-        return [], {}
-    from collections import defaultdict
-    by_month = defaultdict(dict)
-    for r in raw:
-        by_month[(int(r["year"]), int(r["month"]))][int(r["hour"])] = r
-    sun = load_month_sun(channel)                 # the data's own UTC sun, per month
-    out = []
-    for (y, m), hrows in sorted(by_month.items()):
-        def mat(prefix):
-            return [[round(float(hrows[h][f"{prefix}{c:02d}"]), 4)
-                     if (h in hrows and f"{prefix}{c:02d}" in hrows[h]) else 0.0
-                     for h in hours] for c in range(nc)]        # [coeff][hour]
-        out.append({"key": f"{y}-{m:02d}", "year": y, "month": m, "sun": sun.get(f"{y}-{m:02d}"),
-                    "have": sorted(h for h in hrows if h in hours),     # recorded hours (see load_spectral)
-                    "mat": mat("mf"), "raw": mat("r")})
-    mmeta = {"n_coeffs": nc, "hours": hours, "clock": "UTC", "labels": meta.get("labels", []),
-             "ranges": meta.get("ranges", []),
-             "synthetic": bool(meta.get("synthetic")), "note": meta.get("note", "")}
-    print(f"  [mfcc] {len(out)} months x {nc} coeffs x {len(hours)} h (real)")
-    return out, mmeta
-
-
-def load_embeddings(channel="air", resolution="month"):
-    """PCA/UMAP/SOM embeddings for the scatter (viz/gen_embeddings.py), at the given
-    resolution: 'month' (per-(month,diel), ~119 pts) or 'day' (per-(month,day,diel) =
-    the raw L1 windows, ~2388 pts). Shared 0..1 space per method; every point carries a
-    normalised `ax` dict (the feature-pair dims) + drivers, so one point set drives BOTH
-    the feature-pair readings and the embedding readings at that resolution."""
-    base = f"{resolution}_embeddings.json"
-    p = DESIGN / "data" / (base if channel == "air" else f"{channel}_{base}")
-    if not p.exists():
-        print(f"  [embed:{channel}:{resolution}] {p.name} not found — run gen_embeddings.py {channel}")
-        return {}
-    try:
-        d = json.loads(p.read_text())
-        meta = d.get("meta", {})
-        print(f"  [embed:{resolution}] methods={meta.get('methods')}, {meta.get('n_points')} points")
-        return d
-    except (OSError, ValueError) as e:
-        print(f"  [embed:{resolution}] failed: {e}")
-        return {}
-
-
-def load_loadings(channel="air"):
-    # PCA loadings for the biplot arrows. AIR = data/pca_loadings.json, the arrows of the SAME
-    # re-fit load_l0 takes the air months' positions from (viz/gen_l0.py air month, 2026-09-29);
-    # viz/pca_loadings.json (the engine's PCA on the uncorrected column, gen_pca_loadings.py) is the
-    # fallback only while data/l0.json is absent, so arrows and dots always come from one fit.
-    # WATER = data/water_pca_loadings.json (project-side, from gen_l0.py). Design-folder only.
-    if channel == "air":
-        p = DESIGN / "data" / "pca_loadings.json"
-        if not (p.exists() and (DESIGN / "data" / "l0.json").exists()):
-            p = ROOT / "pca_loadings.json"
-    else:
-        p = DESIGN / "data" / f"{channel}_pca_loadings.json"
-    if not p.exists():
-        print(f"  [loadings:{channel}] {p.name} not found — run gen_pca_loadings.py / gen_l0.py")
-        return {}
-    try:
-        d = json.loads(p.read_text())
-        print(f"  [loadings] {len(d.get('features', []))} PCA loadings "
-              f"(EVR {d.get('evr')}, corr {d.get('validation_corr')})")
-        return d
-    except (OSError, ValueError) as e:
-        print(f"  [loadings] failed to read: {e}")
-        return {}
-
-
-def load_day_l0(channel="air"):
-    """The DAILY biplot ordination — one point per day (viz/gen_l0.py <ch> day). BOTH
-    channels are a project-side RE-FIT here (no engine daily parquet); day-grain PCA /
-    KMeans / DBSCAN / IsolationForest. Same schema as the monthly l0 + a `day` field."""
-    pfx = "" if channel == "air" else f"{channel}_"
-    p = DESIGN / "data" / f"{pfx}day_l0.json"
-    if not p.exists():
-        print(f"  [l0:{channel}:day] {p.name} not found — run gen_l0.py {channel} day")
-        return []
-    try:
-        out = json.loads(p.read_text())
-        print(f"  [l0:{channel}:day] {len(out)} days (biplot re-fit)")
-        return out
-    except (OSError, ValueError) as e:
-        print(f"  [l0:{channel}:day] failed: {e}")
-        return []
-
-
-def load_day_loadings(channel="air"):
-    """PCA loadings for the daily biplot arrows (viz/gen_l0.py <ch> day) — project-side
-    at day grain, so distinct from the monthly loadings. Design-folder only."""
-    pfx = "" if channel == "air" else f"{channel}_"
-    p = DESIGN / "data" / f"{pfx}day_pca_loadings.json"
-    if not p.exists():
-        print(f"  [loadings:{channel}:day] {p.name} not found — run gen_l0.py {channel} day")
-        return {}
-    try:
-        return json.loads(p.read_text())
-    except (OSError, ValueError) as e:
-        print(f"  [loadings:{channel}:day] failed: {e}")
-        return {}
-
-
-_WEATHER = None
-def load_weather():
-    """Knepp weather (viz/fetch_weather.py) at three grains, channel-agnostic (same sky
-    over air + water). Returns (monthly, daily, diel) maps -> {temp, precip, wind, wind_max}.
-    diel is keyed (year, month, day, window) so a per-(day,diel) point gets the weather
-    DURING its own window. Cached; empty maps if the CSVs aren't present (lens stays blank)."""
-    global _WEATHER
-    if _WEATHER is not None:
-        return _WEATHER
-    import csv
-
-    def rd(name, intcols, strcols=()):
-        p = DESIGN / "data" / name
-        out = {}
-        if not p.exists():
-            print(f"  [weather] {name} not found — run fetch_weather.py (lens disabled)")
-            return out
-        with open(p) as f:
-            for row in csv.DictReader(f):
-                key = tuple(int(row[c]) for c in intcols) + tuple(row[c] for c in strcols)
-                out[key] = {"temp": _to_float(row.get("temp_mean")), "precip": _to_float(row.get("precip_sum")),
-                            "wind": _to_float(row.get("wind_mean")), "wind_max": _to_float(row.get("wind_max"))}
-        return out
-    mo = rd("weather_monthly.csv", ["year", "month"])
-    da = rd("weather_daily.csv", ["year", "month", "day"])
-    di = rd("weather_diel.csv", ["year", "month", "day"], ["diel"])
-    if mo or da:
-        print(f"  [weather] {len(mo)} months + {len(da)} days + {len(di)} day×diel (temp/precip/wind)")
-    _WEATHER = (mo, da, di)
-    return _WEATHER
-
-
-# ---------------------------------------------------------------------------
 
 # ============================================================================
 # v2: the four-layer engine (drone + clave + arp + corpus).
@@ -798,7 +114,6 @@ def load_weather():
 # bridge only ever does dict lookups. That is what makes subsets a design-time decision
 # rather than a navigation-time cost.
 # ============================================================================
-DEV_DATA = DESIGN / "dev" / "data"
 # THETA STATISTIC: which property of a month the drone's latitude encodes.
 #   gradient = how fast this month is changing   variance = how internally varied it is
 # DEFAULT = gradient (Miguel 2026-09-24, final: "ok, keep gradient for the drone :)"). A draft
@@ -835,10 +150,6 @@ RW_TCHAN = "air"                          # the channel whose tables are in forc
 RW_TABLE_CHANNELS = {"air"}               # channels with a complete set (both readings x both levels)
 
 
-def _rw_dir(tch: str):
-    return DEV_DATA if tch == "air" else DEV_DATA / tch
-
-
 def _rw_table_channel(ch) -> str:
     """The TABLE channel a page channel plays. air+water is the relationship view built on
     air's rows (build_combined), so it plays air's tables, as spectral_day_reply already does."""
@@ -860,6 +171,17 @@ def _rw_level(lvl) -> str:
 
 
 _RW_CACHE: dict = {}                       # (channel, stat) -> the parsed tables, so a switch is a swap
+_TABLE_DATA: dict = {}                     # (channel, stat, level) -> a table handed over (load_tables)
+_PUSH_DATA: dict = {}                      # (channel, level) -> a push side file handed over (load_push)
+
+
+def _rw_table_data(tch: str, stat: str, level: str):
+    """One table as plain data: handed over (load_tables), else asked of the `tables` source
+    (the desktop: bridge.read_rw_tables, which reads dev/data), else None (never built)."""
+    t = _TABLE_DATA.get((tch, stat, level))
+    if t is None and _TABLES_SOURCE is not None:
+        t = _TABLES_SOURCE(tch, stat, level)
+    return t
 
 
 def _rw_tables(stat: str, tchan: str = None):
@@ -871,8 +193,10 @@ def _rw_tables(stat: str, tchan: str = None):
     them for the length of a hold. A read-only lookup must be a read-only lookup.
 
     STDLIB ONLY: the launcher resolves a Python that has websockets and python-osc but
-    explicitly not pandas, so dev/precompute/rw_tables.py assembles these as JSON.
-    Returns None (and says so) if dev/data has not been built. `tchan` defaults to the channel
+    explicitly not pandas, so dev/precompute/rw_tables.py assembles these as JSON. Since
+    2026-10-01 the JSON arrives as plain data (_rw_table_data: handed over with load_tables, or
+    from the `tables` source - the desktop's bridge.read_rw_tables, its clip paths made ids).
+    Returns None (and says so) if a table has not been built. `tchan` defaults to the channel
     in force, so every existing caller reads the tables the listener is hearing."""
     tch = tchan or RW_TCHAN
     if (tch, stat) in _RW_CACHE:
@@ -881,13 +205,11 @@ def _rw_tables(stat: str, tchan: str = None):
     # would leave L0 on one statistic and L1 on the other, which is unfindable by ear.
     built = {}
     for level in ("L0", "L1"):
-        path = _rw_dir(tch) / f"rw_tables_{level}_{stat}.json"
-        if not path.exists():
-            print(f"  [rw:{tch}:{level}] {path.name} missing, layer silent (run "
+        t = _rw_table_data(tch, stat, level)
+        if t is None:
+            print(f"  [rw:{tch}:{level}] rw_tables_{level}_{stat}.json missing, layer silent (run "
                   f"dev/precompute/rw_tables.py{'' if tch == 'air' else ' --channel ' + tch})")
             return None
-        with open(path, "r", encoding="utf-8") as fh:
-            t = json.load(fh)
         arp, corpus = t["arp"], t["corpus"]
         if tch != "air" and (arp or corpus):
             # BirdNET exists only for the air recorder. A non-air table carrying chords or clips
@@ -936,7 +258,7 @@ def rw_send_identity(level: str, subset: str):
     THE ENGINE MUST BE RESTARTED after a table rebuild - an older `parse_dark_re_wilding.scd`
     infers the mode count from the message length and will refuse this message."""
     global RW_LAST_IDENT, RW_MIX
-    if sc_client is None or level not in RW:
+    if not _osc_ok() or level not in RW:
         return
     # THE CHANNEL IS PART OF THE IDENTITY: air's and water's `year:2024` are different bodies,
     # each tuned on its own channel's ruler (at L1 all:2023-2026's comb is 153.0 Hz on air and
@@ -959,7 +281,7 @@ def rw_send_identity(level: str, subset: str):
             float(ident["base_freq"]), float(ident["clave_base"]), int(len(modes))]
     args += [float(m[0]) for m in modes] + [float(m[1]) for m in modes] + rest
     try:
-        sc_client.send_message("/rw_identity", args)
+        _SEND_OSC("/rw_identity", args)
     except OSError:
         return
     if RW_LAST_IDENT is None or RW_LAST_IDENT[1] != level:
@@ -1004,7 +326,7 @@ def rw_send_point(level: str, key: str):
     the arp's first note lands 3.2-5.2 s in - so a hold on a clave or arp row was an A/B of
     two silences rather than of two ticks. See the push tier below for the full argument and
     for why a second DELIVERY of the same numbers is not a second cooking function."""
-    if sc_client is None or level not in RW:
+    if not _osc_ok() or level not in RW:
         return
     # A NAVIGATION ENDS ANY HOLD. Pressing a new point with a finger still down would
     # otherwise leave the preview chord ringing and a forced clave running under a point
@@ -1049,15 +371,15 @@ def rw_send_point(level: str, key: str):
     if ret == clip:
         ret = None                      # never double the same recording
     try:
-        sc_client.send_message("/rw_drone", [theta, pressure] + gains)
-        sc_client.send_message("/rw_clave", [rate, formant, accent])
+        _SEND_OSC("/rw_drone", [theta, pressure] + gains)
+        _SEND_OSC("/rw_clave", [rate, formant, accent])
         arp_args = [gap, len(notes)]
         for f, a, c in notes:
             arp_args += [f, a, c]
-        sc_client.send_message("/rw_arp", arp_args)
-        sc_client.send_message("/rw_corpus",
-                               ([clip] + ([ret] if ret else [])) if clip else [])
-        sc_client.send_message("/rw_point", [])
+        _SEND_OSC("/rw_arp", arp_args)
+        _SEND_OSC("/rw_corpus",                       # clip IDS; the desktop shell joins the root
+                  ([clip] + ([ret] if ret else [])) if clip else [])
+        _SEND_OSC("/rw_point", [])
     except OSError:
         pass
     _rw_unsilence()                     # a real commit ends a silenced (table-less) channel
@@ -1238,34 +560,6 @@ def rw_client_gone(client):
         RW_ROOM_OWNER = None
 
 
-def _rw_build_drift(tch: str):
-    """Air and another channel must be built with the SAME constants (lattice, contrast,
-    pressure, f0 window, mode count) - otherwise an air <-> water switch compares two engines,
-    not two recorders. sh_identity.py writes a build_*.json record beside each table set; this
-    compares them and says so loudly. Missing records (a table set built before 2026-09-26)
-    are reported, not guessed at."""
-    diffs, missing = [], []
-    for name in ("build_gradient.json", "build_variance.json",
-                 "build_L0_gradient.json", "build_L0_variance.json"):
-        a, b = _rw_dir("air") / name, _rw_dir(tch) / name
-        if not (a.exists() and b.exists()):
-            missing.append(name)
-            continue
-        try:
-            ra, rb = json.loads(a.read_text()), json.loads(b.read_text())
-        except (OSError, ValueError):
-            missing.append(name)
-            continue
-        for k in sorted(set(ra) | set(rb)):
-            if k != "channel" and ra.get(k) != rb.get(k):
-                diffs.append(f"{name}:{k} air={ra.get(k)} {tch}={rb.get(k)}")
-    if diffs:
-        print(f"  [rw] *** {tch} tables were built with DIFFERENT constants from air's - rebuild "
-              f"both (dev/README.md): " + "; ".join(diffs[:6]))
-    elif missing:
-        print(f"  [rw] {tch}: no build record for {', '.join(missing)} - cannot confirm it matches air")
-
-
 _RW_MISSING_SAID: set = set()
 _RW_SILENCED = False
 
@@ -1365,7 +659,7 @@ RW_FEATURE_LABEL = {
 RW_LAST_POINT = None                   # (level, key): the point the listener is standing on
 RW_CHANNEL = "air"                     # the DISPLAY channel of the last drv (air | water | air+water);
                                        # the sound's tables are RW_TCHAN, which follows the point
-# (level, channel) -> {feature: [(RAW value, key), ...]}, filled by load_rows. `drv` is
+# (level, channel) -> {feature: [(RAW value, key), ...]}, filled by load_channel (bridge.load_rows). `drv` is
 # clamped to the 1st-99th percentile and ties about two dozen windows at each end, so it
 # cannot express which of its tied maxima is the real record-holder; the ranking has to see
 # the unclamped number. Read here for the level-wide richness range and the point's own
@@ -1481,9 +775,17 @@ for _f, _lab in (("aci", "ACI · Acoustic Complexity"),
                                         "stat": None, "dirs": ("lo", "hi"), "label": _lab}
 # ONE PUSH SEEN FROM TWO LAYERS. Four data slots over three near-independent statistics means
 # the theta statistic is always read twice, and under the shipped gradient reading it is read
-# by the body AND by the metre: verified, accent == round(7 - 5*theta/pi) with 0 errors on
-# every point of every subset. If the UI renders those as two unrelated rows, a reader hears
-# one push twice and concludes the display is broken. Both rows carry `twin`.
+# by the body AND by the metre. WHERE THAT IS EXACT (corrected 2026-10-01, TASKS P48): on every
+# WINDOW point of every subset - air and water, L0 month x time of day and L1 - the accent is
+# round(7 - 5*r/(n-1)) for the point's gradient rank r of n, i.e. round(7 - 5*theta/pi) with
+# theta = pi*r/(n-1). (Recomputed from the STORED theta instead, it tips the other way where
+# 5*r/(n-1) is exactly a half: 4 of air's 8,355 L1 points, 2 + 2 on water.) It does NOT hold on
+# the MONTH ROLL-UPS, the bare "year|month" L0 keys: their accent is the rounded mean of their
+# times of day's accents (dev/precompute/sh_identity.py), which for 12 of air's 202 roll-ups (10
+# of water's 204) differs from round(7 - 5*theta/pi) (lab/LEGEND_REFERENCE.md). The push tier
+# never runs on a roll-up (_rw_row_block refuses a month), so the `twin` it reports is always
+# the exact one. If the UI renders those as two unrelated rows, a reader hears one push twice
+# and concludes the display is broken. Both rows carry `twin`.
 RW_TWINS = {"gradient": ("drone.gradient", "clave.metre"),
             "variance": ("drone.variance", "clave.tempo")}
 
@@ -1739,22 +1041,24 @@ def load_rw_push():
 
 def _rw_load_push_channel(tch: str):
     for level in ("L1", "L0"):
-        path = _rw_dir(tch) / f"rw_push_{level}.json"
-        if not path.exists():
-            RW_PUSH_OK[level] = False
-            RW_PUSH_WHY[level] = ("the push side file has not been built "
-                                  "(run dev/precompute/rw_push.py)")
-            print(f"  [rw:push:{tch}:{level}] {path.name} missing, push tier disabled "
-                  f"(run dev/precompute/rw_push.py{'' if tch == 'air' else ' --channel ' + tch})")
-            continue
+        name = f"rw_push_{level}.json"
         try:
-            with open(path, "r", encoding="utf-8") as fh:
-                RW_PUSH[level] = json.load(fh)
+            side = _PUSH_DATA.get((tch, level))
+            if side is None and _PUSH_SOURCE is not None:
+                side = _PUSH_SOURCE(tch, level)      # bridge.read_rw_push: dev/data; None if never built
         except (OSError, ValueError) as e:
             RW_PUSH_OK[level] = False
             RW_PUSH_WHY[level] = f"the push side file could not be read ({e})"
-            print(f"  [rw:push:{tch}:{level}] {path.name} unreadable: {e}")
+            print(f"  [rw:push:{tch}:{level}] {name} unreadable: {e}")
             continue
+        if side is None:
+            RW_PUSH_OK[level] = False
+            RW_PUSH_WHY[level] = ("the push side file has not been built "
+                                  "(run dev/precompute/rw_push.py)")
+            print(f"  [rw:push:{tch}:{level}] {name} missing, push tier disabled "
+                  f"(run dev/precompute/rw_push.py{'' if tch == 'air' else ' --channel ' + tch})")
+            continue
+        RW_PUSH[level] = side
         _rw_push_derive_into(level, tch)
 
 
@@ -2269,8 +1573,9 @@ def _rw_push_eval(level, subset, key, row, direction):
 # ON THE WIRE RATHER THAN IN THE PAGE, deliberately. Two consequences of the isolation rule
 # have to be SURFACED rather than papered over, and neither is visible from the sound:
 #   * clave.metre no longer moves the body, so the verified twin (accent == round(7 - 5*theta
-#     /pi), 0 errors on every point of every subset) stops being HEARD as one push arriving
-#     twice and becomes a label. The reply has always carried `twin`; now it has to say it.
+#     /pi) on every WINDOW point - the only points this tier runs on; not on the month roll-ups,
+#     see RW_TWINS, corrected 2026-10-01) stops being HEARD as one push arriving twice and
+#     becomes a label. The reply has always carried `twin`; now it has to say it.
 #   * clave.index.* genuinely move the body on ~398 of 400 points, and pinning it hides a real
 #     consequence - so the dB estimate keeps being reported, with the reason it is not heard.
 # legend.js prints `why` only when `audible` is false, so these sentences need one line in the
@@ -2342,10 +1647,10 @@ def _rw_bed_notes(fam, held, twin, reading_from, reading_to, spec, direction):
 def rw_preview_send(verb: str, args):
     """ONE new OSC address, and it never touches ~rwState, ~rwMix, ~rwSubset, the identity or
     the navigation timeline - which is the whole reason it exists."""
-    if sc_client is None:
+    if not _osc_ok():
         return
     try:
-        sc_client.send_message("/rw_preview", [verb] + list(args))
+        _SEND_OSC("/rw_preview", [verb] + list(args))
     except OSError:
         pass
 
@@ -2545,7 +1850,7 @@ def rw_set_stat(stat: str):
         # fall back to `all` and lose the room. The resting gains ARE per reading (2-10% apart),
         # so the room's identity is re-sent - with the level unchanged, so the level-default
         # branch (and the listener's faders) are not touched. Only when there IS an identity to
-        # get past: RW_LAST_IDENT is None after a display reload (ws_handler), and then the
+        # get past: RW_LAST_IDENT is None after a display reload (attach), and then the
         # level branch is exactly what must run - it re-sends the listener's mix to an engine
         # that may have been restarted with its own defaults (review 2026-09-27).
         level = RW_LAST_POINT[0]
@@ -2557,97 +1862,14 @@ def rw_set_stat(stat: str):
 
 
 def rw_send_mix():
-    if sc_client is not None:
+    if _osc_ok():
         try:
             # SILENCED (a channel without tables is on screen): SC gets zeros, the listener's
             # RW_MIX - what the faders show - is untouched and comes back with the next point.
-            sc_client.send_message("/rw_mix", [0.0] * len(RW_MIX) if _RW_SILENCED
-                                   else [float(x) for x in RW_MIX])
+            _SEND_OSC("/rw_mix", [0.0] * len(RW_MIX) if _RW_SILENCED
+                      else [float(x) for x in RW_MIX])
         except OSError:
             pass
-
-# browser hover -> SC /dark_nav  (bed+drone morph; level 1 = fast arp)
-# ---------------------------------------------------------------------------
-
-# ---------------------------------------------------------------------------
-# ECOLOGICAL CHORD arpeggiator -> SC /dark_arp  (harmony denotes soundscape state)
-# ---------------------------------------------------------------------------
-# The arp is no longer species pitches (those scattered — the CORPUS carries WHICH
-# birds). It is the harmonic READING of the point's soundscape state, built from the
-# indices so it arpeggiates a real chord at every window AND month:
-#   root pitch  <- brightness (Ht): dull = low, bright = high
-#   quality     <- bio/anthro balance (RELATIVE): dim -> minor -> dom7 -> major -> maj7
-#   direction   <- diel phase: dawn/day ASCEND, dusk/night DESCEND (the daily arc)
-#   span        <- bioenergy: an active soundscape adds a 2nd octave (wider arpeggio)
-# SC just plays the ordered notes we send, so the whole mapping lives here.
-
-def _midi_to_hz(m):
-    return round(440.0 * (2.0 ** ((m - 69) / 12.0)), 2)
-
-
-def _dv(drv, k, d):
-    """Safe float read from a driver dict."""
-    try:
-        return float(drv.get(k))
-    except (TypeError, ValueError):
-        return d
-
-
-def _chord_quality(rel_balance, fault=0.0):
-    """Relative bio<->anthro balance (0..1) -> chord-quality gradient. fault forces dim."""
-    if fault and fault > 0.5:
-        return "dim"
-    b = rel_balance
-    if b < 0.20:
-        return "dim"
-    if b < 0.40:
-        return "minor"
-    if b < 0.60:
-        return "dom7"
-    if b < 0.80:
-        return "major"
-    return "maj7"
-
-
-
-# ---------------------------------------------------------------------------
-# corpus (real bird WAVs) -> SC /dark_corpus  (the SECOND sound strategy)
-# ---------------------------------------------------------------------------
-# FOCAL model (2026-07-11, Miguel): play ONE clean voice — the point's TOP bird
-# (k0) — instead of a top-3 cloud. The cloud surfaced ubiquitous loud species
-# (Wood-Pigeon, Coot) that buried the actual top bird. Plus, when the month has a
-# RETURNER (a phenological surprise — a migrant back after an absence), we add its
-# clip: it's too rare for the top slots but its recording exists, and it's the one
-# bird you most want to hear. So a point = [top-bird] (+ [returner] if any).
-CORPUS_ROOT = DESIGN / "darkdata" / "corpus"
-CORPUS_K = 3
-CORPUS_FOCAL_AMP = 1.0
-CORPUS_RETURNER_AMP = 0.82      # audible under the focal top bird
-
-
-def _corpus_focal(getter):
-    """The point's FOCAL clip = its top bird (k0), amp 1.0. [] if missing/no file."""
-    f = getter("top_species_k0_file")
-    if isinstance(f, str) and f.strip():
-        p = CORPUS_ROOT / f.strip()
-        if p.exists():
-            return [(str(p), CORPUS_FOCAL_AMP)]
-    return []
-
-
-def _species_files(getter, kmax=20):
-    """{common_name: abs_path} across a row's K slots — used to resolve a returner's
-    clip (the returner is one of the conf-gated species, so its clip is in here)."""
-    out = {}
-    for k in range(kmax):
-        c = getter(f"top_species_k{k}_common")
-        f = getter(f"top_species_k{k}_file")
-        if isinstance(c, str) and c.strip() and isinstance(f, str) and f.strip():
-            p = CORPUS_ROOT / f.strip()
-            if p.exists():
-                out.setdefault(c.strip(), str(p))
-    return out
-
 
 
 
@@ -2662,7 +1884,7 @@ def legend_relay(m: dict):
         {cmd:"probe"}                       no sound; what would every row do here?
         {cmd:"mute",    value:0|1}          unchanged, still /rw_master
 
-    Returns the dict to send back to the REQUESTER, or None. The mix echo in ws_handler is
+    Returns the dict to send back to the REQUESTER, or None. The mix echo (dispatch) is
     untouched and a preview never triggers it - that absence is the guarantee that the faders
     do not twitch on a hold.
 
@@ -2702,11 +1924,14 @@ def legend_relay(m: dict):
     if cmd == "probe":
         return rw_preview_probe()
     if cmd == "mute":
-        if sc_client is not None:
+        if _osc_ok():
             try:
-                sc_client.send_message("/rw_master", ["mute", int(m.get("value", 0))])
+                _mute = int(m.get("value", 0))
+                _SEND_OSC("/rw_master", ["mute", _mute])
             except OSError:
                 pass
+            else:
+                _rw_master_sent("mute", _mute)       # the master echo follows (dispatch)
         return None
     if cmd:
         print(f"  [rw] legend: unknown command {cmd!r}, ignored")
@@ -2717,330 +1942,123 @@ def master_relay(m: dict):
     """Browser MASTER control -> SC /rw_master ['vol', 0..1] | ['mute', 0|1].
 
     This was still addressed to /dark_master after the v2 port, which nothing listens for,
-    so the master fader and mute were silently dead."""
-    if sc_client is None:
+    so the master fader and mute were silently dead. Since 2026-10-01 each message that went
+    out also moves SOUND["master"] the way SC moves its bus (_rw_master_sent, below);
+    dispatch echoes it."""
+    if not _osc_ok():
         return
     try:
         if m.get("vol") is not None:
-            sc_client.send_message("/rw_master", ["vol", max(0.0, min(1.0, float(m["vol"])))])
+            _vol = max(0.0, min(1.0, float(m["vol"])))
+            _SEND_OSC("/rw_master", ["vol", _vol])
+            _rw_master_sent("vol", _vol)
         if m.get("mute") is not None:
-            sc_client.send_message("/rw_master", ["mute", int(bool(m["mute"]))])
+            _mute = int(bool(m["mute"]))
+            _SEND_OSC("/rw_master", ["mute", _mute])
+            _rw_master_sent("mute", _mute)
     except (OSError, TypeError, ValueError):
         pass
 
 
-# ---------------------------------------------------------------------------
-# channels: build both air + water bundles; the browser toggles between them
-# ---------------------------------------------------------------------------
+# ============================================================================
+# THE CHANNELS' DATA THE COOKING READS - handed over with load_channel
+# ============================================================================
+# CHANNELS: display channel ("air", "water", "air+water") -> its bundle. The core reads ONLY
+# bundle["rows"] - the L1 windows in index order, each with y, m, d and win - to turn a page's widx
+# into a point key (rw_navigate); and a `channel` message is answered only for a channel listed here.
+# The desktop keeps its whole view bundle in this dict (bridge.build_channel, put here by whoever
+# boots it); the web hands over {"rows": ...} with load_channel.
 CHANNELS: dict = {}
-SPECIES: dict = {}          # channel -> {"YYYY-MM": [(common, conf, ndet), ...]} for the chorus
-CORPUS: dict = {}           # channel -> {"l0": {mkey: [(path, amp)]}, "l1": {widx: [(path, amp)]}}
-RETURNER: dict = {}         # channel -> {"l0": {mkey: path|None}, "l1": {widx: path|None}} — the highlight focal
-BAL_NORM: dict = {}         # channel -> (lo, hi) balance percentiles, for the RELATIVE chord-quality gradient
+# RETURNER: table channel -> {"l0": {"YYYY-MM": clip id | None}, "l1": {widx: clip id | None}}: the
+# month's phenological highlight (bridge.compute_returners), voiced beside the focal clip
+# (rw_send_point reads "l0"). CLIP IDS, as in the tables (the module docstring).
+RETURNER: dict = {}
 
 
-# WHAT EACH MONTH ACTUALLY HOLDS (Miguel 2026-09-28: "half-filled dot and text on hover"). A month
-# point is one mark, but the months are not equal: Aug 2023 is ten minutes of one day, Sep 2025 is
-# daytime only, and no Nov or Dec has a dawn. A month is PARTIAL when a whole time of day is missing
-# or it holds under half the usual (median) month's hours - and every month view marks it the same
-# way (a half-filled dot, a line in the hover box). From the L1 rows' own recorded minutes.
-def month_coverage(rows_c):
-    mins = {}
-    for r in rows_c:
-        mk = f"{r['y']}-{int(r['m']):02d}"
-        c = mins.setdefault(mk, {w: 0 for w in DIEL_ORDER})
-        if r.get("win") in c:
-            c[r["win"]] += int(r.get("nmin") or 0)
-    if not mins:
-        return {}
-    usual = statistics.median(sum(c.values()) for c in mins.values())
-    out = {}
-    for mk, c in mins.items():
-        tot = sum(c.values())
-        missing = [w for w in DIEL_ORDER if c[w] < 1]
-        thin = tot < 0.5 * usual
-        held = [w for w in DIEL_ORDER if c[w] >= 1]
-        what = (f"{held[0]}time only" if held == ["day"] else f"{held[0]} only") if len(held) == 1 \
-            else ("no " + " or ".join(missing) if missing else "")
-        amount = f"{tot} min recorded" if tot < 60 else f"{round(tot / 60)} h recorded"
-        out[mk] = {"h": round(tot / 60, 1), "w": {w: round(c[w] / 60, 1) for w in DIEL_ORDER},
-                   "missing": missing, "thin": bool(thin), "partial": bool(missing or thin),
-                   "why": " \u00b7 ".join(x for x in (what, amount) if x),
-                   "usual_h": round(usual / 60)}
-    return out
+def load_channel(ch: str, payload: dict):
+    """What the cooking needs from one display channel, as plain data. Each key is optional and
+    replaces only itself:
+        rows        [{"y", "m", "d", "win", ...}, ...]  the L1 windows; index = widx (an init
+                    payload's "rows" will do)
+        returner    {"l0": {"YYYY-MM": clip id | None}, "l1": {widx: clip id | None}}
+                    (for a TABLE channel, air or water; bridge.build_channel)
+        raw_series  {"L1": {feature: [[raw value, key], ...] sorted by value}}  (bridge.load_rows):
+                    the push tier's n_species_analysed per window and its ceiling (_rw_level_stats)
+    The desktop's loaders call it for returner and raw_series; whoever boots the desktop puts the
+    whole bundle in CHANNELS itself."""
+    if "rows" in payload:
+        b = CHANNELS.get(ch)
+        if b is None:
+            CHANNELS[ch] = {"rows": payload["rows"]}
+        else:
+            b["rows"] = payload["rows"]
+    if payload.get("returner") is not None:
+        RETURNER[ch] = payload["returner"]
+    for lvl, series in (payload.get("raw_series") or {}).items():
+        _RW_RAW_SERIES[(lvl, ch)] = series
+        _RW_LEVEL_STATS.pop(lvl, None)             # a rebuild must not serve a stale ranking
 
 
-def build_channel(channel):
-    rows_c = load_rows(channel)
-    roses_c = build_roses(rows_c)
-    l0_c = load_l0(channel)
-    # balance normalisation (RELATIVE, per channel) for the ecological-chord arp.
-    # Knepp balance is always anthro-leaning, so the chord gradient uses the relative
-    # position (5th–95th pct across windows) — Alice's "ordering is meaningful".
-    _bals = sorted(w["drv"]["balance"] for w in rows_c
-                   if isinstance(w["drv"].get("balance"), (int, float)))
-    if _bals:
-        _blo, _bhi = _bals[int(0.05 * (len(_bals) - 1))], _bals[int(0.95 * (len(_bals) - 1))]
-        BAL_NORM[channel] = (_blo, _bhi if _bhi > _blo else _blo + 1e-9)
+def load_tables(ch: str, stat: str, level: str, table: dict):
+    """Hand over one sound table: rw_tables_<level>_<stat>.json of table channel `ch` as parsed
+    JSON, its corpus as clip IDS (bridge.read_rw_tables gives exactly that). Parsed on first use,
+    both levels or neither (_rw_tables). A channel other than air is playable once both readings
+    at both levels are in: the caller then adds it to RW_TABLE_CHANNELS, as bridge.py's __main__
+    does, and calls load_rw_push."""
+    _TABLE_DATA[(ch, stat, level)] = table
+    _RW_CACHE.pop((ch, stat), None)
+
+
+def load_push(ch: str, level: str, side: dict):
+    """Hand over one push side file: rw_push_<level>.json of table channel `ch`. load_rw_push
+    derives every table channel's (call it after the tables are in)."""
+    _PUSH_DATA[(ch, level)] = side
+
+
+# ============================================================================
+# THE MASTER (2026-10-01, web Phase 1; lab/WEB_PLAN.md section 2.7 #1)
+# ============================================================================
+# The bridge relayed /rw_master and kept nothing, so every view link drew the slider at 0.8,
+# unmuted, over an engine that could be anywhere: the UI disagreed with SC after any navigation.
+# Now the bridge OWNS the master, as it owns the mix: SOUND["master"] is what SC is doing, echoed
+# as {type:"master", vol, mute} to every page after each change, to a page when it attaches, and
+# on mixquery; wc.js paints the slider and the mute button from it (applyMaster).
+# IT FOLLOWS SC'S OWN RULE, not the page's picture of two separate controls. OSCdef(\rwMaster)
+# (sc/parse_dark_re_wilding.scd:286-289) keeps ONE bus: `vol v` sets it to v - so moving the
+# volume also un-mutes - `mute 1` sets it to 0 and any other mute value to 1. So an UN-MUTE IS
+# HEARD AT 1.0, not at the slider's last volume, and the echo then says 1.0. Nothing new goes to
+# SC: the OSC is exactly what it was. The start, 1.0 and unmuted, is SC's own (parse:32 sets the
+# bus to 1); SC sends nothing back, so a bridge restarted against an engine someone had muted
+# shows it unmuted until the master is next touched. The web sets its own start (0.8, D10)
+# before a page attaches.
+SOUND = {"master": {"vol": 1.0, "mute": 0}}
+
+
+def _rw_master_sent(verb: str, x):
+    """SOUND["master"] after SC applied one /rw_master message (the rule above)."""
+    s = SOUND["master"]
+    if verb == "vol":
+        s["vol"], s["mute"] = float(x), 0
+    elif int(x) == 1:
+        s["mute"] = 1
     else:
-        BAL_NORM[channel] = (0.0, 1.0)
-    # capture each month's species list for the chorus BEFORE it is dropped from
-    # the WS payload (load_l0 keeps _species so we can read it here).
-    SPECIES[channel] = {m["key"]: m.get("_species", []) for m in l0_c}
-    for m in l0_c:
-        m.pop("_species", None)
-    # corpus = focal top-bird (+ month's returner), keyed the way the browser nav
-    # identifies a point:  L0 -> month key "YYYY-MM"  ·  L1 -> window idx.
-    # Popped here so the WS payload stays lean (paths never reach the browser).
-    RET = {m["key"]: m.pop("_ret_clip", None) for m in l0_c}    # month -> returner clip path
-    # corpus = the point's FOCAL top-bird clip only. The RETURNER (the month's
-    # phenological highlight) is voiced SEPARATELY in SC (\rwReturner: centred + a
-    # shine), so it stands out as "the one to hear" rather than blending in.
-    CORPUS[channel] = {
-        "l0": {m["key"]: m.pop("_corpus", []) for m in l0_c},
-        "l1": {w["idx"]: w.pop("_corpus", []) for w in rows_c},
-    }
-
-    def _ret_if_distinct(mkey, focal_clips):
-        rc = RET.get(mkey)                                      # None unless top bird != returner
-        return rc if (rc and rc not in {p for p, _a in focal_clips}) else None
-    RETURNER[channel] = {
-        "l0": {m["key"]: _ret_if_distinct(m["key"], CORPUS[channel]["l0"][m["key"]]) for m in l0_c},
-        "l1": {w["idx"]: _ret_if_distinct(f"{w['y']}-{w['m']:02d}", CORPUS[channel]["l1"][w["idx"]]) for w in rows_c},
-    }
-    _nl0 = sum(1 for v in CORPUS[channel]["l0"].values() if v)
-    _nret = sum(1 for v in RETURNER[channel]["l0"].values() if v)
-    print(f"  [corpus:{channel}] focal top-bird L0 {_nl0}/{len(l0_c)} · "
-          f"returner focal: {_nret} months have a distinct highlight clip")
-    loadings_c = load_loadings(channel)
-    day_l0_c = load_day_l0(channel)                        # ~730 per-day biplot points (project-side re-fit)
-    day_loadings_c = load_day_loadings(channel)
-    spectral_c, spectral_meta_c = load_spectral(channel)
-    mfcc_c, mfcc_meta_c = load_mfcc(channel)
-    # WHICH WINDOWS HAVE A POINT, per month. A recorded hour on the spectral side can name a
-    # window the acoustic-index side never saw (air: Dec 2025 and Jan 2026 have night hours in
-    # the spectrogram and no night windows in L1), and rw_navigate then falls back to the whole
-    # month without a word. The hour-of-day views read this and say "whole month" instead.
-    _wins = {}
-    for w in rows_c:
-        _wins.setdefault(f"{w['y']}-{w['m']:02d}", set()).add(w["win"])
-    for e in spectral_c + mfcc_c:
-        e["wins"] = [w for w in DIEL_ORDER if w in _wins.get(e["key"], ())]
-    # THE DAY RESOLUTION + THE MONTH CELLS' SUPPORT (viz/gen_spectral_days.py). Per month cell:
-    # nd = days with that UTC hour recorded, nm = minutes (dropouts excluded), and for spectro
-    # the cell's mean in dB so the hover box never depends on a colour scale alone.
-    days_c = load_spectral_days(channel)
-    day_sun_c = load_day_sun(channel)
-    row_index_c = {}                                   # "YYYY-MM-DD" -> {win: widx}, the L1 lookup
-    for w in rows_c:
-        row_index_c.setdefault(f"{w['y']}-{w['m']:02d}-{w['d']:02d}", {})[w["win"]] = w["idx"]
-    if days_c:
-        _dm = days_c.get("meta", {})
-        spectral_meta_c["floor_bands"] = _dm.get("floor_bands", [])
-        spectral_meta_c["support"] = True
-        mfcc_meta_c["support"] = True
-        _db = _dm.get("d_bands", [])
-        for e in spectral_c + mfcc_c:
-            sup = days_c.get("months", {}).get(e["key"])
-            if not sup:
-                continue
-            e["days"], e["nd"], e["nm"] = sup["days"], sup["nd"], sup["nm"]
-        for e in spectral_c:
-            sup = days_c.get("months", {}).get(e["key"])
-            if sup:                                    # [band][hour] dB, None for dead bands
-                full = [None] * len(spectral_meta_c.get("bands_hz", []))
-                for j, b in enumerate(_db):
-                    if b < len(full):
-                        full[b] = sup["d"][j]
-                e["db"] = full
-    embeddings_c = load_embeddings(channel, "month")       # ~119 (month,diel) pts
-    day_embeddings_c = load_embeddings(channel, "day")     # ~2388 (month,day,diel) pts (raw L1 windows)
-    # returner = a month-level phenology signal (air-only; water l0 has returner=None)
-    ret = {(m["year"], m["month"]): m.get("returner") for m in l0_c}
-    for r in roses_c:
-        r["returner"] = ret.get((r["year"], r["month"]))
-    for w in rows_c:
-        w["returner"] = ret.get((w["y"], w["m"]))
-    # Enrich embedding points with top-bird + returner so they show the same detail as
-    # the feature-pair readings (not "top bird —"). MONTH points get the month's top bird;
-    # DAY points get that window's own top bird (from the matching L1 row).
-    def _top_bird(splist):
-        best = None
-        for s in (splist or []):
-            if s and s[0] and (best is None or (s[2] or 0) > (best[2] or 0)):
-                best = s
-        return best[0] if best else None
-    mtop = {mk: _top_bird(sp) for mk, sp in (SPECIES.get(channel) or {}).items()}
-    for _method in ("pca", "umap", "som"):
-        for _pts in (embeddings_c.get(_method) or {}).values():
-            for _pt in _pts:
-                _pt["sp"] = mtop.get(_pt.get("key"))
-                _pt["returner"] = ret.get((_pt.get("year"), _pt.get("month")))
-    win_sp = {(w["y"], w["m"], w["d"], w["win"]): w.get("sp") for w in rows_c}   # per-window top bird
-    for _method in ("pca", "umap", "som"):
-        for _pts in (day_embeddings_c.get(_method) or {}).values():
-            for _pt in _pts:
-                _pt["sp"] = win_sp.get((_pt.get("year"), _pt.get("month"), _pt.get("day"), _pt.get("win")))
-                _pt["returner"] = ret.get((_pt.get("year"), _pt.get("month")))
-    for _d in day_l0_c:                                    # daily biplot points -> their month's returner
-        _d["returner"] = ret.get((_d.get("year"), _d.get("month")))
-    # WEATHER LENS — attach each point its month's / day's weather (temp/precip/wind),
-    # channel-agnostic. Month-grain points get the monthly aggregate; day-grain points
-    # (rows, day windows, daily biplot) get that day's. Browser colours / hovers on it.
-    wx_m, wx_d, wx_di = load_weather()
-    def _diel_wx(y, m, d, win):                        # per-window weather, daily fallback
-        return wx_di.get((y, m, d, win)) or wx_d.get((y, m, d))
-    for _m in l0_c:                                    # months -> monthly
-        _m["wx"] = wx_m.get((_m.get("year"), _m.get("month")))
-    for _r in roses_c:
-        _r["wx"] = wx_m.get((_r.get("year"), _r.get("month")))
-    for _w in rows_c:                                  # L1 windows -> the weather during that diel window
-        _w["wx"] = _diel_wx(_w.get("y"), _w.get("m"), _w.get("d"), _w.get("win"))
-    for _d in day_l0_c:                                # daily biplot -> that day (diel-agnostic)
-        _d["wx"] = wx_d.get((_d.get("year"), _d.get("month"), _d.get("day")))
-    for _mth in ("pca", "umap", "som"):
-        for _pts in (embeddings_c.get(_mth) or {}).values():
-            for _pt in _pts:                           # month embeddings -> monthly
-                _pt["wx"] = wx_m.get((_pt.get("year"), _pt.get("month")))
-        for _pts in (day_embeddings_c.get(_mth) or {}).values():
-            for _pt in _pts:                           # day×diel embeddings -> per-window weather
-                _pt["wx"] = _diel_wx(_pt.get("year"), _pt.get("month"), _pt.get("day"), _pt.get("win"))
-    return {"rows": rows_c, "roses": roses_c, "l0months": l0_c, "loadings": loadings_c,
-            "day_l0months": day_l0_c, "day_loadings": day_loadings_c,
-            "spectral": spectral_c, "spectral_meta": spectral_meta_c,
-            "mfcc": mfcc_c, "mfcc_meta": mfcc_meta_c,
-            "embeddings": embeddings_c, "day_embeddings": day_embeddings_c,
-            "coverage": month_coverage(rows_c),
-            # never in init (init_payload names its keys): served per month by spectral_day_reply
-            "spectral_days": days_c, "day_sun": day_sun_c, "row_index": row_index_c}
+        s["vol"], s["mute"] = 1.0, 0
 
 
-def build_combined():
-    """The AIR+WATER combined channel — the relationship view. Scatter + biplot use the
-    joint data (gen_combined.py); the other views fall back to air. Needs air built first."""
-    if not (DESIGN / "data" / "combined_month_embeddings.json").exists():
-        return None
-    air = CHANNELS.get("air")
-    if air is None:
-        return None
-
-    def _j(name):
-        try:
-            return json.loads((DESIGN / "data" / name).read_text())
-        except (OSError, ValueError):
-            return None
-    emb = _j("combined_month_embeddings.json") or {}
-    l0 = _j("combined_l0.json") or []
-    loadings = _j("combined_pca_loadings.json") or {}
-    print(f"  [combined] embeddings {emb.get('meta', {}).get('n_points')} pts · l0 {len(l0)} months · "
-          f"xchan {emb.get('meta', {}).get('xchan')}")
-    return {"rows": air.get("rows", []), "roses": air.get("roses", []),
-            "l0months": l0, "loadings": loadings,
-            "spectral": air.get("spectral", []), "spectral_meta": air.get("spectral_meta", {}),
-            "mfcc": air.get("mfcc", []), "mfcc_meta": air.get("mfcc_meta", {}),
-            "embeddings": emb, "coverage": air.get("coverage", {})}
+def master_echo() -> dict:
+    """{type:"master", vol, mute}: what the MASTER controls paint (wc.js applyMaster); mute 0 | 1."""
+    return {"type": "master", "vol": SOUND["master"]["vol"], "mute": SOUND["master"]["mute"]}
 
 
-def rw_prune_hour_views():
-    """spectro/mfcc tell the listener which window a cell plays ("you hear the whole month",
-    "you hear its dusk"). That is only true if the window is a point in the TABLES that channel
-    plays, not merely a row of its L1 CSV. Run AFTER the tables load: keep, per month, the windows
-    with an L0 point, and per day, the windows with an L1 point - EACH CHANNEL AGAINST ITS OWN
-    TABLES (it pruned water against air's until water had tables of its own)."""
-    dropped = 0
-    for ch, _b in CHANNELS.items():
-        T = _rw_tables(RW_STAT, _rw_table_channel(ch)) if _rw_table_channel(ch) in RW_TABLE_CHANNELS else None
-        if not T:
-            continue
-        P0 = (T.get("L0") or {}).get("points", {}); P1 = (T.get("L1") or {}).get("points", {})
-        if not P0 or not P1:
-            continue
-        for e in _b.get("spectral", []) + _b.get("mfcc", []):
-            y, mo = (int(x) for x in e["key"].split("-"))
-            keep = [w for w in e.get("wins", []) if f"all:2023-2026@{y}|{mo}|{w}" in P0]
-            dropped += len(e.get("wins", [])) - len(keep); e["wins"] = keep
-        ri = _b.get("row_index")
-        if ri is None:
-            continue
-        for dk, ws in ri.items():
-            y, mo, d = int(dk[:4]), int(dk[5:7]), int(dk[8:])
-            keep = {w: i for w, i in ws.items() if f"all:2023-2026@{y}|{mo}|{d}|{w}" in P1}
-            dropped += len(ws) - len(keep); ri[dk] = keep
-    print(f"  [hour views] kept only windows with a table point ({dropped} dropped across channels)")
-
-
-def spectral_day_reply(m):
-    """{type:"spectral_day", channel, month:"YYYY-MM", kind:"tol"|"mfcc"} -> that month's DAYS.
-
-    Each day is shaped like a month entry so diel.js reads it unchanged: key, sun (the day's
-    own, lo == hi), have (recorded hours, dropouts excluded), drop, nw (minutes per hour, 24),
-    wins + widx (the L1 windows that exist that day and their row index — the sound at day
-    resolution is {type:"drv", level:1, widx}), and the values as ROWS, one per recorded hour
-    in `hrs`: v = the day-scale colour 0..1, raw = dB (tol) or the raw coefficient (mfcc).
-    Always answers, even with days:[] and a `why`, so a page never waits on a missing file.
-    air+water has no spectra of its own and falls back to air, as build_combined does."""
-    ch = str(m.get("channel") or "air")
-    src = "air" if ch == "air+water" else ch
-    month = str(m.get("month") or "")
-    kind = "mfcc" if m.get("kind") == "mfcc" else "tol"
-    b = CHANNELS.get(src) or {}
-    D = b.get("spectral_days") or {}
-    out = {"type": "spectral_day", "channel": ch, "month": month, "kind": kind, "days": []}
-    if not D:
-        out["why"] = "no day-level data - run viz/gen_spectral_days.py " + src
-        return out
-    meta = D.get("meta", {})
-    out["meta"] = {k: meta.get(k) for k in ("bands_hz", "dead_bands", "floor_bands", "t_bands",
-                                             "d_bands", "n_coeffs", "labels", "rules", "clock")}
-    sun, rix = b.get("day_sun", {}), b.get("row_index", {})
-    for dk in D.get("by_month", {}).get(month, []):
-        e = D["days"][dk]
-        drop = set(e.get("drop", []))
-        nw = [0] * 24
-        for h, n in zip(e["h"], e["nw"]):
-            nw[h] = n
-        s = sun.get(dk)
-        widx = rix.get(dk, {})
-        vals, raws = (e["m"], e["r"]) if kind == "mfcc" else (e["t"], e["d"])
-        y, mo, d = (int(x) for x in dk.split("-"))
-        out["days"].append({
-            "key": dk, "year": y, "month": mo, "day": d,
-            "sun": None if not s else {"sr": s[0], "ss": s[1], "sr_lo": s[0], "sr_hi": s[0],
-                                       "ss_lo": s[1], "ss_hi": s[1]},
-            "have": [h for h in e["h"] if h not in drop], "drop": sorted(drop), "nw": nw,
-            "wins": [w for w in DIEL_ORDER if w in widx], "widx": widx,
-            "hrs": e["h"], "v": vals, "raw": raws})
-    if not out["days"]:
-        out["why"] = f"no recorded days in {month}"
-    return out
-
-
-def init_payload(channel):
-    ch = channel if channel in CHANNELS else "air"
-    b = CHANNELS.get(ch) or {}
-    return {"type": "init", "channel": ch,
-            "channels": [c for c in ("air", "water", "air+water") if c in CHANNELS],
-            "rows": b.get("rows", []), "roses": b.get("roses", []),
-            "l0months": b.get("l0months", []), "loadings": b.get("loadings", {}),
-            "day_l0months": b.get("day_l0months", []), "day_loadings": b.get("day_loadings", {}),   # daily biplot (DAY↔MONTH)
-            "spectral": b.get("spectral", []), "spectral_meta": b.get("spectral_meta", {}),
-            "mfcc": b.get("mfcc", []), "mfcc_meta": b.get("mfcc_meta", {}),
-            "embeddings": b.get("embeddings", {}),
-            "day_embeddings": b.get("day_embeddings", {}),   # daily-resolution point set (scatter DAY↔MONTH toggle)
-            "coverage": b.get("coverage", {}),               # per month: hours, per window, partial + why
-            "web_control": read_web_control(),
-            "n_rows": len(b.get("rows", [])), "diel": DIEL_ORDER,
-            "ax_keys": list(AX_COLS.keys()),
-            "drv_keys": list(DRV_COLS.keys()) + ["balance"]}
-
-
-# ---------------------------------------------------------------------------
-# WebSocket: init(channel) out; {type:"channel"|"drv"|"legend"|"hover"|"spectral_day"} in
-# ---------------------------------------------------------------------------
-async def ws_handler(ws):
-    global RW_CHANNEL, RW_MIX_USER, RW_LAST_IDENT
-    clients.add(ws)
-    rw_client_new(ws)                        # takes the sound if nobody holds it (P35)
+# ============================================================================
+# THE PAGE PROTOCOL: attach / dispatch / detach (bridge.py's ws_handler until 2026-10-01)
+# ============================================================================
+def attach(client):
+    """A page connected (the desktop: its WebSocket opened; the web: the shell attached a view)."""
+    global RW_LAST_IDENT
+    if client not in CLIENTS:
+        CLIENTS.append(client)
+    rw_client_new(client)                        # takes the sound if nobody holds it (P35)
     # A FRESH PAGE MEANS FORGET WHAT THE ENGINE WAS TOLD. The identity is deduplicated on
     # (level, subset), which is right while one engine runs behind one display - but the two
     # are separate processes with separate launchers, so restarting the sound alone leaves
@@ -3052,214 +2070,105 @@ async def ws_handler(ws):
     # listener has actually moved survives, and an untouched one is rewritten to the value
     # it already holds.
     RW_LAST_IDENT = None
-    try:
-        await ws.send(json.dumps(init_payload("air")))
-        async for raw in ws:
-            try:
-                m = json.loads(raw)
-            except ValueError:
-                continue
-            t = m.get("type")
-            _mix_was = list(RW_MIX)
-            if t == "channel":                                   # air <-> water switch
-                ch = m.get("channel", "air")
-                if ch in CHANNELS:
-                    await ws.send(json.dumps(init_payload(ch)))
-            elif t == "hover" and m.get("idx") is not None:      # legacy: idx into a channel's rows
-                b = CHANNELS.get(m.get("channel", "air")) or {}
-                rws = b.get("rows", [])
-                i = int(m["idx"])
-                if 0 <= i < len(rws):
-                    rw_navigate(1, str(m.get("channel", "air")), widx=i, client=ws)
-            elif t == "drv":                                     # navigate to a point
-                # v2: four layers from the precomputed tables. The old path sent
-                # /dark_nav + /dark_arp + /dark_corpus + /dark_returner; all of that is
-                # replaced by the /rw_* protocol, which carries the subset's mode table
-                # only when the SELECTION changes and a handful of floats per point.
-                lvl = int(m.get("level", 1))
-                ch = m.get("channel") or "air"
-                if ch != RW_CHANNEL:
-                    # n_species_analysed and the chord table are per channel, and so are the
-                    # observational correlations taken over them.
-                    _RW_LEVEL_STATS.clear(); _RW_RHO.clear()
-                RW_CHANNEL = ch
-                # client=ws: this view takes the sound, and its rooms with it (P35)
-                rw_navigate(lvl, ch, mkey=m.get("mkey"), widx=m.get("widx"), win=m.get("win"),
-                            client=ws)
-            elif t == "select":                                  # the current SELECTION
-                # per view (P35): retunes only for the view that is playing - see rw_client_select
-                rw_client_select(ws, m.get("level", 1), m.get("subset"))
-            elif t == "mix":                                     # the four faders
-                for _i, _k in enumerate(("drone", "clave", "arp", "corpus")):
-                    if m.get(_k) is not None:
-                        RW_MIX[_i] = max(0.0, min(1.0, float(m[_k])))
-                RW_MIX_USER = True                   # from here the faders are the listener's
-                rw_send_mix()
-            elif t == "mixquery":                                # a page asking where the mix is
-                pass                                             # the echo below answers it
-            # `soundmode` (synth|corpus|both) is GONE. It was v1's model, where the corpus was
-            # an ALTERNATIVE to the synthesis; v2 made it layer four of a ladder, and the four
-            # faders are the control. What was left behind was a preset that overwrote RW_MIX
-            # on every connect and every channel switch - and its default, "synth", is
-            # [1, 1, 1, 0]. That is why the corpus could not be heard at any level: the page
-            # silenced it a moment after loading, every time. Old pages sending it are ignored.
-            elif t == "legend":                                  # perceptual legend preview
-                # THE REPLY GOES TO THE REQUESTER ONLY. A preview is one listener's question
-                # about the point under their own finger; broadcasting it would have a second
-                # tab redraw its (i) for a point it is not on. The /rw_mix echo below stays a
-                # broadcast, and a preview never triggers it.
-                _reply = legend_relay(m)
-                if _reply is not None:
-                    await ws.send(json.dumps(_reply))
-            elif t == "spectral_day":                            # spectro/mfcc DAY resolution
-                # REQUESTER ONLY, like the legend: one page asking for one month of days. The
-                # type must NOT start with "legend_" - legend.js routes those to itself.
-                await ws.send(json.dumps(spectral_day_reply(m)))
-            elif t == "master":                                  # MASTER volume / mute
-                master_relay(m)
-            elif t == "stat":                                    # which reading the drone is under
-                rw_set_stat(m.get("stat"))
-            elif t == "loop":                                    # LOOP toggle: 1=loop arp+corpus, 0=one-shot
-                if sc_client is not None:
-                    try:
-                        sc_client.send_message("/dark_loop", [int(bool(m.get("on", 1)))])
-                    except OSError:
-                        pass
-
-            # THE FADERS RENDER SERVER STATE. This side owns RW_MIX; the pages own only the
-            # gesture. Anything that moved the mix without the user touching a fader - a level
-            # change applying its defaults, the legacy soundmode preset - used to leave four
-            # sliders reading 1.00 over an engine that had arp and corpus at 0, so "the
-            # sliders don't work" was really "the sliders were never told". Echo to EVERY
-            # client, not just the one that acted, or a second tab drifts the moment you
-            # navigate in the first.
-            if list(RW_MIX) != _mix_was or t == "mixquery":
-                _msg = json.dumps({"type": "mix", "drone": RW_MIX[0], "clave": RW_MIX[1],
-                                   "arp": RW_MIX[2], "corpus": RW_MIX[3]})
-                for _c in list(clients):
-                    try:
-                        await _c.send(_msg)
-                    except Exception:
-                        clients.discard(_c)
-    finally:
-        clients.discard(ws)
-        rw_client_gone(ws)                   # its rooms go with it; it gives up the sound (P35)
-        # A PAGE THAT DIES WITH A CHIP HELD SENDS NO RELEASE. That was survivable while the
-        # worst a stranded hold could leave behind was a tick forced ON; since the isolation
-        # rule a drone row leaves it MUTED, and silence that outlives the finger is a live-show
-        # hazard rather than a curiosity. Releasing here gives back the listener's own drone
-        # and clave and lets rw_preview.scd's ~rwPreviewClear put the tick back the way the
-        # hold found it. Unconditional on purpose: with two tabs open this can end a hold the
-        # OTHER tab still has down, which costs that tab an early restore - and its own
-        # finger-up then sends a second release, which is idempotent. The alternative, a
-        # muted body under a dead page until the next navigation, is not recoverable by ear.
-        if RW_PREVIEW is not None:
-            rw_preview_release()
+    if _INIT_PAYLOAD is not None:                # the web's host answers init from its baked files
+        _reply(client, _INIT_PAYLOAD("air"))
+    _reply(client, master_echo())                # the MASTER controls paint the engine's state
 
 
-def serve_http():
-    def _end_headers(self):
-        self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
-        self.send_header("Pragma", "no-cache")
-        self.send_header("Expires", "0")
-        super(self.__class__, self).end_headers()
-
-    def _do_GET(self):
-        # Serve the port triple from THIS PROCESS rather than off disk.  The
-        # file .viz_ports.json is removed by the launcher's cleanup trap, so a
-        # concurrent launcher run deletes the copy we wrote and a bare-URL page
-        # (B2.21 §8) then cannot find our WS port.  The live answer cannot go
-        # stale.  (Pattern: iris fix 2026-08-22, manual C5 §5.0.)
-        if self.path.split("?")[0] in ("/.viz_ports.json", "/viz_ports.json"):
-            body = json.dumps({
-            "http": HTTP_PORT, "ws": WS_PORT, "osc": None,
-            "session_token": _SESSION_TOKEN, "url": _VIZ_URL,
-        }).encode()
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
-            return
-        SimpleHTTPRequestHandler.do_GET(self)
-
-    handler = type("H", (SimpleHTTPRequestHandler,), {
-        "__init__": lambda self, *a, **kw:
-            SimpleHTTPRequestHandler.__init__(self, *a, directory=str(ROOT), **kw),
-        "log_message": lambda *_: None,
-        "do_GET": _do_GET,
-        "end_headers": _end_headers,
-    })
-    HTTPServer(("127.0.0.1", HTTP_PORT), handler).serve_forever()
+def detach(client):
+    """A page went away (the desktop: its WebSocket closed; the web: pagehide)."""
+    if client in CLIENTS:
+        CLIENTS.remove(client)
+    rw_client_gone(client)                       # its rooms go with it; it gives up the sound (P35)
+    # A PAGE THAT DIES WITH A CHIP HELD SENDS NO RELEASE. That was survivable while the
+    # worst a stranded hold could leave behind was a tick forced ON; since the isolation
+    # rule a drone row leaves it MUTED, and silence that outlives the finger is a live-show
+    # hazard rather than a curiosity. Releasing here gives back the listener's own drone
+    # and clave and lets rw_preview.scd's ~rwPreviewClear put the tick back the way the
+    # hold found it. Unconditional on purpose: with two tabs open this can end a hold the
+    # OTHER tab still has down, which costs that tab an early restore - and its own
+    # finger-up then sends a second release, which is idempotent. The alternative, a
+    # muted body under a dead page until the next navigation, is not recoverable by ear.
+    if RW_PREVIEW is not None:
+        rw_preview_release()
 
 
-async def main():
-    global main_loop
-    main_loop = asyncio.get_running_loop()
-    await websockets.serve(ws_handler, "127.0.0.1", WS_PORT)
-    print(f"  WS   ws://127.0.0.1:{WS_PORT}")
-    print(f"  SC   udp://{SC_HOST}:{SC_PORT}  /rw_* four-layer protocol "
-          f"(hover a point to hear it)")
-    print(f"  HTTP {_VIZ_URL}")
-    await asyncio.Future()
+def dispatch(client, m: dict):
+    """ONE page message: {type: channel | drv | select | mix | mixquery | legend | spectral_day |
+    master | stat}. OSC goes out through send_osc; a reply goes to `client` (send_json); the mix and
+    the master are echoed to every page (broadcast) when they changed, and on mixquery. The order is
+    the order ws_handler sent them in before the split. `hover` (no page sends it) and `loop`
+    (/dark_loop: nothing in SC v2 listens) are gone, and like any unknown type do nothing."""
+    global RW_CHANNEL, RW_MIX_USER
+    t = m.get("type")
+    _mix_was = list(RW_MIX)
+    _master_was = dict(SOUND["master"])
+    if t == "channel":                                   # air <-> water switch
+        ch = m.get("channel", "air")
+        if ch in CHANNELS and _INIT_PAYLOAD is not None:
+            _reply(client, _INIT_PAYLOAD(ch))
+    elif t == "drv":                                     # navigate to a point
+        # v2: four layers from the precomputed tables. The old path sent
+        # /dark_nav + /dark_arp + /dark_corpus + /dark_returner; all of that is
+        # replaced by the /rw_* protocol, which carries the subset's mode table
+        # only when the SELECTION changes and a handful of floats per point.
+        lvl = int(m.get("level", 1))
+        ch = m.get("channel") or "air"
+        if ch != RW_CHANNEL:
+            # n_species_analysed and the chord table are per channel, and so are the
+            # observational correlations taken over them.
+            _RW_LEVEL_STATS.clear(); _RW_RHO.clear()
+        RW_CHANNEL = ch
+        # client: this view takes the sound, and its rooms with it (P35)
+        rw_navigate(lvl, ch, mkey=m.get("mkey"), widx=m.get("widx"), win=m.get("win"),
+                    client=client)
+    elif t == "select":                                  # the current SELECTION
+        # per view (P35): retunes only for the view that is playing - see rw_client_select
+        rw_client_select(client, m.get("level", 1), m.get("subset"))
+    elif t == "mix":                                     # the four faders
+        for _i, _k in enumerate(("drone", "clave", "arp", "corpus")):
+            if m.get(_k) is not None:
+                RW_MIX[_i] = max(0.0, min(1.0, float(m[_k])))
+        RW_MIX_USER = True                   # from here the faders are the listener's
+        rw_send_mix()
+    elif t == "mixquery":                                # a page asking where the mix is
+        pass                                             # the echoes below answer it
+    # `soundmode` (synth|corpus|both) is GONE. It was v1's model, where the corpus was
+    # an ALTERNATIVE to the synthesis; v2 made it layer four of a ladder, and the four
+    # faders are the control. What was left behind was a preset that overwrote RW_MIX
+    # on every connect and every channel switch - and its default, "synth", is
+    # [1, 1, 1, 0]. That is why the corpus could not be heard at any level: the page
+    # silenced it a moment after loading, every time. Old pages sending it are ignored.
+    elif t == "legend":                                  # perceptual legend preview
+        # THE REPLY GOES TO THE REQUESTER ONLY. A preview is one listener's question
+        # about the point under their own finger; broadcasting it would have a second
+        # tab redraw its (i) for a point it is not on. The /rw_mix echo below stays a
+        # broadcast, and a preview never triggers it.
+        _reply_ = legend_relay(m)
+        if _reply_ is not None:
+            _reply(client, _reply_)
+    elif t == "spectral_day":                            # spectro/mfcc DAY resolution
+        # REQUESTER ONLY, like the legend: one page asking for one month of days. The
+        # type must NOT start with "legend_" - legend.js routes those to itself.
+        if _SPECTRAL_DAY is not None:
+            _reply(client, _SPECTRAL_DAY(m))
+    elif t == "master":                                  # MASTER volume / mute
+        master_relay(m)
+    elif t == "stat":                                    # which reading the drone is under
+        rw_set_stat(m.get("stat"))
 
-
-if __name__ == "__main__":
-    print("dark_re_wilding viz bridge starting (J1 scatter + J3 roses):")
-    if not os.environ.get("VIZ_NO_DEATHWATCH"):
-        _start_parent_death_watch()
-    for _ch in ("air", "water"):
-        if (DESIGN / "data" / f"wildnings_{_ch}_L1.csv").exists():
-            print(f"  — building channel: {_ch} —")
-            CHANNELS[_ch] = build_channel(_ch)
-    _combined = build_combined()                          # air+water relationship view
-    if _combined:
-        CHANNELS["air+water"] = _combined
-    print(f"  channels available: {list(CHANNELS.keys())}")
-    print("  — loading the four-layer tables (dev/data) —")
-    # Both readings are parsed at boot so the sidebar switch is a dict swap, not a file read.
-    # The LAST successful load is the one in force, so the shipped default is committed last
-    # rather than left to the order of the preloads; if its tables were never built, fall
-    # back to the other reading instead of booting with a silent drone.
-    load_rw("gradient"); load_rw("variance")
-    if not load_rw(RW_STAT_DEFAULT):
-        load_rw("gradient" if RW_STAT_DEFAULT == "variance" else "variance")
-    # THE OTHER CHANNELS' TABLES, parsed (not put in force: air stays in force until a water
-    # point is pressed). A channel is available only with BOTH readings at BOTH levels, so a stat
-    # switch on it can never half-apply; without them it is silent with a reason, never air.
-    for _tch in ("water",):
-        if _tch in CHANNELS and _rw_tables("gradient", _tch) and _rw_tables("variance", _tch):
-            RW_TABLE_CHANNELS.add(_tch)
-            print(f"  [rw] {_tch} has its own tables")
-            _rw_build_drift(_tch)
-        elif _tch in CHANNELS:
-            _rw_missing_channel(_tch)
-    # The push tier's one side file, plus the per-subset derivation and the self-check that
-    # stands between a stale side file and silently wrong sound. Must run AFTER load_rw: it
-    # takes its subset membership and all of its own ranks from the tables.
-    load_rw_push()
-    rw_prune_hour_views()
-    sc_client = SimpleUDPClient(SC_HOST, SC_PORT)
-    # Serve the display manifest to the pages (C8.8): symlink in viz/ (the
-    # HTTP root) -> ../darkdata/manifest.json, self-healed like nova's f32s.
-    try:
-        _mlink = ROOT / "manifest.json"
-        if not _mlink.exists():
-            _mlink.symlink_to(Path("..") / "darkdata" / "manifest.json")
-    except FileExistsError:
-        pass
-    except Exception as _e:
-        print(f"  [assets] could not link manifest.json into viz/: {_e}")
-    _ports_path = ROOT / ".viz_ports.json"
-    try:
-        _ports_path.write_text(json.dumps({
-            "http": HTTP_PORT, "ws": WS_PORT, "osc": None,
-            "session_token": _SESSION_TOKEN, "url": _VIZ_URL,
-        }))
-    except OSError as _e:
-        print(f"warn: could not write {_ports_path.name}: {_e}")
-    threading.Thread(target=serve_http, daemon=True).start()
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        print("\n  bridge stopped")
+    # THE FADERS RENDER SERVER STATE. This side owns RW_MIX; the pages own only the
+    # gesture. Anything that moved the mix without the user touching a fader - a level
+    # change applying its defaults, the legacy soundmode preset - used to leave four
+    # sliders reading 1.00 over an engine that had arp and corpus at 0, so "the
+    # sliders don't work" was really "the sliders were never told". Echo to EVERY
+    # client, not just the one that acted, or a second tab drifts the moment you
+    # navigate in the first.
+    if list(RW_MIX) != _mix_was or t == "mixquery":
+        _broadcast({"type": "mix", "drone": RW_MIX[0], "clave": RW_MIX[1],
+                    "arp": RW_MIX[2], "corpus": RW_MIX[3]})
+    # THE MASTER, THE SAME WAY (2026-10-01): to every page after a change (the slider, the
+    # mute, the legend's mute) and on mixquery - which every view sends once its init has
+    # drawn - so a view link opens on the engine's volume and mute, not on 0.8 and unmuted.
+    if SOUND["master"] != _master_was or t == "mixquery":
+        _broadcast(master_echo())

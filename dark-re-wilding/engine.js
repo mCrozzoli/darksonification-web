@@ -11,10 +11,11 @@
 //  own sc/dark_re_wilding_synths.scd, parse_dark_re_wilding.scd and rw_preview.scd (copied by
 //  build_web.py, unmodified); the boot file is replaced by PRELUDE (it cannot run in a tab).
 //
-//  Unlike dark_ocean, the bridge here COOKS: viz/bridge.py runs unchanged in Pyodide (core/rw_core.js,
-//  core/rw_web.py) and owns the mix, the subset, the rooms, the last point and the legend's push tier,
-//  exactly as the desktop bridge does. This engine owns what the desktop bridge does not: the master
-//  volume and mute (echoed to every page), SuperCollider's life cycle, and the replay after a boot.
+//  Unlike dark_ocean, the bridge here COOKS: viz/rw_core.py (the design's bridge core since web Phase 1,
+//  viz/HANDOFF_WEB_2026-10-01.md) runs unchanged in Pyodide (core/rw_core.js, core/rw_web.py) and owns the
+//  mix, the subset, the rooms, the last point, the legend's push tier AND the master volume/mute, which it
+//  echoes to every page exactly as the desktop bridge does. This engine owns what the desktop shell does:
+//  SuperCollider's life cycle, the replay after a boot, the baked init/spectral_day answers, the clips.
 //  Sound starts at the visitor's first click or key press (ocean rule, D10); the first press sounds.
 // =============================================================================
 import { oscMessage, oscParse, f, i, s } from "./osc.js";
@@ -35,6 +36,10 @@ const PRELUDE = `s = Server.default; s.options.numOutputBusChannels = 2; s.optio
   s.options.numBuffers = 1024; s.options.memSize = ${MEMSIZE_KB}; s.waitForBoot { "[web] server booted".postln };`;
 const CHANNELS = ["air", "water", "air+water"];  // baked init payloads: data/init_<channel>.json.gz
 const CLIP_CHUNK = 4096;                         // floats per /b_setn (probe: 59 messages, 245 ms for a 5 s clip)
+// The web's master start (D10: the page's slider started at 0.8, ♪ on). Seeded into the core before the first
+// page attaches (rw_web.boot); the core owns and echoes the master from then on, by SC's own rule (handoff §4).
+// Read here only for the seconds before the core is up. SC's own start is 1.0 (TASKS P51, Miguel's call).
+const WEB_MASTER = { vol: 0.8, mute: 0 };
 
 // This build's scsynth.getWorkletNode() throws (ocean PORTING_LOG §2, gotcha 2): remember whichever
 // AudioWorkletNode connects to the speakers, that is scsynth.
@@ -152,7 +157,6 @@ class DarkEngine {
     this.pages = new Set();                      // {page, win, id, holding}
     this.log = [];
     this.watchers = [];
-    this.SOUND = { master: { vol: 0.8, mute: 0 } };   // the page's slider starts at 0.8 (wc.js); ♪ on (D10)
     this.attempt = 0;
     this.bootAllowed = 0;
     this.nextClient = 1;
@@ -163,6 +167,7 @@ class DarkEngine {
       deliver: (client, m) => { for (const p of this.pages) if (p.id === client) this.deliver(p, m); },
       broadcast: (m) => this.broadcast(m),
       post: (t) => this.post("core", t),
+      master: WEB_MASTER,
     });
     if (typeof document !== "undefined") {
       for (const ev of ["pointerdown", "keydown"]) document.addEventListener(ev, () => this.firstGesture(), true);
@@ -180,22 +185,23 @@ class DarkEngine {
     this.state = state;
     if (error) this.error = error;
     for (const p of this.pages) this.paintChip(p);
-    this.broadcast(this.masterState());
   }
+  // the master the core holds ({vol, mute}); before the core is up, the web's start
+  master() { return (this.core.ready && this.core.master()) || WEB_MASTER; }
   paintChip(p) {
-    const key = this.state === "idle" && !this.SOUND.master.mute ? "armed" : this.state;
+    const key = this.state === "idle" && !this.master().mute ? "armed" : this.state;
     const [text, on] = CHIP[key] || [this.state, false];
     try { p.page.setChip(text, on); } catch (_) {}
   }
   pendingText() {
-    if (this.SOUND.master.mute) return null;
+    if (this.master().mute) return null;
     if (this.state === "loading") return "sound on · SuperCollider is loading…";
     if (this.state === "idle") return "sound on · click anywhere or press a key to start it";
     if (this.state === "booting") return "sound on · starting SuperCollider…";
     return null;
   }
   firstGesture() {
-    if (this._boot || this.state === "error" || this.SOUND.master.mute) return;
+    if (this._boot || this.state === "error" || this.master().mute) return;
     this.boot();
   }
 
@@ -371,18 +377,20 @@ class DarkEngine {
     this.node = this.ctx = null;
   }
   // SuperCollider boots with its master bus at 1 and its own mix at 1 (WEB_PLAN §2.3): mute FIRST, then
-  // the core's state (the mix, the last point with its identity), then mute/vol in THAT order — an unmute
-  // resets the volume to 1 in the parser, so the volume goes last.
+  // the core's state (the mix, the last point with its identity), then the master the CORE holds, by SC's
+  // own rule (parse:286-289): `vol` sets the bus and un-mutes, `mute 1` silences it keeping the volume,
+  // `mute 0` would reset the volume to 1 — so the volume goes out, and mute 1 after it when the core says
+  // muted. (Before Phase 1 the volume went last unconditionally and a boot under a muted slider — a legend
+  // hold starts SuperCollider — left it playing; handoff §4.)
   replay() {
-    const S = this.SOUND.master;
+    const S = this.master();
     this.send("/rw_master", [s("mute"), i(1)]);
     this.core.replay();
-    this.send("/rw_master", [s("mute"), i(S.mute)]);
     this.send("/rw_master", [s("vol"), f(S.vol)]);
+    if (S.mute) this.send("/rw_master", [s("mute"), i(1)]);
   }
 
-  // ------------------------------------------------------------------ pages (bridge.py ws_handler)
-  masterState() { return { type: "master", ...this.SOUND.master, sc: this.state !== "error" }; }
+  // ------------------------------------------------------------------ pages (the desktop shell's ws_handler)
   broadcast(m) { for (const p of this.pages) this.deliver(p, m); }
   deliver(entry, m) { try { entry.page.deliver(m); } catch (e) { console.error(e); } }
 
@@ -416,11 +424,7 @@ class DarkEngine {
   attachPage(page, win) {
     const entry = { page, win, id: this.nextClient++, holding: false };
     this.pages.add(entry);
-    this.core.clientNew(entry.id);               // takes the sound if nobody holds it; the identity is re-sent
-    win.addEventListener("pagehide", () => {
-      this.pages.delete(entry);
-      this.core.clientGone(entry.id);            // its rooms go with it; a held chip is released
-    });
+    win.addEventListener("pagehide", () => this.detachPage(entry));
     const gesture = () => {
       this.firstGesture();
       if (this.ctx && this.ctx.state !== "running") this.ctx.resume().catch(() => {});
@@ -430,10 +434,15 @@ class DarkEngine {
     this.paintChip(entry);
     return entry;
   }
-  // the fake socket opened: what ws_handler sends first — init("air"); the page asks for its own channel
+  // the fake socket opened: what the shell's ws_handler sends first — init("air") from the baked file, then the
+  // core attaches the page (it takes the sound if nobody holds it, re-sends the identity, echoes the master)
   async pageOpened(entry) {
     try { this.deliver(entry, await this.init("air")); } catch (e) { this.post("web", `init: ${e.message}`); }
-    this.deliver(entry, this.masterState());
+    this.core.attach(entry.id);
+  }
+  detachPage(entry) {                            // pagehide (or a check closing a fake page): rooms go, a held chip is released
+    if (!this.pages.delete(entry)) return;
+    this.core.detach(entry.id);
   }
   fromPage(entry, d) {
     switch (d.type) {
@@ -443,13 +452,10 @@ class DarkEngine {
       case "spectral_day":                         // baked per (channel, month, kind) by build_data.py; requester only
         this.spectralDay(d).then((m) => this.deliver(entry, m));
         return;
-      case "master": {
-        const S = this.SOUND.master;
-        if (d.vol != null) S.vol = Math.max(0, Math.min(1, +d.vol || 0));
-        if (d.mute != null) S.mute = +d.mute > 0.5 ? 1 : 0;
-        if (d.mute != null && S.mute === 0 && this.state !== "ready") this.boot();   // un-mute: start SuperCollider
-        this.core.handle(entry.id, d);             // the bridge relays it as /rw_master
-        this.broadcast(this.masterState());
+      case "master": {                           // the core relays it as /rw_master, keeps the state, echoes it to every page
+        const unmute = d.mute != null && !(+d.mute > 0.5);
+        if (unmute && this.state !== "ready") this.boot();   // an un-mute asks for sound: start SuperCollider
+        this.core.dispatch(entry.id, d);
         if (d.mute != null && this.state !== "ready") for (const p of this.pages) this.paintChip(p);
         return;
       }
@@ -459,7 +465,7 @@ class DarkEngine {
         break;
       default: break;
     }
-    this.core.handle(entry.id, d);
+    this.core.dispatch(entry.id, d);
   }
   // OSC from the bridge core: recorded for the checks; sent when SuperCollider is ready, dropped before
   // (the core keeps the state and replay() re-sends it once SuperCollider is up, as bridge.py's UDP would be lost too)

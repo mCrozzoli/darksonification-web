@@ -93,6 +93,12 @@ window.WC = (function () {
   ];
   const MIX_DEFAULTS = { month: [1, 1, 0, 0], day: [1, 1, 1, 1] };   // L0 / L1
   let mix = [1, 1, 1, 1];
+  // MASTER volume + mute, as the bridge last echoed them ({type:"master", vol, mute} -> applyMaster).
+  // The bridge owns them since 2026-10-01 (rw_core SOUND["master"], which follows SC's own rule) and
+  // echoes them when a page connects, after every change and on mixquery - so a view link no longer
+  // restarts the slider at 0.8, unmuted, over an engine that is somewhere else. 0.8 / unmuted is only
+  // what the panel shows until the first echo arrives.
+  const master = { vol: 0.8, mute: false };
   const gold = () => RWLook.d.gold;   // the TRACE colour, per look (rewild_tokens.css --rw-gold); views add a glow+pulse so it shines out of the data
   // per-item palette, used twice over: once to colour a TRACED point's ring, once to colour a
   // SHOWN month in an overlay (linear's day-for-day comparison). Same wheel, two sets.
@@ -560,6 +566,12 @@ window.WC = (function () {
     const on = loopPref(), b = document.getElementById("wc-loop");
     if (b) { b.textContent = on ? "↻ loop · on" : "↻ loop · off (space)"; b.classList.toggle("on", on); }
   }
+  // the MASTER controls from `master` (applyMaster sets it from the bridge's echo; a gesture sets it first)
+  function paintMaster() {
+    const b = document.getElementById("wc-mute"), v = document.getElementById("wc-vol");
+    if (b) { b.textContent = master.mute ? "◼ muted" : "◼ mute"; b.classList.toggle("on2", master.mute); }
+    if (v) v.value = master.vol;
+  }
 
   function buildPanel(container) {
     const st = document.createElement("style"); st.textContent = CSS; document.head.appendChild(st);
@@ -587,7 +599,8 @@ window.WC = (function () {
       + `<button class="wbtn" data-stat="gradient" title="gradient \u2014 how fast this month is changing. A window's place on the body is how far it sits from the one before it in time. The default.">gradient</button>`
       + `<button class="wbtn" data-stat="variance" title="variance \u2014 how internally varied it is. A window's place on the body is its own spread, not its distance from its neighbour.">variance</button></div>`;
     const loopHtml = "";
-    // MASTER: live playback volume + mute (SC /dark_master). Not persisted — a live utility.
+    // MASTER: live playback volume + mute (SC /rw_master). Not persisted by the page: the bridge owns it
+    // and echoes it, and the slider and button paint that echo (applyMaster).
     const masterHtml = `<div class="wc-seglabel">MASTER</div><div class="wcgrid" id="wc-master">`
       + `<button class="wbtn" id="wc-mute" style="grid-column:1/-1">◼ mute</button>`
       + `<input class="wvol" id="wc-vol" type="range" min="0" max="1" step="0.02" value="0.8" title="volume" style="grid-column:1/-1">` + `</div>`;
@@ -654,13 +667,13 @@ window.WC = (function () {
         try { localStorage.setItem(LS_SND, sd); } catch (e) {}       // persist across views
         if (opts.onSound) opts.onSound(sd);
         updateSoundBtn(); });
-    // MASTER volume + mute -> opts.onMaster({vol}|{mute})
-    let _muted = false;
+    // MASTER volume + mute -> opts.onMaster({vol}|{mute}); the bridge's echo then paints what SC does
     const muteBtn = container.querySelector("#wc-mute"), volEl = container.querySelector("#wc-vol");
-    if (muteBtn) muteBtn.onclick = () => { _muted = !_muted;
-      muteBtn.textContent = _muted ? "◼ muted" : "◼ mute"; muteBtn.classList.toggle("on2", _muted);
-      if (opts.onMaster) opts.onMaster({ mute: _muted ? 1 : 0 }); };
-    if (volEl) volEl.oninput = () => { if (opts.onMaster) opts.onMaster({ vol: +volEl.value }); };
+    if (muteBtn) muteBtn.onclick = () => { master.mute = !master.mute; paintMaster();
+      if (opts.onMaster) opts.onMaster({ mute: master.mute ? 1 : 0 }); };
+    if (volEl) volEl.oninput = () => { master.vol = +volEl.value;
+      if (opts.onMaster) opts.onMaster({ vol: +volEl.value }); };
+    paintMaster();                                  // an echo that arrived before the panel was built
     const loopBtn = container.querySelector("#wc-loop");
     if (loopBtn) loopBtn.onclick = () => { const on = !loopPref();
       try { localStorage.setItem(LS_LOOP, on ? "1" : "0"); } catch (e) {}
@@ -768,6 +781,16 @@ window.WC = (function () {
         const out = host.querySelector(`.wc-fval[data-for="${el.getAttribute("data-layer")}"]`);
         if (out) out.textContent = (+mix[i]).toFixed(2);
       });
+    },
+    // Paint MASTER from what the SERVER says ({type:"master", vol, mute}), as applyMix paints the
+    // faders, and for the same reason: no onMaster, or the echo would bounce back as a gesture. The
+    // volume and the mute follow SC (rw_core SOUND["master"]): a volume move un-mutes, and an un-mute
+    // comes back at 1.00, because that is what SuperCollider's /rw_master does with them.
+    applyMaster(p) {
+      if (!p) return;
+      if (typeof p.vol === "number") master.vol = Math.max(0, Math.min(1, p.vol));
+      if (p.mute != null) master.mute = !!+p.mute;
+      paintMaster();
     },
     // A RESOLUTION CHANGE NO LONGER TOUCHES THE MIX (P26, 2026-09-27). This used to paint the
     // level's defaults AND send them as a {type:"mix"} - the same message a listener's fader

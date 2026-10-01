@@ -1,14 +1,14 @@
 {
-  "built": "2026-10-01 02:09:10",
+  "built": "2026-10-01 05:41:49",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "sources": {
-    "viz/index.html": "405ec9921d4cf41d",
-    "viz/rose.html": "2fa04dd534e34d0b",
-    "viz/biplot.html": "63cc3d8cac4b2dcd",
-    "viz/linear.html": "f7c734b0ac90dfcf",
-    "viz/spectro.html": "0a7ecfcf14547bd5",
-    "viz/mfcc.html": "6544701f24a2a120",
-    "viz/wc.js": "60273fe3773f7a63",
+    "viz/index.html": "43f211807f1182a0",
+    "viz/rose.html": "ed2b88243426b3b7",
+    "viz/biplot.html": "cc5d721fddad0024",
+    "viz/linear.html": "3b514fc8f17c4630",
+    "viz/spectro.html": "6c22cd3dcd270b02",
+    "viz/mfcc.html": "4aa51280b847aa8c",
+    "viz/wc.js": "865a9eba248db295",
     "viz/legend.js": "8cb8b2543a6cc367",
     "viz/panel.js": "778a28a3555b778e",
     "viz/monthbar.js": "84c118427bb92383",
@@ -25,7 +25,8 @@
     "sc/dark_re_wilding_synths.scd": "5f92b0cd9fa752e6",
     "sc/parse_dark_re_wilding.scd": "904b5876dd9fc05e",
     "sc/rw_preview.scd": "eb85df98d8dea1d6",
-    "viz/bridge.py": "310635d2639c0c07",
+    "viz/rw_core.py": "f88fbb07bb8a4c05",
+    "viz/bridge.py (the shell; build_data.py's loaders, not shipped)": "233d51a63897c9b4",
     "sc/web_clips.scd (web only, hand-written)": "ee600e54d9f7e7fa"
   },
   "patches": {
@@ -73,9 +74,10 @@
     ]
   },
   "data": {
-    "built": "2026-09-30 22:28:05",
-    "bridge_sha": "310635d2639c0c07",
-    "bridge_lines": 3265,
+    "built": "2026-10-01 05:41:49",
+    "bridge_sha": "233d51a63897c9b4",
+    "bridge_lines": 1517,
+    "rw_core_sha": "f88fbb07bb8a4c05",
     "files": {
       "init_air.json.gz": {
         "raw": 6378610,
@@ -104,72 +106,84 @@
         "gz": 279968
       },
       "core/returner.json.gz": {
-        "raw": 386169,
-        "gz": 16956
+        "raw": 161321,
+        "gz": 14564
       },
       "core/raw_series.json.gz": {
         "raw": 1166745,
         "gz": 354108
       },
       "core/tables/air/rw_tables_L0_gradient.json.gz": {
-        "raw": 569028,
-        "gz": 131437,
-        "sha": "fba6f8ba6ebb0a97"
-      },
-      "core/tables/air/rw_tables_L0_variance.json.gz": {
-        "raw": 569017,
-        "gz": 131462,
-        "sha": "e3b0c0b8400b7f8f"
+        "raw": 492034,
+        "gz": 128638,
+        "sha_source": "fba6f8ba6ebb0a97",
+        "built": true
       },
       "core/tables/air/rw_tables_L1_gradient.json.gz": {
-        "raw": 5256979,
-        "gz": 1270518,
-        "sha": "e1f9c8819a63b022"
+        "raw": 4480330,
+        "gz": 1239940,
+        "sha_source": "e1f9c8819a63b022",
+        "built": true
+      },
+      "core/tables/air/rw_tables_L0_variance.json.gz": {
+        "raw": 492023,
+        "gz": 128735,
+        "sha_source": "e3b0c0b8400b7f8f",
+        "built": true
       },
       "core/tables/air/rw_tables_L1_variance.json.gz": {
-        "raw": 5256981,
-        "gz": 1271444,
-        "sha": "c7265a4599c51913"
+        "raw": 4480332,
+        "gz": 1241543,
+        "sha_source": "c7265a4599c51913",
+        "built": true
       },
       "core/push/air/rw_push_L0.json.gz": {
         "raw": 13583,
-        "gz": 6490,
-        "sha": "959728ec4b20594a"
+        "gz": 6496,
+        "sha_source": "959728ec4b20594a",
+        "built": true
       },
       "core/push/air/rw_push_L1.json.gz": {
         "raw": 260578,
-        "gz": 110383,
-        "sha": "f2a68a87061777e1"
+        "gz": 110390,
+        "sha_source": "f2a68a87061777e1",
+        "built": true
       },
       "core/tables/water/rw_tables_L0_gradient.json.gz": {
-        "raw": 223669,
-        "gz": 61696,
-        "sha": "dccf3514eac06bc7"
-      },
-      "core/tables/water/rw_tables_L0_variance.json.gz": {
-        "raw": 223667,
-        "gz": 61648,
-        "sha": "f4dd437ce4a4f498"
+        "raw": 197018,
+        "gz": 60413,
+        "sha_source": "dccf3514eac06bc7",
+        "built": true
       },
       "core/tables/water/rw_tables_L1_gradient.json.gz": {
-        "raw": 2904920,
-        "gz": 792930,
-        "sha": "97e74aadbccca08e"
+        "raw": 2562496,
+        "gz": 773373,
+        "sha_source": "97e74aadbccca08e",
+        "built": true
+      },
+      "core/tables/water/rw_tables_L0_variance.json.gz": {
+        "raw": 197016,
+        "gz": 60456,
+        "sha_source": "f4dd437ce4a4f498",
+        "built": true
       },
       "core/tables/water/rw_tables_L1_variance.json.gz": {
-        "raw": 2904910,
-        "gz": 793148,
-        "sha": "63185db01bd4279e"
+        "raw": 2562486,
+        "gz": 773859,
+        "sha_source": "63185db01bd4279e",
+        "built": true
       },
       "core/push/water/rw_push_L0.json.gz": {
         "raw": 13159,
-        "gz": 6241,
-        "sha": "4c910c620cb37cec"
+        "gz": 6248,
+        "sha_source": "4c910c620cb37cec",
+        "built": true
       },
       "core/push/water/rw_push_L1.json.gz": {
         "raw": 241864,
-        "gz": 101747,
-        "sha": "00aecc0b7e3a3fac"
+        "gz": 101754,
+        "sha_source": "00aecc0b7e3a3fac",
+        "built": true
       }
     },
     "spectral_day": {
@@ -177,8 +191,8 @@
       "gz_total": 3486418,
       "empty": []
     },
-    "total_gz": 12233475,
-    "seconds": 4.8
+    "total_gz": 12123784,
+    "seconds": 5.4
   },
   "pyodide": "vendored (web_implementation/pyodide/)",
   "engine_js_source": {

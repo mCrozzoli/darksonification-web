@@ -1,52 +1,33 @@
 """dark_re_wilding — web build · the bridge core's glue (runs INSIDE Pyodide; also importable natively for the gate).
 
-viz/bridge.py runs here UNCHANGED (copied to core/bridge.py by build_web.py). This file does what the
-desktop's process boundary did around it:
-  · stubs the two socket libraries the module imports and pins its ports, so importing it in a browser
-    has no side effects (bridge.py picks free ports at import time);
-  · loads the state the loaders would have built with pandas on the Mac (rows, returner, raw series),
-    baked by build/build_data.py, and the sound tables + push side files from the file system;
-  · `handle(client, raw)` = the per-message body of bridge.py's ws_handler, synchronous, with the mix
-    echo it keeps after each message — a mirror, line for line, until the design session's Phase 1
-    hands the bridge its own dispatch() (WEB_PLAN.md §4 P1); then this file shrinks to the stubs;
-  · OSC goes out through `rw_js.sendOsc(addr, typed_json)` with EXPLICIT types (python-osc sends a
-    Python int as int32 and a float as float32; osc.js's untyped fallback would send 1.0 as an int).
+viz/rw_core.py runs here UNCHANGED (copied to core/rw_core.py by build_web.py): the cooking, its state and the
+page protocol attach / dispatch / detach (web Phase 1, viz/HANDOFF_WEB_2026-10-01.md). This file is what the
+desktop shell (viz/bridge.py) is around the core, minus the sockets:
+  · the transport (rw_core.bind): OSC leaves through `rw_js.sendOsc(addr, typed_json)` with EXPLICIT types — the
+    core sends Python floats, ints and strs and python-osc tags f / i / s from the type, so does this (osc.js's
+    untyped fallback would send 1.0 as an int); a reply to one page goes through `rw_js.deliver(client, json)`,
+    an echo to every page through `rw_js.broadcast(json)`;
+  · the data the shell's pandas loaders build on the Mac, baked by build/build_data.py: the channels' rows, the
+    returner map and the raw series (load_channel), the sound tables and push side files as the dicts
+    bridge.read_rw_tables / read_rw_push return — clip ids inside (load_tables / load_push) — then load_rw and
+    load_rw_push exactly as bridge.py's __main__ does (handoff §2.2);
+  · `init` and `spectral_day` stay unbound: the host (engine.js) answers them from the baked files, and
+    dispatch() does nothing for those two types (handoff §2.1);
+  · the master: the core owns and echoes it (handoff §4, one owner). The web's start is seeded before the first
+    page attaches — WEB_MASTER, 0.8 unmuted (D10: the page's slider started at 0.8) — SC's own start is 1.0.
 """
 import json
 import os
 import sys
-import types
-
-# ---------------------------------------------------------------- import-time side effects, defused
-os.environ.setdefault("HTTP_PORT_OVERRIDE", "1")      # bridge.py:194-200 would bind sockets at import
-os.environ.setdefault("WS_PORT_OVERRIDE", "1")
-os.environ.setdefault("VIZ_NO_DEATHWATCH", "1")
-if "websockets" not in sys.modules:
-    try:
-        import websockets  # noqa: F401  (present natively; absent in Pyodide)
-    except ImportError:
-        sys.modules["websockets"] = types.ModuleType("websockets")
-if "pythonosc.udp_client" not in sys.modules:
-    try:
-        from pythonosc.udp_client import SimpleUDPClient  # noqa: F401
-    except ImportError:
-        _po = types.ModuleType("pythonosc"); _uc = types.ModuleType("pythonosc.udp_client")
-
-        class SimpleUDPClient:                                  # never used: sc_client is replaced below
-            def __init__(self, *a, **k): pass
-
-            def send_message(self, *a, **k): pass
-        _uc.SimpleUDPClient = SimpleUDPClient; _po.udp_client = _uc
-        sys.modules["pythonosc"] = _po; sys.modules["pythonosc.udp_client"] = _uc
 
 ROOT = os.environ.get("RW_WEB_ROOT", "/rw")           # the file-system root the JS side writes into
 sys.dont_write_bytecode = True
-if os.path.join(ROOT, "viz") not in sys.path:
-    sys.path.insert(0, os.path.join(ROOT, "viz"))
-import bridge as B  # noqa: E402
+if os.path.join(ROOT, "core") not in sys.path:
+    sys.path.insert(0, os.path.join(ROOT, "core"))
+import rw_core as C  # noqa: E402  (standard library only; importing it does nothing)
 
 rw_js = None                                           # set by the host: sendOsc(addr, json), deliver(client, json), broadcast(json)
-MIX_KEYS = ("drone", "clave", "arp", "corpus")
+WEB_MASTER = {"vol": 0.8, "mute": 0}                   # the web's start (D10); engine.js keeps the same literal for the seconds before the core is up
 
 
 def typed(v):
@@ -59,123 +40,105 @@ def typed(v):
     return ["s", str(v)]
 
 
-class WebOSC:
-    """bridge.py's sc_client: every message leaves with its types spelled out."""
-    def send_message(self, addr, args):
-        args = list(args) if isinstance(args, (list, tuple)) else [args]
-        rw_js.sendOsc(addr, json.dumps([typed(a) for a in args]))
+def send_osc(addr, args):
+    """rw_core's send_osc: every message leaves with its types spelled out."""
+    args = list(args) if isinstance(args, (list, tuple)) else [args]
+    rw_js.sendOsc(addr, json.dumps([typed(a) for a in args]))
 
 
-def _load(name):
-    with open(os.path.join(ROOT, "data", name), "r", encoding="utf-8") as fh:
+def send_json(client, d):
+    rw_js.deliver(client, json.dumps(d))
+
+
+def broadcast(d):
+    rw_js.broadcast(json.dumps(d))
+
+
+def _load(*parts):
+    path = os.path.join(ROOT, "data", *parts)
+    if not os.path.exists(path):
+        return None
+    with open(path, "r", encoding="utf-8") as fh:
         return json.load(fh)
 
 
-def boot():
-    """What verify_rw_pages.py's boot() does, minus the pandas loaders (baked): rows for the channels,
-    the returner map, the raw series, then the tables of both channels in both readings, the push side
-    files, and the fake-socket client."""
+def boot(master_json=None):
+    """bridge.py __main__'s boot, with the baked data in place of the pandas loaders (handoff §2.2–2.3)."""
+    C.bind(send_osc, send_json, broadcast)
+    ret = _load("returner.json") or {}
+    raw = {}
+    for lvl, ch, v in _load("raw_series.json") or []:
+        raw.setdefault(ch, {})[lvl] = v
     for ch in ("air", "water"):
-        B.CHANNELS[ch] = {"rows": _load(f"rows_{ch}.json")}
-    B.CHANNELS["air+water"] = {"rows": B.CHANNELS["air"]["rows"]}   # build_combined: the relationship view on air's rows
-    ret = _load("returner.json")
-    for ch in ret:
-        if "l1" in ret[ch]:
-            ret[ch]["l1"] = {int(k): v for k, v in ret[ch]["l1"].items()}
-    B.RETURNER.clear(); B.RETURNER.update(ret)
-    B._RW_RAW_SERIES.clear()
-    for lvl, ch, v in _load("raw_series.json"):
-        B._RW_RAW_SERIES[(lvl, ch)] = v
-    B.load_rw("gradient"); B.load_rw("variance"); B.load_rw(B.RW_STAT_DEFAULT)
-    for tch in ("water",):
-        if B._rw_tables("gradient", tch) and B._rw_tables("variance", tch):
-            B.RW_TABLE_CHANNELS.add(tch)
-    B.load_rw_push()
-    B.sc_client = WebOSC()
-    B.RW_LAST_IDENT = None
-    return json.dumps({"table_channels": sorted(B.RW_TABLE_CHANNELS), "push_ok": dict(B.RW_PUSH_OK),
-                       "rows": {ch: len(B.CHANNELS[ch]["rows"]) for ch in ("air", "water")}})
+        r = dict(ret.get(ch) or {})
+        if "l1" in r:
+            r["l1"] = {int(k): v for k, v in r["l1"].items()}
+        C.load_channel(ch, {"rows": _load(f"rows_{ch}.json") or [], "returner": r, "raw_series": raw.get(ch, {})})
+    C.load_channel("air+water", {"rows": C.CHANNELS["air"]["rows"]})   # build_combined: the relationship view on air's rows
+    for tch in ("air", "water"):
+        for st in ("gradient", "variance"):
+            for lv in ("L0", "L1"):
+                t = _load("tables", tch, f"rw_tables_{lv}_{st}.json")
+                if t is not None:
+                    C.load_tables(tch, st, lv, t)
+        for lv in ("L0", "L1"):
+            p = _load("push", tch, f"rw_push_{lv}.json")
+            if p is not None:
+                C.load_push(tch, lv, p)
+    C.load_rw("gradient"); C.load_rw("variance"); C.load_rw(C.RW_STAT_DEFAULT)
+    if C._rw_tables("gradient", "water") and C._rw_tables("variance", "water"):
+        C.RW_TABLE_CHANNELS.add("water")                # as bridge.py __main__ does; the core does not add it itself
+    C.load_rw_push()                                   # after the tables: every channel in RW_TABLE_CHANNELS
+    seed = json.loads(master_json) if master_json else WEB_MASTER
+    C.SOUND["master"].update(vol=float(seed["vol"]), mute=int(seed["mute"]))
+    C.RW_LAST_IDENT = None
+    return json.dumps({"table_channels": sorted(C.RW_TABLE_CHANNELS), "push_ok": dict(C.RW_PUSH_OK),
+                       "rows": {ch: len(C.CHANNELS[ch]["rows"]) for ch in ("air", "water")},
+                       "master": dict(C.SOUND["master"])})
 
 
-def _mix_msg():
-    return json.dumps({"type": "mix", "drone": B.RW_MIX[0], "clave": B.RW_MIX[1], "arp": B.RW_MIX[2], "corpus": B.RW_MIX[3]})
+def attach(client):
+    """A page's socket opened: the core takes it on (rooms, the sound if nobody holds it) and echoes the master."""
+    C.attach(client)
 
 
-def client_new(client):
-    """ws_handler's opening lines: the page takes the sound if nobody holds it; a fresh page means
-    forget what the engine was told (bridge.py:3042-3054)."""
-    B.clients.add(client)
-    B.rw_client_new(client)
-    B.RW_LAST_IDENT = None
+def detach(client):
+    """A page went away: its rooms go, a held chip is released."""
+    C.detach(client)
 
 
-def client_gone(client):
-    """ws_handler's finally: its rooms go with it; a page that dies with a chip held sends no release."""
-    B.clients.discard(client)
-    B.rw_client_gone(client)
-    if B.RW_PREVIEW is not None:
-        B.rw_preview_release()
-
-
-def handle(client, raw):
-    """ONE page message, as ws_handler routes it (bridge.py:3057-3143). `init`/`channel` and
-    `spectral_day` are answered by the host from baked files and never reach here."""
+def dispatch(client, raw):
+    """ONE page message. `channel` and `spectral_day` are answered by the host from baked files before this."""
     try:
         m = json.loads(raw) if isinstance(raw, str) else dict(raw)
     except ValueError:
         return
-    t = m.get("type")
-    _mix_was = list(B.RW_MIX)
-    if t == "hover" and m.get("idx") is not None:                    # legacy: idx into a channel's rows
-        rws = (B.CHANNELS.get(m.get("channel", "air")) or {}).get("rows", [])
-        i = int(m["idx"])
-        if 0 <= i < len(rws):
-            B.rw_navigate(1, str(m.get("channel", "air")), widx=i, client=client)
-    elif t == "drv":                                                 # navigate to a point
-        lvl = int(m.get("level", 1))
-        ch = m.get("channel") or "air"
-        if ch != B.RW_CHANNEL:
-            B._RW_LEVEL_STATS.clear(); B._RW_RHO.clear()
-        B.RW_CHANNEL = ch
-        B.rw_navigate(lvl, ch, mkey=m.get("mkey"), widx=m.get("widx"), win=m.get("win"), client=client)
-    elif t == "select":
-        B.rw_client_select(client, m.get("level", 1), m.get("subset"))
-    elif t == "mix":
-        for _i, _k in enumerate(MIX_KEYS):
-            if m.get(_k) is not None:
-                B.RW_MIX[_i] = max(0.0, min(1.0, float(m[_k])))
-        B.RW_MIX_USER = True
-        B.rw_send_mix()
-    elif t == "mixquery":
-        pass
-    elif t == "legend":
-        reply = B.legend_relay(m)
-        if reply is not None:
-            rw_js.deliver(client, json.dumps(reply))
-    elif t == "master":
-        B.master_relay(m)
-    elif t == "stat":
-        B.rw_set_stat(m.get("stat"))
-    elif t == "loop":                                                # /dark_loop: nothing in v2 listens
-        pass
-    if list(B.RW_MIX) != _mix_was or t == "mixquery":
-        rw_js.broadcast(_mix_msg())
+    C.dispatch(client, m)
+
+
+handle = dispatch                                      # the pre-Phase-1 name, for the checks
 
 
 def replay():
     """After SuperCollider (re)boots: it has none of this state. The mix first (the engine's own mix is
     all 1), then the last point, whose identity is re-sent because RW_LAST_IDENT is cleared."""
-    B.RW_LAST_IDENT = None
-    B.rw_send_mix()
-    lp = B.RW_LAST_POINT
+    C.RW_LAST_IDENT = None
+    C.rw_send_mix()
+    lp = C.RW_LAST_POINT
     if lp:
-        B.rw_send_point(*lp)
+        C.rw_send_point(*lp)
+
+
+def master():
+    """The master the core holds: {vol, mute}; engine.js reads it for the chip, the first gesture and the replay."""
+    return json.dumps(dict(C.SOUND["master"]))
 
 
 def state():
-    """Read-back for the checks: what the bridge believes."""
-    return json.dumps({"subset": dict(B.RW_SUBSET), "last_point": B.RW_LAST_POINT, "stat": B.RW_STAT,
-                       "tchan": B.RW_TCHAN, "channel": B.RW_CHANNEL, "mix": list(B.RW_MIX), "mix_user": B.RW_MIX_USER,
-                       "last_ident": list(B.RW_LAST_IDENT) if B.RW_LAST_IDENT else None,
-                       "owner": B.RW_ROOM_OWNER, "rooms": {str(k): v for k, v in B._RW_CLIENT_ROOM.items()},
-                       "preview": (B.RW_PREVIEW or {}).get("row") if B.RW_PREVIEW else None})
+    """Read-back for the checks: what the core believes."""
+    return json.dumps({"subset": dict(C.RW_SUBSET), "last_point": C.RW_LAST_POINT, "stat": C.RW_STAT,
+                       "tchan": C.RW_TCHAN, "channel": C.RW_CHANNEL, "mix": list(C.RW_MIX), "mix_user": C.RW_MIX_USER,
+                       "last_ident": list(C.RW_LAST_IDENT) if C.RW_LAST_IDENT else None,
+                       "owner": C.RW_ROOM_OWNER, "rooms": {str(k): v for k, v in C._RW_CLIENT_ROOM.items()},
+                       "preview": (C.RW_PREVIEW or {}).get("row") if C.RW_PREVIEW else None,
+                       "master": dict(C.SOUND["master"]), "clients": list(C.CLIENTS)})

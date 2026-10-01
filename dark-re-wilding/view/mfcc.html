@@ -252,6 +252,7 @@ async function connect(){
   ws.onerror=()=>ws.close();
   ws.onmessage=ev=>{ const m=JSON.parse(ev.data);
     if(m.type==="mix"){ if(window.WC) WC.applyMix(m); return; }   // the bridge owns the mix; the faders render it
+    if(m.type==="master"){ if(window.WC && WC.applyMaster) WC.applyMaster(m); return; }   // the master too (volume + mute): the bridge echoes it, the panel paints it
     if(HV.onMessage(m)) return;                                    // a month of days (DAY resolution)
     if(m.type==="init"){
       window.RW_COVERAGE = m.coverage || {};           // per month: hours, windows, partial (bridge month_coverage)
