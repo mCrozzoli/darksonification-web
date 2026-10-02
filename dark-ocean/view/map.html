@@ -339,6 +339,21 @@ function wmName(c){ const n=meta&&meta.waterMass; return (n===3&&WM_NAMES3[c])?W
 let UNITS=null;
 d3.json("units.json?_="+Date.now()).then(u=>{ UNITS=u; if(meta){ drawLegend(); renderInfo(); if(focusI>=0) renderCellInfo(); } }).catch(()=>{});
 function unitsFor(){ if(!UNITS||!meta) return null; return meta.multiyear?UNITS.cube:(meta.daily?UNITS.daily:null); }
+// FIXED SCATTER SCALES + AXIS NAMES (2026-10-02, Björn's feedback A1–A4): viz/scales.json, made by gen_scales.py.
+// One scale per view over the whole record, per PCA basis (the months and the days are different coordinates).
+let SCALES=null, _domCache={};
+d3.json("scales.json?_="+Date.now()).then(s=>{ SCALES=s; _domCache={}; if(meta&&combo&&!combo.geo){ computePositions(); draw(); } }).catch(()=>{});
+function scaleBlock(){ if(!SCALES||!meta) return null; return meta.multiyear?SCALES.cube:(meta.daily?SCALES.daily:null); }
+function axisName(col){ const b=scaleBlock(); return b&&b.names&&b.names[col] ? b.names[col] : null; }
+function pcaDomain(col){
+  const b=scaleBlock(); if(b&&b.domain&&b.domain[col]) return b.domain[col];
+  const key=col+"|"+dataNonce; if(_domCache[key]) return _domCache[key];   // no scales.json: the same rule over the dates loaded
+  const v=[]; for(const f of frames){ const a=f[col]; if(!a) continue;
+    for(let i=0;i<N;i++) if(a[i]!=null&&f.temp[i]!=null&&f.nut[i]!=null) v.push(a[i]); }
+  if(!v.length) return [0,1];
+  v.sort((p,q)=>p-q); const lo=v[Math.floor(v.length*0.025)], hi=v[Math.floor(v.length*0.975)], w=hi-lo;
+  return _domCache[key]=[lo-0.125*w, hi+0.125*w];
+}
 function phys(k,v){ const u=unitsFor(); if(!u||!u[k]||v==null) return null; return u[k].lo+v*(u[k].hi-u[k].lo); }
 function fmtV(k,v){                                    // a 0..1 field value → "9.8 °C" (the raw value when no units)
   if(v==null) return "—"; const u=unitsFor(), p=phys(k,v);
@@ -566,22 +581,25 @@ function computePositions(){
     // PCA views (2026-10-02, Björn's "red line"): the bake gives EVERY cell a PCA position, filling missing inputs,
     // so 836 ocean cells with no biology (the southern edge) made a frozen streak and 1,392 coastal cells with no
     // physics (land everywhere else on the page) joined in. A cell is placed only when it has both.
-    const ck=meta.colKey[combo.x], pca=!!(ck&&ck.frame&&ck.frame.startsWith("pca"));
+    const ck=meta.colKey[combo.x], cky=meta.colKey[combo.y], pca=!!(ck&&ck.frame&&ck.frame.startsWith("pca"));
+    const ts=!!(ck&&cky&&ck.frame==="sal"&&cky.frame==="temp");        // the T–S view, in °C and salinity
     const keep=i=> !pca || (f.temp[i]!=null && f.nut[i]!=null);
-    let xr, yr, leftOut=0;
+    const val=(col,i)=>{ const v=colVal(col,f,i); return ts&&v!=null ? phys(meta.colKey[col].frame, v) : v; };
+    let xr, yr, leftOut=0, offScale=0;
     if(pca) for(let i=0;i<N;i++) if(f.temp[i]!=null && f.nut[i]==null) leftOut++;
-    if(combo.perFrame){                        // fit THIS frame (dim-reduction: fixes global-norm compression)
-      let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;
-      for(let i=0;i<N;i++){ if(!keep(i)) continue; const xv=colVal(combo.x,f,i), yv=colVal(combo.y,f,i);
-        if(xv!=null){ if(xv<x0)x0=xv; if(xv>x1)x1=xv; } if(yv!=null){ if(yv<y0)y0=yv; if(yv>y1)y1=yv; } }
-      const padX=(x1-x0)*0.04||0.01, padY=(y1-y0)*0.04||0.01;
-      xr=(x0<=x1)?[x0-padX,x1+padX]:[0,1]; yr=(y0<=y1)?[y0-padY,y1+padY]:[0,1];
-    } else { xr=meta.colRange[combo.x]||[0,1]; yr=meta.colRange[combo.y]||[0,1]; }
-    const X=d3.scaleLinear().domain(xr).range([M+44, r.width-M-8]);
-    const Y=d3.scaleLinear().domain(yr).range([r.height-M-26, M+10]);   // y axis points up
-    for(let i=0;i<N;i++){ const xv=colVal(combo.x,f,i), yv=colVal(combo.y,f,i);
-      if(xv==null||yv==null||!keep(i)){ px[i]=NaN; py[i]=NaN; continue; } px[i]=X(xv); py[i]=Y(yv); }
-    cellPx=3.4; scatterAxes={X,Y,leftOut};
+    // FIXED SCALES (2026-10-02, Björn A1 + Miguel): one scale per view over the whole record, never refitted per date.
+    // PCA: the central 95% of the record spans the central 80% of the axis (viz/scales.json, per basis: months and
+    // days are different PCA coordinates); cells beyond it are hidden and counted. T–S: physical units, fixed.
+    if(pca){ xr=pcaDomain(ck.frame); yr=pcaDomain(cky.frame); }
+    else if(ts){ const s=SCALES&&SCALES.ts; xr=s?s.sal:[30,36]; yr=s?s.temp:[-2.5,17.5]; }
+    else { xr=meta.colRange[combo.x]||[0,1]; yr=meta.colRange[combo.y]||[0,1]; }
+    const X=d3.scaleLinear().domain(xr).range([M+84, r.width-M-8]);    // room for the bigger axis text (A2)
+    const Y=d3.scaleLinear().domain(yr).range([r.height-M-72, M+30]);   // y axis points up
+    for(let i=0;i<N;i++){ const xv=val(combo.x,i), yv=val(combo.y,i);
+      if(xv==null||yv==null||!keep(i)){ px[i]=NaN; py[i]=NaN; continue; }
+      if(pca && (xv<xr[0]||xv>xr[1]||yv<yr[0]||yv>yr[1])){ px[i]=NaN; py[i]=NaN; offScale++; continue; }
+      px[i]=X(xv); py[i]=Y(yv); }
+    cellPx=3.4; scatterAxes={X,Y,leftOut,offScale,kind:pca?"pca":(ts?"ts":"plain")};
   }
   quad=d3.quadtree().x(i=>px[i]).y(i=>py[i]).addAll(d3.range(N).filter(i=>px[i]==px[i]));  // px==px drops NaN
 }
@@ -737,20 +755,49 @@ function draw(){
 function drawScatterAxes(){
   if(!scatterAxes) return;
   const T=DarkStyle.tokens();
-  const {X,Y}=scatterAxes, x0=X.range()[0], x1=X.range()[1], y0=Y.range()[0], y1=Y.range()[1];
-  ctx.strokeStyle=T.axis; ctx.lineWidth=1/zt.k;
+  const {X,Y,kind}=scatterAxes, x0=X.range()[0], x1=X.range()[1], y0=Y.range()[0], y1=Y.range()[1], k=zt.k;
+  ctx.strokeStyle=T.axis; ctx.lineWidth=1/k;
   ctx.beginPath(); ctx.moveTo(x0,y1); ctx.lineTo(x0,y0); ctx.lineTo(x1,y0); ctx.stroke();
-  ctx.fillStyle=T.dim; ctx.font=`${10/zt.k}px ${T.fontCanvas}`;
+  if(kind==="ts"){                       // where seawater freezes (UNESCO 1983, at the surface): A4, Björn's below-zero water
+    const Tf=s=>-0.0575*s+1.710523e-3*Math.pow(s,1.5)-2.154996e-4*s*s, [s0,s1]=X.domain();
+    ctx.strokeStyle=T.dim; ctx.lineWidth=1.2/k; ctx.setLineDash([6/k,5/k]); ctx.beginPath();
+    for(let j=0;j<=24;j++){ const s=s0+(s1-s0)*j/24; j?ctx.lineTo(X(s),Y(Tf(s))):ctx.moveTo(X(s),Y(Tf(s))); }
+    ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle=T.dim; ctx.font=`${13/k}px ${T.fontCanvas}`; ctx.textAlign="left"; ctx.textBaseline="bottom";
+    ctx.fillText("freezing", X(s0)+6/k, Y(Tf(s0))-4/k);
+  }
+  // A2 (Björn: "larger numbers … the fonts bigger"): numbers 16 px and names 20 px (were 10 and 12)
+  const xt=kind==="ts"?7:6, yt=kind==="ts"?10:6, xf=X.tickFormat(xt), yf=Y.tickFormat(yt);
+  ctx.fillStyle=T.dim; ctx.font=`${16/k}px ${T.fontCanvas}`;
   ctx.textAlign="center"; ctx.textBaseline="top";
-  X.ticks(6).forEach(v=>ctx.fillText(v.toFixed(2), X(v), y0+5/zt.k));
+  X.ticks(xt).forEach(v=>ctx.fillText(xf(v), X(v), y0+6/k));
   ctx.textAlign="right"; ctx.textBaseline="middle";
-  Y.ticks(6).forEach(v=>ctx.fillText(v.toFixed(2), x0-5/zt.k, Y(v)));
-  ctx.fillStyle=T.label; ctx.font=`${12/zt.k}px ${T.fontCanvas}`;
+  Y.ticks(yt).forEach(v=>ctx.fillText(yf(v), x0-6/k, Y(v)));
+  // A3: the PCA axes named from their loadings (viz/scales.json), the variables on a second line; T–S in units
+  const lab=col=>{ const c=meta.colKey[col]||{};
+    if(kind==="pca"){ const n=axisName(c.frame); if(n) return [n.short+" →", n.vars.join(", ")]; }
+    if(kind==="ts") return [c.frame==="temp"?"temperature, °C →":"salinity →", ""];
+    return [col===combo.x?(combo.xlabel||combo.x):(combo.ylabel||combo.y), ""]; };
+  const fit=(s,px,w)=>{ ctx.font=`${px/k}px ${T.fontCanvas}`; const m=ctx.measureText(s).width;   // shrink to the axis, not below 10 px
+    if(m>w) ctx.font=`${Math.max(10, px*w/m)/k}px ${T.fontCanvas}`; };
+  const [xn,xv]=lab(combo.x), [yn,yv]=lab(combo.y), xw=x1-x0;
+  // the y names sit in the left edge's FREE span: below the date label, above the time wheel (or its folded chip)
+  const mr=cv.getBoundingClientRect(), toBase=v=>(v-zt.y)/k;
+  let top=y1, bot=y0;
+  const dEl=document.getElementById("date"); if(dEl){ const b=toBase(dEl.getBoundingClientRect().bottom-mr.top)+8/k; if(b>top) top=b; }
+  for(const id of ["timewheel","tw-pill"]){ const el=document.getElementById(id);
+    if(el && getComputedStyle(el).display!=="none"){ const b=toBase(el.getBoundingClientRect().top-mr.top)-8/k; if(b<bot) bot=b; } }
+  const ym=(top+bot)/2, yh=Math.max(80/k, bot-top);
   ctx.textAlign="center"; ctx.textBaseline="alphabetic";
-  ctx.fillText(combo.xlabel||combo.x, (x0+x1)/2, y0+22/zt.k);
-  if(scatterAxes.leftOut){ ctx.fillStyle=T.dim; ctx.font=`${10/zt.k}px ${T.fontCanvas}`; ctx.textAlign="right";
-    ctx.fillText(`${scatterAxes.leftOut.toLocaleString()} ocean cells with no biology data are left out`, x1, y0+22/zt.k); }
-  ctx.save(); ctx.translate(x0-34/zt.k,(y0+y1)/2); ctx.rotate(-Math.PI/2); ctx.fillText(combo.ylabel||combo.y,0,0); ctx.restore();
+  ctx.fillStyle=T.label; fit(xn,20,xw); ctx.fillText(xn, (x0+x1)/2, y0+46/k);
+  ctx.save(); ctx.translate(x0-62/k,ym); ctx.rotate(-Math.PI/2); fit(yn,20,yh); ctx.fillText(yn,0,0); ctx.restore();
+  ctx.fillStyle=T.dim;
+  if(xv){ fit(xv,14,xw); ctx.fillText(xv, (x0+x1)/2, y0+64/k); }
+  if(yv){ ctx.save(); ctx.translate(x0-44/k,ym); ctx.rotate(-Math.PI/2); fit(yv,14,yh); ctx.fillText(yv,0,0); ctx.restore(); }
+  const notes=[];                                                    // what the view leaves out, said where it happens
+  if(scatterAxes.leftOut) notes.push(`${scatterAxes.leftOut.toLocaleString()} ocean cells with no biology data left out`);
+  if(scatterAxes.offScale) notes.push(`${scatterAxes.offScale.toLocaleString()} off the scale`);
+  if(notes.length){ ctx.font=`${13/k}px ${T.fontCanvas}`; ctx.textAlign="right"; ctx.fillText(notes.join(" · "), x1, y1-10/k); }
 }
 
 function dateSub(){                   // the small caption under the big date (+ what the record is missing here)
