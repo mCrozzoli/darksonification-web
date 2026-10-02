@@ -1,26 +1,27 @@
 {
-  "built": "2026-10-01 12:53:05",
+  "built": "2026-10-02 11:44:25",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "sources": {
-    "viz/index.html": "9162370a6d88a00d",
-    "viz/rose.html": "58b62d07733ca829",
-    "viz/biplot.html": "36a321a757e5256c",
+    "viz/index.html": "6cb4bd5f2458816a",
+    "viz/rose.html": "f5cdbb6702e3f52d",
+    "viz/biplot.html": "0ace75dfb0f5bac5",
     "viz/linear.html": "ee6df42f3533adea",
     "viz/spectro.html": "31bc745ead5c2744",
     "viz/mfcc.html": "dc432d438928a98c",
     "viz/wc.js": "185199b212af0439",
-    "viz/legend.js": "85bd669f96a38bc7",
+    "viz/legend.js": "a63f8a4075edce74",
     "viz/panel.js": "778a28a3555b778e",
     "viz/monthbar.js": "3e0cab894b28d6e7",
     "viz/viewnav.js": "652200a2a4ede0bd",
     "viz/diel.js": "75e2390eb007b1df",
     "viz/hourview.js": "f198b1ef208f4eb4",
     "viz/brush.js": "c2d598bc6bedb1a6",
-    "viz/looks.js": "01330702291d1d09",
-    "viz/rewild_tokens.css": "4d753f9477d9bff2",
+    "viz/looks.js": "296e655f5417f760",
+    "viz/rewild_tokens.css": "153e52aa002e3689",
     "viz/darkstyle/KIT.json": "49e79b417cebbb70",
     "viz/darkstyle/darkstyle.css": "a2c1507972554138",
     "viz/darkstyle/darkstyle.js": "a5a154247a75ed38",
+    "data/hourly/ (70 files)": "d71be4395cc967c0",
     "darkdata/manifest.json": "5269c7d07726aa7a",
     "sc/dark_re_wilding_synths.scd": "5f92b0cd9fa752e6",
     "sc/parse_dark_re_wilding.scd": "904b5876dd9fc05e",
@@ -74,7 +75,7 @@
     ]
   },
   "data": {
-    "built": "2026-10-01 12:53:05",
+    "built": "2026-10-02 11:44:25",
     "bridge_sha": "19f7022ff92d8b81",
     "bridge_lines": 1530,
     "rw_core_sha": "eedac0f80128a788",
@@ -192,12 +193,12 @@
       "empty": []
     },
     "total_gz": 12124435,
-    "seconds": 5.4
+    "seconds": 5.6
   },
   "pyodide": "vendored (web_implementation/pyodide/)",
   "engine_js_source": {
     "file": "projects/designs/dark_ocean/web_implementation/engine.js",
-    "sha256_16": "988b2ee03ef4aa46",
+    "sha256_16": "e712edb6cce7ad8b",
     "note": "engine.js here is a copy adapted on 2026-09-30 (D8); the guard fix goes to both by hand"
   },
   "clips": {

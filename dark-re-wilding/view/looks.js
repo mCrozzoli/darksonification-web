@@ -34,6 +34,7 @@ window.RWLook = (function () {
   const d = {};                                  // the scalars of the look in force (from the tokens)
   const phase = {};                              // dawn/day/dusk/night
   const palette = [];                            // the eight trace slots
+  const years = {};                              // P56: the four calendar years (--rw-year-*), refilled in place
   const lens = {};                               // rain/wind/temp interpolators
   const listeners = [];
 
@@ -46,6 +47,7 @@ window.RWLook = (function () {
     d.look = look;
     Object.assign(phase, { dawn: tok("dawn"), day: tok("day"), dusk: tok("dusk"), night: tok("night") });
     palette.splice(0, palette.length, ...[0, 1, 2, 3, 4, 5, 6, 7].map((i) => tok("t" + i)));
+    for (const y of [2023, 2024, 2025, 2026]) years[y] = tok("year-" + y);
     Object.assign(lens, LENS[look] || LENS.dark);
   }
   apply();
@@ -82,6 +84,6 @@ window.RWLook = (function () {
   }
   if (document.readyState !== "loading") watch(); else document.addEventListener("DOMContentLoaded", watch);
 
-  return { d, phase, palette, lens, onChange: (f) => { listeners.push(f); return () => { const k = listeners.indexOf(f); if (k >= 0) listeners.splice(k, 1); }; },
+  return { d, phase, palette, lens, years, onChange: (f) => { listeners.push(f); return () => { const k = listeners.indexOf(f); if (k >= 0) listeners.splice(k, 1); }; },
            look: () => d.look, version: "1" };
 })();

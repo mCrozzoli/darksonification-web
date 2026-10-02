@@ -43,6 +43,11 @@
   --rw-dawn:#f0c674; --rw-day:#8ce6a8; --rw-dusk:#e6905f; --rw-night:#7f9cd8;
   /* the eight trace slots (wc.js PALETTE): a trace keeps its SLOT across looks */
   --rw-t0:#9fb4e6; --rw-t1:#e2a25f; --rw-t2:#7fd6a0; --rw-t3:#d87fbf; --rw-t4:#d8d07f; --rw-t5:#7fc4d8; --rw-t6:#e07f7f; --rw-t7:#a0d87f;
+  /* the four calendar years (P56, 2026-10-02: colour by year, the scatter and the biplot). One hue per year in every
+     look (magenta 2023, violet 2024, teal 2025, green 2026) and the design's year ramp, the newest strongest; checked
+     on each look's plot ground with the kit's categorical rule over ALL pairs and kept clear of the marks a dot
+     carries (trace gold, fault x, cursor ring, the first trace slot, the anomaly edge): DECISIONS 2026-10-02 */
+  --rw-year-2023:#ce2cb3; --rw-year-2024:#6f6beb; --rw-year-2025:#0df0ff; --rw-year-2026:#62ff8e;
   /* scale bars */
   --rw-magma:linear-gradient(90deg,#000004,#3b0f70,#8c2981,#de4968,#fe9f6d,#fcfdbf);
   --rw-months:linear-gradient(90deg,#ff5a5a,#ffd54a,#8ce6a8,#5a9cff,#c07fff);
@@ -72,6 +77,7 @@
      indigo step down in lightness so they stay apart under colour blindness (worst pair ΔE 9.0; normal vision 18.3) */
   --rw-dawn:#a67a1a; --rw-day:#1f6f3d; --rw-dusk:#7b2004; --rw-night:#1a2c77;
   --rw-t0:#1b5fa8; --rw-t1:#c45a1e; --rw-t2:#1f8a5a; --rw-t3:#7a45cc; --rw-t4:#a87400; --rw-t5:#15706a; --rw-t6:#cd1540; --rw-t7:#784204;
+  --rw-year-2023:#d554b1; --rw-year-2024:#896df7; --rw-year-2025:#009969; --rw-year-2026:#1f4c0a;   /* P56, on the light ground */
   --rw-magma:linear-gradient(90deg,#fcfdbf,#fe9f6d,#de4968,#8c2981,#3b0f70,#000004);
   --rw-months:linear-gradient(90deg,#ff5a5a,#ffd54a,#8ce6a8,#5a9cff,#c07fff);
   --rw-brush-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='12' cy='12' r='8' fill='none' stroke='%23f4f6fa' stroke-width='3.6'/%3E%3Ccircle cx='12' cy='12' r='8' fill='none' stroke='%23a86f00' stroke-width='1.6'/%3E%3Ccircle cx='12' cy='12' r='1.6' fill='%23a86f00'/%3E%3C/svg%3E") 12 12, cell;
@@ -101,6 +107,7 @@
      pair ΔE 9.0 under colour blindness, 18.3 normal vision, all ≥ 3.1:1 on the paper) */
   --rw-dawn:#a67a1a; --rw-day:#1f6f3d; --rw-dusk:#7b2004; --rw-night:#1e2f6e;
   --rw-t0:#1b5f96; --rw-t1:#a8502e; --rw-t2:#155003; --rw-t3:#6b3c7a; --rw-t4:#9c6c12; --rw-t5:#1f6f68; --rw-t6:#c12740; --rw-t7:#5a3a1e;
+  --rw-year-2023:#b15bbf; --rw-year-2024:#576cf9; --rw-year-2025:#008f77; --rw-year-2026:#03571e;   /* P56, on the paper */
   --rw-magma:linear-gradient(90deg,#f3e5da,#d8c5c4,#b9a3ad,#735c73,#33203a);
   --rw-months:linear-gradient(90deg,#ff5a5a,#ffd54a,#8ce6a8,#5a9cff,#c07fff);
   --rw-brush-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='12' cy='12' r='8' fill='none' stroke='%23f3e5da' stroke-width='3.6'/%3E%3Ccircle cx='12' cy='12' r='8' fill='none' stroke='%239c6710' stroke-width='1.6'/%3E%3Ccircle cx='12' cy='12' r='1.6' fill='%239c6710'/%3E%3C/svg%3E") 12 12, cell;

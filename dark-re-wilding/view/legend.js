@@ -1097,10 +1097,20 @@ window.LEG = (function () {
     // per-trace palette colour (WC.traceColor; first trace #9fb4e6) with a gold glow - gold is
     // not the ring itself, so the swatches below are palette-blue.
     const TRACE_BLUE = RWLook.d.t0;          // the first slot, per look
+    // P56: colour by YEAR on the scatter and the biplot (rewild_colorby; the weather lens, when on, colours instead)
+    const yearsOn = (view === "index.html" || view === "biplot.html") && (() => { try {
+      return localStorage.getItem("rewild_colorby") === "years" && (localStorage.getItem("rewild_colormode") || "month") === "month";
+    } catch (e) { return false; } })();
+    const CL = RWLook.d.cluster || [];
     const colourKey = view === "linear.html"
       ? `<div class="lrow">${dielSwatches()}</div>
          <div class="lrow"><span class="sw" style="height:2px;vertical-align:3px;background:${TRACE_BLUE}"></span>line colour = one per <b>month</b> you compare</div>`
-      : `<div class="lrow"><span class="sw" style="background:var(--rw-months)"></span>colour = <b>month</b> (seasons line up across years)</div>` +
+      : (yearsOn
+          ? `<div class="lrow">colour = <b>year</b>${[2023, 2024, 2025, 2026].map(y => `<span class="sw" style="background:var(--rw-year-${y});border-radius:50%;margin:0 3px 0 7px"></span>${y}`).join("")}</div>`
+          // the biplot's dots wear their GROUP (k-means or dbscan), never their month: the line said "month" until P56
+          : view === "biplot.html"
+            ? `<div class="lrow"><span class="sw" style="background:linear-gradient(90deg,${CL[0]} 0 33%,${CL[1]} 33% 66%,${CL[2]} 66%)"></span>colour = <b>group</b> (k-means or dbscan: the CLUSTERS list)</div>`
+            : `<div class="lrow"><span class="sw" style="background:var(--rw-months)"></span>colour = <b>month</b> (seasons line up across years)</div>`) +
         // the SIZE is BirdNET species per minute (n_species_analysed since 2026-09-29), in the biplot's size key's
         // words (2026-10-01; it said "number of species"). Water has no BirdNET: its dots are one size and never
         // hollow, so neither line is claimed there (the page's channel: this is what the picture shows)
@@ -1126,6 +1136,8 @@ window.LEG = (function () {
          <div class="lrow"><i style="background:none;border:2px solid ${TRACE_BLUE};box-shadow:0 0 5px var(--rw-gold)"></i>glowing ring = <b>traced</b> (shift-press to trace)</div>
          <div class="lrow"><i style="background:none;border:1.5px dashed ${TRACE_BLUE}"></i>dashed ring around ${view === "rose.html" ? "a rose" : "a dot"} = <b>echo</b>: the same time, another year</div>
          <div class="lrow"><i style="background:linear-gradient(90deg,var(--rw-partial) 50%,transparent 50%);border:1px solid var(--rw-partial)"></i>half-filled = a <b>partial month</b> (a time of day missing, or few hours)</div>${
+           view === "rose.html" ? `
+         <div class="lrow"><svg width="12" height="12" viewBox="-6 -6 12 12" style="vertical-align:-1px;margin-right:6px;overflow:visible"><circle r="3.8" fill="none" stroke="var(--dim,#67708c)" stroke-width="1"/><path d="M0,-2.3V0H1.9" fill="none" stroke="var(--dim,#67708c)" stroke-width="1" stroke-linecap="round"/></svg>clock beside a time of day = <b>worth opening hour by hour</b> (24 hours): its hours differ more than the times of day do</div>` : ""}${
            view === "linear.html" ? `
          <div class="lrow"><span class="sw" style="height:3px;vertical-align:3px;background:${TRACE_BLUE}"></span>a traced <b>month</b>: coloured frame (one month) or bold line (months compared) · dashed = its echo</div>` : ""}${
            view === "biplot.html" ? `

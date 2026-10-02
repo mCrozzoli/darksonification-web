@@ -115,6 +115,13 @@
     <div id="monthbar" style="margin:6px 0 4px"></div>
     <button class="wbtn" id="mb-all" style="width:100%" title="show every month again">↺ all</button>
     <div class="hint" id="mb-hint"></div>
+    <!-- P56 (Miguel 2026-10-02): the dots by their groups (default) or by their YEAR; the sound does not change -->
+    <div class="wc-seglabel" style="color:var(--dim);font-size:11px;letter-spacing:.1em;margin:10px 0 6px">VIEW · COLOUR</div>
+    <div class="wcgrid" id="colorby" style="margin-bottom:4px" title="what the dots' colour means while the weather lens is off - it changes nothing you hear">
+      <button class="wbtn" data-by="default">groups</button>
+      <button class="wbtn" data-by="years">years</button>
+    </div>
+    <div id="ykey" class="k" style="display:none;margin:2px 0 8px;font-size:11px"></div>
     <div class="wc-seglabel" style="color:var(--dim);font-size:11px;letter-spacing:.1em;margin:10px 0 6px">WEATHER LENS</div>
     <div class="wcgrid" style="margin-bottom:5px"><button class="wbtn" id="wx-toggle" style="grid-column:1/-1">☁ weather lens · off</button></div>
     <div class="wcgrid wcgrid3" id="wx-vars" style="margin-bottom:6px;display:none">
@@ -206,7 +213,24 @@ function wxColor(m){
   if(w==null) return RWLook.d.nowx;
   return wxColorAt((wxHi>wxLo)?(w-wxLo)/(wxHi-wxLo):0.5);
 }
-const fillOf = m => (colorMode==="month") ? (m.anomaly?RWLook.d.anom2:clColor(clOf(m))) : wxColor(m);
+// COLOUR BY YEAR (P56; Miguel 2026-10-02, after Alice's meeting: she could not tell the years apart). While the weather
+// lens is off the dots wear their k-means (or dbscan) group's colour (default) or their YEAR: the calendar year, as the year buttons
+// (all · 2023 · 2024 · 2025 · 2026) cut it - --rw-year-* in rewild_tokens.css, through RWLook.years. Remembered with the
+// other view settings (rewild_colorby, shared by the scatter and the biplot); the picture only - nothing is sent.
+let colorBy = (()=>{ try{ return localStorage.getItem("rewild_colorby")==="years" ? "years" : "default"; }catch(e){ return "default"; } })();
+const YEARS4=[2023,2024,2025,2026];
+const yearOf = d => +(d.year || String(d.key||"").replace(/^w:/,"").slice(0,4));
+const yearColor = y => (RWLook.years && RWLook.years[y]) || RWLook.d.nowx;
+const byYears = () => colorBy==="years" && colorMode==="month";
+function markColorBy(){
+  d3.selectAll("#colorby .wbtn").each(function(){ this.classList.toggle("on", this.getAttribute("data-by")===colorBy); })
+    .style("opacity", colorMode==="month" ? null : 0.5)
+    .attr("title", colorMode==="month" ? null : "the weather lens is on: it colours the dots");
+  d3.select("#ykey").style("display", byYears() ? null : "none")
+    .html(YEARS4.map(y=>`<span class="ykey-y" data-y="${y}" style="white-space:nowrap;margin-right:9px"><i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--rw-year-${y});margin-right:4px;vertical-align:-1px"></i>${y}</span>`).join(""));
+  if(window.LEG && LEG.refresh) LEG.refresh();          // the SEE key's colour line follows
+}
+const fillOf = m => (colorMode==="month") ? (byYears() ? yearColor(yearOf(m)) : (m.anomaly?RWLook.d.anom2:clColor(clOf(m)))) : wxColor(m);
 
 const svg=d3.select("#plot");
 // Z-ORDER, bottom to top: ellipses, the traced months' year lines, the dots, THE LOADING ARROWS (at day resolution
@@ -335,7 +359,8 @@ function draw(){
   const ellData=[...groups].filter(([c])=>c>=0)
     .map(([c,ms])=>({c, e:ellipse(ms.map(m=>[m.pca_0,m.pca_1]), 2)})).filter(d=>d.e);
   gEll.selectAll("ellipse").data(ellData,d=>d.c).join("ellipse")
-    .attr("fill",d=>clColor(d.c)).attr("fill-opacity",0.10).attr("stroke",d=>clColor(d.c))
+    // P56: by year the groups stay as OUTLINES, neutral, so no colour on the map means two things at once
+    .attr("fill",d=>byYears()?"none":clColor(d.c)).attr("fill-opacity",0.10).attr("stroke",d=>byYears()?"var(--dim)":clColor(d.c))
     .attr("stroke-opacity",0.5).attr("stroke-width",1)
     .attr("rx",d=>Math.abs(X(d.e.mx+d.e.r1)-X(d.e.mx))).attr("ry",d=>Math.abs(Y(d.e.my+d.e.r2)-Y(d.e.my)))
     .attr("transform",d=>`translate(${X(d.e.mx)},${Y(d.e.my)}) rotate(${-d.e.ang*180/Math.PI})`);
@@ -585,7 +610,8 @@ function drawLegend(){
   const host=d3.select("#legend"); host.selectAll("*").remove();
   const cs=[...new Set(months.filter(placedM).map(clOf))].sort((a,b)=>a-b);
   cs.forEach(c=>host.append("div").attr("class","lg")
-    .html(`<i style="background:${clColor(c)}"></i>${mode==="kmeans"?"cluster "+c:(c<0?"noise":"cluster "+c)}`));
+    .html(`<i style="${byYears()?"background:none;border:1px solid var(--dim);box-sizing:border-box":"background:"+clColor(c)}"></i>${mode==="kmeans"?"cluster "+c:(c<0?"noise":"cluster "+c)}`));
+  if(byYears()) host.append("div").attr("class","lg k").text("by year: the groups are the outlines");   // P56
   // drawn as the dot is (a DASHED EDGE on the dot itself), so it is not read as an echo, which
   // is a dashed ring AROUND the dot (review 2026-09-28)
   host.append("div").attr("class","lg").html(`<i style="background:var(--rw-anom-wash);border:1px dashed var(--rw-anom-edge);box-sizing:border-box"></i>anomaly (fault) · dashed edge`);
@@ -601,6 +627,7 @@ function markColor(){
   d3.select("#wx-toggle").classed("on",on).text(`☁ weather lens · ${on?"on":"off"}`);
   d3.select("#wx-vars").style("display",on?null:"none");
   d3.selectAll("#wx-vars .wbtn").each(function(){ this.classList.toggle("on", this.getAttribute("data-color")===colorMode); });
+  markColorBy();                                              // P56: the colour choice and the year key follow the lens
 }
 d3.select("#wx-toggle").on("click",()=>{
   colorMode=(colorMode!=="month")?"month":weatherVar;
@@ -612,6 +639,14 @@ d3.selectAll("#wx-vars .wbtn").on("click",function(){
   markColor(); draw();
 });
 
+// P56: a colour choice turns the weather lens off (the lens colours the dots while it is on); nothing is sent
+d3.selectAll("#colorby .wbtn").on("click",function(){
+  const v=this.getAttribute("data-by")==="years" ? "years" : "default";
+  if(v===colorBy && colorMode==="month") return;
+  colorBy=v; try{ localStorage.setItem("rewild_colorby", v); }catch(e){}
+  if(colorMode!=="month"){ colorMode="month"; localStorage.setItem("rewild_colormode","month"); }
+  markColor(); draw(); drawLegend();
+});
 // RESOLUTION — month (engine L0 ordination) <-> day (project-side re-fit). `months`/`loadings`
 // swap to the active set; `rewild_resolution` is shared with the scatter (one global grain).
 function markRes(){
