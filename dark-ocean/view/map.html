@@ -229,6 +229,7 @@
       <div class="wcgrid">
         <button id="coast-btn" class="mbtn on" title="the coastline under the data (map view only)">◍ coast</button>
         <button id="smooth-btn" class="mbtn on" title="smooth field: the native 0.25° data interpolated on the map. Off = the honest 0.25° boxes.">▦ smooth</button>
+        <button id="com-btn" class="mbtn full" title="on the map, for a trace anchored in a scatter view: the trail of its centre of mass, from the start of the dates shown up to the date shown, older dates fainter. Visual only.">◉ centre of mass · off</button>
         <button id="slope-btn" class="mbtn full" title="the slope of each trace, as drawn in the view shown (on the map, the direction it runs), and a strip above the timeline with how it changes over the dates shown. Visual only.">╱ slope · off</button>
         <button id="dyn" class="mbtn on full" title="the glimmer: a shimmer over upwelling (blue-white) or a productive front (gold-green) where you point and on the date shown. Visual only; the chimes are on the sound tab.">◈ glimmer on</button>
       </div>
@@ -1568,7 +1569,12 @@ function paintAnchor(){
     : "spatial: a trace keeps the cells you drew over, the same places on every date.";
 }
 // THE CENTRE OF MASS (Björn C3): for a parameter-anchored trace, the geographic centre of the cells inside its shape on
-//   each date shown, as a path on the map (a spatial trace's centre never moves). Visual only.
+//   each date shown, on the map (a spatial trace's centre never moves). Visual only. Since 2026-10-02 (Miguel: "is this
+//   a direction?") a TRAIL: the dates from the start of the period up to the date shown, older ones fainter, the ring
+//   at the date shown leading; later dates are not drawn. Off by default, a switch on the lens tab, like the slope.
+let COM_ON=false;
+function paintCom(){ const b=document.getElementById("com-btn"); if(!b) return;
+  b.textContent=`◉ centre of mass · ${COM_ON?"on":"off"}`; b.classList.toggle("on", COM_ON); }
 function comPath(tr){
   const seq=SEQ(), key=tr.id+"|"+dataNonce+"|"+seq.length+":"+seq[0]+":"+seq[seq.length-1]+":"+seq[seq.length>>1];
   if(_comCache.has(key)) return _comCache.get(key);
@@ -1580,22 +1586,25 @@ function drawParamExtras(T){                              // the shape in its ow
   tracks.forEach(tr=>{ if(tr.anchor!=="param") return;
     const tc=trackColor(tr);
     if(combo.geo){
-      // weighted by how much water is inside: a date with a handful of cells has a noisy centre, so its dot is small
-      // and the segments to it faint; a dark (light-look: white) edge keeps the path visible over the traced cells
-      const P=comPath(tr), nmax=Math.max(1,...P.map(p=>p?p.n:0)), w=n=>Math.sqrt(n/nmax);
+      if(!COM_ON) return;
+      // a TRAIL up to the date shown, older dates fainter; weighted by how much water is inside too: a date with a
+      // handful of cells has a noisy centre, so its dot is small and the segments to it faint. A dark (light looks:
+      // white) edge keeps it visible over the traced cells.
+      const P=comPath(tr), pos=SEQ().indexOf(t); if(pos<0) return;
+      const nmax=Math.max(1,...P.map(p=>p?p.n:0)), w=n=>Math.sqrt(n/nmax), age=k=>pos?1-0.85*(pos-k)/pos:1;
       const light=document.documentElement.dataset.theme==="light"||document.documentElement.dataset.theme==="paper";
-      const Q=P.map(p=>p?{...p, q:proj([p.lon,p.lat])}:null);
+      const Q=P.slice(0,pos+1).map((p,k)=>p?{...p, k, q:proj([p.lon,p.lat])}:null);
       ctx.save(); ctx.setLineDash([]); ctx.lineCap="round";
       for(let k=1;k<Q.length;k++){ const a=Q[k-1], b=Q[k]; if(!a||!b) continue;
-        const al=0.15+0.8*w(Math.min(a.n,b.n));
-        ctx.globalAlpha=al; ctx.strokeStyle=light?"#ffffff":"#05070d"; ctx.lineWidth=4/zt.k;
+        ctx.globalAlpha=age(a.k)*(0.15+0.8*w(Math.min(a.n,b.n)));
+        ctx.strokeStyle=light?"#ffffff":"#05070d"; ctx.lineWidth=4/zt.k;
         ctx.beginPath(); ctx.moveTo(a.q[0],a.q[1]); ctx.lineTo(b.q[0],b.q[1]); ctx.stroke();
         ctx.strokeStyle=tc; ctx.lineWidth=1.8/zt.k; ctx.beginPath(); ctx.moveTo(a.q[0],a.q[1]); ctx.lineTo(b.q[0],b.q[1]); ctx.stroke(); }
-      ctx.globalAlpha=1;
-      Q.forEach(p=>{ if(!p || p.ti===t) return; const rr=(1.4+3.2*w(p.n))/zt.k;
+      Q.forEach(p=>{ if(!p || p.ti===t) return; const rr=(1.4+3.2*w(p.n))/zt.k; ctx.globalAlpha=age(p.k);
         ctx.fillStyle=light?"#ffffff":"#05070d"; ctx.beginPath(); ctx.arc(p.q[0],p.q[1],rr+1/zt.k,0,2*Math.PI); ctx.fill();
         ctx.fillStyle=tc; ctx.beginPath(); ctx.arc(p.q[0],p.q[1],rr,0,2*Math.PI); ctx.fill(); });
-      const now=Q.find(p=>p&&p.ti===t);
+      ctx.globalAlpha=1;
+      const now=Q[Q.length-1];
       if(now){ ctx.strokeStyle=light?"#ffffff":"#05070d"; ctx.lineWidth=4.2/zt.k; ctx.beginPath(); ctx.arc(now.q[0],now.q[1],7/zt.k,0,2*Math.PI); ctx.stroke();
         ctx.strokeStyle=tc; ctx.lineWidth=2.2/zt.k; ctx.beginPath(); ctx.arc(now.q[0],now.q[1],7/zt.k,0,2*Math.PI); ctx.stroke();
         ctx.fillStyle=tc; ctx.beginPath(); ctx.arc(now.q[0],now.q[1],2.6/zt.k,0,2*Math.PI); ctx.fill(); }
@@ -2165,6 +2174,7 @@ window.addEventListener("keydown",e=>{ if(e.key==="Escape"){ clearSel(); if(trac
 document.getElementById("trk-btn").addEventListener("click", toggleTrackMode);
 document.querySelectorAll("#tr-anchor .tra").forEach(b=>b.addEventListener("click",()=>{ setAnchor(b.dataset.an); saveState(); }));
 document.getElementById("slope-btn").addEventListener("click",()=>{ SLOPE_ON=!SLOPE_ON; paintSlope(); draw(); saveState(); });
+document.getElementById("com-btn").addEventListener("click",()=>{ COM_ON=!COM_ON; paintCom(); draw(); saveState(); });
 document.querySelectorAll("#tr-tools .trt").forEach(b=>b.addEventListener("click",()=>{   // picking a tool arms tracing
   setTraceTool(b.dataset.t); if(!trackMode) toggleTrackMode(); saveState(); }));
 document.getElementById("coast-btn").addEventListener("click",function(){ baseMap=!baseMap; this.classList.toggle("on",baseMap); draw(); saveState(); });
@@ -2287,7 +2297,7 @@ function saveState(){
   if(!meta || _restoring) return;
   const st=readState();
   st.mode=mode; st.combo=combo?combo.label:null; st.nb=NB_K; st.coast=baseMap; st.smooth=smoothOn; st.glim=glimArmed; st.tool=TRACE_TOOL; st.clock=CLOCK;
-  st.anchor=TRACE_ANCHOR; st.slope=SLOPE_ON;
+  st.anchor=TRACE_ANCHOR; st.slope=SLOPE_ON; st.com=COM_ON;
   st.traces=st.traces||{};
   st.traces[gridSig()]=tracks.map(tr=>tr.anchor==="param"
     ? {id:tr.id, label:tr.label, slot:tr.slot, color:tr.color, anchor:"param", home:tr.home, cells:[]}
@@ -2308,6 +2318,7 @@ function restoreState(){
     if(st.tool) setTraceTool(st.tool);
     if(st.anchor) setAnchor(st.anchor);
     if(st.slope!=null){ SLOPE_ON=!!st.slope; paintSlope(); }
+    if(st.com!=null){ COM_ON=!!st.com; paintCom(); }
     if(st.clock){ ["acc","div","bri"].forEach(k=>{ if(st.clock[k]!=null) setClockSilent(k, st.clock[k]); }); paintClock(); }
     const tr=st.traces&&st.traces[gridSig()];
     if(Array.isArray(tr)){
