@@ -345,6 +345,25 @@ let SCALES=null, _domCache={};
 d3.json("scales.json?_="+Date.now()).then(s=>{ SCALES=s; _domCache={}; if(meta&&combo&&!combo.geo){ computePositions(); draw(); } }).catch(()=>{});
 function scaleBlock(){ if(!SCALES||!meta) return null; return meta.multiyear?SCALES.cube:(meta.daily?SCALES.daily:null); }
 function axisName(col){ const b=scaleBlock(); return b&&b.names&&b.names[col] ? b.names[col] : null; }
+function unitDomain(fr){                                      // the fixed range of an axis in real units, months and days alike
+  const ts=SCALES&&SCALES.ts, un=SCALES&&SCALES.units;
+  if(fr==="temp") return ts?ts.temp:[-2.5,17.5];
+  if(fr==="sal") return ts?ts.sal:[30,36];
+  if(fr==="nut") return un?un.nut:[1,23];
+  return [0,1];                                               // phytoplankton: its stored log range
+}
+// MORE VIEWS (2026-10-02, Miguel): pairs in real units beside the four baked ones, added here so no data file is
+// re-baked; each needs both fields in the loaded data (the cube and the daily tiles carry nut and phyto)
+const EXTRA_VIEWS=[
+  {id:"xy_nutphyto", x:"nutrients", y:"phytoplankton", label:"nutrients × phytoplankton", geo:false},
+  {id:"xy_tempnut", x:"temperature", y:"nutrients", label:"temperature × nutrients", geo:false},
+  {id:"xy_tempphyto", x:"temperature", y:"phytoplankton", label:"temperature × phytoplankton", geo:false}];
+function extendViews(){
+  meta.colKey.nutrients=meta.colKey.nutrients||{frame:"nut"}; meta.colKey.phytoplankton=meta.colKey.phytoplankton||{frame:"phyto"};
+  const f0=frames[0]||{};
+  for(const v of EXTRA_VIEWS) if(!meta.combinations.some(c=>c.id===v.id) && f0[meta.colKey[v.x].frame] && f0[meta.colKey[v.y].frame])
+    meta.combinations.push({...v});
+}
 function pcaDomain(col){
   const b=scaleBlock(); if(b&&b.domain&&b.domain[col]) return b.domain[col];
   const key=col+"|"+dataNonce; if(_domCache[key]) return _domCache[key];   // no scales.json: the same rule over the dates loaded
@@ -484,6 +503,7 @@ d3.json("daily/manifest.json?_="+Date.now())
   dataNonce++; _nutThr={}; _phytoThr={};            // invalidate the per-frame percentile caches
   for(const d of Object.values(DYN)) d.zones.clear();   // stale zone latches must NOT survive a data swap
   zoneTarget=0; zoneSet.clear();
+  extendViews();                                   // + the views in real units added 2026-10-02
   buildCombos();                                   // the combination switcher (from the baked manifest combos)
   buildTicks(); resize(); drawLegend(); update();
   // zoom on WHEEL only, and ONLY on the geographic map — never the PCA / T-S scatters (those have
@@ -604,18 +624,24 @@ function computePositions(){
     // so 836 ocean cells with no biology (the southern edge) made a frozen streak and 1,392 coastal cells with no
     // physics (land everywhere else on the page) joined in. A cell is placed only when it has both.
     const ck=meta.colKey[combo.x], cky=meta.colKey[combo.y], pca=!!(ck&&ck.frame&&ck.frame.startsWith("pca"));
-    const ts=!!(ck&&cky&&ck.frame==="sal"&&cky.frame==="temp");        // the T–S view, in °C and salinity
-    const keep=i=> !pca || (f.temp[i]!=null && f.nut[i]!=null);
-    const val=(col,i)=>{ const v=colVal(col,f,i); return ts&&v!=null ? phys(meta.colKey[col].frame, v) : v; };
+    // views in REAL UNITS: salinity × temperature, and (2026-10-02, Miguel) nutrients × phytoplankton, temperature ×
+    // nutrients, temperature × phytoplankton. Phytoplankton is stored as log(1 + chlorophyll) on a fixed range, so its
+    // axis stays in that log space and its ticks read mg/m³.
+    const UF=["temp","sal","nut","phyto"], units=!pca&&!!(ck&&cky&&UF.includes(ck.frame)&&UF.includes(cky.frame));
+    const ts=units&&ck.frame==="sal"&&cky.frame==="temp";               // the T–S view (its freezing line)
+    const bio=units&&[ck.frame,cky.frame].some(fr=>fr==="nut"||fr==="phyto");
+    const keep=i=> !(pca||bio) || (f.temp[i]!=null && f.nut[i]!=null);   // the biology views: physics AND biology (DECISIONS (s))
+    const val=(col,i)=>{ const v=colVal(col,f,i); if(v==null||!units) return v; const fr=meta.colKey[col].frame; return fr==="phyto"?v:phys(fr,v); };
     let xr, yr, leftOut=0, offScale=0;
     if(pca) for(let i=0;i<N;i++) if(f.temp[i]!=null && f.nut[i]==null) leftOut++;
+    if(bio) for(let i=0;i<N;i++) if(f.temp[i]!=null && (colVal(combo.x,f,i)==null||colVal(combo.y,f,i)==null)) leftOut++;
     // FIXED SCALES (2026-10-02, Björn A1 + Miguel): one scale per view over the whole record, never refitted per date.
     // PCA: the central 95% of the record spans the central 80% of the axis (viz/scales.json, per basis: months and
     // days are different PCA coordinates); cells beyond it are hidden and counted. T–S: physical units, fixed.
     if(pca){ xr=pcaDomain(ck.frame); yr=pcaDomain(cky.frame); }
-    else if(ts){ const s=SCALES&&SCALES.ts; xr=s?s.sal:[30,36]; yr=s?s.temp:[-2.5,17.5]; }
+    else if(units){ xr=unitDomain(ck.frame); yr=unitDomain(cky.frame); }
     else { xr=meta.colRange[combo.x]||[0,1]; yr=meta.colRange[combo.y]||[0,1]; }
-    const X=d3.scaleLinear().domain(xr).range([M+84, r.width-M-8]);    // room for the bigger axis text (A2)
+    const X=d3.scaleLinear().domain(xr).range([M+100, r.width-M-8]);   // room for the bigger axis text (A2), clear of the legend tab
     const Y=d3.scaleLinear().domain(yr).range([r.height-M-72, M+30]);   // y axis points up
     for(let i=0;i<N;i++){ const xv=val(combo.x,i), yv=val(combo.y,i);
       if(xv==null||yv==null||!keep(i)){ px[i]=NaN; py[i]=NaN; continue; }
@@ -624,7 +650,7 @@ function computePositions(){
       const pin = pca && (xv<xr[0]||xv>xr[1]||yv<yr[0]||yv>yr[1]);
       if(pin){ offScale++; pinned[i]=1; }
       px[i]=X(pin?Math.min(xr[1],Math.max(xr[0],xv)):xv); py[i]=Y(pin?Math.min(yr[1],Math.max(yr[0],yv)):yv); }
-    cellPx=3.4; scatterAxes={X,Y,leftOut,offScale,kind:pca?"pca":(ts?"ts":"plain")};
+    cellPx=3.4; scatterAxes={X,Y,leftOut,offScale,kind:pca?"pca":(ts?"ts":(units?"units":"plain")),fx:ck&&ck.frame,fy:cky&&cky.frame};
   }
   quad=d3.quadtree().x(i=>px[i]).y(i=>py[i]).addAll(d3.range(N).filter(i=>px[i]==px[i]));  // px==px drops NaN
 }
@@ -795,16 +821,20 @@ function drawScatterAxes(){
     ctx.fillText("freezing", X(s1)-6/k, Y(Tf(s1))-4/k);
   }
   // A2 (Björn: "larger numbers … the fonts bigger"): numbers 16 px and names 20 px (were 10 and 12)
-  const xt=kind==="ts"?7:6, yt=kind==="ts"?10:6, xf=X.tickFormat(xt), yf=Y.tickFormat(yt);
+  const ticksFor=(S,fr)=>{ if(fr==="phyto"){ const P=SCALES&&SCALES.units&&SCALES.units.phyto, hi=P?P.log1p_range[1]:1.99;
+      return (P?P.ticks_mg_m3:[0,0.1,0.3,1,3]).map(c=>[Math.log1p(c)/hi, String(c)]); }
+    const n=fr==="temp"?10:(fr==="sal"?7:6), fm=S.tickFormat(n); return S.ticks(n).map(v=>[v, fm(v)]); };
+  const unitAxes=kind==="ts"||kind==="units";
   ctx.fillStyle=T.dim; ctx.font=`${16/k}px ${T.fontCanvas}`;
   ctx.textAlign="center"; ctx.textBaseline="top";
-  X.ticks(xt).forEach(v=>ctx.fillText(xf(v), X(v), y0+6/k));
+  ticksFor(X, unitAxes?scatterAxes.fx:null).forEach(([v,l])=>ctx.fillText(l, X(v), y0+6/k));
   ctx.textAlign="right"; ctx.textBaseline="middle";
-  Y.ticks(yt).forEach(v=>ctx.fillText(yf(v), x0-6/k, Y(v)));
+  ticksFor(Y, unitAxes?scatterAxes.fy:null).forEach(([v,l])=>ctx.fillText(l, x0-6/k, Y(v)));
   // A3: the PCA axes named from their loadings (viz/scales.json), the variables on a second line; T–S in units
   const lab=col=>{ const c=meta.colKey[col]||{};
-    if(kind==="pca"){ const n=axisName(c.frame); if(n) return [n.short+" →", n.vars.join(", ")]; }
-    if(kind==="ts") return [c.frame==="temp"?"temperature, °C →":"salinity →", ""];
+    if(kind==="pca"){ const n=axisName(c.frame); if(n) return [n.short+" →", n.vars.join(" · ")]; }   // the mix: r with each input
+    if(kind==="ts"||kind==="units") return [{temp:"temperature, °C →", sal:"salinity →", nut:"total nutrients →",
+      phyto:"phytoplankton (chlorophyll, mg/m³) →"}[c.frame]||col, ""];
     return [col===combo.x?(combo.xlabel||combo.x):(combo.ylabel||combo.y), ""]; };
   const fit=(s,px,w)=>{ ctx.font=`${px/k}px ${T.fontCanvas}`; const m=ctx.measureText(s).width;   // shrink to the axis, not below 10 px
     if(m>w) ctx.font=`${Math.max(10, px*w/m)/k}px ${T.fontCanvas}`; };
@@ -816,12 +846,25 @@ function drawScatterAxes(){
   for(const id of ["timewheel","tw-pill"]){ const el=document.getElementById(id);
     if(el && getComputedStyle(el).display!=="none"){ const b=toBase(el.getBoundingClientRect().top-mr.top)-8/k; if(b<bot) bot=b; } }
   const ym=(top+bot)/2, yh=Math.max(80/k, bot-top);
+  // …and the x names in the bottom edge's free span: right of the time wheel (or its chip) when it reaches down there
+  let left=x0;
+  for(const id of ["timewheel","tw-pill"]){ const el=document.getElementById(id);
+    if(el && getComputedStyle(el).display!=="none"){ const b=el.getBoundingClientRect();
+      if(toBase(b.top-mr.top) < y0+70/k){ const rgt=(b.right-mr.left-zt.x)/k+8/k; if(rgt>left) left=rgt; } } }
+  const xc=(left+x1)/2, xs=Math.max(80/k, x1-left);
   ctx.textAlign="center"; ctx.textBaseline="alphabetic";
-  ctx.fillStyle=T.label; fit(xn,20,xw); ctx.fillText(xn, (x0+x1)/2, y0+46/k);
-  ctx.save(); ctx.translate(x0-62/k,ym); ctx.rotate(-Math.PI/2); fit(yn,20,yh); ctx.fillText(yn,0,0); ctx.restore();
+  // a mix line too long for its span even at 11 px wraps onto two balanced lines, split at a " · "
+  const wrap=(t,w)=>{ ctx.font=`${11/k}px ${T.fontCanvas}`; if(!t||ctx.measureText(t).width<=w) return t?[t]:[];
+    const p=t.split(" · "); let j0=1, bd=1e9;
+    for(let j=1;j<p.length;j++){ const d=Math.abs(p.slice(0,j).join(" · ").length-p.slice(j).join(" · ").length); if(d<bd){ bd=d; j0=j; } }
+    return [p.slice(0,j0).join(" · "), p.slice(j0).join(" · ")]; };
+  const xl=wrap(xv,xs), yl=wrap(yv,yh);
+  ctx.fillStyle=T.label; fit(xn,20,xs); ctx.fillText(xn, xc, y0+46/k);
+  const yName=yl.length>1?78:62;                                    // the y name steps out when its mix takes two lines
+  ctx.save(); ctx.translate(x0-yName/k,ym); ctx.rotate(-Math.PI/2); fit(yn,20,yh); ctx.fillText(yn,0,0); ctx.restore();
   ctx.fillStyle=T.dim;
-  if(xv){ fit(xv,14,xw); ctx.fillText(xv, (x0+x1)/2, y0+64/k); }
-  if(yv){ ctx.save(); ctx.translate(x0-44/k,ym); ctx.rotate(-Math.PI/2); fit(yv,14,yh); ctx.fillText(yv,0,0); ctx.restore(); }
+  xl.forEach((t,j)=>{ fit(t,14,xs); ctx.fillText(t, xc, y0+(xl.length>1?62+16*j:64)/k); });
+  yl.forEach((t,j)=>{ ctx.save(); ctx.translate(x0-(yl.length>1?60-16*j:44)/k,ym); ctx.rotate(-Math.PI/2); fit(t,14,yh); ctx.fillText(t,0,0); ctx.restore(); });
   const notes=[];                                                    // what the view leaves out, said where it happens
   if(scatterAxes.leftOut) notes.push(`${scatterAxes.leftOut.toLocaleString()} ocean cells with no biology data left out`);
   if(scatterAxes.offScale) notes.push(`${scatterAxes.offScale.toLocaleString()} beyond the scale, pinned to the edge (hollow)`);
@@ -922,6 +965,8 @@ function axisText(col,f,i){                      // a scatter axis, named and in
   const v=colVal(col,f,i); if(v==null) return "—";
   const ck=meta.colKey[col]||{};
   if(ck.static) return ck.static==="lat"?fmtLat(v):fmtLon(v);
+  if(ck.frame==="phyto"){ const P=SCALES&&SCALES.units&&SCALES.units.phyto, hi=P?P.log1p_range[1]:1.99;
+    return `${Math.expm1(v*hi).toFixed(2)} mg/m³`; }                 // stored as log(1 + chlorophyll) on a fixed range
   return ["temp","sal","nut","anom"].includes(ck.frame) ? fmtV(ck.frame,v) : (+v).toFixed(2);
 }
 function dynLabel(i){ const d=dynamicAt(i); return d==="upwell"?"upwelling here":(d==="prod"?"productive water here":""); }
