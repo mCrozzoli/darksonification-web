@@ -1937,7 +1937,7 @@ const MIXT={ drone:"the low note: temperature's pitch and the anomaly's tremolo"
   rain:"the drops: nutrients, with salinity's echo", bell:"the clean bell when another water mass takes over",
   chimes:"the upwelling and productive-front chimes", trace:"the chord of the cells you trace",
   clock:"the wooden tick per date: its accent, division and brightness are chosen below" };
-let MIX=Object.fromEntries(MIXK.map(k=>[k,1])), VOL=1;
+let MIX=Object.fromEntries(MIXK.map(k=>[k,k==="clock"?0.4:1])), VOL=1;   // the clock starts at 0.4 (Miguel 2026-10-02); the bridge's echo paints the rest
 function sendWS(o){ if(bridgeWS && bridgeWS.readyState===1){ bridgeWS.send(JSON.stringify(o)); return true; } return false; }
 function buildMixer(){
   const el=document.getElementById("mixer");

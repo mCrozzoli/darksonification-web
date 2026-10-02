@@ -28,9 +28,10 @@ const SC_FILES = ["dark_ocean_synths.scd", "parse_dark_ocean.scd"];
 const MIX_KEYS = ["drone", "bed", "rain", "bell", "chimes", "trace", "clock"];    // bridge.py MIX_KEYS (the clock: 2026-10-02)
 // The web version's starting mix (Miguel 2026-09-29): the six SOUND-tab faders as a first listen in a browser should
 // hear them. The desktop bridge keeps its own (all 1). A visitor's changes last until the page is reloaded.
-// The clock (the seventh layer, DECISIONS (y), 2026-10-02) starts at 1 as on the desktop — its level was set against
-// the design's full mix (dev/clock_beat); Miguel's ear decides its place in this quieter web mix.
-const DEFAULT_MIX = { drone: 0.14, bed: 0.40, rain: 0.56, bell: 0.80, chimes: 0.14, trace: 1.00, clock: 1.00 };
+// The clock (the seventh layer, DECISIONS (y), 2026-10-02) starts at 0.40, Miguel's level the same day — the desktop
+// (parse ~mix, bridge SOUND["mix"], the page's MIX) starts there too. Measured against the full desktop mix: ticks
+// 8.2 dB clear, the division taps 4.0 dB (marginal); this web mix is quieter, so the taps may stand out more here.
+const DEFAULT_MIX = { drone: 0.14, bed: 0.40, rain: 0.56, bell: 0.80, chimes: 0.14, trace: 1.00, clock: 0.40 };
 
 // This build's scsynth.getWorkletNode() throws (lab/PORTING_LOG.md §2, gotcha 2), so remember
 // whichever AudioWorkletNode connects to the speakers: that is scsynth.

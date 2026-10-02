@@ -1,8 +1,8 @@
 {
-  "built": "2026-10-02 11:29:30",
+  "built": "2026-10-02 12:00:46",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "sources": {
-    "viz/map.html": "3766f040cfd33c95",
+    "viz/map.html": "847337be20086148",
     "viz/legend.js": "b3688b6e37010295",
     "viz/timewheel.js": "7157e7b4710cf28c",
     "viz/sunburst.js": "05ca5c88d65998aa",
@@ -14,7 +14,7 @@
     "viz/darkstyle/darkstyle.css": "a2c1507972554138",
     "viz/darkstyle/darkstyle.js": "a5a154247a75ed38",
     "sc/dark_ocean_synths.scd": "58cd3eb165c382c7",
-    "sc/parse_dark_ocean.scd": "a695594c1851249e"
+    "sc/parse_dark_ocean.scd": "beeb1b66e5601811"
   },
   "patches": [
     "d3 vendored: cross-origin isolation blocks the d3js.org CDN; web_bridge.js must run after d3 and before the page script",
