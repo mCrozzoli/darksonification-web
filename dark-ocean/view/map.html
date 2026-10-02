@@ -709,7 +709,11 @@ function renderSmooth(){
   const r=cv.getBoundingClientRect();
   const SW=Math.min(760, Math.round(r.width)), SH=Math.round(SW * r.height/Math.max(1,r.width));  // capped res for perf; upscaled smoothly on draw
   if(SW<2 || SH<2) return null;                           // canvas not laid out yet → fall back to crisp
-  const key=t+"|"+mode+"|"+dataNonce+"|"+SW+"x"+SH+"|"+(zt.k>1.05?Math.round(zt.k*10):0);
+  // the PROJECTION is part of the key (2026-10-02, Miguel's report: traces "where there is no data"). Switching from a
+  // scatter view to the map resets the zoom, and that redraws BEFORE resize() refits the projection; if the map's box
+  // had changed size meanwhile (e.g. the side panel folded), that one draw cached the field for the old projection
+  // and the next draw reused it, so the field sat shrunk and shifted under the correct coastline, rings and traces.
+  const key=t+"|"+mode+"|"+dataNonce+"|"+SW+"x"+SH+"|"+(zt.k>1.05?Math.round(zt.k*10):0)+"|"+proj.scale().toFixed(3)+"|"+proj.translate().map(v=>v.toFixed(2)).join(",");
   if(_smoothKey===key && cv3) return cv3;
   if(!cv3){ cv3=document.createElement("canvas"); ctx3=cv3.getContext("2d"); }
   if(cv3.width!==SW||cv3.height!==SH){ cv3.width=SW; cv3.height=SH; }
