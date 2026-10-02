@@ -236,7 +236,12 @@
       <div class="wcgrid">
         <button id="trace-cell" class="mbtn full" disabled title="keep the cell you picked highlighted in every view, month and day">◎ trace this cell</button>
         <button id="trace-nb" class="mbtn full" disabled title="keep the purple cells, with the one you picked, as one trace">◎ trace its neighbours</button>
-        <button id="trk-btn" class="mbtn full" title="paint over the map to trace every cell the stroke touches (Esc to stop)">◫ brush to trace · off</button>
+        <button id="trk-btn" class="mbtn full" title="paint over a view to trace every cell the stroke touches (Esc to stop)">◫ brush to trace · off</button>
+        <div id="tr-tools" class="full" style="display:flex;gap:5px">
+          <button class="mbtn trt on" data-t="brush" style="flex:1" title="paint along a path: every cell the stroke touches">brush</button>
+          <button class="mbtn trt" data-t="lasso" style="flex:1" title="draw a closed outline: every cell inside it">lasso</button>
+          <button class="mbtn trt" data-t="rect" style="flex:1" title="drag a box: every cell inside it">rectangle</button>
+        </div>
       </div>
       <div id="tr-brush" class="row" style="display:none;align-items:center;gap:8px;margin:6px 0 2px">
         <span class="k" style="flex:none">brush width</span>
@@ -427,6 +432,12 @@ let focusI=-1, neighborSet=new Set(), NB_K=30;           // KNN neighbourhood (s
 let trackMode=false, tracks=[], trackSeq=0, flashId=null;  // tracks:[{id,label,color,cells:Set}]
 let brushing=false, brushPath=null, brushCells=null;     // freehand path-brush (base-px pts + picked cells)
 let BRUSH_W=1;                                           // brush width in cells (1..6 slider)
+// TRACE TOOLS (2026-10-02, Miguel: "brush, lasso and rectangle … so Björn can choose which one is best for the view he
+// is interested in tracing"): brush = the cells along a stroke (BRUSH_W wide), lasso = every cell inside a closed
+// outline, rectangle = every cell inside a dragged box. All three make the same trace as before: a fixed set of the
+// cells placed in the view where it is drawn. A click without a drag traces the one cell under it. Remembered.
+let TRACE_TOOL="brush";
+const TOOL_WORD={brush:"brush", lasso:"lasso", rect:"rectangle"};
 // TRACK_COLORS: one set per look (LOOK_DATA, above); a trace keeps its SLOT, so it takes the look's colour
 let zt=d3.zoomIdentity, zoomBehavior=null;               // pan/zoom transform (context-space) + the d3.zoom behaviour
 let combo=null, scatterAxes=null;                        // current display combination (from meta.combinations)
@@ -804,8 +815,11 @@ function draw(){
       ctx.strokeStyle=T.brush; ctx.lineWidth=1.3/zt.k;
       brushCells.forEach(i=>{ if(px[i]==px[i]) ctx.strokeRect(px[i]-h2, py[i]-h2, s2, s2); }); }
     if(brushPath.length>1){ ctx.strokeStyle=T.brushPath; ctx.lineWidth=1.5/zt.k;
-      ctx.beginPath(); ctx.moveTo(brushPath[0][0],brushPath[0][1]);
-      for(let k=1;k<brushPath.length;k++) ctx.lineTo(brushPath[k][0],brushPath[k][1]); ctx.stroke(); }
+      const a=brushPath[0], z=brushPath[brushPath.length-1];
+      if(TRACE_TOOL==="rect"){ ctx.strokeRect(Math.min(a[0],z[0]), Math.min(a[1],z[1]), Math.abs(z[0]-a[0]), Math.abs(z[1]-a[1])); }
+      else { ctx.beginPath(); ctx.moveTo(a[0],a[1]);
+        for(let k=1;k<brushPath.length;k++) ctx.lineTo(brushPath[k][0],brushPath[k][1]); ctx.stroke();
+        if(TRACE_TOOL==="lasso"){ ctx.setLineDash([4/zt.k,4/zt.k]); ctx.beginPath(); ctx.moveTo(z[0],z[1]); ctx.lineTo(a[0],a[1]); ctx.stroke(); ctx.setLineDash([]); } } }
   }
 }
 function drawScatterAxes(){
@@ -1229,10 +1243,30 @@ function fade(c){ const o=d3.color(c); if(!o) return c; o.opacity=(o.opacity==nu
 function evBase(e){ const r=cv.getBoundingClientRect(); return zt.invert([e.clientX-r.left, e.clientY-r.top]); }
 function toggleTrackMode(){
   trackMode=!trackMode;
-  document.getElementById("trk-btn").classList.toggle("on", trackMode);
-  document.getElementById("tr-brush").style.display = trackMode ? "flex" : "none";
   cv.style.cursor = trackMode ? "crosshair" : "";
-  brushing=false; brushPath=null; brushCells=null; renderTrackList(); draw();
+  brushing=false; brushPath=null; brushCells=null; renderTrackList(); paintTrk(); draw();
+}
+function paintTrk(){                                       // the trace button names the tool; the width slider is the brush's
+  const b=document.getElementById("trk-btn");
+  b.textContent=`◫ ${TOOL_WORD[TRACE_TOOL]} to trace · ${trackMode?"on":"off"}`; b.classList.toggle("on", trackMode);
+  b.title={brush:"paint over a view to trace every cell the stroke touches", lasso:"draw a closed outline to trace every cell inside it",
+           rect:"drag a box to trace every cell inside it"}[TRACE_TOOL]+" (Esc to stop)";
+  document.getElementById("tr-brush").style.display = trackMode && TRACE_TOOL==="brush" ? "flex" : "none";
+  document.querySelectorAll("#tr-tools .trt").forEach(x=>x.classList.toggle("on", x.dataset.t===TRACE_TOOL));
+}
+function setTraceTool(t){ TRACE_TOOL=TOOL_WORD[t]?t:"brush"; paintTrk(); }
+function pointInPoly(x,y,P){                               // even-odd ray casting
+  let c=false; for(let i=0,j=P.length-1;i<P.length;j=i++){ const a=P[i], b=P[j];
+    if(((a[1]>y)!==(b[1]>y)) && (x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])) c=!c; } return c;
+}
+function cellsInShape(){                                   // the rectangle or the lasso → the cells placed inside it
+  const out=new Set(), P=brushPath; if(!P||P.length<2) return out;
+  let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;
+  const pts = TRACE_TOOL==="rect" ? [P[0], P[P.length-1]] : P;
+  for(const q of pts){ x0=Math.min(x0,q[0]); x1=Math.max(x1,q[0]); y0=Math.min(y0,q[1]); y1=Math.max(y1,q[1]); }
+  for(let i=0;i<N;i++){ if(px[i]!=px[i] || px[i]<x0 || px[i]>x1 || py[i]<y0 || py[i]>y1) continue;
+    if(TRACE_TOOL==="rect" || (P.length>2 && pointInPoly(px[i],py[i],P))) out.add(i); }
+  return out;
 }
 // Path-following brush: pick up the cells the gesture actually traces (a thin ribbon
 // along the stroke) — NOT a bounding box, which grabs cells the diagonal never touched.
@@ -1295,7 +1329,7 @@ function flashTrack(id){ flashId=id; draw(); setTimeout(()=>{ flashId=null; draw
 function renderTrackList(){
   const total=tracks.reduce((s,t)=>s+t.cells.size,0);
   document.getElementById("tr-head").textContent = tracks.length ? `TRACE · ${tracks.length} (${total} cell${total>1?"s":""})` : "TRACE · none";
-  document.getElementById("trk-btn").textContent = "◫ brush to trace · "+(trackMode?"on":"off");
+  paintTrk();
   const clr=document.getElementById("tr-clear"); clr.textContent=`◈ clear traces · ${tracks.length}`; clr.disabled=!tracks.length;
   const list=document.getElementById("tr-list"); list.innerHTML="";
   tracks.forEach(t=>{
@@ -1653,15 +1687,21 @@ cv.addEventListener("pointerdown",e=>{
   if(combo.geo && !trackMode && (e.shiftKey || zt.k>1.05)) return;   // zoomed/Shift → d3.zoom pans; don't navigate
   downXY=[e.clientX,e.clientY]; moved=0;
   try{cv.setPointerCapture(e.pointerId);}catch(_){}
-  if(trackMode){ brushing=true; const p=evBase(e); brushPath=[p]; brushCells=new Set(); brushStroke(p,p); draw(); }
+  if(trackMode){ brushing=true; const p=evBase(e); brushPath=[p]; brushCells=new Set(); if(TRACE_TOOL==="brush") brushStroke(p,p); draw(); }
   else { navDrag=true; navAt(e); } });
 cv.addEventListener("pointermove",e=>{
   if(!downXY) return;                                    // a move with no press on the canvas (it used to throw on every hover)
   moved=Math.max(moved,Math.hypot(e.clientX-downXY[0],e.clientY-downXY[1]));
-  if(trackMode && brushing){ const p=evBase(e); brushStroke(brushPath[brushPath.length-1], p); brushPath.push(p); draw(); }
+  if(trackMode && brushing){ const p=evBase(e);
+    if(TRACE_TOOL==="brush"){ brushStroke(brushPath[brushPath.length-1], p); brushPath.push(p); }
+    else if(TRACE_TOOL==="rect"){ brushPath=[brushPath[0], p]; brushCells=cellsInShape(); }   // the box's cells, live
+    else { const q=brushPath[brushPath.length-1]; if(Math.hypot(p[0]-q[0],p[1]-q[1])>2/zt.k) brushPath.push(p); }   // the lasso's outline
+    draw(); }
   else if(navDrag) navAt(e); });
 cv.addEventListener("pointerup",  e=>{
   if(trackMode && brushing){ brushing=false;
+    if(TRACE_TOOL!=="brush"){                 // lasso / rectangle: what is inside; a click = the one cell under it
+      if(moved<5){ const p=evBase(e); brushCells=new Set(); brushStroke(p,p); } else brushCells=cellsInShape(); }
     const cells=[...brushCells];              // the cells the gesture traced (click = the one cell under it)
     brushPath=null; brushCells=null; createTrack(cells);
   } else if(navDrag){ navDrag=false; if(moved<5) selectAt(e); }
@@ -1669,6 +1709,8 @@ cv.addEventListener("pointerup",  e=>{
 cv.addEventListener("pointercancel",()=>{ navDrag=false; brushing=false; brushPath=null; brushCells=null; downXY=null; draw(); });
 window.addEventListener("keydown",e=>{ if(e.key==="Escape"){ clearSel(); if(trackMode) toggleTrackMode(); } });
 document.getElementById("trk-btn").addEventListener("click", toggleTrackMode);
+document.querySelectorAll("#tr-tools .trt").forEach(b=>b.addEventListener("click",()=>{   // picking a tool arms tracing
+  setTraceTool(b.dataset.t); if(!trackMode) toggleTrackMode(); saveState(); }));
 document.getElementById("coast-btn").addEventListener("click",function(){ baseMap=!baseMap; this.classList.toggle("on",baseMap); draw(); saveState(); });
 document.getElementById("smooth-btn").addEventListener("click",function(){ smoothOn=!smoothOn; this.classList.toggle("on",smoothOn); _smoothKey=""; draw(); saveState(); });
 document.getElementById("tr-brushw").addEventListener("input",function(){ BRUSH_W=+this.value; document.getElementById("tr-brushw-val").textContent=BRUSH_W; });
@@ -1784,7 +1826,7 @@ function readState(){ try{ return JSON.parse(lsGet(LS.state)||"null")||{}; }catc
 function saveState(){
   if(!meta || _restoring) return;
   const st=readState();
-  st.mode=mode; st.combo=combo?combo.label:null; st.nb=NB_K; st.coast=baseMap; st.smooth=smoothOn; st.glim=glimArmed;
+  st.mode=mode; st.combo=combo?combo.label:null; st.nb=NB_K; st.coast=baseMap; st.smooth=smoothOn; st.glim=glimArmed; st.tool=TRACE_TOOL;
   st.traces=st.traces||{};
   st.traces[gridSig()]=tracks.map(tr=>({id:tr.id, label:tr.label, slot:tr.slot, color:tr.color, cells:[...tr.cells]}));
   lsSet(LS.state, JSON.stringify(st));
@@ -1800,6 +1842,7 @@ function restoreState(){
     if(st.coast!=null){ baseMap=!!st.coast; document.getElementById("coast-btn").classList.toggle("on",baseMap); }
     if(st.smooth!=null){ smoothOn=!!st.smooth; document.getElementById("smooth-btn").classList.toggle("on",smoothOn); _smoothKey=""; }
     if(st.glim!=null){ glimArmed=!!st.glim; paintGlim(); }
+    if(st.tool) setTraceTool(st.tool);
     const tr=st.traces&&st.traces[gridSig()];
     if(Array.isArray(tr)){
       const slotOf=x=>{ if(x.slot!=null) return x.slot; const k=LOOK_DATA.dark.track.indexOf(x.color); return k>=0?k:null; };   // traces saved before the kit
