@@ -12,6 +12,10 @@
 //     and starting a drag on another ring REPLACES the previous selection. The span stays
 //     highlighted (persistent) until cleared. A single click selects one node; clicking the
 //     same node again clears.
+//   • ADD / REMOVE (2026-10-02, Miguel: "if i select a couple of months … and want to select another
+//     area the prev selection is deleted"): Shift/⌘-drag on the SAME ring ADDS a span to the selection
+//     (it can now be several spans); Shift/⌘-click on a selected piece removes it. A plain drag still
+//     starts afresh; the host's "clear" empties it. getSelection() reports the spans as `runs`.
 //   • AVAILABILITY — pass availableMonths (["YYYY-MM"]) and months WITHOUT per-gridpoint
 //     daily are greyed (shown, not hidden) with a marker on the ones that do have it.
 //   • The host reads getSelection() (single node OR {kind:"span",resolution,dates,…}) to
@@ -26,7 +30,7 @@ window.Sunburst = (function () {
   const MON = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const RINGS = ["year", "month", "day"];
   let meta = null, days = [], root = null, VAR = "thetao", g = null, container = null, opts = null;
-  let hoverNode = null, sel = null, availDaySet = null, availMonthSet = null;   // sel: null | {kind,lo,hi,nodes,single}
+  let hoverNode = null, sel = null, availDaySet = null, availMonthSet = null;   // sel: null | {kind,ords,span,nodes,single}
   let dragging = null, dragStart = null, dragMoved = false, preSel = null, seasonal = false;
   const byKind = { year: [], month: [], day: [] };          // nodes per ring, chronological (_ord)
   const arc = d3.arc().startAngle(d => d.x0).endAngle(d => d.x1)
@@ -120,17 +124,30 @@ window.Sunburst = (function () {
   function startDrag(e, d) {
     if (!RINGS.includes(d.data.kind)) return;
     e.preventDefault();
+    // Shift/⌘ on the ring already selected = ADD to it (on another ring it starts afresh, as a plain drag)
+    const add = (e.shiftKey || e.metaKey || e.ctrlKey) && !!sel && sel.kind === d.data.kind;
     preSel = sel; dragStart = d; dragMoved = false;
-    dragging = { kind: d.data.kind, a: d._ord, b: d._ord };
+    dragging = { kind: d.data.kind, a: d._ord, b: d._ord, add, base: add ? new Set(sel.ords) : null };
     setSelFromDrag(); markSel();
   }
   function extendDrag(d) { if (d !== dragStart) dragMoved = true; dragging.b = d._ord; setSelFromDrag(); markSel(); }
   function setSelFromDrag() {
-    const { kind, a, b } = dragging, lo = Math.min(a, b), hi = Math.max(a, b);
-    const span = byKind[kind].filter(n => n._ord >= lo && n._ord <= hi);
-    sel = { kind, lo, hi, span, nodes: span, single: lo === hi };
+    const { kind, a, b, base } = dragging, lo = Math.min(a, b), hi = Math.max(a, b);
+    const ords = new Set(base || []);
+    for (let o = lo; o <= hi; o++) ords.add(o);
+    setSel(kind, ords);
+  }
+  function setSel(kind, ords) {                       // the selection = a set of positions on one ring
+    if (!ords.size) { sel = null; return; }
+    const span = byKind[kind].filter(n => ords.has(n._ord));
+    sel = { kind, ords, span, nodes: span, single: span.length === 1 };
     if (kind === "month") sel.monthNums = [...new Set(span.map(n => n.data.m))];
     applySeasonal();
+  }
+  function runsOf(nodes) {                            // contiguous runs along the ring: [[first, last], …]
+    const out = [];
+    for (const n of nodes) { const L = out[out.length - 1]; if (L && n._ord === L[1]._ord + 1) L[1] = n; else out.push([n, n]); }
+    return out;
   }
   // SEASONAL cross-cut: a month selection expands to the SAME month(s) in EVERY year
   // (Jun–Aug → all summers). Folded in from the old month-of-year strip. Toggle re-derives
@@ -145,7 +162,11 @@ window.Sunburst = (function () {
   function setSeasonal(on) { seasonal = on; if (sel) applySeasonal(); markSel(); emit("onSelect", selInfo()); }
   function endDrag() {
     if (!dragging) return;
-    if (!dragMoved && preSel && preSel.single && (preSel.span || preSel.nodes)[0] === dragStart) {
+    if (!dragMoved && dragging.add && dragging.base.has(dragStart._ord)) {           // Shift/⌘-click a selected piece: remove it
+      const left = new Set(dragging.base); left.delete(dragStart._ord); setSel(dragging.kind, left);
+      dragging = null; dragStart = null; markSel(); emit("onSelect", sel ? selInfo() : info(null)); return;
+    }
+    if (!dragMoved && !dragging.add && preSel && preSel.single && (preSel.span || preSel.nodes)[0] === dragStart) {
       sel = null; dragging = null; dragStart = null; markSel(); emit("onSelect", info(null)); return;  // re-click clears
     }
     dragging = null; dragStart = null; markSel(); emit("onSelect", selInfo());
@@ -182,6 +203,8 @@ window.Sunburst = (function () {
     if (sel) {
       if (sel.nodes.length === 1) return lbl(sel.nodes[0]);
       if (sel.seasonal) return [[...new Set(sel.nodes.map(n => MON[n.data.m]))].join("/"), "all years · " + sel.nodes.length + " mo"];
+      const k = runsOf(sel.nodes).length;
+      if (k > 1) return [k + " spans", sel.nodes.length + " " + sel.kind + "s"];
       return [spanLabel(sel), sel.kind + " span · " + sel.nodes.length];
     }
     return lbl(null);
@@ -193,11 +216,15 @@ window.Sunburst = (function () {
     if (d.data.kind === "day") return [d.data.rec.d, "day" + (isAvail(d) ? "" : " · not pulled")];
     return [d.data.name, ""];
   }
+  function runLabel(kind, a, b) {
+    const one = n => kind === "day" ? n.data.rec.d : kind === "month" ? MON[n.data.m] + " " + n.data.y : n.data.name;
+    return a === b ? one(a) : one(a) + " … " + one(b);
+  }
   function spanLabel(s) {
-    const a = s.nodes[0], b = s.nodes[s.nodes.length - 1];
-    if (s.kind === "day") return a.data.rec.d + " … " + b.data.rec.d;
-    if (s.kind === "month") return MON[a.data.m] + " " + a.data.y + " … " + MON[b.data.m] + " " + b.data.y;
-    return a.data.name + " … " + b.data.name;
+    const runs = runsOf(s.nodes);
+    if (runs.length === 1) return runLabel(s.kind, runs[0][0], runs[0][1]);
+    const parts = runs.slice(0, 3).map(([a, b]) => runLabel(s.kind, a, b));
+    return parts.join(" + ") + (runs.length > 3 ? ` + ${runs.length - 3} more` : "");
   }
 
   // ── info objects the host acts on ──
@@ -217,7 +244,9 @@ window.Sunburst = (function () {
     const dates = lv.map(l => l.data.rec.d).sort();
     const months = [...new Set(dates.map(d => d.slice(0, 7)))].sort();
     const label = s.seasonal ? [...new Set(s.nodes.map(n => MON[n.data.m]))].join("/") + " · all years" : spanLabel(s);
-    return { kind: "span", resolution: s.kind, seasonal: !!s.seasonal, label,
+    const runs = runsOf(s.nodes).map(([a, b]) => { const la = a.leaves(), lb = b.leaves();
+      return [la[0].data.rec.d, lb[lb.length - 1].data.rec.d]; });                    // each span's first and last day
+    return { kind: "span", resolution: s.kind, seasonal: !!s.seasonal, label, runs,
       sub: s.seasonal ? "seasonal · " + s.nodes.length + " months" : s.kind + " span · " + s.nodes.length,
       dates, months, years: [...new Set(dates.map(d => d.slice(0, 4)))], first: dates[0], last: dates[dates.length - 1],
       availMonths: months.filter(m => !availMonthSet || availMonthSet.has(m)),

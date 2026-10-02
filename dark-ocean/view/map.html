@@ -50,10 +50,18 @@
   .trk-x:hover{ color:var(--ds-danger); }
   .tbtn{ background:var(--ds-ctl); color:var(--dim); border:1px solid var(--ds-ctl-line); border-radius:6px; padding:5px 9px; font:inherit; font-size:11px; cursor:pointer; flex:none; }
   .tbtn:hover{ color:var(--txt); border-color:var(--ds-ctl-line-hi); } .tbtn:disabled{ opacity:.4; cursor:default; }
-  #ticks span{ cursor:pointer; } #ticks span:hover{ color:var(--ds-cur-txt); }
-  #ticks span.sel{ color:var(--ds-cur-txt); font-weight:600; }
-  #ticks span.gapb{ border-left:2px solid var(--ds-gap-mark); padding-left:2px; }     /* days missing from the record before this one */
-  #ticks span.gapa{ border-right:2px solid var(--ds-gap-mark); padding-right:2px; }    /* … after it (the record stops early in its month) */
+  /* THE TIMELINE (2026-10-02, Miguel: the play-head did not land on the date; years invisible; the daily row
+     unreadable). Every date has a fixed place, the same as the slider's thumb (layoutTicks); labels thin out when
+     they would touch; a divider + the year (by day: the month) marks each boundary; red = days not in the record. */
+  #tl{ position:relative; }
+  #tl-years{ position:relative; height:12px; font-size:9px; letter-spacing:.06em; color:var(--dim); }
+  #tl-years span{ position:absolute; top:0; white-space:nowrap; padding-left:4px; }
+  #ticks .tkl{ position:absolute; top:1px; transform:translateX(-50%); white-space:nowrap; pointer-events:none; }
+  #ticks .tkl.sel{ color:var(--ds-cur-txt); font-weight:600; }
+  #ticks .tkh{ position:absolute; top:0; height:100%; cursor:pointer; }
+  #ticks .tkh.hov::after, #ticks .tkh:hover::after{ content:""; position:absolute; left:50%; top:-3px; height:4px; border-left:1px solid var(--ds-cur-txt); }
+  #ticks .tkgap{ position:absolute; top:1px; height:11px; border-left:2px solid var(--ds-gap-mark); pointer-events:none; }   /* days missing from the record here */
+  #tl .tkdiv{ position:absolute; top:0; bottom:0; border-left:1px solid var(--dim); opacity:.55; pointer-events:none; }
   #period{ grid-row:3; grid-column:1; display:flex; align-items:center; gap:8px; padding:6px 16px; font-size:11px; background:var(--bg); }
   .pk{ color:var(--dim); } #moy{ display:flex; gap:3px; }
   .chip{ min-width:20px; height:18px; background:var(--ds-ctl); color:var(--dim); border:1px solid var(--ds-ctl-line); border-radius:4px; font-size:10px; cursor:pointer; text-align:center; line-height:16px; }
@@ -121,8 +129,13 @@
   #transport{ grid-row:4; grid-column:1/3; display:flex; align-items:center; gap:14px; padding:0 18px; background:var(--panel); }
   #play{ background:var(--cur); color:var(--ds-on-cur); border:none; border-radius:8px; width:38px; height:38px;
     font-size:15px; cursor:pointer; flex:none; }
-  #scrub{ width:100%; accent-color:var(--ds-accent); }
-  #ticks{ display:flex; justify-content:space-between; color:var(--dim); font-size:10px; }
+  #scrub{ -webkit-appearance:none; appearance:none; display:block; width:100%; height:16px; margin:0; background:transparent; cursor:pointer; }
+  #scrub::-webkit-slider-runnable-track{ height:4px; border-radius:2px; background:var(--tl-bg, var(--ds-ctl-line)); }
+  #scrub::-moz-range-track{ height:4px; border-radius:2px; background:var(--tl-bg, var(--ds-ctl-line)); }
+  #scrub::-webkit-slider-thumb{ -webkit-appearance:none; width:16px; height:16px; margin-top:-6px; border:none; border-radius:50%; background:var(--ds-accent); }
+  #scrub::-moz-range-thumb{ width:16px; height:16px; border:none; border-radius:50%; background:var(--ds-accent); }
+  #scrub:focus-visible{ outline:none; } #scrub:focus-visible::-webkit-slider-thumb{ box-shadow:0 0 0 3px var(--ds-ctl-line-hi); }
+  #ticks{ position:relative; height:14px; color:var(--dim); font-size:10px; }
   #loading{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--dim); }
   /* the kit's texture (after every panel rule, so their `background` does not reset it) and the LOOK control */
   header, #side, #transport, #period{ background-image:var(--ds-grain); }
@@ -153,7 +166,7 @@
       <div id="sb-bar">
         <b style="color:var(--txt)">time wheel</b><span class="k">· year → month → day</span>
         <span class="k" style="margin-left:12px">colour by</span><span id="sb-vars"></span>
-        <span id="sb-hint" class="k" style="margin-left:auto"><b>drag</b> a ring to select · <span style="color:var(--ds-avail)">━ green</span> = days with daily data · day-ring→daily, month/year→monthly</span>
+        <span id="sb-hint" class="k" style="margin-left:auto"><b>drag</b> a ring to select · <b>Shift/⌘-drag</b> adds, <b>Shift/⌘-click</b> removes · <span style="color:var(--ds-avail)">━ green</span> = days with daily data · day-ring→daily, month/year→monthly</span>
         <button id="sb-close" class="tbtn" style="margin-left:12px">✕ close</button>
       </div>
       <div id="sb-wheel"></div>
@@ -223,6 +236,30 @@
     <div class="tsec" data-tab="sound">
       <div class="seg">SOUND · LAYERS</div>
       <div id="mixer"></div>
+      <div class="seg">CLOCK · A TICK PER DATE</div>
+      <div class="wcgrid" id="clock-ui">
+        <span class="glab">ACCENT · WHICH TICKS STAND OUT</span>
+        <button class="mbtn" data-ca="none">none</button>
+        <button class="mbtn" data-ca="cal" title="each January (the 1st of the month in the daily view)">calendar</button>
+        <button class="mbtn" data-ca="mean" title="the dates where the region's average is in the top quarter of the dates shown">mean</button>
+        <button class="mbtn" data-ca="sd" title="the dates where the cells differ most from each other (the standard deviation, top quarter)">spread</button>
+        <button class="mbtn" data-ca="d" title="the dates where the cells changed most since the last date (top quarter)">change</button>
+        <button class="mbtn" data-ca="dsd" title="the dates where the spread changed most since the last date (top quarter)">change of spread</button>
+        <span class="glab">DIVISION · HOW MUCH IT CHANGED</span>
+        <button class="mbtn" data-cd="none">none</button>
+        <button class="mbtn" data-cd="temp">temperature</button>
+        <button class="mbtn" data-cd="sal">salinity</button>
+        <button class="mbtn" data-cd="nut">nutrients</button>
+        <button class="mbtn full" data-cd="chl" title="chlorophyll in mg/m³">chlorophyll</button>
+        <span class="glab">BRIGHTNESS · THE WOOD'S COLOUR</span>
+        <button class="mbtn" data-cb="none">none</button>
+        <button class="mbtn" data-cb="sun" title="the day length at the region's latitude: darkest at the winter solstice, brightest at midsummer">sun</button>
+        <button class="mbtn" data-cb="temp">temperature</button>
+        <button class="mbtn" data-cb="sal">salinity</button>
+        <button class="mbtn" data-cb="nut">nutrients</button>
+        <button class="mbtn" data-cb="chl" title="chlorophyll in mg/m³">chlorophyll</button>
+      </div>
+      <div class="note" id="clock-read">a tick per date</div>
       <div class="seg">MASTER</div>
       <div class="wcgrid">
         <button id="snd" class="tbtn full" title="master sound on or off: when on, playing/scrubbing drives SuperCollider (running in this tab); off = silent, visual only (the legend still sounds)">♪ sound off</button>
@@ -267,7 +304,8 @@
     <button id="vel" class="tbtn" title="playback speed: click to cycle. At 1× or paused you can count the drops; faster speeds blend them.">1×</button>
     <button id="export" class="tbtn" title="save the current frame as a PNG">⬇ png</button>
     <button id="mp4" class="tbtn" title="record the selected span as a video: the map animation (+ signals SC to record the sonification for muxing)">⬇ mp4</button>
-    <div style="flex:1">
+    <div id="tl" style="flex:1">
+      <div id="tl-years"></div>
       <input id="scrub" type="range" min="0" max="9" value="0" step="1">
       <div id="ticks"></div>
     </div>
@@ -457,6 +495,7 @@ const DRILL_MONTH=new URLSearchParams(location.search).get("daily");   // "YYYY-
 const DRILL_DAY=new URLSearchParams(location.search).get("day");      // a specific day to land on after a daily drill
 const DRILL_FROM=new URLSearchParams(location.search).get("from");   // restrict the daily play/scrub to a day range
 const DRILL_TO=new URLSearchParams(location.search).get("to");
+const DRILL_SPANS=new URLSearchParams(location.search).get("spans");  // several day spans "a~b,c~d" (the wheel's Shift/⌘-drag)
 const SEL_MONTHS=new URLSearchParams(location.search).get("sel");    // months to pre-select on the cube (monthly commit from the daily view)
 const MONF=["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const monLabel=ds=>MONF[+ds.slice(5,7)]+" "+ds.slice(0,4);      // "2020-11-04" → "Nov 2020"
@@ -534,6 +573,7 @@ d3.json("daily/manifest.json?_="+Date.now())
     waterMasses: ()=>Array.from({length:meta.waterMass||3},(_,i)=>({i, name:wmName(i), color:WM_COLORS[i]})),
     scale: k=>SCALE[k],
     catalogue: legendCatalogue,                                   // real dates, computed from the loaded frames
+    clock: clockLabel,                                            // the clock row says what its three choices are
     goto: ti=>{ if(playing) togglePlay();                        // through the one path: the display shows it, the sound plays it
       if(SEQ().indexOf(ti)<0){ selFrames=null; moySel.clear(); if(meta.multiyear&&window.TimeWheel&&TimeWheel.setSelection) TimeWheel.setSelection(null); renderPeriod(); markTicks(); }
       t=ti; update(); },
@@ -576,6 +616,11 @@ d3.json("daily/manifest.json?_="+Date.now())
     b.onclick=()=>{ location.href="map.html?data=cube_time.json"; };
     if(DRILL_FROM && DRILL_TO){                                   // restrict play/scrub to the selected day span
       const idx=meta.dates.map((d,i)=>[d,i]).filter(([d])=>d>=DRILL_FROM && d<=DRILL_TO).map(([,i])=>i);
+      if(idx.length && idx.length<meta.dates.length) selFrames=idx;
+    }
+    if(DRILL_SPANS){                                              // … or to several spans
+      const R=DRILL_SPANS.split(",").map(r=>r.split("~")).filter(r=>r.length===2);
+      const idx=meta.dates.map((d,i)=>[d,i]).filter(([d])=>R.some(([a,b])=>d>=a && d<=b)).map(([,i])=>i);
       if(idx.length && idx.length<meta.dates.length) selFrames=idx;
     }
     if(DRILL_DAY){ const fi=meta.dates.indexOf(DRILL_DAY); if(fi>=0) t=fi; }            // land on the selected day
@@ -899,7 +944,7 @@ function dateSub(){                   // the small caption under the big date (+
 }
 function update(){                    // full refresh on t / mode change
   document.getElementById("date").innerHTML = `${meta.dates[t]}<small>${dateSub()}</small>`;
-  const _sq=SEQ(), _sc=document.getElementById("scrub"); _sc.max=Math.max(0,_sq.length-1); _sc.value=seqPos(t);
+  const _sc=document.getElementById("scrub"); _sc.max=Math.max(0,meta.dates.length-1); _sc.value=t; paintTrack();   // the thumb sits ON the date
   if(combo && !combo.geo) computePositions();   // scatter points move per day (pca/temp/sal vary)
   refreshNeighbors();                           // neighbourhood evolves with the day
   refreshZone();                                // the upwelling glimmer patch moves with the day (visual only here)
@@ -1078,22 +1123,88 @@ function gapAfter(ti){
   return Math.max(0, dayCount(d.slice(0,7)) - +d.slice(8,10));
 }
 
+// THE TIMELINE (rebuilt 2026-10-02). The slider spans EVERY date and its value IS the date, so the thumb lands
+//   on the date being played, selection or not (it used to span only the selected dates, so it stretched them
+//   over the whole bar). A drag or an arrow key snaps to the nearest date shown. Each date sits where the thumb
+//   would: x = R + i/(n−1)·(W − 2R), R = the thumb's radius. Labels are placed there and THIN OUT when they would
+//   touch (the 1st of a month, then every 5th, 10th … day); every date keeps a hit area for click (jump) and
+//   drag (a range). Dividers + the year at each new year (by day: the month at each new month, Miguel's choice).
+//   The track: the selection shaded, the part already played filled.
+const TL_R=8;                                                   // the thumb's radius, px (the #scrub CSS)
+function tlX(i, W, n){ return n>1 ? TL_R+i/(n-1)*(W-2*TL_R) : W/2; }
+function snapToSeq(v){
+  const s=SEQ(); if(!s.length) return 0;
+  let best=s[0]; for(const j of s) if(Math.abs(j-v)<Math.abs(best-v)) best=j;
+  if(best===t && v!==t){ const p=s.indexOf(t), q=p+(v>t?1:-1); if(q>=0 && q<s.length) best=s[q]; }   // an arrow key always moves
+  return best;
+}
 function buildTicks(){
   const el=document.getElementById("ticks");
   el.innerHTML=meta.dates.map((d,i)=>{ const g=gapBefore(i), a=gapAfter(i);   // red marks = days missing from the record
-    const title=d+(g?` · ${gapText(g)} before it`:"")+(a?(meta.multiyear?` · ${monthSupport(d)[0]} of ${monthSupport(d)[1]} days in the record`:` · ${a} day${a>1?"s":""} not in the record after it`):"");
-    const cls=[g?"gapb":"", a?"gapa":""].filter(Boolean).join(" ");
-    return `<span data-i="${i}" title="${title}"${cls?` class="${cls}"`:""}>${d.slice(5)}</span>`; }).join("");
-  el.querySelectorAll("span").forEach(s=>{                     // click a tick = jump; drag across = select a RANGE
+    const title=fmtDate(d)+(g?` · ${gapText(g)} before it`:"")+(a?(meta.multiyear?` · ${monthSupport(d)[0]} of ${monthSupport(d)[1]} days in the record`:` · ${a} day${a>1?"s":""} not in the record after it`):"");
+    return `<span class="tkh" data-i="${i}" title="${title}"></span><span class="tkl" data-i="${i}">${meta.multiyear?d.slice(5,7):d.slice(8,10)}</span>`+
+      (g?`<span class="tkgap" data-gb="${i}"></span>`:"")+(a?`<span class="tkgap" data-ga="${i}"></span>`:""); }).join("");
+  el.querySelectorAll(".tkh").forEach(s=>{                       // click a date = jump; drag across = select a RANGE
     const i=+s.getAttribute("data-i");
     s.addEventListener("pointerdown",e=>{ tkDrag=i; e.preventDefault(); });
     s.addEventListener("pointerenter",()=>{ if(tkDrag>=0) markTicks(Math.min(tkDrag,i),Math.max(tkDrag,i)); });
   });
-  markTicks();
+  layoutTicks(); markTicks();
 }
+function layoutTicks(){
+  const sc=document.getElementById("scrub"), el=document.getElementById("ticks"), yr=document.getElementById("tl-years"), tl=document.getElementById("tl");
+  if(!meta || !sc || !el.children.length) return;
+  const W=sc.getBoundingClientRect().width, n=meta.dates.length, step=n>1?(W-2*TL_R)/(n-1):W, X=i=>tlX(i,W,n);
+  el.querySelectorAll(".tkh").forEach(h=>{ const i=+h.dataset.i; h.style.left=(X(i)-step/2)+"px"; h.style.width=step+"px"; });
+  // labels: who may show (priority), then a left-to-right pass that drops what would touch
+  const CH=6.2, GAP=6, daily=!meta.multiyear;
+  const pri=i=>{ const d=meta.dates[i]; if(!daily) return 2; const dd=+d.slice(8,10);
+    return (i===0 || d.slice(0,7)!==meta.dates[i-1].slice(0,7)) ? 3 : 1; };          // a month's first date shown first
+  const need=2*CH+GAP; let stride=1;
+  if(daily) for(const k of [1,2,5,10,15]){ stride=k; if(step*k>=need) break; }
+  const want=i=>{ if(!daily) return true; const dd=+meta.dates[i].slice(8,10); return pri(i)===3 || (stride===1 || dd%stride===0); };
+  const labs=[...el.querySelectorAll(".tkl")], shown=new Array(n).fill(false);
+  const order=[...Array(n).keys()].filter(want).sort((a,b)=>pri(b)-pri(a) || a-b), placed=[];
+  for(const i of order){ const x=X(i); if(placed.every(q=>Math.abs(q-x)>=need)){ placed.push(x); shown[i]=true; } }
+  labs.forEach(l=>{ const i=+l.dataset.i; l.style.left=X(i)+"px"; l.style.display=shown[i]?"":"none"; });
+  el.querySelectorAll(".tkgap").forEach(g=>{ const i=+(g.dataset.ga??g.dataset.gb), side=g.dataset.ga!=null?1:-1;
+    g.style.left=(X(i)+side*Math.min(step*0.35, CH+3))+"px"; });                    // beside the date, clear of a divider
+  // dividers + the year (cube) / the month (days), and the first date's year or month at the left edge
+  tl.querySelectorAll(".tkdiv").forEach(d=>d.remove());
+  const marks=[]; let lastLab=null;
+  for(let i=0;i<n;i++){ const d=meta.dates[i], p=i?meta.dates[i-1]:null;
+    const newYear=!p || d.slice(0,4)!==p.slice(0,4), newMonth=!p || d.slice(0,7)!==p.slice(0,7);
+    if(daily ? !newMonth : !newYear) continue;
+    const lab = daily ? MON3[+d.slice(5,7)]+((!lastLab || newYear) ? " "+d.slice(0,4) : "") : d.slice(0,4);
+    const x = i ? X(i)-step/2 : 0;
+    if(i){ const dv=document.createElement("div"); dv.className="tkdiv"; dv.style.left=x+"px"; tl.appendChild(dv); }
+    marks.push([x, lab]); lastLab=lab; }
+  let right=-1e9;
+  yr.innerHTML=marks.map(([x,lab])=>{ const ok=x>=right; if(ok) right=x+4+lab.length*5.6+6;   // the year row thins out too
+    return ok?`<span style="left:${Math.max(0,x)}px">${lab}</span>`:""; }).join("");
+  paintTrack();
+}
+// the track: the dates shown shaded, the part already played filled (up to the thumb), the rest plain
+function paintTrack(){
+  const sc=document.getElementById("scrub"); if(!sc || !meta) return;
+  const W=sc.getBoundingClientRect().width||1, n=meta.dates.length, step=n>1?(W-2*TL_R)/(n-1):W;
+  const seq=SEQ(), pos=seq.indexOf(t), FILL="var(--ds-accent)", BAND="color-mix(in srgb, var(--ds-accent) 32%, transparent)", BASE="var(--ds-ctl-line)";
+  const segs=[];                                                // [x0, x1, colour], left to right
+  const add=(x0,x1,c)=>{ x0=Math.max(0,x0); x1=Math.min(W,x1); if(x1<=x0) return;
+    const L=segs[segs.length-1]; if(L && L[2]===c && Math.abs(L[1]-x0)<0.5) L[1]=x1; else segs.push([x0,x1,c]); };
+  const all=!selFrames;
+  seq.forEach((j,k)=>{ const x=tlX(j,W,n), a=(all&&k===0)?0:x-step/2, b=(all&&k===seq.length-1)?W:x+step/2;
+    if(k<pos) add(a,b,FILL); else if(k===pos){ add(a,x,FILL); add(x,b,all?BASE:BAND); } else add(a,b,all?BASE:BAND); });
+  let g=[], cur=0;
+  for(const [x0,x1,c] of segs){ if(x0>cur) g.push(`${BASE} ${(cur/W*100).toFixed(2)}% ${(x0/W*100).toFixed(2)}%`);
+    g.push(`${c} ${(x0/W*100).toFixed(2)}% ${(x1/W*100).toFixed(2)}%`); cur=x1; }
+  if(cur<W) g.push(`${BASE} ${(cur/W*100).toFixed(2)}% 100%`);
+  sc.style.setProperty("--tl-bg", `linear-gradient(90deg, ${g.join(", ")})`);
+}
+if(window.ResizeObserver) new ResizeObserver(()=>{ if(meta) layoutTicks(); }).observe(document.getElementById("scrub"));
 window.addEventListener("pointerup",e=>{
   if(tkDrag<0) return;
-  const up=e.target.closest&&e.target.closest("#ticks span");
+  const up=e.target.closest&&e.target.closest("#ticks .tkh");
   const j=up?+up.getAttribute("data-i"):tkDrag;
   if(playing) togglePlay();
   if(j!==tkDrag){ setRange(Math.min(tkDrag,j),Math.max(tkDrag,j)); }   // drag → contiguous range
@@ -1103,7 +1214,8 @@ window.addEventListener("pointerup",e=>{
 // ── period selection: contiguous RANGE (nav-bar drag) or month-of-year CROSS-CUT (chips) ──
 function markTicks(pLo,pHi){
   const set = (pLo!=null) ? new Set(Array.from({length:pHi-pLo+1},(_,k)=>pLo+k)) : (selFrames?new Set(selFrames):null);
-  document.querySelectorAll("#ticks span").forEach(s=>s.classList.toggle("sel", set?set.has(+s.getAttribute("data-i")):false));
+  document.querySelectorAll("#ticks .tkl").forEach(s=>s.classList.toggle("sel", set?set.has(+s.getAttribute("data-i")):false));
+  paintTrack();
 }
 function applySel(){                                    // recompute after any selection change
   const s=SEQ(); if(s.indexOf(t)<0) t=s[0];            // keep the cursor inside the sequence
@@ -1121,7 +1233,7 @@ function setCrosscut(){                                 // selFrames = frames wh
 function clearPeriod(){ selFrames=null; moySel.clear(); document.querySelectorAll("#moy .chip.on").forEach(c=>c.classList.remove("on")); applySel(); }
 function renderPeriod(){
   const lab=document.getElementById("plab"), clr=document.getElementById("pclear"); if(!lab) return;
-  if(!selFrames){ lab.textContent=`· all ${meta.dates.length} months`; clr.style.display="none"; }
+  if(!selFrames){ lab.textContent=`· all ${meta.dates.length} ${meta.multiyear?"months":"days"}`; clr.style.display="none"; }
   else { const s=selFrames, cx=(moySel.size>0);
     lab.textContent=`· ${s.length} frame${s.length>1?"s":""}` + (cx?` · ${[...moySel].sort((a,b)=>a-b).map(m=>MON3[m]).join("/")} · all years` : ` · ${meta.dates[s[0]]}…${meta.dates[s[s.length-1]]}`);
     clr.style.display=""; }
@@ -1184,7 +1296,9 @@ function sbCommit(){
     if(avail.length){                                            // open the daily view spanning the available months
       const day=info.dayDate||info.first||DAILY_MANIFEST.byMonth[avail[0]].dates[0];
       let url="map.html?daily="+avail.join(",")+"&day="+encodeURIComponent(day);
-      if(info.kind==="span") url+="&from="+encodeURIComponent(info.first)+"&to="+encodeURIComponent(info.last);
+      if(info.kind==="span" && info.runs && info.runs.length>1)               // several spans (Shift/⌘-drag): each one
+        url+="&spans="+encodeURIComponent(info.runs.map(r=>r[0]+"~"+r[1]).join(","));
+      else if(info.kind==="span") url+="&from="+encodeURIComponent(info.first)+"&to="+encodeURIComponent(info.last);
       location.href=url; return;                                 // (any months in the span without daily are skipped)
     }
     showMonths(months);                                          // none pulled → monthly + note
@@ -1406,8 +1520,107 @@ function sonifyTimeline(){                           // (a legacy `force` argume
   if(!(bridgeWS && bridgeWS.readyState===1) || !meta) return;
   bridgeWS.send(JSON.stringify({type:"frame", date:meta.dates[t], ...framePayload()}));
   const sig=t+"|"+dataNonce;                         // once per date VISIT: the place you picked rings if it is inside a rule
-  if(sig!==_ambSig){ _ambSig=sig; if(focusI>=0) dynamicsProbe(focusI, true); }
+  if(sig!==_ambSig){ _ambSig=sig; if(focusI>=0) dynamicsProbe(focusI, true); sendClock(); }
 }
+// ══ THE CLOCK (2026-10-02). Miguel: "I really liked the clock sonification … the clock can be defaulted to a
+//    specific feature but the user can select", then "stats variables are for accents and features are for
+//    division … for accent or division we can select also none", and the timbre carries data. One woodblock
+//    TICK PER DATE VISITED (playing or scrubbing), shaped by three choices on the SOUND tab:
+//    ACCENT     none · calendar (January / the 1st of a month; default) · or a STATISTIC of the division's
+//               feature (temperature when the division is none): the dates in the top quarter of the dates
+//               shown are accented. Two levels only, so the beat stays steady.
+//    DIVISION   none · temperature (default) · salinity · nutrients · chlorophyll: the date is cut into 1–8
+//               EQUAL parts, more the more that feature changed since the last date shown (stretched over the
+//               dates shown, the design's rule). Equal parts of the date, so the count holds at every speed.
+//    BRIGHTNESS none (1500 Hz; default) · sun (the day length at the region's ocean latitude, solstice to
+//               solstice, not stretched: astronomy) · a feature's regional mean (stretched): 1150–2300 Hz.
+//    "Change" = the mean over the cells of each cell's own |Δ| (the drafts' measure), not how far the regional
+//    mean moved; "the last date" = the previous date SHOWN, so the first date shown has no change. Physical
+//    units: °C, salinity, nutrients, chlorophyll in mg/m³ (expm1 of the baked log1p). SC: /dark_clock. ══
+const CLOCK_ACC={ none:"none", cal:"calendar", mean:"mean", sd:"spread", d:"change", dsd:"change of spread" };
+const CLOCK_FEATS={ temp:"temperature", sal:"salinity", nut:"nutrients", chl:"chlorophyll" };
+const CLOCK_BRI={ none:"none", sun:"sun", ...CLOCK_FEATS };
+const CLOCK_PARTS=8, CLOCK_HZ=[1150, 2300], CLOCK_HZ0=1500;
+let CLOCK={ acc:"cal", div:"temp", bri:"none" }, _clockF={};
+function clockVals(ti, feat){                         // physical values per ocean cell (NaN where missing)
+  const f=frames[ti], src=f[feat==="chl"?"phyto":feat], out=new Float64Array(N), u=unitsFor();
+  const P=SCALES&&SCALES.units&&SCALES.units.phyto, ph=P?P.log1p_range:[0,1.99];
+  for(let i=0;i<N;i++){ const v=src?src[i]:null;
+    if(v==null||f.temp[i]==null){ out[i]=NaN; continue; }
+    out[i]= feat==="chl" ? Math.expm1(ph[0]+v*(ph[1]-ph[0])) : (u&&u[feat] ? u[feat].lo+v*(u[feat].hi-u[feat].lo) : v); }
+  return out;
+}
+function clockFeat(feat){                             // every statistic of one feature on every date shown (cached)
+  const sig=frameStats().sig+"|"+(UNITS?1:0)+(SCALES?1:0);
+  if(_clockF[feat] && _clockF[feat].sig===sig) return _clockF[feat];
+  const by={}; let prev=null, prevSd=null;
+  for(const ti of SEQ()){
+    const a=clockVals(ti, feat); let s=0, s2=0, n=0;
+    for(let i=0;i<N;i++){ const v=a[i]; if(v===v){ s+=v; s2+=v*v; n++; } }
+    const m=n?s/n:null, sd=n?Math.sqrt(Math.max(0, s2/n-m*m)):null; let d=null;
+    if(prev){ let q=0, k=0; for(let i=0;i<N;i++){ const x=a[i], y=prev[i]; if(x===x && y===y){ q+=Math.abs(x-y); k++; } } d=k?q/k:null; }
+    by[ti]={ mean:m, sd, d, dsd:(prev && sd!=null && prevSd!=null)?Math.abs(sd-prevSd):null };
+    prev=a; prevSd=sd; }
+  const range=k=>{ const v=Object.values(by).map(o=>o[k]).filter(x=>x!=null).sort((x,y)=>x-y);
+    return v.length ? { lo:v[0], hi:v[v.length-1], q75:v[Math.floor(0.75*(v.length-1))] } : null; };
+  return (_clockF[feat]={ sig, by, r:{ mean:range("mean"), sd:range("sd"), d:range("d"), dsd:range("dsd") } });
+}
+const clockStretch=(v,r)=>(v==null||!r||r.hi-r.lo<1e-12) ? null : (v-r.lo)/(r.hi-r.lo);
+function clockAccFeat(){ return CLOCK.div==="none" ? "temp" : CLOCK.div; }
+function clockAccent(ti){
+  if(CLOCK.acc==="none") return false;
+  if(CLOCK.acc==="cal"){ const d=meta.dates[ti]||""; return d.length===7 ? d.slice(5,7)==="01" : d.slice(8,10)==="01"; }
+  const F=clockFeat(clockAccFeat()), v=F.by[ti]&&F.by[ti][CLOCK.acc], r=F.r[CLOCK.acc];
+  return v!=null && r!=null && r.hi-r.lo>1e-12 && v>=r.q75;                      // the top quarter of the dates shown
+}
+function clockParts(ti){
+  if(CLOCK.div==="none") return 1;
+  const F=clockFeat(CLOCK.div), x=clockStretch(F.by[ti]&&F.by[ti].d, F.r.d);
+  return x==null ? 1 : 1+Math.round(x*(CLOCK_PARTS-1));                         // no change known: the tick alone
+}
+let _oceanLat=null;
+function oceanLat(){ if(_oceanLat==null){ let s=0,n=0; const f=frames[0]; for(let i=0;i<N;i++) if(f.temp[i]!=null){ s+=lat[i]; n++; } _oceanLat=n?s/n:62; } return _oceanLat; }
+function dayLength(latDeg, doy){                      // hours of daylight (the declination formula, no refraction)
+  const decl=-23.44*Math.cos(2*Math.PI*(doy+10)/365)*Math.PI/180, x=-Math.tan(latDeg*Math.PI/180)*Math.tan(decl);
+  return 2*Math.acos(Math.max(-1,Math.min(1,x)))*180/Math.PI/15; }
+function clockFormant(ti){
+  const hz=x=>CLOCK_HZ[0]*Math.pow(CLOCK_HZ[1]/CLOCK_HZ[0], Math.max(0,Math.min(1,x)));
+  if(CLOCK.bri==="none") return CLOCK_HZ0;
+  if(CLOCK.bri==="sun"){ const d=meta.dates[ti], dt=new Date((d.length===7?d+"-15":d)+"T12:00:00Z");
+    const doy=Math.round((dt-Date.UTC(dt.getUTCFullYear(),0,0))/864e5), L=oceanLat();
+    const lo=dayLength(L,355), hi=dayLength(L,172); return hz((dayLength(L,doy)-lo)/(hi-lo)); }
+  const F=clockFeat(CLOCK.bri), x=clockStretch(F.by[ti]&&F.by[ti].mean, F.r.mean);
+  return x==null ? CLOCK_HZ0 : hz(x);
+}
+function clockUnit(feat){ return feat==="chl" ? "mg/m³" : ((unitsFor()||{})[feat]||{}).unit||""; }
+function clockLabel(){                                // one line, for the legend and the SOUND tab
+  const acc = CLOCK.acc==="none" ? "no accent" : CLOCK.acc==="cal" ? "accent each January (the 1st, by day)"
+    : `accent the top quarter of ${{mean:"mean", sd:"spread of", d:"change in", dsd:"change in the spread of"}[CLOCK.acc]} ${CLOCK_FEATS[clockAccFeat()]}`;
+  const div = CLOCK.div==="none" ? "no division" : `divided by the change in ${CLOCK_FEATS[CLOCK.div]}`;
+  const bri = CLOCK.bri==="none" ? "" : CLOCK.bri==="sun" ? "; brighter with the day length" : `; brighter with ${CLOCK_FEATS[CLOCK.bri]}`;
+  return { acc, div, bri, line:`${acc}; ${div}${bri}` };
+}
+function sendClock(){
+  if(!(bridgeWS && bridgeWS.readyState===1) || !meta) return;
+  bridgeWS.send(JSON.stringify({type:"clock", date:meta.dates[t], accent:clockAccent(t)?1:0, n:clockParts(t),
+    period:PLAY_MS/1000, formant:Math.round(clockFormant(t))}));             // the parts are fractions of the date as the page plays it
+  paintClock();
+}
+function paintClock(){
+  [["ca","acc"],["cd","div"],["cb","bri"]].forEach(([a,k])=>
+    document.querySelectorAll(`#clock-ui [data-${a}]`).forEach(b=>b.classList.toggle("on", b.dataset[a]===CLOCK[k])));
+  const el=document.getElementById("clock-read"); if(!el) return;
+  if(!meta){ el.textContent="a tick per date"; return; }
+  const L=clockLabel(); let txt=L.line;
+  if(CLOCK.div!=="none"){ const r=clockFeat(CLOCK.div).r.d, u=clockUnit(CLOCK.div), dp=CLOCK.div==="nut"?1:2;
+    if(r) txt+=` · the division: ${r.lo.toFixed(dp)} to ${r.hi.toFixed(dp)}${u?" "+u:""} of change → 1 to ${CLOCK_PARTS} parts a date`; }
+  el.textContent=txt+".";
+}
+function setClockSilent(k, v){ const ok={acc:CLOCK_ACC, div:{none:"none",...CLOCK_FEATS}, bri:CLOCK_BRI}[k]; if(ok && ok[v]) CLOCK[k]=v; }
+function setClock(k, v){
+  const ok={acc:CLOCK_ACC, div:{none:"none",...CLOCK_FEATS}, bri:CLOCK_BRI}[k];
+  if(ok && ok[v]) CLOCK[k]=v;
+  paintClock(); saveState(); if(window.DarkLegend) DarkLegend.render(); }
 // CHIMES ON A NEW DATE FOLLOW THE PLACE YOU PICKED (2026-09-27, Miguel: "the chimes are a bit confusing …
 // they sound for the whole map right, but aren't this lat long dependent?"). The clicked cell (the gold
 // ring) rings on every date it is inside a rule; nothing picked, no chimes as the dates change. The old
@@ -1569,7 +1782,7 @@ document.getElementById("dyn").addEventListener("click", function(){    // ◈ t
   if(glimArmed) refreshZone(); else { zoneTarget=0; startGlim(); }
   saveState();
 });
-document.getElementById("scrub").addEventListener("input", function(){ t=SEQ()[+this.value]??0; update(); });   // update() re-voices
+document.getElementById("scrub").addEventListener("input", function(){ t=snapToSeq(+this.value); update(); });   // update() re-voices
 document.querySelectorAll(".mbtn[data-m]").forEach(b=>b.addEventListener("click",()=>{   // exclude trk-btn (no data-m)
   document.querySelectorAll(".mbtn[data-m]").forEach(x=>x.classList.remove("on")); b.classList.add("on");
   mode=b.getAttribute("data-m"); drawLegend(); update(); saveState();
@@ -1717,12 +1930,13 @@ document.getElementById("tr-brushw").addEventListener("input",function(){ BRUSH_
 document.getElementById("nb-inc").addEventListener("click",()=>{ NB_K=Math.min(200,NB_K+10); refreshNeighbors(); updateNbPanel(); draw(); saveState(); });
 document.getElementById("nb-dec").addEventListener("click",()=>{ NB_K=Math.max(10,NB_K-10); refreshNeighbors(); updateNbPanel(); draw(); saveState(); });
 
-// ══ SOUND TAB (D6, re_wilding wc.js): six layer faders + the master. The BRIDGE owns the values (2.3):
+// ══ SOUND TAB (D6, re_wilding wc.js): seven layer faders (the clock since 2026-10-02) + the master. The BRIDGE owns the values (2.3):
 //    a move is sent, the bridge tells SC and echoes it to every page, and only the echo paints. ══
-const MIXK=["drone","bed","rain","bell","chimes","trace"];
+const MIXK=["drone","bed","rain","bell","chimes","trace","clock"];
 const MIXT={ drone:"the low note: temperature's pitch and the anomaly's tremolo", bed:"the water mass's low tone",
   rain:"the drops: nutrients, with salinity's echo", bell:"the clean bell when another water mass takes over",
-  chimes:"the upwelling and productive-front chimes", trace:"the chord of the cells you trace" };
+  chimes:"the upwelling and productive-front chimes", trace:"the chord of the cells you trace",
+  clock:"the wooden tick per date: its accent, division and brightness are chosen below" };
 let MIX=Object.fromEntries(MIXK.map(k=>[k,1])), VOL=1;
 function sendWS(o){ if(bridgeWS && bridgeWS.readyState===1){ bridgeWS.send(JSON.stringify(o)); return true; } return false; }
 function buildMixer(){
@@ -1804,6 +2018,9 @@ function setupPanel(){
   document.getElementById("trace-nb").addEventListener("click",()=>{ if(focusI>=0) createTrack([focusI, ...neighborSet]); });
   document.getElementById("tr-clear").addEventListener("click",()=>{ tracks=[]; renderTrackList(); draw(); syncTracked(); });
   buildMixer(); paintSound(); paintGlim(); renderTrackList(); updateNbPanel();
+  [["ca","acc"],["cd","div"],["cb","bri"]].forEach(([a,k])=>
+    document.querySelectorAll(`#clock-ui [data-${a}]`).forEach(b=>b.addEventListener("click",()=>setClock(k, b.dataset[a]))));
+  paintClock();
   DarkStyle.control(document.getElementById("ds-looks"), { btnClass:"mbtn" }); DarkStyle.keys();   // LOOK: dark · light · paper (T)
 }
 // A LOOK SWITCH repaints everything that holds a data colour (map, key, information, traces, time wheels, the
@@ -1826,7 +2043,7 @@ function readState(){ try{ return JSON.parse(lsGet(LS.state)||"null")||{}; }catc
 function saveState(){
   if(!meta || _restoring) return;
   const st=readState();
-  st.mode=mode; st.combo=combo?combo.label:null; st.nb=NB_K; st.coast=baseMap; st.smooth=smoothOn; st.glim=glimArmed; st.tool=TRACE_TOOL;
+  st.mode=mode; st.combo=combo?combo.label:null; st.nb=NB_K; st.coast=baseMap; st.smooth=smoothOn; st.glim=glimArmed; st.tool=TRACE_TOOL; st.clock=CLOCK;
   st.traces=st.traces||{};
   st.traces[gridSig()]=tracks.map(tr=>({id:tr.id, label:tr.label, slot:tr.slot, color:tr.color, cells:[...tr.cells]}));
   lsSet(LS.state, JSON.stringify(st));
@@ -1843,6 +2060,7 @@ function restoreState(){
     if(st.smooth!=null){ smoothOn=!!st.smooth; document.getElementById("smooth-btn").classList.toggle("on",smoothOn); _smoothKey=""; }
     if(st.glim!=null){ glimArmed=!!st.glim; paintGlim(); }
     if(st.tool) setTraceTool(st.tool);
+    if(st.clock){ ["acc","div","bri"].forEach(k=>{ if(st.clock[k]!=null) setClockSilent(k, st.clock[k]); }); paintClock(); }
     const tr=st.traces&&st.traces[gridSig()];
     if(Array.isArray(tr)){
       const slotOf=x=>{ if(x.slot!=null) return x.slot; const k=LOOK_DATA.dark.track.indexOf(x.color); return k>=0?k:null; };   // traces saved before the kit

@@ -25,10 +25,12 @@ import { oscMessage, f, i, s } from "./osc.js";
 const ENGINE_DIR = new URL("./engine/", import.meta.url);
 const SC_DIR = new URL("./sc/", import.meta.url);
 const SC_FILES = ["dark_ocean_synths.scd", "parse_dark_ocean.scd"];
-const MIX_KEYS = ["drone", "bed", "rain", "bell", "chimes", "trace"];    // bridge.py MIX_KEYS
+const MIX_KEYS = ["drone", "bed", "rain", "bell", "chimes", "trace", "clock"];    // bridge.py MIX_KEYS (the clock: 2026-10-02)
 // The web version's starting mix (Miguel 2026-09-29): the six SOUND-tab faders as a first listen in a browser should
 // hear them. The desktop bridge keeps its own (all 1). A visitor's changes last until the page is reloaded.
-const DEFAULT_MIX = { drone: 0.14, bed: 0.40, rain: 0.56, bell: 0.80, chimes: 0.14, trace: 1.00 };
+// The clock (the seventh layer, DECISIONS (y), 2026-10-02) starts at 1 as on the desktop — its level was set against
+// the design's full mix (dev/clock_beat); Miguel's ear decides its place in this quieter web mix.
+const DEFAULT_MIX = { drone: 0.14, bed: 0.40, rain: 0.56, bell: 0.80, chimes: 0.14, trace: 1.00, clock: 1.00 };
 
 // This build's scsynth.getWorkletNode() throws (lab/PORTING_LOG.md §2, gotcha 2), so remember
 // whichever AudioWorkletNode connects to the speakers: that is scsynth.
@@ -70,6 +72,7 @@ class DarkEngine {
     this.SOUND = { master: { vol: 1.0, mute: 0 }, mix: { ...DEFAULT_MIX },
                    frame: null, tracked: null };
     this.pendingHold = null;                     // a legend hold that arrived while SC was starting
+    this.lastClock = { date: null, t: 0 };       // bridge.py _last_clock: two pages on the same date within 50 ms tick once
     this.attempt = 0;                            // start attempts; a superseded attempt stops at its next step
     this.bootAllowed = 0;                        // the attempt whose sclang may boot scsynth (window.bootServer)
     if (typeof document !== "undefined") {       // gestures on the shell itself count too (focus may sit there)
@@ -356,10 +359,19 @@ class DarkEngine {
         if (d.cmd === "hold") {
           const cl = [...(d.clusters || []), 0, 0, 0, 0].slice(0, 4);
           return ["/dark_legend", [s("hold"), s(d.driver ?? ""), f(d.temp ?? 0.5), f(d.sal ?? 0.5),
-            f(d.nut ?? 0.5), f(d.anom ?? 0.5), ...cl.map(f)]];
+            f(d.nut ?? 0.5), f(d.anom ?? 0.5), ...cl.map(f),
+            f(d.clk ?? 0)]];                                        // the clock chip (2026-10-02): still 0 → changing 1
         }
         if (d.cmd === "release" || d.cmd === "end") return ["/dark_legend", [s("release")]];
         return null;
+      }
+      case "clock": {                                             // clock_relay (2026-10-02): one DATE on the clock
+        // {date, accent, n, period, formant}, sent by the page once per date visited; not replayed state (a tick is an
+        // event). Two pages on the same date within 50 ms tick once (bridge.py _last_clock).
+        const now = performance.now() / 1000;
+        if (d.date != null && d.date === this.lastClock.date && now - this.lastClock.t < 0.05) return null;
+        this.lastClock = { date: d.date ?? null, t: now };
+        return ["/dark_clock", [f(d.accent ?? 0), f(d.n ?? 1), f(d.period ?? 0.65), f(d.formant ?? 1500)]];
       }
       case "tracked": {                                           // tracked_relay
         const cl = d.clusters || [0, 0, 0, 0];

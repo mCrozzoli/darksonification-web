@@ -15,7 +15,7 @@
 //          changes); click = go there, so the display shows it and the sound plays it.
 //   SEE    one line per sound, so nothing you hear is unexplained.
 //
-// Wire contract: {type:"legend", cmd:"hold", driver, temp, sal, nut, anom, clusters} and
+// Wire contract: {type:"legend", cmd:"hold", driver, temp, sal, nut, anom, clusters[, clk]} and
 // {type:"legend", cmd:"release"}. The water-mass wire key stays "cluster" (shared by SC, the bridge,
 // the web relay and the teaser conductor).
 window.DarkLegend = (function () {
@@ -39,6 +39,12 @@ window.DarkLegend = (function () {
     { key: "cluster", name: "water mass", to: "bed and bell", range: null, categorical: true,
       info: "Which body of water covers most of the region on the date shown: Atlantic, Iceland/Polar or Arctic water. Each has its own low tone, the bed, under the other sounds. When a different one takes over, a clear bell rings, and its pitch names the water that arrives.",
       data: "water mass after Mastropole et al. 2017, the most common across the region" },
+    // THE CLOCK (2026-10-02): its accent, division and brightness are chosen on the SOUND tab, so the range
+    //   and the data line ask the page (api.clock); the chips hold dates ticking at 1×, undivided, then in 8.
+    { key: "clock", name: "clock", to: "a tick per date", range: null, swatch: false,
+      chips: [["◀ still", { clk: 0 }], ["changing ▶", { clk: 1 }]],
+      info: "A wooden tick marks each date. Some ticks stand out: each January (the 1st of the month in the daily view), or the dates where a measure you choose is highest. A date can also be divided into up to eight equal taps: the more the chosen feature changed since the last date, the more taps.",
+      data: null },
   ];
   const SEE = [
     ["the sound", "the whole region on the date shown; play or drag the timeline to hear it change"],
@@ -94,6 +100,15 @@ window.DarkLegend = (function () {
   const SLOP = 18, LS_OPEN = "ocean_legend_open";
 
   function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+  function clockRange() {
+    const c = api && api.clock ? api.clock() : null;
+    return c ? `${c.acc}; ${c.div}${c.div === "no division" ? "" : ", 1 to 8 taps a date"}` : "a tick per date";
+  }
+  function clockData() {
+    const c = api && api.clock ? api.clock() : null;
+    return `${c ? c.line : "a tick per date"}; the region, over the dates shown; chosen on the sound tab`;
+  }
 
   // ── hold: one module-level hold, released on EVERY path (re_wilding legend.js 388-465) ──
   function startHold(el, driver, push) {
@@ -164,13 +179,14 @@ window.DarkLegend = (function () {
       } else {
         chips = r.chips.map((c, j) => `<button class="lchip" data-k="${r.key}" data-c="${j}">${esc(c[0])}</button>`).join("");
       }
-      const sw = r.categorical ? "" : `<div class="lswatch" style="background:${gradient(r.field || r.key)}"></div>`;
+      const sw = (r.categorical || r.swatch === false) ? "" : `<div class="lswatch" style="background:${gradient(r.field || r.key)}"></div>`;
+      const range = r.key === "clock" ? clockRange() : r.range, data = r.key === "clock" ? clockData() : r.data;
       return `<div class="lrow" data-k="${r.key}">
         <div class="lhead"><span class="lname">${esc(r.name)}</span><span class="larrow">→</span><span class="lto">${esc(r.to)}</span>
           <button class="linfo" data-k="${r.key}" title="what this means">i</button></div>
-        ${sw}${r.range ? `<div class="lrange">${esc(r.range)}</div>` : ""}
+        ${sw}${range ? `<div class="lrange">${esc(range)}</div>` : ""}
         <div class="lchips">${chips}</div>
-        <div class="ltip" data-k="${r.key}">${esc(r.info)}<div class="ldata">in the data: ${esc(r.data)}</div></div>
+        <div class="ltip" data-k="${r.key}">${esc(r.info)}<div class="ldata">in the data: ${esc(data)}</div></div>
       </div>`;
     }).join("");
     const cat = (api && api.catalogue) ? api.catalogue() : [];
