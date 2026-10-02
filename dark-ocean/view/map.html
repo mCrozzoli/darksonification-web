@@ -763,8 +763,10 @@ function drawScatterAxes(){
     ctx.strokeStyle=T.dim; ctx.lineWidth=1.2/k; ctx.setLineDash([6/k,5/k]); ctx.beginPath();
     for(let j=0;j<=24;j++){ const s=s0+(s1-s0)*j/24; j?ctx.lineTo(X(s),Y(Tf(s))):ctx.moveTo(X(s),Y(Tf(s))); }
     ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle=T.dim; ctx.font=`${13/k}px ${T.fontCanvas}`; ctx.textAlign="left"; ctx.textBaseline="bottom";
-    ctx.fillText("freezing", X(s0)+6/k, Y(Tf(s0))-4/k);
+    // labelled at the SALTY end: near-freezing water above salinity 35 is almost absent (4 cell-months in 33), while
+    // the fresh end is where the clipped Arctic coast piles up (the web session saw the label cover it, 10-02)
+    ctx.fillStyle=T.dim; ctx.font=`${13/k}px ${T.fontCanvas}`; ctx.textAlign="right"; ctx.textBaseline="bottom";
+    ctx.fillText("freezing", X(s1)-6/k, Y(Tf(s1))-4/k);
   }
   // A2 (Björn: "larger numbers … the fonts bigger"): numbers 16 px and names 20 px (were 10 and 12)
   const xt=kind==="ts"?7:6, yt=kind==="ts"?10:6, xf=X.tickFormat(xt), yf=Y.tickFormat(yt);
