@@ -8,7 +8,8 @@ window.TimeWheel = (function () {
   const MONF = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   let R0 = 27, R1 = 56, R2 = 92, CX = 105, CY = 105;   // set from size in render()
   let g, root, monthByFrame = {}, dates = [], onSelect = () => {}, onDrill = null, valueOf = () => 0.5,
-      colorFn = u => u, cur = 0, dailyMonths = new Set(), lastContainer = null, lastOpts = null;
+      colorFn = u => u, cur = 0, dailyMonths = new Set(), lastContainer = null, lastOpts = null,
+      sub = "time";                                    // the line under the date: what the colours show (map.html sets it)
 
   const arc = d3.arc()
     .startAngle(d => d.x0).endAngle(d => d.x1)
@@ -29,7 +30,7 @@ window.TimeWheel = (function () {
   function render(container, opts) {
     lastContainer = container; lastOpts = opts;
     dates = opts.dates; onSelect = opts.onSelect || onSelect; onDrill = opts.onDrill || onDrill;
-    valueOf = opts.valueOf || valueOf; colorFn = opts.colorFn || colorFn; cur = opts.current || 0;
+    valueOf = opts.valueOf || valueOf; colorFn = opts.colorFn || colorFn; cur = opts.current || 0; sub = opts.subLabel || sub;
     dailyMonths = opts.dailyMonths || dailyMonths;
     const S = opts.size || 210;
     CX = CY = S / 2; R2 = S / 2 - 13; R1 = Math.round(R2 * 0.61); R0 = Math.round(R2 * 0.29);
@@ -61,7 +62,7 @@ window.TimeWheel = (function () {
     g.append("text").attr("class", "tw-ctr").attr("text-anchor", "middle").attr("dy", "-.15em")
       .style("fill", "var(--ds-chart-txt, #c9d3ee)").attr("font-size", "12px");
     g.append("text").attr("class", "tw-sub").attr("text-anchor", "middle").attr("dy", "1.1em")
-      .style("fill", "var(--ds-dim, #5f6a8c)").attr("font-size", "8px").text("time");
+      .style("fill", "var(--ds-dim, #5f6a8c)").attr("font-size", "8px").text(sub);
     // daily-available months → a small dot ("dbl-click to drill into days")
     g.selectAll("circle.tw-daily")
       .data(root.descendants().filter(d => d.depth === 2 && dailyMonths.has(dates[d.data.leaf.i]))).join("circle")
@@ -82,7 +83,7 @@ window.TimeWheel = (function () {
   function center(i, hover) {
     if (!g) return;
     g.select("text.tw-ctr").text(dates[i]);
-    g.select("text.tw-sub").text(hover ? MONF[+dates[i].slice(5)] : "time");
+    g.select("text.tw-sub").text(hover ? MONF[+dates[i].slice(5)] : sub);
   }
   function setCurrent(i) {
     cur = i; if (!g) return;
@@ -93,5 +94,6 @@ window.TimeWheel = (function () {
       .style("stroke", d => d.data.leaf.i === i ? "var(--ds-ring, #ffe08a)" : "var(--ds-arc-gap, #0a0e1a)");
     center(i, false);
   }
-  return { render, recolor, setCurrent, resize, setSelection };
+  function setSub(s) { sub = s || "time"; center(cur, false); }
+  return { render, recolor, setCurrent, resize, setSelection, setSub };
 })();

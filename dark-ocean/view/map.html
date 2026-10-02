@@ -395,6 +395,7 @@ function mixText(s){ return s.map((v,k)=>`<span class="sw" style="background:rgb
 let DATA=null, meta=null, lat=[], lon=[], frames=[], N=0;
 let dataNonce=0, _nutThr={}, _phytoThr={};               // dataNonce bumps on every data (re)load → invalidates the percentile caches
 let px=[], py=[], cellPx=6, quad=null, proj=null, bbox=null, comps=[];
+let pinned=new Uint8Array(0);                           // PCA cells beyond the fixed scale, drawn ON the frame edge (hollow)
 let coastGeo=null, baseMap=true;                        // coastline base map (geo view only)
 let mode="wm", t=0, playing=false, timer=null, hoverI=-1;
 let selFrames=null, moySel=new Set(), tkDrag=-1;         // period selection (range / month-of-year cross-cut)
@@ -430,6 +431,24 @@ const SEL_MONTHS=new URLSearchParams(location.search).get("sel");    // months t
 const MONF=["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const monLabel=ds=>MONF[+ds.slice(5,7)]+" "+ds.slice(0,4);      // "2020-11-04" → "Nov 2020"
 let MULTIYEAR=null;                                             // multiyear.json (daily region-mean) for the full sunburst
+// The time wheel's COLOUR (2026-10-02, Miguel): the variable picked in the expanded wheel ("colour by") colours the
+// docked wheel too, and is remembered per browser. Both draw the same monthly means of multiyear.json with the
+// sunburst's own gradient (Sunburst.VARC, set per look), so the two wheels always read alike.
+let WHEEL_VAR=null, wheelSig=[];
+function wheelVar(){ if(WHEEL_VAR==null){ const v=lsGet("ocean_wheel_var");
+  WHEEL_VAR=(v && (!MULTIYEAR || MULTIYEAR.meta.vars.includes(v))) ? v : "thetao"; } return WHEEL_VAR; }
+function wheelColor(u){ const f=window.Sunburst&&Sunburst.VARC&&Sunburst.VARC[wheelVar()]; return (f||SCALE.temp)(u); }
+function wheelLabel(){ return MULTIYEAR&&MULTIYEAR.meta.varLabels ? (MULTIYEAR.meta.varLabels[wheelVar()]||wheelVar()) : "temperature"; }
+function wheelMeans(months){                                   // the expanded wheel's month means, for these months
+  if(!MULTIYEAR) return null;
+  const byM={}; MULTIYEAR.days.forEach(d=>{ const v=d.v[wheelVar()]; if(v!=null){ const k=d.d.slice(0,7); (byM[k]=byM[k]||[]).push(v); } });
+  return months.map(m=>byM[m]?d3.mean(byM[m]):0.5);
+}
+function setWheelVar(v){
+  WHEEL_VAR=v; lsSet("ocean_wheel_var",v);
+  if(WHEEL_MONTHS){ const m=wheelMeans(WHEEL_MONTHS); if(m) wheelSig=m; }
+  if(window.TimeWheel){ TimeWheel.recolor(); if(TimeWheel.setSub) TimeWheel.setSub(wheelLabel()); }
+}
 // DAILY-across-months: several per-month tiles share ONE cell grid (gen_daily bakes one grid),
 // so we concatenate their day-frames into a single continuous timeline the scrub/play/nav-bar walk.
 function mergeDailyTiles(tiles){
@@ -504,8 +523,9 @@ d3.json("daily/manifest.json?_="+Date.now())
       months=Object.keys(byM).sort(); sig=months.map(k=>d3.mean(byM[k]));
     }
     WHEEL_MONTHS=months;
+    wheelSig=wheelMeans(months)||sig;                                                  // the chosen variable; temperature if the spine is missing
     TimeWheel.render(tw, {
-      dates:months, valueOf:i=>sig[i], colorFn:u=>SCALE.temp(u),
+      dates:months, valueOf:i=>wheelSig[i], colorFn:wheelColor, subLabel:MULTIYEAR?wheelLabel():"temperature",
       dailyMonths:new Set(Object.keys(DAILY)),
       onSelect:i=>{ const mk=months[i];
         if(meta.multiyear){ if(playing) togglePlay(); t=i; update(); }
@@ -516,7 +536,8 @@ d3.json("daily/manifest.json?_="+Date.now())
     document.getElementById("tw-pill").onclick=()=>setWheelMin(false);
     setWheelMin(lsGet("ocean_wheel_min")==="1");                                      // folded last time → stays folded
   }
-  if(meta.multiyear) setupWheel();
+  if(meta.multiyear){ if(MULTIYEAR) setupWheel();                                     // the wheel's colour needs the spine too
+    else d3.json("multiyear.json?_="+Date.now()).then(d=>{ MULTIYEAR=d; setupWheel(); }).catch(()=>setupWheel()); }
   else if(window.TimeWheel){                                                           // daily view → load the spine, then the wheel
     if(MULTIYEAR) setupWheel(); else d3.json("multiyear.json?_="+Date.now()).then(d=>{ MULTIYEAR=d; setupWheel(); }).catch(()=>{});
   }
@@ -569,6 +590,7 @@ if(window.ResizeObserver) new ResizeObserver(()=>{ if(N) resize(); }).observe(do
 // so update() recomputes). NaN px = cell has no value for this combination/frame.
 function computePositions(){
   const r=cv.getBoundingClientRect(), M=18;
+  if(pinned.length!==N) pinned=new Uint8Array(N); else pinned.fill(0);
   if(combo.geo){
     proj.fitExtent([[M,M],[r.width-M,r.height-M]], bbox);
     for(let i=0;i<N;i++){ const p=proj([lon[i],lat[i]]); px[i]=p[0]; py[i]=p[1]; }
@@ -597,8 +619,11 @@ function computePositions(){
     const Y=d3.scaleLinear().domain(yr).range([r.height-M-72, M+30]);   // y axis points up
     for(let i=0;i<N;i++){ const xv=val(combo.x,i), yv=val(combo.y,i);
       if(xv==null||yv==null||!keep(i)){ px[i]=NaN; py[i]=NaN; continue; }
-      if(pca && (xv<xr[0]||xv>xr[1]||yv<yr[0]||yv>yr[1])){ px[i]=NaN; py[i]=NaN; offScale++; continue; }
-      px[i]=X(xv); py[i]=Y(yv); }
+      // beyond the scale (the spring bloom, mostly): PINNED to the frame edge, hollow, and counted (Miguel 10-02:
+      // "pin the bloom cells to the edge instead of hiding"), so no cell leaves the picture
+      const pin = pca && (xv<xr[0]||xv>xr[1]||yv<yr[0]||yv>yr[1]);
+      if(pin){ offScale++; pinned[i]=1; }
+      px[i]=X(pin?Math.min(xr[1],Math.max(xr[0],xv)):xv); py[i]=Y(pin?Math.min(yr[1],Math.max(yr[0],yv)):yv); }
     cellPx=3.4; scatterAxes={X,Y,leftOut,offScale,kind:pca?"pca":(ts?"ts":"plain")};
   }
   quad=d3.quadtree().x(i=>px[i]).y(i=>py[i]).addAll(d3.range(N).filter(i=>px[i]==px[i]));  // px==px drops NaN
@@ -712,7 +737,8 @@ function draw(){
   const f=frames[t], s=cellPx, h=s/2, sel=focusI>=0;
   const crisp=()=>{ for(let i=0;i<N;i++){ if(px[i]!=px[i]) continue; let c=cellColor(f,i); if(!c) continue;
       if(sel && i!==focusI && !neighborSet.has(i)) c=fade(c);
-      ctx.fillStyle=c; ctx.fillRect(px[i]-h, py[i]-h, s, s); } };
+      if(pinned[i]){ ctx.strokeStyle=c; ctx.lineWidth=1/zt.k; ctx.strokeRect(px[i]-h+0.5/zt.k, py[i]-h+0.5/zt.k, s-1/zt.k, s-1/zt.k); }
+      else { ctx.fillStyle=c; ctx.fillRect(px[i]-h, py[i]-h, s, s); } } };
   if(smoothOn && combo.geo){                              // SMOOTH interpolated field — native 0.25° rendered high-res (bilinear on the grid)
     const sm=renderSmooth(), r2=cv.getBoundingClientRect();
     if(sm){ ctx.imageSmoothingEnabled=true; ctx.drawImage(sm, 0, 0, r2.width, r2.height);
@@ -798,7 +824,7 @@ function drawScatterAxes(){
   if(yv){ ctx.save(); ctx.translate(x0-44/k,ym); ctx.rotate(-Math.PI/2); fit(yv,14,yh); ctx.fillText(yv,0,0); ctx.restore(); }
   const notes=[];                                                    // what the view leaves out, said where it happens
   if(scatterAxes.leftOut) notes.push(`${scatterAxes.leftOut.toLocaleString()} ocean cells with no biology data left out`);
-  if(scatterAxes.offScale) notes.push(`${scatterAxes.offScale.toLocaleString()} off the scale`);
+  if(scatterAxes.offScale) notes.push(`${scatterAxes.offScale.toLocaleString()} beyond the scale, pinned to the edge (hollow)`);
   if(notes.length){ ctx.font=`${13/k}px ${T.fontCanvas}`; ctx.textAlign="right"; ctx.fillText(notes.join(" · "), x1, y1-10/k); }
 }
 
@@ -1045,14 +1071,15 @@ function openSunburst(){
   const go=()=>{
     document.getElementById("sb-overlay").style.display="flex";
     const vb=document.getElementById("sb-vars");
-    vb.innerHTML=MULTIYEAR.meta.vars.map((v,i)=>`<button class="sbv${i===0?" on":""}" data-v="${v}">${MULTIYEAR.meta.varLabels[v]}</button>`).join("");
+    const cur=wheelVar();                                                              // opens on the colour last chosen
+    vb.innerHTML=MULTIYEAR.meta.vars.map(v=>`<button class="sbv${v===cur?" on":""}" data-v="${v}">${MULTIYEAR.meta.varLabels[v]}</button>`).join("");
     vb.querySelectorAll(".sbv").forEach(b=>b.addEventListener("click",()=>{
       vb.querySelectorAll(".sbv").forEach(x=>x.classList.remove("on")); b.classList.add("on");
-      Sunburst.setVariable(b.getAttribute("data-v")); }));
+      Sunburst.setVariable(b.getAttribute("data-v")); setWheelVar(b.getAttribute("data-v")); }));   // the docked wheel follows
     const availDays=(DAILY_MANIFEST&&DAILY_MANIFEST.byMonth)                            // the real drill-able days
       ? DAILY_MANIFEST.months.flatMap(ym=>DAILY_MANIFEST.byMonth[ym].dates||[]) : [];
     Sunburst.render(document.getElementById("sb-wheel"),
-      { days:MULTIYEAR.days, meta:MULTIYEAR.meta, variable:MULTIYEAR.meta.vars[0],
+      { days:MULTIYEAR.days, meta:MULTIYEAR.meta, variable:wheelVar(),
         availableDays:availDays,                                                       // GREEN outer ring + grey the rest
         onSelect:sbFoot });                                                            // select → footer, NOT navigate
     document.getElementById("sb-show").onclick=sbCommit;                               // Show → commit to display + close

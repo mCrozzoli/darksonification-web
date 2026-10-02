@@ -1,10 +1,10 @@
 {
-  "built": "2026-10-02 09:26:49",
+  "built": "2026-10-02 09:33:21",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "sources": {
-    "viz/map.html": "18ed20a1a3d5aed8",
+    "viz/map.html": "ee4e6969f1879985",
     "viz/legend.js": "bf336fdef2a4c59a",
-    "viz/timewheel.js": "20b5ac260d2b03c1",
+    "viz/timewheel.js": "7157e7b4710cf28c",
     "viz/sunburst.js": "035075a3974e0205",
     "viz/coastline.geojson": "8c22327236fe742b",
     "viz/multiyear.json": "ea84e5350134adaa",
