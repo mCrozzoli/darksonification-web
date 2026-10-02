@@ -563,10 +563,16 @@ function computePositions(){
     scatterAxes=null;
   } else {
     const f=frames[t];
-    let xr, yr;
+    // PCA views (2026-10-02, Björn's "red line"): the bake gives EVERY cell a PCA position, filling missing inputs,
+    // so 836 ocean cells with no biology (the southern edge) made a frozen streak and 1,392 coastal cells with no
+    // physics (land everywhere else on the page) joined in. A cell is placed only when it has both.
+    const ck=meta.colKey[combo.x], pca=!!(ck&&ck.frame&&ck.frame.startsWith("pca"));
+    const keep=i=> !pca || (f.temp[i]!=null && f.nut[i]!=null);
+    let xr, yr, leftOut=0;
+    if(pca) for(let i=0;i<N;i++) if(f.temp[i]!=null && f.nut[i]==null) leftOut++;
     if(combo.perFrame){                        // fit THIS frame (dim-reduction: fixes global-norm compression)
       let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;
-      for(let i=0;i<N;i++){ const xv=colVal(combo.x,f,i), yv=colVal(combo.y,f,i);
+      for(let i=0;i<N;i++){ if(!keep(i)) continue; const xv=colVal(combo.x,f,i), yv=colVal(combo.y,f,i);
         if(xv!=null){ if(xv<x0)x0=xv; if(xv>x1)x1=xv; } if(yv!=null){ if(yv<y0)y0=yv; if(yv>y1)y1=yv; } }
       const padX=(x1-x0)*0.04||0.01, padY=(y1-y0)*0.04||0.01;
       xr=(x0<=x1)?[x0-padX,x1+padX]:[0,1]; yr=(y0<=y1)?[y0-padY,y1+padY]:[0,1];
@@ -574,8 +580,8 @@ function computePositions(){
     const X=d3.scaleLinear().domain(xr).range([M+44, r.width-M-8]);
     const Y=d3.scaleLinear().domain(yr).range([r.height-M-26, M+10]);   // y axis points up
     for(let i=0;i<N;i++){ const xv=colVal(combo.x,f,i), yv=colVal(combo.y,f,i);
-      if(xv==null||yv==null){ px[i]=NaN; py[i]=NaN; continue; } px[i]=X(xv); py[i]=Y(yv); }
-    cellPx=3.4; scatterAxes={X,Y};
+      if(xv==null||yv==null||!keep(i)){ px[i]=NaN; py[i]=NaN; continue; } px[i]=X(xv); py[i]=Y(yv); }
+    cellPx=3.4; scatterAxes={X,Y,leftOut};
   }
   quad=d3.quadtree().x(i=>px[i]).y(i=>py[i]).addAll(d3.range(N).filter(i=>px[i]==px[i]));  // px==px drops NaN
 }
@@ -742,6 +748,8 @@ function drawScatterAxes(){
   ctx.fillStyle=T.label; ctx.font=`${12/zt.k}px ${T.fontCanvas}`;
   ctx.textAlign="center"; ctx.textBaseline="alphabetic";
   ctx.fillText(combo.xlabel||combo.x, (x0+x1)/2, y0+22/zt.k);
+  if(scatterAxes.leftOut){ ctx.fillStyle=T.dim; ctx.font=`${10/zt.k}px ${T.fontCanvas}`; ctx.textAlign="right";
+    ctx.fillText(`${scatterAxes.leftOut.toLocaleString()} ocean cells with no biology data are left out`, x1, y0+22/zt.k); }
   ctx.save(); ctx.translate(x0-34/zt.k,(y0+y1)/2); ctx.rotate(-Math.PI/2); ctx.fillText(combo.ylabel||combo.y,0,0); ctx.restore();
 }
 

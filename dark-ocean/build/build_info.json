@@ -1,8 +1,8 @@
 {
-  "built": "2026-09-29 09:40:32",
+  "built": "2026-10-02 09:01:44",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "sources": {
-    "viz/map.html": "7f88438fbccacc51",
+    "viz/map.html": "a93bec74e01bc9ee",
     "viz/legend.js": "bf336fdef2a4c59a",
     "viz/timewheel.js": "20b5ac260d2b03c1",
     "viz/sunburst.js": "035075a3974e0205",
@@ -37,19 +37,10 @@
       "raw": 34749285,
       "gz": 6990174
     },
-    "daily": {
-      "months": 33,
-      "gz_total": 210042433
-    },
     "wmix": {
       "cube": {
         "raw": 2213111,
         "gz": 707253
-      },
-      "daily": {
-        "months": 33,
-        "gz_total": 22679506,
-        "missing": []
       }
     }
   }
