@@ -28,7 +28,7 @@
     font:var(--ds-font-size)/1.45 var(--ds-font-ui); overflow:hidden; }
   /* LAYOUT (2026-09-27, re_wilding's): a lean header; the right sidebar = a pinned INFORMATION block + the
      tabs view · lens · sound · trace; the legend is its own left panel (key L); the sidebar folds (key i). */
-  #wrap{ display:grid; grid-template-rows:44px 1fr auto 64px; grid-template-columns:1fr var(--side-w);
+  #wrap{ display:grid; grid-template-rows:44px 1fr auto minmax(64px,auto); grid-template-columns:1fr var(--side-w);
     height:100%; gap:1px; background:var(--line); }
   body.side-closed #wrap{ grid-template-columns:1fr 0; } body.side-closed #side{ display:none; }
   header{ grid-column:1/3; display:flex; align-items:center; gap:14px; padding:0 16px; background:var(--panel); }
@@ -127,6 +127,7 @@
     border:1px solid var(--line); border-right:0; border-radius:5px 0 0 5px; padding:10px 3px; }
   #side-tab:hover{ color:var(--txt); } body.side-closed #side-tab{ right:0; }
   #transport{ grid-row:4; grid-column:1/3; display:flex; align-items:center; gap:14px; padding:0 18px; background:var(--panel); }
+  #slope-strip{ display:block; margin:6px 0 2px; }   /* the slope over time (lens tab), above the timeline */
   #play{ background:var(--cur); color:var(--ds-on-cur); border:none; border-radius:8px; width:38px; height:38px;
     font-size:15px; cursor:pointer; flex:none; }
   #scrub{ -webkit-appearance:none; appearance:none; display:block; width:100%; height:16px; margin:0; background:transparent; cursor:pointer; }
@@ -228,6 +229,7 @@
       <div class="wcgrid">
         <button id="coast-btn" class="mbtn on" title="the coastline under the data (map view only)">◍ coast</button>
         <button id="smooth-btn" class="mbtn on" title="smooth field: the native 0.25° data interpolated on the map. Off = the honest 0.25° boxes.">▦ smooth</button>
+        <button id="slope-btn" class="mbtn full" title="the slope of each trace, as drawn in the view shown (on the map, the direction it runs), and a strip above the timeline with how it changes over the dates shown. Visual only.">╱ slope · off</button>
         <button id="dyn" class="mbtn on full" title="the glimmer: a shimmer over upwelling (blue-white) or a productive front (gold-green) where you point and on the date shown. Visual only; the chimes are on the sound tab.">◈ glimmer on</button>
       </div>
       <div class="note">upwelling · water colder than usual and rich in nutrients<br>productive front · plankton and nutrients both high</div>
@@ -279,7 +281,13 @@
           <button class="mbtn trt" data-t="lasso" style="flex:1" title="draw a closed outline: every cell inside it">lasso</button>
           <button class="mbtn trt" data-t="rect" style="flex:1" title="drag a box: every cell inside it">rectangle</button>
         </div>
+        <span class="glab">ANCHOR</span>
+        <div id="tr-anchor" class="full" style="display:flex;gap:5px">
+          <button class="mbtn tra on" data-an="space" style="flex:1" title="a trace keeps the cells you drew over: the same places on every date">spatial</button>
+          <button class="mbtn tra" data-an="param" style="flex:1" title="a trace drawn in a scatter view keeps its shape and, on every date, takes the cells inside it, wherever they are on the map">parameter</button>
+        </div>
       </div>
+      <div class="note" id="tr-anchor-note">spatial: a trace keeps the cells you drew over, the same places on every date.</div>
       <div id="tr-brush" class="row" style="display:none;align-items:center;gap:8px;margin:6px 0 2px">
         <span class="k" style="flex:none">brush width</span>
         <input id="tr-brushw" type="range" min="1" max="6" step="1" value="1" style="flex:1;accent-color:var(--cur)">
@@ -305,6 +313,7 @@
     <button id="export" class="tbtn" title="save the current frame as a PNG">⬇ png</button>
     <button id="mp4" class="tbtn" title="record the selected span as a video: the map animation (+ signals SC to record the sonification for muxing)">⬇ mp4</button>
     <div id="tl" style="flex:1">
+      <canvas id="slope-strip" style="display:none" title="each trace's slope as drawn (on the map, its bearing) on every date shown, lined up with the timeline"></canvas>
       <div id="tl-years"></div>
       <input id="scrub" type="range" min="0" max="9" value="0" step="1">
       <div id="ticks"></div>
@@ -385,7 +394,7 @@ function unitsFor(){ if(!UNITS||!meta) return null; return meta.multiyear?UNITS.
 // FIXED SCATTER SCALES + AXIS NAMES (2026-10-02, Björn's feedback A1–A4): viz/scales.json, made by gen_scales.py.
 // One scale per view over the whole record, per PCA basis (the months and the days are different coordinates).
 let SCALES=null, _domCache={};
-d3.json("scales.json?_="+Date.now()).then(s=>{ SCALES=s; _domCache={}; if(meta&&combo&&!combo.geo){ computePositions(); draw(); } }).catch(()=>{});
+d3.json("scales.json?_="+Date.now()).then(s=>{ SCALES=s; _domCache={}; _pcache.clear(); _slopeCache.clear(); _comCache.clear(); if(meta&&combo&&!combo.geo){ computePositions(); draw(); } }).catch(()=>{});
 function scaleBlock(){ if(!SCALES||!meta) return null; return meta.multiyear?SCALES.cube:(meta.daily?SCALES.daily:null); }
 function axisName(col){ const b=scaleBlock(); return b&&b.names&&b.names[col] ? b.names[col] : null; }
 function unitDomain(fr){                                      // the fixed range of an axis in real units, months and days alike
@@ -664,6 +673,39 @@ if(window.ResizeObserver) new ResizeObserver(()=>{ if(N) resize(); }).observe(do
 // px[]/py[] for the current combination. GEO = stereographic map (frame-independent);
 // SCATTER = linear xy on the combo's columns for the CURRENT frame (points move per day,
 // so update() recomputes). NaN px = cell has no value for this combination/frame.
+// THE PLANE OF A SCATTER VIEW, frame-independent (factored out of computePositions on 2026-10-02, so a
+// parameter-anchored trace can ask which cells sit inside its shape on any date, in the view it was drawn in).
+function viewDef(cmb){
+  if(!cmb || cmb.geo) return null;
+  // PCA views (2026-10-02, Björn's "red line"): the bake gives EVERY cell a PCA position, filling missing inputs,
+  // so 836 ocean cells with no biology (the southern edge) made a frozen streak and 1,392 coastal cells with no
+  // physics (land everywhere else on the page) joined in. A cell is placed only when it has both.
+  const ck=meta.colKey[cmb.x], cky=meta.colKey[cmb.y], pca=!!(ck&&ck.frame&&ck.frame.startsWith("pca"));
+  // views in REAL UNITS: salinity × temperature, and (2026-10-02, Miguel) nutrients × phytoplankton, temperature ×
+  // nutrients, temperature × phytoplankton. Phytoplankton is stored as log(1 + chlorophyll) on a fixed range, so its
+  // axis stays in that log space and its ticks read mg/m³.
+  const UF=["temp","sal","nut","phyto"], units=!pca&&!!(ck&&cky&&UF.includes(ck.frame)&&UF.includes(cky.frame));
+  const ts=units&&ck.frame==="sal"&&cky.frame==="temp";               // the T–S view (its freezing line)
+  const bio=units&&[ck.frame,cky.frame].some(fr=>fr==="nut"||fr==="phyto");
+  // FIXED SCALES (2026-10-02, Björn A1 + Miguel): one scale per view over the whole record, never refitted per date.
+  // PCA: the central 95% of the record spans the central 80% of the axis (viz/scales.json, per basis: months and
+  // days are different PCA coordinates); cells beyond it are pinned to the edge and counted. T–S: physical units, fixed.
+  let xr, yr;
+  if(pca){ xr=pcaDomain(ck.frame); yr=pcaDomain(cky.frame); }
+  else if(units){ xr=unitDomain(ck.frame); yr=unitDomain(cky.frame); }
+  else { xr=meta.colRange[cmb.x]||[0,1]; yr=meta.colRange[cmb.y]||[0,1]; }
+  return {cmb, ck, cky, pca, units, ts, bio, xr, yr};
+}
+// a cell's place in that plane on frame f: [x, y, pinned] in the axes' own values, or null (no value, or left out:
+// the biology views need physics AND biology, DECISIONS (s)). PCA cells beyond the scale are clamped to its edge
+// (Miguel 10-02: "pin the bloom cells to the edge instead of hiding").
+function viewXY(V, f, i){
+  if((V.pca||V.bio) && (f.temp[i]==null || f.nut[i]==null)) return null;
+  const val=col=>{ const v=colVal(col,f,i); if(v==null||!V.units) return v; const fr=meta.colKey[col].frame; return fr==="phyto"?v:phys(fr,v); };
+  const xv=val(V.cmb.x), yv=val(V.cmb.y); if(xv==null||yv==null) return null;
+  const pin=V.pca && (xv<V.xr[0]||xv>V.xr[1]||yv<V.yr[0]||yv>V.yr[1]);
+  return pin ? [Math.min(V.xr[1],Math.max(V.xr[0],xv)), Math.min(V.yr[1],Math.max(V.yr[0],yv)), true] : [xv, yv, false];
+}
 function computePositions(){
   const r=cv.getBoundingClientRect(), M=18;
   if(pinned.length!==N) pinned=new Uint8Array(N); else pinned.fill(0);
@@ -675,38 +717,17 @@ function computePositions(){
     cellPx=Math.max(2.2, Math.max(Math.hypot(bLon[0]-a[0],bLon[1]-a[1]),Math.hypot(bLat[0]-a[0],bLat[1]-a[1]))*1.12);
     scatterAxes=null;
   } else {
-    const f=frames[t];
-    // PCA views (2026-10-02, Björn's "red line"): the bake gives EVERY cell a PCA position, filling missing inputs,
-    // so 836 ocean cells with no biology (the southern edge) made a frozen streak and 1,392 coastal cells with no
-    // physics (land everywhere else on the page) joined in. A cell is placed only when it has both.
-    const ck=meta.colKey[combo.x], cky=meta.colKey[combo.y], pca=!!(ck&&ck.frame&&ck.frame.startsWith("pca"));
-    // views in REAL UNITS: salinity × temperature, and (2026-10-02, Miguel) nutrients × phytoplankton, temperature ×
-    // nutrients, temperature × phytoplankton. Phytoplankton is stored as log(1 + chlorophyll) on a fixed range, so its
-    // axis stays in that log space and its ticks read mg/m³.
-    const UF=["temp","sal","nut","phyto"], units=!pca&&!!(ck&&cky&&UF.includes(ck.frame)&&UF.includes(cky.frame));
-    const ts=units&&ck.frame==="sal"&&cky.frame==="temp";               // the T–S view (its freezing line)
-    const bio=units&&[ck.frame,cky.frame].some(fr=>fr==="nut"||fr==="phyto");
-    const keep=i=> !(pca||bio) || (f.temp[i]!=null && f.nut[i]!=null);   // the biology views: physics AND biology (DECISIONS (s))
-    const val=(col,i)=>{ const v=colVal(col,f,i); if(v==null||!units) return v; const fr=meta.colKey[col].frame; return fr==="phyto"?v:phys(fr,v); };
-    let xr, yr, leftOut=0, offScale=0;
+    const f=frames[t], V=viewDef(combo), {pca, units, ts, bio, xr, yr}=V;
+    let leftOut=0, offScale=0;
     if(pca) for(let i=0;i<N;i++) if(f.temp[i]!=null && f.nut[i]==null) leftOut++;
     if(bio) for(let i=0;i<N;i++) if(f.temp[i]!=null && (colVal(combo.x,f,i)==null||colVal(combo.y,f,i)==null)) leftOut++;
-    // FIXED SCALES (2026-10-02, Björn A1 + Miguel): one scale per view over the whole record, never refitted per date.
-    // PCA: the central 95% of the record spans the central 80% of the axis (viz/scales.json, per basis: months and
-    // days are different PCA coordinates); cells beyond it are hidden and counted. T–S: physical units, fixed.
-    if(pca){ xr=pcaDomain(ck.frame); yr=pcaDomain(cky.frame); }
-    else if(units){ xr=unitDomain(ck.frame); yr=unitDomain(cky.frame); }
-    else { xr=meta.colRange[combo.x]||[0,1]; yr=meta.colRange[combo.y]||[0,1]; }
     const X=d3.scaleLinear().domain(xr).range([M+100, r.width-M-8]);   // room for the bigger axis text (A2), clear of the legend tab
     const Y=d3.scaleLinear().domain(yr).range([r.height-M-72, M+30]);   // y axis points up
-    for(let i=0;i<N;i++){ const xv=val(combo.x,i), yv=val(combo.y,i);
-      if(xv==null||yv==null||!keep(i)){ px[i]=NaN; py[i]=NaN; continue; }
-      // beyond the scale (the spring bloom, mostly): PINNED to the frame edge, hollow, and counted (Miguel 10-02:
-      // "pin the bloom cells to the edge instead of hiding"), so no cell leaves the picture
-      const pin = pca && (xv<xr[0]||xv>xr[1]||yv<yr[0]||yv>yr[1]);
-      if(pin){ offScale++; pinned[i]=1; }
-      px[i]=X(pin?Math.min(xr[1],Math.max(xr[0],xv)):xv); py[i]=Y(pin?Math.min(yr[1],Math.max(yr[0],yv)):yv); }
-    cellPx=3.4; scatterAxes={X,Y,leftOut,offScale,kind:pca?"pca":(ts?"ts":(units?"units":"plain")),fx:ck&&ck.frame,fy:cky&&cky.frame};
+    for(let i=0;i<N;i++){ const q=viewXY(V,f,i);
+      if(!q){ px[i]=NaN; py[i]=NaN; continue; }
+      if(q[2]){ offScale++; pinned[i]=1; }                             // beyond the scale: pinned to the frame edge, hollow, counted
+      px[i]=X(q[0]); py[i]=Y(q[1]); }
+    cellPx=3.4; scatterAxes={X,Y,leftOut,offScale,kind:pca?"pca":(ts?"ts":(units?"units":"plain")),fx:V.ck&&V.ck.frame,fy:V.cky&&V.cky.frame,V};
   }
   quad=d3.quadtree().x(i=>px[i]).y(i=>py[i]).addAll(d3.range(N).filter(i=>px[i]==px[i]));  // px==px drops NaN
 }
@@ -854,6 +875,8 @@ function draw(){
       ctx.textAlign="center"; ctx.textBaseline="bottom";
       ctx.fillText(tr.label, cx/n, cy/n-h-3/zt.k); }
   });
+  drawParamExtras(T);                                   // parameter traces: their shape (own view) / centre-of-mass path (map)
+  drawSlopes(T);                                        // the slope (lens tab), glowing, on top of the traces
   // active path-brush while tracking — the cells being picked up + the gesture line
   if(brushing && brushPath){
     if(brushCells){ const s2=cellPx, h2=s2/2;
@@ -866,6 +889,7 @@ function draw(){
         for(let k=1;k<brushPath.length;k++) ctx.lineTo(brushPath[k][0],brushPath[k][1]); ctx.stroke();
         if(TRACE_TOOL==="lasso"){ ctx.setLineDash([4/zt.k,4/zt.k]); ctx.beginPath(); ctx.moveTo(z[0],z[1]); ctx.lineTo(a[0],a[1]); ctx.stroke(); ctx.setLineDash([]); } } }
   }
+  drawSlopeStrip();
 }
 function drawScatterAxes(){
   if(!scatterAxes) return;
@@ -944,6 +968,7 @@ function dateSub(){                   // the small caption under the big date (+
 }
 function update(){                    // full refresh on t / mode change
   document.getElementById("date").innerHTML = `${meta.dates[t]}<small>${dateSub()}</small>`;
+  if(tracks.some(tr=>tr.anchor==="param")){ refreshParamTraces(); paintTrackCounts(); }   // the water inside each shape, on this date
   const _sc=document.getElementById("scrub"); _sc.max=Math.max(0,meta.dates.length-1); _sc.value=t; paintTrack();   // the thumb sits ON the date
   if(combo && !combo.geo) computePositions();   // scatter points move per day (pca/temp/sal vary)
   refreshNeighbors();                           // neighbourhood evolves with the day
@@ -1180,6 +1205,7 @@ function layoutTicks(){
     if(i){ const dv=document.createElement("div"); dv.className="tkdiv"; dv.style.left=x+"px"; tl.appendChild(dv); }
     marks.push([x, lab]); lastLab=lab; }
   let right=-1e9;
+  drawSlopeStrip();
   yr.innerHTML=marks.map(([x,lab])=>{ const ok=x>=right; if(ok) right=x+4+lab.length*5.6+6;   // the year row thins out too
     return ok?`<span style="left:${Math.max(0,x)}px">${lab}</span>`:""; }).join("");
   paintTrack();
@@ -1409,6 +1435,7 @@ function deleteTrack(id){ tracks=tracks.filter(t=>t.id!==id); renderTrackList();
 // dates on screen, so the chord moves through its whole range as time passes (a cold patch is not pinned
 // to the bottom of the region's scale).
 function tracedCells(){ const u=new Set(); tracks.forEach(tr=>tr.cells.forEach(i=>u.add(i))); return u; }
+function tracedSetAt(ti){ const u=new Set(); tracks.forEach(tr=>cellsAt(tr,ti).forEach(i=>u.add(i))); return u; }
 function tracedAgg(ti,u){
   const f=frames[ti]; let te=0,sa=0,nu=0,an=0,nt=0,ns=0,nn=0,na=0; const nc=[0,0,0,0]; let sc=0;
   u.forEach(i=>{ if(f.temp[i]==null) return;
@@ -1419,10 +1446,10 @@ function tracedAgg(ti,u){
 }
 let _trStats=null;
 function tracedStats(u){
-  const seq=SEQ(), sig=dataNonce+":"+tracks.map(tr=>tr.id+"."+tr.cells.size).join(",")+":"+seq.length+":"+seq[0]+":"+seq[seq.length-1]+":"+seq[seq.length>>1];
+  const seq=SEQ(), sig=dataNonce+":"+tracks.map(tr=>tr.id+"."+(tr.anchor==="param"?"p":tr.cells.size)).join(",")+":"+seq.length+":"+seq[0]+":"+seq[seq.length-1]+":"+seq[seq.length>>1];
   if(_trStats && _trStats.sig===sig) return _trStats;
   const K=["temp","sal","nut","anom"], mn={}, mx={}; K.forEach(k=>{ mn[k]=Infinity; mx[k]=-Infinity; });
-  for(const ti of seq){ const a=tracedAgg(ti,u); K.forEach(k=>{ const v=a[k]; if(v==null) return; if(v<mn[k])mn[k]=v; if(v>mx[k])mx[k]=v; }); }
+  for(const ti of seq){ const a=tracedAgg(ti, tracedSetAt(ti)); K.forEach(k=>{ const v=a[k]; if(v==null) return; if(v<mn[k])mn[k]=v; if(v>mx[k])mx[k]=v; }); }
   return (_trStats={sig,mn,mx});
 }
 function syncTracked(){
@@ -1439,6 +1466,15 @@ function syncTracked(){
     temp:sv("temp"), sal:sv("sal"), nut:sv("nut"), anom:sv("anom"),
     clusters:a.clusters.map(x=>+x.toFixed(3)) }));
 }
+function trackCount(t){
+  if(t.anchor==="param" && !paramHome(t)) return meta && meta.multiyear ? "drawn by day" : "drawn on months";
+  const n=t.cells.size; return `${n.toLocaleString()} cell${n===1?"":"s"}${t.anchor==="param"?" now":""}`;
+}
+function paintTrackCounts(){                              // a parameter trace's count follows the date (no list rebuild)
+  document.querySelectorAll("#tr-list .trk-cnt[data-id]").forEach(el=>{ const t=tracks.find(x=>x.id===+el.dataset.id); if(t) el.textContent=trackCount(t); });
+  const total=tracks.reduce((s,x)=>s+x.cells.size,0);
+  document.getElementById("tr-head").textContent = tracks.length ? `TRACE · ${tracks.length} (${total} cell${total>1?"s":""})` : "TRACE · none";
+}
 function flashTrack(id){ flashId=id; draw(); setTimeout(()=>{ flashId=null; draw(); }, 900); }
 function renderTrackList(){
   const total=tracks.reduce((s,t)=>s+t.cells.size,0);
@@ -1450,8 +1486,10 @@ function renderTrackList(){
     const row=document.createElement("div"); row.className="trk-row";
     row.title="click to flash it on the map";
     const tc=trackColor(t);
+    if(t.anchor==="param") row.title=`follows the water inside the shape drawn in ${t.home.view}; click to flash it`;
     row.innerHTML=`<span class="trk-sw" style="background:${tc};color:${tc}"></span>`+
-      `<span class="trk-lab">${t.label}</span><span class="trk-cnt">${t.cells.size} cell${t.cells.size>1?"s":""}</span>`+
+      `<span class="trk-lab">${t.label}${t.anchor==="param"?` <span class="trk-cnt">◇ ${t.home.view}</span>`:""}</span>`+
+      `<span class="trk-cnt" data-id="${t.id}">${trackCount(t)}</span>`+
       `<button class="trk-x" title="remove ${t.label}">×</button>`;
     row.addEventListener("click",e=>{ if(!e.target.classList.contains("trk-x")) flashTrack(t.id); });
     row.querySelector(".trk-x").addEventListener("click",e=>{ e.stopPropagation(); deleteTrack(t.id); });
@@ -1459,6 +1497,206 @@ function renderTrackList(){
   });
   renderHear(); saveState();
 }
+
+// ══ ANCHORING (2026-10-02, Björn C1 + Miguel: "in trace we could have spatial anchoring or parameter anchoring
+//    options … default to spatial anchoring"). SPATIAL: a trace is a fixed set of cells, places, as before.
+//    PARAMETER: a trace drawn in a scatter view keeps its SHAPE (the lasso, the rectangle or the brush's band) in that
+//    view's own axis values, and on every date takes the cells inside it: it follows the WATER of that kind, so on the
+//    map you see where it is and how much of it there is, date by date. Its `cells` is the current date's set, so the
+//    outlines, the chord and the list work unchanged. Drawn on the map, a trace keeps places whatever the choice
+//    (latitude and longitude ARE the places), and a click (one cell) does too. A PCA shape belongs to its basis: months
+//    and days have different principal components, so a shape drawn on the monthly PCA finds nothing by day, and says
+//    so; the views in real units carry across. ══
+let TRACE_ANCHOR="space";
+const _pcache=new Map(), _comCache=new Map();
+function shapeOf(V){                                      // the gesture → a shape in the view's axis values (normalized on V's scales)
+  const X=scatterAxes.X, Y=scatterAxes.Y, w=Math.abs(X.range()[1]-X.range()[0]), h=Math.abs(Y.range()[1]-Y.range()[0]);
+  const uv=p=>[(X.invert(p[0])-V.xr[0])/(V.xr[1]-V.xr[0]), (Y.invert(p[1])-V.yr[0])/(V.yr[1]-V.yr[0])];
+  const P=brushPath.map(uv), s={xr:V.xr.slice(), yr:V.yr.slice()};
+  if(TRACE_TOOL==="rect"){ const a=P[0], b=P[P.length-1];
+    Object.assign(s,{type:"rect", u0:Math.min(a[0],b[0]), u1:Math.max(a[0],b[0]), v0:Math.min(a[1],b[1]), v1:Math.max(a[1],b[1])}); }
+  else if(TRACE_TOOL==="lasso") Object.assign(s,{type:"lasso", pts:P});
+  else Object.assign(s,{type:"brush", pts:P, r:brushRadius(), w, h});          // a band r px wide on a w × h px plot
+  const us=s.type==="rect"?[s.u0,s.u1]:s.pts.map(p=>p[0]), vs=s.type==="rect"?[s.v0,s.v1]:s.pts.map(p=>p[1]);
+  const mu=s.type==="brush"?s.r/w:0, mv=s.type==="brush"?s.r/h:0;
+  s.bb=[Math.min(...us)-mu, Math.max(...us)+mu, Math.min(...vs)-mv, Math.max(...vs)+mv];
+  return s;
+}
+function inShape(s,u,v){
+  if(s.type==="rect") return u>=s.u0 && u<=s.u1 && v>=s.v0 && v<=s.v1;
+  if(s.type==="lasso") return s.pts.length>2 && pointInPoly(u,v,s.pts);
+  const x=u*s.w, y=v*s.h;
+  for(let k=0;k<s.pts.length;k++){ const a=s.pts[k], b=s.pts[Math.min(k+1,s.pts.length-1)];
+    if(distToSeg(x,y, a[0]*s.w,a[1]*s.h, b[0]*s.w,b[1]*s.h)<=s.r) return true; }
+  return false;
+}
+function paramHome(tr){                                   // the view the shape lives in, in the data loaded now (null = not here)
+  const cmb=meta.combinations.find(c=>c.label===tr.home.view); if(!cmb) return null;
+  const V=viewDef(cmb); if(!V) return null;
+  if(V.pca && tr.home.basis!==(meta.multiyear?"cube":"daily")) return null;
+  return V;
+}
+function paramCellsAt(tr, ti){                            // the cells inside the shape on date ti (cached)
+  const key=tr.id+"|"+ti+"|"+dataNonce; if(_pcache.has(key)) return _pcache.get(key);
+  if(_pcache.size>4000) _pcache.clear();
+  const out=new Set(), V=paramHome(tr);
+  if(V){ const f=frames[ti], s=tr.home.shape, [b0,b1,b2,b3]=s.bb;
+    for(let i=0;i<N;i++){ const q=viewXY(V,f,i); if(!q) continue;
+      const u=(q[0]-s.xr[0])/(s.xr[1]-s.xr[0]), v=(q[1]-s.yr[0])/(s.yr[1]-s.yr[0]);
+      if(u<b0||u>b1||v<b2||v>b3) continue;
+      if(inShape(s,u,v)) out.add(i); } }
+  _pcache.set(key,out); return out;
+}
+function cellsAt(tr, ti){ return tr.anchor==="param" ? paramCellsAt(tr,ti) : tr.cells; }
+function refreshParamTraces(){ tracks.forEach(tr=>{ if(tr.anchor==="param") tr.cells=paramCellsAt(tr,t); }); }
+function createParamTrack(){                              // at the end of a gesture in a scatter view, parameter-anchored
+  const V=scatterAxes&&scatterAxes.V; if(!V||!brushPath||brushPath.length<2) return false;
+  trackSeq++;
+  const slot=(trackSeq-1)%TRACK_COLORS.length;
+  const tr={id:trackSeq, label:`T${trackSeq}`, slot, color:TRACK_COLORS[slot], anchor:"param",
+            home:{view:combo.label, basis:meta.multiyear?"cube":"daily", shape:shapeOf(V)}, cells:new Set()};
+  tracks.push(tr); tr.cells=paramCellsAt(tr,t);
+  renderTrackList(); draw(); syncTracked();
+  return true;
+}
+function setAnchor(a){ TRACE_ANCHOR=a==="param"?"param":"space"; paintAnchor(); }
+function paintAnchor(){
+  document.querySelectorAll("#tr-anchor .tra").forEach(b=>b.classList.toggle("on", b.dataset.an===TRACE_ANCHOR));
+  const n=document.getElementById("tr-anchor-note"); if(!n) return;
+  n.textContent = TRACE_ANCHOR==="param"
+    ? "parameter: a trace keeps the shape you draw in a view and, on every date, takes the cells inside it, wherever they are on the map. Drawn on the map, a trace keeps places."
+    : "spatial: a trace keeps the cells you drew over, the same places on every date.";
+}
+// THE CENTRE OF MASS (Björn C3): for a parameter-anchored trace, the geographic centre of the cells inside its shape on
+//   each date shown, as a path on the map (a spatial trace's centre never moves). Visual only.
+function comPath(tr){
+  const seq=SEQ(), key=tr.id+"|"+dataNonce+"|"+seq.length+":"+seq[0]+":"+seq[seq.length-1]+":"+seq[seq.length>>1];
+  if(_comCache.has(key)) return _comCache.get(key);
+  const out=seq.map(ti=>{ const c=paramCellsAt(tr,ti); let la=0, lo=0, n=0; c.forEach(i=>{ la+=lat[i]; lo+=lon[i]; n++; });
+    return n ? {ti, lat:la/n, lon:lo/n, n} : null; });
+  _comCache.set(key,out); return out;
+}
+function drawParamExtras(T){                              // the shape in its own view; the centre-of-mass path on the map
+  tracks.forEach(tr=>{ if(tr.anchor!=="param") return;
+    const tc=trackColor(tr);
+    if(combo.geo){
+      // weighted by how much water is inside: a date with a handful of cells has a noisy centre, so its dot is small
+      // and the segments to it faint; a dark (light-look: white) edge keeps the path visible over the traced cells
+      const P=comPath(tr), nmax=Math.max(1,...P.map(p=>p?p.n:0)), w=n=>Math.sqrt(n/nmax);
+      const light=document.documentElement.dataset.theme==="light"||document.documentElement.dataset.theme==="paper";
+      const Q=P.map(p=>p?{...p, q:proj([p.lon,p.lat])}:null);
+      ctx.save(); ctx.setLineDash([]); ctx.lineCap="round";
+      for(let k=1;k<Q.length;k++){ const a=Q[k-1], b=Q[k]; if(!a||!b) continue;
+        const al=0.15+0.8*w(Math.min(a.n,b.n));
+        ctx.globalAlpha=al; ctx.strokeStyle=light?"#ffffff":"#05070d"; ctx.lineWidth=4/zt.k;
+        ctx.beginPath(); ctx.moveTo(a.q[0],a.q[1]); ctx.lineTo(b.q[0],b.q[1]); ctx.stroke();
+        ctx.strokeStyle=tc; ctx.lineWidth=1.8/zt.k; ctx.beginPath(); ctx.moveTo(a.q[0],a.q[1]); ctx.lineTo(b.q[0],b.q[1]); ctx.stroke(); }
+      ctx.globalAlpha=1;
+      Q.forEach(p=>{ if(!p || p.ti===t) return; const rr=(1.4+3.2*w(p.n))/zt.k;
+        ctx.fillStyle=light?"#ffffff":"#05070d"; ctx.beginPath(); ctx.arc(p.q[0],p.q[1],rr+1/zt.k,0,2*Math.PI); ctx.fill();
+        ctx.fillStyle=tc; ctx.beginPath(); ctx.arc(p.q[0],p.q[1],rr,0,2*Math.PI); ctx.fill(); });
+      const now=Q.find(p=>p&&p.ti===t);
+      if(now){ ctx.strokeStyle=light?"#ffffff":"#05070d"; ctx.lineWidth=4.2/zt.k; ctx.beginPath(); ctx.arc(now.q[0],now.q[1],7/zt.k,0,2*Math.PI); ctx.stroke();
+        ctx.strokeStyle=tc; ctx.lineWidth=2.2/zt.k; ctx.beginPath(); ctx.arc(now.q[0],now.q[1],7/zt.k,0,2*Math.PI); ctx.stroke();
+        ctx.fillStyle=tc; ctx.beginPath(); ctx.arc(now.q[0],now.q[1],2.6/zt.k,0,2*Math.PI); ctx.fill(); }
+      ctx.restore(); return;
+    }
+    if(!scatterAxes || !scatterAxes.V || scatterAxes.V.cmb!==combo || combo.label!==tr.home.view || !paramHome(tr)) return;
+    const s=tr.home.shape, X=scatterAxes.X, Y=scatterAxes.Y;
+    const P=([u,v])=>[X(s.xr[0]+u*(s.xr[1]-s.xr[0])), Y(s.yr[0]+v*(s.yr[1]-s.yr[0]))];
+    ctx.save(); ctx.strokeStyle=tc; ctx.lineWidth=1.5/zt.k; ctx.setLineDash([6/zt.k,4/zt.k]);
+    if(s.type==="rect"){ const a=P([s.u0,s.v0]), b=P([s.u1,s.v1]); ctx.strokeRect(Math.min(a[0],b[0]),Math.min(a[1],b[1]),Math.abs(b[0]-a[0]),Math.abs(b[1]-a[1])); }
+    else { ctx.beginPath(); s.pts.forEach((p,k)=>{ const q=P(p); k?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]); });
+      if(s.type==="lasso"){ ctx.closePath(); ctx.stroke(); }
+      else { ctx.setLineDash([]); ctx.globalAlpha=0.22; ctx.lineCap="round"; ctx.lineJoin="round";
+        ctx.lineWidth=2*s.r*Math.abs(X.range()[1]-X.range()[0])/s.w; ctx.stroke(); } }
+    ctx.restore();
+  });
+}
+
+// ══ THE SLOPE (2026-10-02, Björn C2 + Miguel: a lens-tab switch, visual only, in every view, and how it changes over
+//    time). Per trace, in the view shown: its MAIN DIRECTION AS DRAWN, the principal axis of its cells on the view's
+//    fixed scales normalized to the plot (0 = flat, 1 = the plot's diagonal, minus = falling; swapping the axes gives the
+//    reciprocal). On the map it is the cells' orientation on the ground, read as a compass bearing. A glowing fluorescent
+//    line (Miguel: "to contrast from the palette of the display"), and a strip above the timeline with its angle (the
+//    bearing on the map) on every date shown, lined up with the dates. ══
+let SLOPE_ON=false; const SLOPE_C="#ff2bd6", _slopeCache=new Map();
+function fitAxis(P){                                      // principal axis of [[x,y],…]
+  const n=P.length; if(n<3) return null;
+  let cx=0, cy=0; for(const p of P){ cx+=p[0]; cy+=p[1]; } cx/=n; cy/=n;
+  let sxx=0, syy=0, sxy=0; for(const p of P){ const a=p[0]-cx, b=p[1]-cy; sxx+=a*a; syy+=b*b; sxy+=a*b; }
+  if(sxx+syy<1e-14) return null;
+  const th=0.5*Math.atan2(2*sxy, sxx-syy), dx=Math.cos(th), dy=Math.sin(th);
+  let lo=Infinity, hi=-Infinity; for(const p of P){ const s=(p[0]-cx)*dx+(p[1]-cy)*dy; if(s<lo) lo=s; if(s>hi) hi=s; }
+  return {cx, cy, dx, dy, lo, hi, th};
+}
+const BEAR=["N–S","NNE–SSW","NE–SW","ENE–WSW","E–W","ESE–WNW","SE–NW","SSE–NNW"];
+function geoPts(cells){                                   // local ground coordinates (degrees of latitude) around the cells' centre
+  let la0=0, n=0; cells.forEach(i=>{ la0+=lat[i]; n++; }); if(!n) return {P:[], la0:0, lo0:0, k:1};
+  la0/=n; const k=Math.cos(la0*Math.PI/180), P=[]; let lo0=0; cells.forEach(i=>{ lo0+=lon[i]; }); lo0/=n;
+  cells.forEach(i=>P.push([(lon[i]-lo0)*k, lat[i]-la0])); return {P, la0, lo0, k};
+}
+function slopeAt(tr, ti){                                 // this trace's line in the CURRENT view on date ti
+  const cells=cellsAt(tr,ti);
+  if(combo.geo){ const g=geoPts(cells), A=fitAxis(g.P); if(!A) return null;
+    const bearing=((90-A.th*180/Math.PI)%180+180)%180;   // clockwise from north, a line has no head: 0–180
+    return {A, g, bearing, angle:bearing}; }
+  const V=viewDef(combo); if(!V) return null;              // the view's own axes, not the canvas state: a view switch redraws
+  const f=frames[ti], P=[];                                //   once before resize() refits (DECISIONS (w)), and that must not stick
+  cells.forEach(i=>{ const q=viewXY(V,f,i); if(q) P.push([(q[0]-V.xr[0])/(V.xr[1]-V.xr[0]), (q[1]-V.yr[0])/(V.yr[1]-V.yr[0])]); });
+  const A=fitAxis(P); if(!A) return null;
+  return {A, V, slope:Math.abs(A.dx)<1e-9?Infinity:A.dy/A.dx, angle:A.th*180/Math.PI};
+}
+function slopeSeries(tr){                                 // the angle (or bearing) on every date shown, for the strip
+  const seq=SEQ(), key=tr.id+"|"+(tr.anchor==="param"?"p":tr.cells.size)+"|"+combo.label+"|"+dataNonce+"|"+seq.length+":"+seq[0]+":"+seq[seq.length-1]+":"+seq[seq.length>>1];
+  if(_slopeCache.has(key)) return _slopeCache.get(key);
+  if(_slopeCache.size>400) _slopeCache.clear();
+  const out=seq.map(ti=>{ const s=slopeAt(tr,ti); return s?{ti, angle:s.angle}:null; });
+  _slopeCache.set(key,out); return out;
+}
+function slopeText(s){ if(combo.geo) return `${BEAR[Math.round(s.bearing/22.5)%8]} · ${Math.round(s.bearing)}°`;
+  return !isFinite(s.slope) ? "slope: vertical" : `slope ${s.slope>=0?"+":"−"}${Math.abs(s.slope).toFixed(2)}`; }
+function drawSlopes(T){
+  if(!SLOPE_ON) return;
+  const light=document.documentElement.dataset.theme==="light"||document.documentElement.dataset.theme==="paper";
+  tracks.forEach(tr=>{ const s=slopeAt(tr,t); if(!s) return;
+    const {A}=s; let a, b;
+    if(combo.geo){ const g=s.g, end=q=>proj([g.lo0+(A.cx+q*A.dx)/g.k, g.la0+(A.cy+q*A.dy)]); a=end(A.lo); b=end(A.hi); }
+    else { if(!scatterAxes || !scatterAxes.V || scatterAxes.V.cmb!==combo) return;   // the plot is being refitted
+      const V=s.V, X=scatterAxes.X, Y=scatterAxes.Y, end=q=>[X(V.xr[0]+(A.cx+q*A.dx)*(V.xr[1]-V.xr[0])), Y(V.yr[0]+(A.cy+q*A.dy)*(V.yr[1]-V.yr[0]))];
+      a=end(A.lo); b=end(A.hi); }
+    ctx.save(); ctx.lineCap="round"; ctx.setLineDash([]);
+    if(light){ ctx.strokeStyle="#1b0f24"; ctx.lineWidth=5/zt.k; ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke(); }
+    else { ctx.shadowColor=SLOPE_C; ctx.shadowBlur=10; }
+    ctx.strokeStyle=SLOPE_C; ctx.lineWidth=2.6/zt.k; ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke();
+    ctx.shadowBlur=0;
+    const e=(a[0]>b[0])?a:b, txt=`${tr.label} · ${slopeText(s)}`;
+    ctx.font=`600 ${13/zt.k}px ${T.fontCanvas}`; ctx.textAlign="left"; ctx.textBaseline="middle";
+    ctx.lineWidth=3.5/zt.k; ctx.strokeStyle=light?"#ffffff":"#120818"; ctx.strokeText(txt, e[0]+8/zt.k, e[1]);
+    ctx.fillStyle=light?"#b0068f":SLOPE_C; ctx.fillText(txt, e[0]+8/zt.k, e[1]);
+    ctx.restore();
+  });
+}
+function drawSlopeStrip(){                                // above the timeline: each trace's angle on every date shown
+  const c=document.getElementById("slope-strip"), sc=document.getElementById("scrub"); if(!c||!sc||!meta) return;
+  const show=SLOPE_ON && tracks.length>0; c.style.display=show?"block":"none"; if(!show) return;
+  const W=sc.getBoundingClientRect().width, H=30, dpr=window.devicePixelRatio||1;
+  if(c.width!==Math.round(W*dpr)||c.height!==Math.round(H*dpr)){ c.width=Math.round(W*dpr); c.height=Math.round(H*dpr); c.style.width=W+"px"; c.style.height=H+"px"; }
+  const g=c.getContext("2d"), T=DarkStyle.tokens(), n=meta.dates.length; g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
+  const geo=combo.geo, Yv=v=> geo ? H-3-(v/180)*(H-6) : H/2-(v/90)*(H/2-3);
+  g.strokeStyle=T.dim; g.globalAlpha=0.35; g.lineWidth=1; g.beginPath(); g.moveTo(0,Yv(geo?90:0)); g.lineTo(W,Yv(geo?90:0)); g.stroke(); g.globalAlpha=1;
+  g.fillStyle=T.dim; g.font=`9px ${T.fontCanvas}`; g.textBaseline="top"; g.textAlign="right";
+  g.fillText(geo?"bearing · mid = east–west":"slope as drawn · mid = flat", W, 0);
+  const xt=tlX(t,W,n);
+  g.strokeStyle=SLOPE_C; g.globalAlpha=0.5; g.beginPath(); g.moveTo(xt,0); g.lineTo(xt,H); g.stroke(); g.globalAlpha=1;
+  tracks.forEach(tr=>{ const S=slopeSeries(tr), tc=trackColor(tr); let open=false;
+    g.strokeStyle=tc; g.lineWidth=1.6; g.beginPath();
+    S.forEach(p=>{ if(!p){ open=false; return; } const x=tlX(p.ti,W,n), y=Yv(p.angle); if(open) g.lineTo(x,y); else { g.moveTo(x,y); open=true; } });
+    g.stroke();
+    const now=S.find(p=>p&&p.ti===t); if(now){ g.fillStyle=tc; g.beginPath(); g.arc(tlX(t,W,n),Yv(now.angle),3,0,2*Math.PI); g.fill(); } });
+}
+function paintSlope(){ const b=document.getElementById("slope-btn"); if(!b) return;
+  b.textContent=`╱ slope · ${SLOPE_ON?"on":"off"}`; b.classList.toggle("on", SLOPE_ON); }
 
 // ---- interaction ----
 cv.addEventListener("mousemove", e=>{
@@ -1916,12 +2154,17 @@ cv.addEventListener("pointerup",  e=>{
     if(TRACE_TOOL!=="brush"){                 // lasso / rectangle: what is inside; a click = the one cell under it
       if(moved<5){ const p=evBase(e); brushCells=new Set(); brushStroke(p,p); } else brushCells=cellsInShape(); }
     const cells=[...brushCells];              // the cells the gesture traced (click = the one cell under it)
-    brushPath=null; brushCells=null; createTrack(cells);
+    // PARAMETER ANCHORING: a shape drawn in a scatter view keeps the shape (a click, or anything on the map, keeps places)
+    const shape = TRACE_ANCHOR==="param" && !combo.geo && moved>=5 && brushPath && brushPath.length>1;
+    if(!(shape && createParamTrack())) createTrack(cells);
+    brushPath=null; brushCells=null;
   } else if(navDrag){ navDrag=false; if(moved<5) selectAt(e); }
   downXY=null; });                                       // <5px = a click
 cv.addEventListener("pointercancel",()=>{ navDrag=false; brushing=false; brushPath=null; brushCells=null; downXY=null; draw(); });
 window.addEventListener("keydown",e=>{ if(e.key==="Escape"){ clearSel(); if(trackMode) toggleTrackMode(); } });
 document.getElementById("trk-btn").addEventListener("click", toggleTrackMode);
+document.querySelectorAll("#tr-anchor .tra").forEach(b=>b.addEventListener("click",()=>{ setAnchor(b.dataset.an); saveState(); }));
+document.getElementById("slope-btn").addEventListener("click",()=>{ SLOPE_ON=!SLOPE_ON; paintSlope(); draw(); saveState(); });
 document.querySelectorAll("#tr-tools .trt").forEach(b=>b.addEventListener("click",()=>{   // picking a tool arms tracing
   setTraceTool(b.dataset.t); if(!trackMode) toggleTrackMode(); saveState(); }));
 document.getElementById("coast-btn").addEventListener("click",function(){ baseMap=!baseMap; this.classList.toggle("on",baseMap); draw(); saveState(); });
@@ -2044,8 +2287,11 @@ function saveState(){
   if(!meta || _restoring) return;
   const st=readState();
   st.mode=mode; st.combo=combo?combo.label:null; st.nb=NB_K; st.coast=baseMap; st.smooth=smoothOn; st.glim=glimArmed; st.tool=TRACE_TOOL; st.clock=CLOCK;
+  st.anchor=TRACE_ANCHOR; st.slope=SLOPE_ON;
   st.traces=st.traces||{};
-  st.traces[gridSig()]=tracks.map(tr=>({id:tr.id, label:tr.label, slot:tr.slot, color:tr.color, cells:[...tr.cells]}));
+  st.traces[gridSig()]=tracks.map(tr=>tr.anchor==="param"
+    ? {id:tr.id, label:tr.label, slot:tr.slot, color:tr.color, anchor:"param", home:tr.home, cells:[]}
+    : {id:tr.id, label:tr.label, slot:tr.slot, color:tr.color, cells:[...tr.cells]});
   lsSet(LS.state, JSON.stringify(st));
 }
 function restoreState(){
@@ -2060,11 +2306,17 @@ function restoreState(){
     if(st.smooth!=null){ smoothOn=!!st.smooth; document.getElementById("smooth-btn").classList.toggle("on",smoothOn); _smoothKey=""; }
     if(st.glim!=null){ glimArmed=!!st.glim; paintGlim(); }
     if(st.tool) setTraceTool(st.tool);
+    if(st.anchor) setAnchor(st.anchor);
+    if(st.slope!=null){ SLOPE_ON=!!st.slope; paintSlope(); }
     if(st.clock){ ["acc","div","bri"].forEach(k=>{ if(st.clock[k]!=null) setClockSilent(k, st.clock[k]); }); paintClock(); }
     const tr=st.traces&&st.traces[gridSig()];
     if(Array.isArray(tr)){
       const slotOf=x=>{ if(x.slot!=null) return x.slot; const k=LOOK_DATA.dark.track.indexOf(x.color); return k>=0?k:null; };   // traces saved before the kit
-      tracks=tr.map(x=>({id:x.id, label:x.label, slot:slotOf(x), color:x.color, cells:new Set((x.cells||[]).filter(i=>i>=0&&i<N))})).filter(x=>x.cells.size);
+      tracks=tr.map(x=>x.anchor==="param"&&x.home
+        ? {id:x.id, label:x.label, slot:slotOf(x), color:x.color, anchor:"param", home:x.home, cells:new Set()}
+        : {id:x.id, label:x.label, slot:slotOf(x), color:x.color, cells:new Set((x.cells||[]).filter(i=>i>=0&&i<N))})
+        .filter(x=>x.anchor==="param" || x.cells.size);
+      refreshParamTraces();
       trackSeq=tracks.reduce((m,x)=>Math.max(m,x.id),0);
     }
   } finally { _restoring=false; }
