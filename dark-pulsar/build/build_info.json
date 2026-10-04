@@ -1,8 +1,8 @@
 {
-  "built": "2026-10-04 23:53:27",
+  "built": "2026-10-05 00:13:29",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "sources": {
-    "viz/index.html": "acb81d2105546bb2",
+    "viz/index.html": "9b515f6abb7b91d1",
     "viz/darkstyle/KIT.json": "8ca3b7f24a0bf80c",
     "viz/darkstyle/darkstyle.css": "a2c1507972554138",
     "viz/darkstyle/darkstyle.js": "a5a154247a75ed38",
@@ -52,7 +52,7 @@
     "sc/web_buffers.scd"
   ],
   "data": {
-    "built": "2026-10-04 23:53:27",
+    "built": "2026-10-05 00:13:29",
     "bridge_sha": "8098f72b7c33394b",
     "files": {
       "init.json.gz": {
@@ -90,7 +90,7 @@
         "drivers_logpos": 5188
       }
     },
-    "seconds": 0.5
+    "seconds": 0.4
   },
   "credits": {
     "epn_papers": 45,

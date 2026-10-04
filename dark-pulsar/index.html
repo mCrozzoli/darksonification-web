@@ -116,7 +116,9 @@
   #info.folded #info-body { display:none; } #info.folded .sec-h .chev { transform:rotate(-90deg); }
   #info-body { margin-top:8px; }
   #hear { font-size:11px; line-height:1.45; padding:6px 8px; border:1px solid var(--dp-ctl-line); border-radius:6px; margin:0 0 8px;
-          color:var(--ink); background:var(--dp-hear-bg); }
+          color:var(--ink); background:var(--dp-hear-bg);
+          /* always two lines tall, so the tabs below never move when the state changes (a 1-line state keeps the room) */
+          box-sizing:content-box; height:2.9em; overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
   #hear.off { border-color:var(--dp-wait-line); } #hear.off b { color:var(--dp-wait); } #hear.none { color:var(--dim); }
   #hear b { color:var(--dp-txt-hi); font-weight:600; }
   #i-name { font-size:13px; font-weight:600; color:var(--msp); }
@@ -126,6 +128,9 @@
   .badge.bin.on { background:var(--dp-badge-bin-bg); border-color:var(--dp-badge-bin-line); color:var(--track); }
   .bar { height:6px; border-radius:3px; background:var(--dp-slider-track); overflow:hidden; flex:1; margin-left:8px; }
   .bar > i { display:block; height:100%; background:linear-gradient(90deg,var(--dp-bar-a),var(--dp-bar-b)); }
+  /* the L1 voices: a fixed three-row slot that scrolls, so pinning or unpinning at L1 never moves the tabs below */
+  #i-voices { font-size:11px; height:5.4em; overflow-y:auto; overflow-x:hidden; margin:3px 0; }
+  #i-voices .row { height:1.8em; margin:0; }
   #i-voices .row .sw { width:9px; height:9px; border-radius:50%; flex:none; margin-right:4px; }
   #i-voices .row .nm { flex:1; text-align:left; font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   #side-tabs { display:grid; grid-template-columns:repeat(4,1fr); gap:4px; margin:12px 0 10px; padding-top:12px; border-top:1px solid var(--line); }
@@ -168,6 +173,7 @@
   .lvlseg .lvl { padding:4px 9px; border-radius:0; }
   .lvlseg .lvl:first-child { border-radius:6px 0 0 6px; } .lvlseg .lvl:last-child { border-radius:0 6px 6px 0; margin-left:-1px; }
   .pbtn { padding:4px 7px; }
+  .pbtn.step { font-size:14px; line-height:1; padding:3px 9px 5px; }   /* ‹ › step; ▶ is Play alone, as INFORMATION says */
   #pl-play { min-width:30px; font-weight:600; } #pl-play.on { background:var(--dp-on); border-color:var(--dp-on-line); color:var(--dp-on-txt); }
   .pl-idx { font-variant-numeric:tabular-nums; color:var(--ink); font-size:11px; min-width:84px; text-align:center; }
   .pl-loop { font-size:11px; color:var(--dim); display:flex; align-items:center; gap:4px; cursor:pointer; white-space:nowrap; }
@@ -305,9 +311,9 @@
         <span class="wbtn lvl" data-l="l1">L1 · pulses</span>
       </div>
       <span class="wbtn pbtn" id="pl-first" title="first">⏮</span>
-      <span class="wbtn pbtn" id="pl-prev" title="previous">◀</span>
+      <span class="wbtn pbtn step" id="pl-prev" title="step back: the previous pulsar (L0) · the line back by the spotlight's half-width (L1)">‹</span>
       <span class="pl-idx" id="pl-idx">0 / 0</span>
-      <span class="wbtn pbtn" id="pl-next" title="next">▶</span>
+      <span class="wbtn pbtn step" id="pl-next" title="step on: the next pulsar (L0) · the line on by the spotlight's half-width (L1)">›</span>
       <span class="wbtn pbtn" id="pl-last" title="last">⏭</span>
       <input type="range" id="pl-slider" min="0" max="0" value="0" title="L0: the pulsar · L1: the phase of the line">
       <span class="wbtn pbtn" id="pl-play" title="play / stop (at L1 this owns the sound)">▶</span>
@@ -746,8 +752,11 @@ function updateInfo(f){
   const bin = p && (p.binary===true || p.binary===1 || (typeof p.binary==="string" && p.binary && p.binary!=="*" && p.binary!=="nan"));
   document.getElementById("b-bin").classList.toggle("on", !!bin);
   const spin = p && p.spin_hz!=null ? +p.spin_hz : null;      // a real spin rate, when the export carries one
-  document.getElementById("i-spin-row").style.display = spin!=null ? "" : "none";
-  if(spin!=null) document.getElementById("i-spin").textContent = spin.toFixed(spin<10?3:2) + " Hz · one pulse every " + (1/spin).toFixed(spin<10?2:4) + " s";
+  // the row is there whenever the export carries spin_hz (a dash for a pulsar without one), so the height never
+  // changes from one pulsar to the next; today's rows carry only the MinMax period, so it stays hidden
+  document.getElementById("i-spin-row").style.display = pulsars.some(q=>q.spin_hz!=null) ? "" : "none";
+  document.getElementById("i-spin").textContent = spin==null ? "—"
+    : spin.toFixed(spin<10?3:2) + " Hz · one pulse every " + (1/spin).toFixed(spin<10?2:4) + " s";
   renderInfo();
 }
 // the "you hear" line, the line's phase and the voices: from the page's own state (this design echoes nothing back)
@@ -773,12 +782,14 @@ function renderInfo(){
   const [cls, html] = hearText();
   const h=document.getElementById("hear"); h.className=cls; h.innerHTML=html;
   const atL1 = curLevel==="l1";
-  document.getElementById("i-phase-row").style.display = atL1 && scrub!=null ? "" : "none";
-  if(atL1 && scrub!=null) document.getElementById("i-phase").textContent =
+  // ONE HEIGHT PER LEVEL: the line row and the voices slot are always there at L1 (a dash when empty), the pad row
+  // whenever the GUI is connected, #hear is always two lines; only the level switch (on the transport) changes it
+  document.getElementById("i-phase-row").style.display = atL1 ? "" : "none";
+  if(atL1) document.getElementById("i-phase").textContent = scrub==null ? "—" :
     "phase " + scrub.toFixed(3) + (wcConnected() ? " · the GUI's scrub" : _playing ? " · sweeping ("+_sweepL1+" s)" : ((_profDrag||_padding) ? " · held" : " · stopped"));
   const vh=document.getElementById("i-voices"); vh.innerHTML="";
   const targets = atL1 ? l1Targets() : [];
-  vh.style.display = targets.length ? "" : "none";
+  vh.style.display = atL1 ? "" : "none";
   targets.slice(0,8).forEach((pi,i)=>{
     const p=byPos.get(pi); if(!p) return;
     const r=document.createElement("div"); r.className="row";
@@ -787,8 +798,8 @@ function renderInfo(){
     vh.appendChild(r);
   });
   if(targets.length>8){ const r=document.createElement("div"); r.className="row"; r.innerHTML=`<span class="k">+${targets.length-8} more</span>`; vh.appendChild(r); }
-  document.getElementById("i-pad-row").style.display = (wcConnected() && padX!=null && padY!=null) ? "" : "none";
-  if(padX!=null && padY!=null) document.getElementById("i-pad").textContent = "x "+padX.toFixed(2)+", y "+padY.toFixed(2);
+  document.getElementById("i-pad-row").style.display = wcConnected() ? "" : "none";
+  document.getElementById("i-pad").textContent = (padX!=null && padY!=null) ? "x "+padX.toFixed(2)+", y "+padY.toFixed(2) : "—";
 }
 
 // ---------- websocket ----------
@@ -851,7 +862,8 @@ async function connect(){
       document.getElementById("count").textContent=m.n_pulsars||pulsars.length;
       buildDisplay(m);
       px.domain([0,1]); setLayout(layout); drawProfile();
-      buildLegend(); buildKey(); fmtIdx(); paintTransport(); renderInfo(); loadProfiles();
+      buildLegend(); buildKey(); fmtIdx(); paintTransport(); loadProfiles();
+      if(active<0) updateInfo(null); else renderInfo();   // the feature rows from the start (empty), so the first click keeps the height
       if(m.web_control && m.web_control.web_ws && window.DarkWebControl) DarkWebControl.configure(m.web_control.web_ws);
       if(!pulsars.length) setConn("waiting","connected · no scatter (Save Project to enable)");
       return;
@@ -959,7 +971,17 @@ document.getElementById("wc-track").onclick = ()=>{
 // single-target ticking would free the others after ~0.45s); fallback = the active one.
 // Ported from dark_nova's l1Targets/scrubNav (true standalone polyphony, 2026-07-20).
 function l1Targets(){ return parentSet.size ? [...parentSet] : (active>=0?[active]:[]); }
-function scrubNav(fx){ l1Targets().forEach(t=>sendNav("l1", t, fx)); }
+// A HELD LEGEND CHIP OWNS THE SOUND (2026-10-05): SC's preview frees the L1 voices and plays its grain cloud, and every
+// l1 message would mute that preview and re-create the voices (~cookL1). So the L1 sends pause while a chip is held;
+// the sweep's clock keeps running, and l1AfterHold() puts L1 back the moment the chip is released.
+function scrubNav(fx){ if(_holds>0) return; l1Targets().forEach(t=>sendNav("l1", t, fx)); }
+// on release SC's "end" restores the L0 grain cloud, so L1 is put back at once: sounding -> the voices at the line,
+// stopped -> one l1 message for no pulsar (idx -1), which only re-mutes the cloud (~cookL1 allocates nothing)
+function l1AfterHold(){
+  if(_holds>0 || curLevel!=="l1" || wcConnected()) return;
+  if(l1Sounding() && scrub!=null && l1Targets().length) scrubNav(scrub);
+  else sendNav("l1", -1, scrub ?? 0);
+}
 // THE L1 SOUND IS OWNED BY THE TRANSPORT (2026-10-04). SC frees an L1 voice 0.45 s after its last message; the
 // page used to keep the voices alive with an unconditional 200 ms timer whenever it was at L1, so L1 "auto-played".
 // Now the page sends only while it is SOUNDING: the player's tick while Play is on (one message per target per
@@ -1036,7 +1058,7 @@ function sendLegend(o){ if(ws && ws.readyState===1) ws.send(JSON.stringify(Objec
 function bindHold(el, down, up){
   el.addEventListener("pointerdown", e=>{
     e.preventDefault(); el.classList.add("holding"); legBadge(true); down();
-    const end=()=>{ el.classList.remove("holding"); legBadge(false); up();
+    const end=()=>{ el.classList.remove("holding"); legBadge(false); up(); l1AfterHold();   // after "end": L1 back
       window.removeEventListener("pointerup", end); window.removeEventListener("pointercancel", end); };
     window.addEventListener("pointerup", end); window.addEventListener("pointercancel", end);
   });
@@ -1136,8 +1158,9 @@ function playApply(i){
   _playIdx = _loopOn ? ((i%t)+t)%t : Math.max(0, Math.min(t-1, i));
   if(curLevel==="l1"){
     const ph = t>1 ? _playIdx/(t-1) : 0;                 // phase fraction across the profile
+    _phaseFrom=ph; _playStart=performance.now();         // a running sweep carries on from the new line (as a drag does)
     if(wcConnected()) DarkWebControl.axes({pad_x: ph});  // GUI maps X -> the L1 phase index
-    else if(l1Targets().length){ scrub=ph; _phaseFrom=ph; _playStart=performance.now(); drawProfile(); renderInfo(); scrubNav(ph); }
+    else if(l1Targets().length){ scrub=ph; drawProfile(); renderInfo(); scrubNav(ph); }
     fmtIdx();
   } else {
     navTo(_playIdx);                                      // navTo syncs _playIdx + fmtIdx
@@ -1188,8 +1211,10 @@ try{
   };
 }catch(e){ console.warn("[darkpulsar] no Worker clock:", e); setInterval(()=>{ if(_playing) plTick(performance.now()); else if(l1Sounding() && scrub!=null) scrubNav(scrub); }, 100); }
 window.__plClock = __plClock;
-function plGoto(i){ plStop(); playApply(i); }
-function plStep(d){                                 // ◀ ▶: a pulsar at L0; at L1 the line moves by one spotlight half-width
+// ⏮ ‹ › ⏭ and the slider: at L0 they stop a stepping run and go to the pulsar; at L1 they move the line and a running
+// sweep KEEPS PLAYING from there (Miguel 2026-10-05; they used to stop it: half a second of sound, then silence)
+function plGoto(i){ if(!(curLevel==="l1" && _playing)) plStop(); playApply(i); }
+function plStep(d){                                 // ‹ ›: a pulsar at L0; at L1 the line moves by one spotlight half-width
   if(curLevel==="l1") plGoto(_playIdx + d*Math.round(SPOT_HALF*((nBins||1)-1)));
   else plGoto(_playIdx + d);
 }
@@ -1260,11 +1285,16 @@ function setupPanel(){
   document.getElementById("lens-trail").onclick=()=>{ lensTrail=!lensTrail; paintLens(); drawTrail(); saveState(); };
   document.getElementById("lens-live").onclick=()=>{ lensLive=!lensLive; paintLens(); drawProfile(); saveState(); };
   document.getElementById("lens-spot").onclick=()=>{ lensSpot=!lensSpot; paintLens(); drawProfile(); saveState(); };
+  // L, T and i work after a slider, the loop box or a button; only a field you type into keeps the letters (the sweep
+  // seconds). The style kit's own T skips every INPUT, so on a slider or the loop box the page cycles the look itself.
+  const typingIn = t => !!t && (t.isContentEditable || /^(SELECT|TEXTAREA)$/.test(t.tagName)
+    || (t.tagName==="INPUT" && !/^(range|checkbox|radio|button)$/i.test(t.type)));
   window.addEventListener("keydown", e=>{
-    if(e.target && /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
+    if(typingIn(e.target)) return;
     if(e.metaKey||e.ctrlKey||e.altKey) return;
     if(e.key==="l"||e.key==="L") toggleLegend();
     if(e.key==="i"||e.key==="I") setSide(document.body.classList.contains("side-closed"));
+    if((e.key==="t"||e.key==="T") && e.target && e.target.tagName==="INPUT" && window.DarkStyle) DarkStyle.cycle();
     if(e.key==="Escape" && brushMode) setBrushMode(brushMode);   // toggle off
   });
   if(window.DarkStyle){ DarkStyle.control(document.getElementById("ds-looks"), { btnClass:"wbtn" }); DarkStyle.keys(); }   // LOOK: dark · light · paper (T)
