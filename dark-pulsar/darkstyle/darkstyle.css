@@ -1,0 +1,231 @@
+/* =============================================================================================
+   darkstyle.css — three looks for Dark Sonification displays (kit v1, 2026-09-28)
+
+     dark   the displays as they are: every value below is the one dark_ocean's page used before the
+            kit (checked pixel for pixel), so a design that adopts the kit looks exactly the same in dark
+     light  the same display on a light ground, same fonts and layout
+     paper  Miguel's own visual language (crozzoli.com, the web landing page): warm paper with a grain,
+            aubergine ink, ochre gold, olive, ink-blue, peach and butter washes, Karla + Rubik
+
+   The look is chosen on <html data-theme="…">, by darkstyle.js (URL ?theme=, then the last choice,
+   then dark). Every colour a page draws with is one of these tokens: CSS reads var(--ds-…), canvas code
+   reads DarkStyle.tok("--ds-…") or DarkStyle.tokens(). Data colours (identity sets, ramps) are in
+   darkstyle.js, validated per look against that look's own ground (README, specimen.html).
+
+   Source of truth: projects/web/style/. Designs carry a copy (sync.py) so they stay self-contained.
+   ============================================================================================= */
+
+:root, [data-theme="dark"] {
+  /* grounds and text */
+  --ds-bg: #080b16;            /* the page, and the gaps between panels */
+  --ds-panel: #0e1224;         /* header, side panel, transport */
+  --ds-raised: #10152e;        /* a box inside a panel (the status line) */
+  --ds-line: #20264a;          /* dividers */
+  --ds-edge: #1a2140;          /* a docked panel's outer edge (the legend) */
+  --ds-txt: #c8d0ee;
+  --ds-txt-hi: #ffffff;        /* headings, a held chip */
+  --ds-dim: #5f6a8c;           /* secondary text, keys */
+  --ds-label: #8a97c4;         /* chart labels: axes, wheel years */
+  --ds-chart-txt: #c9d3ee;     /* text inside a chart (the wheel's centre) */
+
+  /* the accent: what is selected, active, followed */
+  --ds-cur: #ffe08a;           /* an active control's fill */
+  --ds-cur-line: #ffe08a;      /* … and its border */
+  --ds-on-cur: #0a0d18;        /* text on that fill */
+  --ds-cur-txt: #ffe08a;       /* the accent as text (a selected tick, "press ♪") */
+  --ds-accent: #ffe08a;        /* range sliders (accent-color) */
+  --ds-ring: #ffe08a;          /* focus / hover rings on a map or a wheel */
+  --ds-ring-halo: rgba(0, 0, 0, 0);   /* a halo under the ring (none on dark) */
+
+  /* controls */
+  --ds-ctl: #131834;
+  --ds-ctl-line: #262d54;
+  --ds-ctl-line-hi: #3a4570;
+  --ds-ctl-hover: #141a38;
+  --ds-chip: #11162b;          /* legend chips, small round buttons */
+  --ds-chip-line: #2a3150;
+  --ds-chip-line-hi: #4a5ad0;
+  --ds-chip-hold: #1d2a4a;     /* a chip being held */
+  --ds-tip: #0e1328;           /* an opened explanation */
+
+  /* floating layers */
+  --ds-pop: rgba(8, 11, 22, .93);      /* the hover box */
+  --ds-pop-line: #2a3150;
+  --ds-pop-shadow: none;
+  --ds-glass: rgba(8, 11, 20, 0.62);   /* a widget docked over the map */
+  --ds-glass-hi: rgba(8, 11, 20, 0.78);   /* … a small one that must read at once (a folded chip) */
+  --ds-glass-line: #1b2238;
+  --ds-overlay: rgba(5, 7, 15, 0.95);  /* a full-map overlay */
+  --ds-date-shadow: 0 1px 6px #000;    /* big text over the map */
+
+  /* status (never data) */
+  --ds-ok: #8ce6a8;
+  --ds-ok-line: #2f6a45;
+  --ds-warn-line: #6b5a1f;
+  --ds-danger: #ff6b6b;
+  --ds-gap-mark: #c0605a;      /* data missing from the record */
+  --ds-avail: #34d399;         /* data available (e.g. days with daily data) */
+
+  /* the map, read by canvas code */
+  --ds-map-bg: #05070f;
+  --ds-land: rgba(38, 48, 74, 0.62);
+  --ds-coast: rgba(150, 172, 224, 0.42);
+  --ds-graticule: rgba(130, 150, 210, 0.16);
+  --ds-graticule-dash: none;   /* "none" or a dash list, e.g. "1 5" */
+  --ds-veil: rgba(5, 7, 15, 0.84);     /* dims the field behind a selection */
+  --ds-axis: rgba(130, 150, 210, 0.25);
+  --ds-nb: rgba(178, 74, 224, 0.85);   /* the neighbourhood outline */
+  --ds-brush: rgba(255, 209, 102, 0.95);
+  --ds-brush-path: rgba(255, 209, 102, 0.5);
+
+  /* radial charts (time wheels) */
+  --ds-arc-gap: #0a0e1a;       /* the hairline between arcs, on a docked wheel */
+  --ds-arc-gap-overlay: #080b14;   /* … on a full overlay */
+  --ds-wheel-fill: #141a34;    /* a ring with no data colour (years) */
+
+  /* type and texture */
+  --ds-font-ui: "SF Mono", ui-monospace, Menlo, monospace;
+  --ds-font-canvas: "SF Mono", monospace;
+  --ds-font-display: "SF Mono", ui-monospace, Menlo, monospace;
+  --ds-font-size: 13px;
+  --ds-display-weight: 400;
+  --ds-date-size: 22px;
+  --ds-grain: none;            /* the paper's grain, as a background-image */
+  --ds-ink-filter: none;       /* SVG ink wobble for drawn charts */
+}
+
+[data-theme="light"] {
+  --ds-bg: #e8ecf3;
+  --ds-panel: #fbfcfe;
+  --ds-raised: #f2f5fa;
+  --ds-line: #d5dbe7;
+  --ds-edge: #d5dbe7;
+  --ds-txt: #1b2340;
+  --ds-txt-hi: #0b1230;
+  --ds-dim: #5b6583;
+  --ds-label: #46507a;
+  --ds-chart-txt: #1b2340;
+
+  --ds-cur: #f5c64f;
+  --ds-cur-line: #d9a21b;
+  --ds-on-cur: #1c1605;
+  --ds-cur-txt: #8f6200;
+  --ds-accent: #a86f00;         /* deep enough (≥ 3:1 on white) that the browser keeps the slider track light */
+  --ds-ring: #a86f00;
+  --ds-ring-halo: rgba(255, 255, 255, .95);
+
+  --ds-ctl: #f3f5fa;
+  --ds-ctl-line: #cbd2e0;
+  --ds-ctl-line-hi: #97a1bb;
+  --ds-ctl-hover: #edf0f6;
+  --ds-chip: #f3f5fa;
+  --ds-chip-line: #cbd2e0;
+  --ds-chip-line-hi: #6f7fd6;
+  --ds-chip-hold: #fff1c7;
+  --ds-tip: #f5f7fb;
+
+  --ds-pop: rgba(253, 254, 255, .97);
+  --ds-pop-line: #cdd4e2;
+  --ds-pop-shadow: 0 8px 22px -12px rgba(20, 30, 60, .35);
+  --ds-glass: rgba(251, 252, 254, .82);
+  --ds-glass-hi: rgba(251, 252, 254, .94);
+  --ds-glass-line: #d3d9e6;
+  --ds-overlay: rgba(244, 246, 250, .97);
+  --ds-date-shadow: 0 1px 3px rgba(255, 255, 255, .95);
+
+  --ds-ok: #1e7a4a;
+  --ds-ok-line: #8cc9a6;
+  --ds-warn-line: #d9a21b;
+  --ds-danger: #c8323f;
+  --ds-gap-mark: #c8554c;
+  --ds-avail: #1f9d6a;
+
+  --ds-map-bg: #f4f6fa;
+  --ds-land: rgba(196, 203, 216, .85);
+  --ds-coast: rgba(45, 58, 92, .5);
+  --ds-graticule: rgba(45, 58, 92, .12);
+  --ds-graticule-dash: none;
+  --ds-veil: rgba(244, 246, 250, .84);
+  --ds-axis: rgba(45, 58, 92, .35);
+  --ds-nb: rgba(118, 40, 190, .9);
+  --ds-brush: rgba(168, 111, 0, .95);
+  --ds-brush-path: rgba(168, 111, 0, .5);
+
+  --ds-arc-gap: #fbfcfe;
+  --ds-arc-gap-overlay: #f4f6fa;
+  --ds-wheel-fill: #e2e7f0;
+}
+
+[data-theme="paper"] {
+  --ds-bg: #f3e5da;
+  --ds-panel: #f9f1e9;
+  --ds-raised: #f5ebe2;
+  --ds-line: #e1d0c3;
+  --ds-edge: #e1d0c3;
+  --ds-txt: #33203a;
+  --ds-txt-hi: #1f1224;
+  --ds-dim: #6f5c69;
+  --ds-label: #5e4a5a;
+  --ds-chart-txt: #33203a;
+
+  --ds-cur: #f1dc95;           /* a butter wash … */
+  --ds-cur-line: #c6922c;      /* … edged in ochre gold */
+  --ds-on-cur: #33203a;
+  --ds-cur-txt: #8a5a0e;
+  --ds-accent: #9c6710;         /* the ochre, deepened: a lighter one makes the browser draw a dark slider track */
+  --ds-ring: #9c6710;
+  --ds-ring-halo: rgba(249, 241, 233, .95);
+
+  --ds-ctl: #fbf6f0;
+  --ds-ctl-line: #dcc8ba;
+  --ds-ctl-line-hi: #b09283;
+  --ds-ctl-hover: #f4e9df;
+  --ds-chip: #fbf6f0;
+  --ds-chip-line: #dcc8ba;
+  --ds-chip-line-hi: #a07a8e;
+  --ds-chip-hold: #f6e7b9;
+  --ds-tip: #f6ede5;
+
+  --ds-pop: rgba(250, 244, 238, .97);
+  --ds-pop-line: #dbc6b7;
+  --ds-pop-shadow: 0 10px 24px -14px rgba(51, 32, 58, .45);
+  --ds-glass: rgba(249, 241, 233, .8);
+  --ds-glass-hi: rgba(249, 241, 233, .92);
+  --ds-glass-line: #dfcbbd;
+  --ds-overlay: rgba(243, 229, 218, .97);
+  --ds-date-shadow: 0 1px 0 rgba(249, 241, 233, .9);
+
+  --ds-ok: #4f6a22;
+  --ds-ok-line: #a9bf86;
+  --ds-warn-line: #c6922c;
+  --ds-danger: #b23a4e;
+  --ds-gap-mark: #c85168;
+  --ds-avail: #6d8a3b;
+
+  --ds-map-bg: #f3e5da;
+  --ds-land: rgba(111, 92, 105, .14);
+  --ds-coast: rgba(51, 32, 58, .5);
+  --ds-graticule: rgba(51, 32, 58, .22);
+  --ds-graticule-dash: 1 5;    /* dotted, like the orbits in the drawings */
+  --ds-veil: rgba(243, 229, 218, .86);
+  --ds-axis: rgba(51, 32, 58, .35);
+  --ds-nb: rgba(107, 52, 120, .9);
+  --ds-brush: rgba(156, 103, 16, .95);
+  --ds-brush-path: rgba(156, 103, 16, .5);
+
+  --ds-arc-gap: #f9f1e9;
+  --ds-arc-gap-overlay: #f3e5da;
+  --ds-wheel-fill: #eadbd0;
+
+  --ds-font-ui: "Karla", "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+  --ds-font-canvas: "Karla", "Avenir Next", "Helvetica Neue", sans-serif;
+  --ds-font-display: "Rubik", "Avenir Next", "Helvetica Neue", sans-serif;
+  --ds-font-size: 13.5px;
+  --ds-display-weight: 300;
+  --ds-date-size: 28px;
+  --ds-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .27 0 0 0 0 .24 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E");
+  --ds-ink-filter: url(#ds-ink);
+}
+
+/* the look control darkstyle.js builds (DarkStyle.control): three buttons in one row */
+.ds-looks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }

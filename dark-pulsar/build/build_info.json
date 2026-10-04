@@ -1,0 +1,100 @@
+{
+  "built": "2026-10-04 23:53:27",
+  "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
+  "sources": {
+    "viz/index.html": "acb81d2105546bb2",
+    "viz/darkstyle/KIT.json": "8ca3b7f24a0bf80c",
+    "viz/darkstyle/darkstyle.css": "a2c1507972554138",
+    "viz/darkstyle/darkstyle.js": "a5a154247a75ed38",
+    "sc/darkpulsar_synths.scd": "22a30dbd482e3d05",
+    "sc/parse_darkpulsar.scd": "e1784cfa1bd1e9bc",
+    "lab/SoundDesign_Explanation/data.json": "9a4e7d2db0cda753",
+    "deploy/make_bundle.py": "b6b4e6fc0dbff883"
+  },
+  "patches": [
+    "the tab's title and a description (the page is the site's shell for this design)",
+    "d3 vendored: cross-origin isolation blocks the d3js.org CDN",
+    "web_control.js only links to the darkui GUI, which does not exist on the web; web_page.js (the service worker for the isolation headers, the in-tab transport and the engine) takes its place",
+    "the transport: the page's socket is the in-tab SuperCollider engine (engine.js) instead of a WebSocket to viz/bridge.py; everything else in connect() is unchanged (the engine delivers `init` through ws.onmessage)",
+    "the profiles: the engine decodes data/profiles.u16 once (it also feeds SuperCollider from it); the page draws from the same Float32Array instead of fetching assets/profiles.f32",
+    "the title links to the about page: credits, data and licences (a new tab, so the sound keeps playing)"
+  ],
+  "sc_patches": [
+    {
+      "file": "darkpulsar_synths.scd",
+      "why": "thisProcess.nowExecutingPath is nil when code reaches sclang through runCode (no file); the paths are never used for anything that works here (Buffer.read has no libsndfile in this build: lab/PORTING_LOG.md §1)"
+    },
+    {
+      "file": "darkpulsar_synths.scd",
+      "why": "the ( ) block fork-wrapped; ~webSynthsReady appended"
+    }
+  ],
+  "generated": [
+    "data/init.json.gz",
+    "data/profiles.u16",
+    "data/aa_blocks.u16",
+    "data/aa_blocks.json",
+    "sc/web_tables.scd",
+    "index.html",
+    "darkstyle/",
+    "sc/darkpulsar_synths.scd",
+    "sc/parse_darkpulsar.scd",
+    "about.html",
+    "SOURCES.txt",
+    "vendor/d3.v7.min.js"
+  ],
+  "hand_written": [
+    "web_page.js",
+    "engine.js",
+    "osc.js",
+    "coi-sw.js",
+    "sc/web_boot.scd",
+    "sc/web_buffers.scd"
+  ],
+  "data": {
+    "built": "2026-10-04 23:53:27",
+    "bridge_sha": "8098f72b7c33394b",
+    "files": {
+      "init.json.gz": {
+        "raw": 833536,
+        "gz": 215408,
+        "pulsars": 1297,
+        "views": [
+          "period s × period dot",
+          "ra deg × dec deg",
+          "UMAP 1 × UMAP 2"
+        ],
+        "legend_drivers": [
+          "pitch",
+          "energy",
+          "cutoff",
+          "field",
+          "age",
+          "loud"
+        ]
+      },
+      "profiles.u16": {
+        "bytes": 2656256,
+        "pulsars": 1297,
+        "bins": 1024,
+        "encoding": "uint16 over [-1, 1]: v = u / 65535 * 2 - 1",
+        "max_error": 1.537755542146968e-05
+      },
+      "aa_blocks.u16": {
+        "bytes": 94944,
+        "blocks": 46
+      },
+      "sc/web_tables.scd": {
+        "bytes": 94309,
+        "spin_hz": 1297,
+        "drivers_logpos": 5188
+      }
+    },
+    "seconds": 0.5
+  },
+  "credits": {
+    "epn_papers": 45,
+    "atnf_refs": 162,
+    "pulsars": 1297
+  }
+}
