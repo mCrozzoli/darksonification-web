@@ -14,8 +14,9 @@ the code moved here as it was (the transport calls aside), so the three harnesse
 byte for byte. viz/bridge.py is now the SHELL around it (HTTP, the WebSocket loop, python-osc, the
 loaders, the GUI link) and the web version runs this same file in the browser (Pyodide). Hence:
 
-  * STANDARD LIBRARY ONLY (bisect, math, time), and importing it does nothing: no file, no socket,
-    no print.
+  * STANDARD LIBRARY ONLY (bisect, hashlib, json, math, time), and importing it does nothing: no
+    file, no socket, no print. (hashlib + json since P54 V1, 2026-10-04: the push tier's load-time
+    check fingerprints each room's mode table; both are in Pyodide's stdlib.)
   * THE TRANSPORT IS INJECTED, never imported:
         bind(send_osc, send_json=None, broadcast=None, osc_live=None)  -> the binding it replaced
             send_osc(addr, args)    python-osc style. Every arg keeps its Python type - a float stays
@@ -42,6 +43,8 @@ web maps the same ids to its Opus files.
 """
 from __future__ import annotations
 import bisect
+import hashlib
+import json
 import math
 import time
 
@@ -136,7 +139,7 @@ RW_STAT_DEFAULT = "gradient"              # the shipped default, kept separate f
 RW_STAT = RW_STAT_DEFAULT                 # theta statistic in force: gradient | variance
 RW: dict = {}                             # level -> {"points","arp","corpus","ident"}
 RW_SUBSET = {"L0": "all:2023-2026", "L1": "all:2023-2026"}
-RW_LAST_IDENT = None                      # (table channel, level, subset) actually sent
+RW_LAST_IDENT = None                      # (table channel, level, subset, body key) actually sent
 # THE TABLES ARE PER CHANNEL (2026-09-26). They used to be built from the AIR recorder only and
 # RW had no channel, so navigating the WATER channel played air's drone, clave, BirdNET chord
 # and bird clip for the same (date, window) - 2374 of 2379 water windows, a blackbird on water
@@ -240,6 +243,7 @@ def load_rw(stat: str = RW_STAT_DEFAULT, tchan: str = None):
     RW.clear(); RW.update(built); RW_STAT = stat; RW_TCHAN = tch
     RW_TABLE_CHANNELS.add(tch)
     _rw_push_bind(tch)                   # the push views follow the tables in force
+    _rw_apply_recipe()                   # ...and so do the body anchor + gates (P54, fix 2026-10-04)
     return True
 
 
@@ -264,22 +268,23 @@ def rw_send_identity(level: str, subset: str):
     # each tuned on its own channel's ruler (at L1 all:2023-2026's comb is 153.0 Hz on air and
     # 129.0 Hz on water; year:2024's 154.9 vs 93.9 Hz) - pitch compares within a channel only. Keyed on (level, subset) alone, the first water point
     # after an air one in the same room would play water's gains on AIR's mode table and comb.
-    if (RW_TCHAN, level, subset) == RW_LAST_IDENT:
-        return
+    # THE READING'S BODY IS PART OF IT TOO (P54 V1, fix 2026-10-04). Pre-P54 the two readings of a
+    # room shared one mode table and comb (only the resting gains differed), so (channel, level,
+    # subset) named the body. Under V1 each reading has its OWN: the amps differ by up to ~295x
+    # and the comb by up to 14 Hz (air L0), the freqs, base and clave base stay equal. Keyed
+    # without it, a reading switch on a sounding point re-voiced the new reading's gains on the
+    # OLD reading's amps, rings and comb until the room changed. So the key carries the body
+    # (_rw_body_key: modes, comb, base, clave base - NOT the resting gains), and a reading change
+    # whose body differs re-sends the room in the same burst as /rw_drone + /rw_point, as a room
+    # change does. Where the two bodies are equal (every pre-P54 table, the archive rollback) the
+    # key does not change and nothing extra is sent: the old stream, byte for byte.
     ident = RW[level]["ident"].get(subset)
     if ident is None:
         return
-    modes = ident["modes"]                       # [[freq, amp], ...]
-    # An older table has no resting body; all-ones is exactly the previous behaviour, so the
-    # fallback is silent and correct. Clamped like the point gains are, because a NaN in
-    # setn(\gains, ...) corrupts the body for as long as it is held.
-    rest = ident.get("rest") or [1.0] * len(modes)
-    rest = [float(g) if isinstance(g, (int, float)) and g == g and abs(g) != float("inf")
-            else 1.0 for g in rest][:len(modes)]
-    rest += [1.0] * (len(modes) - len(rest))
-    args = [level, subset, float(ident["comb"]),
-            float(ident["base_freq"]), float(ident["clave_base"]), int(len(modes))]
-    args += [float(m[0]) for m in modes] + [float(m[1]) for m in modes] + rest
+    body = _rw_body_key(ident)
+    if (RW_TCHAN, level, subset, body) == RW_LAST_IDENT:
+        return
+    args = _rw_ident_args(level, subset, ident)
     try:
         _SEND_OSC("/rw_identity", args)
     except OSError:
@@ -298,7 +303,35 @@ def rw_send_identity(level: str, subset: str):
         if not RW_MIX_USER:
             RW_MIX[:] = RW_MIX_DEFAULTS[level]
         rw_send_mix()
-    RW_LAST_IDENT = (RW_TCHAN, level, subset)
+    RW_LAST_IDENT = (RW_TCHAN, level, subset, body)
+
+
+def _rw_ident_args(level: str, subset: str, ident) -> list:
+    """The /rw_identity arguments of one room's table ident - ONE copy of this arithmetic, used by
+    rw_send_identity and by an off-reading hold's body load (P54 V1, rw_preview_hold), so a hold
+    sends the other reading's room exactly as a reading switch would."""
+    modes = ident["modes"]                       # [[freq, amp], ...]
+    # An older table has no resting body; all-ones is exactly the previous behaviour, so the
+    # fallback is silent and correct. Clamped like the point gains are, because a NaN in
+    # setn(\gains, ...) corrupts the body for as long as it is held.
+    rest = ident.get("rest") or [1.0] * len(modes)
+    rest = [float(g) if isinstance(g, (int, float)) and g == g and abs(g) != float("inf")
+            else 1.0 for g in rest][:len(modes)]
+    rest += [1.0] * (len(modes) - len(rest))
+    args = [level, subset, float(ident["comb"]),
+            float(ident["base_freq"]), float(ident["clave_base"]), int(len(modes))]
+    args += [float(m[0]) for m in modes] + [float(m[1]) for m in modes] + rest
+    return args
+
+
+def _rw_body_key(ident) -> str:
+    """What a room's /rw_identity puts in the engine's BODY - its modes (freqs, amps; the rings
+    follow from the amps), comb, base and clave base - as one short key. The resting gains are
+    left out on purpose: they differ between the readings on every table (pre-P54 too) and only
+    matter before a point is committed, which rw_set_stat's resting branch already handles."""
+    blob = json.dumps([ident.get("modes"), ident.get("comb"), ident.get("base_freq"),
+                       ident.get("clave_base")], separators=(",", ":"))
+    return hashlib.sha256(blob.encode()).hexdigest()[:16]
 
 
 # WHICH LAYERS A LEGEND ROW IS ENTITLED TO SOUND - the table is RW_ROW_SPEC, further down.
@@ -710,9 +743,34 @@ RW_SC_BAR_CLIP = (0.25, 1.6)
 # d_db_est below LINEARISES that single point. The body is a Legendre function of theta and
 # is certainly not linear in it, so every UI string built from this number must carry "~".
 RW_DB_PER_PI = 5.90
+# P54 V1 (2026-10-04): RE-MEASURED, with the method above (dev/renders/legend_hear/README.md s3:
+# drone alone, one held state per render, 12 s after an 11 s settle, 40 ERB/roex filters
+# 40-2000 Hz, six bow seeds paired; the rebuilt script reproduces the shipped 5.90 as 5.901 and
+# the 0.60 null as 0.58). Under V1 the drone is a function of the row too, so the axis is each
+# row's OWN content at rank 0 vs rank n-1 (a drone row's lo -> hi push), over 12 rows of
+# all:2023-2026 L1 spread by gradient rank: 8.07-8.19 dB, median 8.085 -> 8.09. The matched
+# nulls on the V1 states: 0.41 dB drone alone (540 pairs, worst 1.25) and 0.49 dB in the full
+# mix (render_legend_layer's colour-grid null on the V1 resting body, 675 pairs, worst 1.13;
+# the same harness gives 0.776 on the shipped body, the quoted 0.78). Linearising is CRUDER
+# under V1 and the "~" is load-bearing: a row's own state to an end of the axis (the 24 drone
+# pushes of those 12 rows) measured a median 4.6 dB MORE than the line says, and up to 12.8 dB
+# where it says ~2.4 - near either end the ring approaches a pole, where only the zonal (m = 0)
+# tones survive, so the last steps are steep. The body gate therefore errs towards "inaudible".
+# Record: dev/renders/p54_options/meas/axis.json + mixnull_*.json, made by
+# dev/precompute/p54/meas/meas_body.py (its README gives the run recipe); lab/DECISIONS.md P54 V1.
+# The anchor and the body gates follow the RECIPE of the side file in force (_rw_apply_recipe),
+# so pre-P54 tables (and the RW_WEIGHT_MODE=archive rollback) keep 5.90 / 0.102 / 0.132 exactly.
+RW_ANCHOR_BY_RECIPE = {
+    "archive":  {"db_per_pi": 5.90, "null_solo_db": 0.60, "null_mix_db": 0.78,
+                 "solo": 0.102, "mix": 0.132},
+    "own_band": {"db_per_pi": 8.09, "null_solo_db": 0.41, "null_mix_db": 0.49,
+                 "solo": 0.051, "mix": 0.060},
+}
+RW_RECIPE = "archive"                      # the drone recipe of the push side file in force
 # AUDIBILITY GATES. `basis` is on the wire because risk 5 of the brief is that a convention
 # gets quoted as a finding. The body gates are the matched null re-bowing ONE state: 0.60 dB
-# rms drone-alone and 0.78 dB in the full mix, converted through RW_DB_PER_PI.
+# rms drone-alone and 0.78 dB in the full mix, converted through RW_DB_PER_PI (pre-P54; under
+# P54 V1 0.41 / 0.49 dB through 8.09 - RW_ANCHOR_BY_RECIPE, applied by _rw_apply_recipe).
 RW_GATES = {
     "body_solo": {"threshold": 0.102, "unit": "rank01", "basis": "measured",
                   "note": "0.60 dB rms matched null, drone alone"},
@@ -727,6 +785,40 @@ RW_GATES = {
     "metre":     {"threshold": 1, "unit": "ticks", "basis": "convention",
                   "note": "any integer change; not yet measured at the ear"},
 }
+
+
+def _rw_side_recipe(side) -> str:
+    """The drone recipe one push side file was built with ("recipe" absent = 'archive')."""
+    return ((side or {}).get("recipe") or {}).get("content_weight_mode") or "archive"
+
+
+def _rw_apply_recipe(recipe: str = None) -> str:
+    """Put the body anchor and the two body gates of a drone recipe in force (P54 V1). Called
+    whenever the push side files are (re)derived AND whenever load_rw puts a channel's tables in
+    force (a water press switches the channel; fix 2026-10-04 - the anchor used to stay the boot
+    channel's). The recipe is the in-force channel's: the one its side files AGREE on - those
+    whose derive passed, else every one loaded. Not "any level": side files that disagree
+    (only reachable by re-deriving one level by hand; load_rw_push refuses a mixed set) fall
+    back to 'archive' and say so. In place, so a reply's `gates` and every reader of RW_GATES see
+    the same dict; under 'archive' every value is exactly the pre-P54 one."""
+    global RW_DB_PER_PI, RW_RECIPE
+    if recipe is None:
+        live = {_rw_side_recipe(sd) for lv, sd in RW_PUSH.items()
+                if sd is not None and RW_PUSH_OK.get(lv)}
+        seen = live or {_rw_side_recipe(sd) for sd in RW_PUSH.values() if sd is not None}
+        recipe = next(iter(seen)) if len(seen) == 1 else "archive"
+        if len(seen) > 1:
+            print(f"  [rw:push:{RW_TCHAN}] *** the side files in force name different drone "
+                  f"recipes - body anchor + gates fall back to the pre-P54 values")
+    a = RW_ANCHOR_BY_RECIPE.get(recipe) or RW_ANCHOR_BY_RECIPE["archive"]
+    RW_DB_PER_PI = a["db_per_pi"]
+    RW_RECIPE = recipe if recipe in RW_ANCHOR_BY_RECIPE else "archive"
+    tail = "" if RW_RECIPE == "archive" else " (P54 V1 re-measure)"
+    RW_GATES["body_solo"].update(threshold=a["solo"],
+                                 note=f"{a['null_solo_db']:.2f} dB rms matched null, drone alone{tail}")
+    RW_GATES["body_mix"].update(threshold=a["mix"],
+                                note=f"{a['null_mix_db']:.2f} dB rms matched null, full mix{tail}")
+    return RW_RECIPE
 
 # ---- THE ROW VOCABULARY ------------------------------------------------------------------
 # A CLOSED vocabulary: fifteen ids, and an unknown one is printed and ignored rather than
@@ -775,17 +867,22 @@ for _f, _lab in (("aci", "ACI · Acoustic Complexity"),
                                         "stat": None, "dirs": ("lo", "hi"), "label": _lab}
 # ONE PUSH SEEN FROM TWO LAYERS. Four data slots over three near-independent statistics means
 # the theta statistic is always read twice, and under the shipped gradient reading it is read
-# by the body AND by the metre. WHERE THAT IS EXACT (corrected 2026-10-01, TASKS P48): on every
-# WINDOW point of every subset - air and water, L0 month x time of day and L1 - the accent is
-# round(7 - 5*r/(n-1)) for the point's gradient rank r of n, i.e. round(7 - 5*theta/pi) with
-# theta = pi*r/(n-1). (Recomputed from the STORED theta instead, it tips the other way where
-# 5*r/(n-1) is exactly a half: 4 of air's 8,355 L1 points, 2 + 2 on water.) It does NOT hold on
-# the MONTH ROLL-UPS, the bare "year|month" L0 keys: their accent is the rounded mean of their
-# times of day's accents (dev/precompute/sh_identity.py), which for 12 of air's 202 roll-ups (10
-# of water's 204) differs from round(7 - 5*theta/pi) (lab/LEGEND_REFERENCE.md). The push tier
-# never runs on a roll-up (_rw_row_block refuses a month), so the `twin` it reports is always
-# the exact one. If the UI renders those as two unrelated rows, a reader hears one push twice
-# and concludes the display is broken. Both rows carry `twin`.
+# by the body AND by the metre. WHERE THAT IS EXACT (corrected 2026-10-01, TASKS P48; restated in
+# RANK form 2026-10-04, P54 V1): on every WINDOW point of every subset - air and water, L0 month x
+# time of day and L1 - the accent is round(7 - 5*r/(n-1)) for the point's gradient rank r of n.
+# THE RANK FORM IS THE INVARIANT. Before P54 the body sat on the linspace grid,
+# theta = pi*r/(n-1), so it could also be written round(7 - 5*theta/pi); under V1 the body sits
+# on the MIDPOINT grid, theta = pi*(r + 1/2)/n, and that theta form is NO LONGER the accent (the
+# clave still comes from the time-ordered fit, whose rank is r). Recover r from a stored theta
+# with the grid's own inverse (_rw_theta_rank: round(n*theta/pi - 1/2) on the midpoint grid,
+# round(theta*(n-1)/pi) on linspace), never with the other grid's. It does NOT hold on the MONTH
+# ROLL-UPS, the bare "year|month" L0 keys: their accent is the rounded mean of their times of
+# day's accents (dev/precompute/sh_identity.py), so it differs from round(7 - 5*r/(n-1)) for any
+# one rank on some roll-ups (12 of air's 202, 10 of water's 204 on the pre-P54 tables;
+# lab/LEGEND_REFERENCE.md). The push tier never runs on a roll-up (_rw_row_block refuses a
+# month), so the `twin` it reports is always the exact one. If the UI renders those as two
+# unrelated rows, a reader hears one push twice and concludes the display is broken. Both rows
+# carry `twin`.
 RW_TWINS = {"gradient": ("drone.gradient", "clave.metre"),
             "variance": ("drone.variance", "clave.tempo")}
 
@@ -838,7 +935,11 @@ RW_PREVIEW_BED_FORCE_CLAVE = True
 #       this is what low/high variance sounds like in the body". Measured over all 2,388
 #       terrain rows of all:2023-2026: median |d theta| ~2.95 dB (p10 0.59, p90 5.31) and
 #       2,144/2,388 = 89.8% clear the drone-alone gate, lo and hi alike, against 0.00 dB on
-#       2,388/2,388 today. It is the only option where the row's three chips form ONE
+#       2,388/2,388 today (PRE-P54 figures, measured on the pre-P54 tables). UNDER P54 V1 the
+#       two readings also have two BODIES (mode amps, rings, comb), so the hold loads the
+#       other reading's body for its length - its /rw_identity - and gives yours back on
+#       release (rw_preview_hold / rw_preview_release; decided 2026-10-04, fix round 3).
+#       It is the only option where the row's three chips form ONE
 #       statement - "same" is your own ranks under the other reading, lo/hi are that
 #       reading's extremes - and the only one where the row teaches what its label says.
 #       THE HONEST OBJECTION: the row then does two things at once (it switches the reading
@@ -863,6 +964,43 @@ RW_DRONE_OFFREADING = "switch"
 #      from the engine on numbers it already ships.
 #   3. the clave triple is identical in both readings (max |d| = 0.000e+00 on all 11 subsets),
 #      so "hold the other reading" is a pure drone-payload swap out of the other table.
+#      (PRE-P54 ONLY in its second half: the swap was complete because the two readings shared
+#      one body. Under V1 the clave triple is still identical but the bodies are not - see the
+#      P54 notes below and _rw_reading_body_differs.)
+# P54 V1 (2026-10-04) - FACT 1 NO LONGER HOLDS, FACT 2 DOES (on the right grid), FACT 3 ONLY FOR
+# THE CLAVE (the two readings' bodies differ; fix 2026-10-04, see rw_set_stat / _rw_row_block):
+#   * a row's drone is its OWN BAND (its sixteen values centred on the room's per-measure means,
+#     at its ring) x the seesaw at its rank, so a payload is a function of (subset, row, rank),
+#     not of (subset, rank). DECISION (Miguel's delegation, 2026-10-04): a pushed point's drone
+#     is the listener's OWN content at the ring of its NEW rank, with the seesaw at that rank,
+#     through the precompute's own post-processing (normalise, contrast k, pressure re-centred on
+#     the level's stored strength range, the rendered-power pin). The only rows that SEND a
+#     drone are the drone rows, and they move a rank, never a value, to rank 0 or n-1 of a
+#     reading - a finite set - so rw_push.py precomputes exactly those two payloads per point
+#     and reading (the side file's "drone"), checked there bit for bit against the tables on
+#     every row at its own rank. `direction == "same"` is still a lookup (the row's own
+#     payload in the other table) - but under V1 that payload is pinned on the OTHER reading's
+#     body (its own mode amps and comb), and so are the off-reading lo/hi targets. So wherever
+#     the two readings' bodies differ, a hold of the off-reading row first sends that reading's
+#     room (/rw_identity, the bytes a reading switch sends) and its release sends yours back
+#     before your own payload (2026-10-04, fix round 3: the interim refusal of fix round 2 is
+#     gone). Holding the other reading on a row is then navigating that row under the other
+#     reading, after the identity's 4 s glide. Why not compute it here: the loudness pin integrates the
+#     whole transfer function on a 23,600-point grid - measured 0.8 s per press in stdlib
+#     CPython, ~3.7 h to re-check air's 16,710 L1 points at load, and slower again in the web's
+#     Pyodide.
+#   * theta is on the MIDPOINT grid, pi*(r + 1/2)/n, so the rank inverse is round(n*theta/pi
+#     - 1/2) (_rw_theta_rank). The linspace inverse round(theta*(n-1)/pi) lands only by a margin
+#     of 1/(2n) there, which the tables' 5-decimal theta breaks on long rooms (1 row at n=904,
+#     5 at 2388, 2 at 2379). Which grid is read off the side file's "recipe" and VERIFIED against
+#     the tables' thetas, room by room, at load (_rw_push_derive_into).
+# The load-time guard for the drone half: every room's mode table must hash to the side file's
+# "drone_ident", every terrain point must carry both targets in both readings, each EXACTLY 1 + the
+# room's mode count long, the two rows that already hold rank 0 and rank n-1 must get back EXACTLY
+# their own table payload, and (fix round 3, 2026-10-04) THE SEAL must hold: the side file's
+# "drone_sha256" / "tables_sha256" equal the hashes recomputed here from the drone half and from the
+# tables in force - so an edited or rotted INTERIOR target, which the end-row identity cannot see,
+# is caught too. Anything else disables the tier with a reason, as the rank self-check always has.
 RW_PUSH: dict = {}          # level -> the parsed side file
 RW_PUSH_DER: dict = {}      # (level, subset) -> the derived per-subset arithmetic
 RW_PUSH_OK: dict = {}       # level -> did the load-time self-check pass?
@@ -902,6 +1040,42 @@ def _rw_diel_sort(key: str):
             else (int(p[0]), int(p[1]), w))
 
 
+def _rw_theta_rank(theta: float, n: int, grid: str) -> int:
+    """The rank a table theta stands for, on the grid the body was laid out on.
+        'midpoint' (P54 V1, own_band):   theta = pi (r + 1/2) / n    ->  r = n theta / pi - 1/2
+        'linspace' (pre-P54, archive):   theta = pi r / (n - 1)      ->  r = theta (n - 1) / pi
+    Clamped to 0..n-1. Never use one grid's inverse on the other's thetas (pitfall 3)."""
+    if grid == "midpoint":
+        r = int(round(float(theta) * n / math.pi - 0.5))
+    else:
+        r = int(round(float(theta) * (n - 1) / math.pi))
+    return max(0, min(n - 1, r))
+
+
+def _rw_grid_residual(thetas, n: int, grid: str) -> float:
+    """How far a room's table thetas sit off a grid, in rank units (worst row). On the right grid
+    it is the 5-decimal rounding of theta, <= n * 0.5e-5 / pi (0.004 at n = 2388); on the wrong
+    grid it is O(0.5) for most rooms."""
+    worst = 0.0
+    for th in thetas:
+        x = float(th) * n / math.pi - 0.5 if grid == "midpoint" else float(th) * (n - 1) / math.pi
+        worst = max(worst, abs(x - round(x)))
+    return worst
+
+
+def _ident_digest(ident_entry) -> str:
+    """sha256[:16] of one room's table ident (its modes and comb), exactly as rw_push.py's
+    ident_digest computes it from the same JSON."""
+    blob = json.dumps([ident_entry["modes"], ident_entry["comb"]], separators=(",", ":"))
+    return hashlib.sha256(blob.encode()).hexdigest()[:16]
+
+
+def _canon_sha(obj) -> str:
+    """sha256 of the canonical JSON of `obj`, exactly as rw_push.py's canon_sha seals it (stdlib json
+    round-trips every float, NaN included, so the bytes are the precompute's)."""
+    return hashlib.sha256(json.dumps(obj, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
 def _rank_against(sorted_vals, own, x, n):
     """Where x lands in a population the row's own value has been taken out of."""
     pos = bisect.bisect_left(sorted_vals, x)
@@ -920,6 +1094,7 @@ def _rw_push_derive(level: str, tchan: str = None) -> bool:
         return _rw_push_derive_into(level, tch)
     finally:
         _rw_push_bind(RW_TCHAN)
+        _rw_apply_recipe()                      # the in-force channel's recipe (P54)
 
 
 def _rw_push_derive_into(level: str, tch: str) -> bool:
@@ -934,12 +1109,26 @@ def _rw_push_derive_into(level: str, tch: str) -> bool:
     tables. Over tolerance means the side file and the tables were built from different data -
     print a loud line and DISABLE the tier, rather than serve wrong sound. Baseline drift from
     the quantisation plus stdlib summation order is a handful of ranks out of 2388
-    (0.0024 rank01 = 0.0076 rad = ~0.014 dB linearised, 43x under the 0.60 dB null)."""
+    (0.0024 rank01 = 0.0076 rad = ~0.014 dB linearised, 43x under the 0.60 dB null).
+
+    P54 V1: the grid the ranks are read on comes from the side file's "recipe" (absent = the
+    pre-P54 linspace grid) and is VERIFIED room by room against the tables' own thetas; the
+    drone half ("drone", "drone_ident") gets its own exact check (_rw_push_check_drone). A side
+    file and tables from two recipes disable the tier."""
     push = RW_PUSH.get(level)
     tg, tv = _rw_tables("gradient", tch), _rw_tables("variance", tch)
     if not push or tg is None or tv is None or level not in tg:
         RW_PUSH_OK[level] = False
         RW_PUSH_WHY[level] = "the push side file or the drone tables are missing"
+        return False
+    recipe = push.get("recipe") or {}
+    grid = "midpoint" if recipe.get("lat_grid") == "midpoint" else "linspace"
+    v1 = recipe.get("content_weight_mode") == "own_band"
+    if v1 and not isinstance(push.get("drone"), dict):
+        RW_PUSH_OK[level] = False
+        RW_PUSH_WHY[level] = ("the push side file names the P54 drone but carries no drone half "
+                              "(re-run dev/precompute/rw_push.py)")
+        print(f"  [rw:push:{tch}:{level}] {RW_PUSH_WHY[level]} - tier disabled")
         return False
     scale = float(push["scale"])
     nc = len(push["columns"])
@@ -971,12 +1160,26 @@ def _rw_push_derive_into(level: str, tch: str) -> bool:
         cb = float(tg[level]["ident"][s]["clave_base"])
         # THE OWN RANKS COME FROM THE SHIPPED TABLES, never from the arithmetic above (fact 2),
         # so an unmodified row can never disagree with the engine.
+        # THE GRID IS VERIFIED, not assumed (P54): the side file says which grid it was built
+        # against; the room's own thetas must sit on it (5-decimal rounding only), in both
+        # readings. Tables and side file from two recipes would read every rank off by up to
+        # a row - refused here rather than served.
+        pts_g = [tg[level]["points"][f"{s}@{k}"] for k in ks]
+        pts_v = [tv[level]["points"][f"{s}@{k}"] for k in ks]
+        off = max(_rw_grid_residual([p[0] for p in pts_g], n, grid),
+                  _rw_grid_residual([p[0] for p in pts_v], n, grid))
+        if off > 0.05:
+            print(f"  [rw:push:{tch}:{level}] {s}: the tables' thetas are not on the {grid} grid "
+                  f"the push side file was built for (worst {off:.3f} rank) - tier disabled")
+            RW_PUSH_OK[level] = False
+            RW_PUSH_WHY[level] = ("the drone tables and the push side file were built with two "
+                                  "different drone recipes (re-run dev/precompute/rw_push.py)")
+            return False
         rk = {"gradient": [0] * n, "variance": [0] * n, "mean": [0] * n}
         for i, k in enumerate(ks):
-            pg = tg[level]["points"][f"{s}@{k}"]
-            pv = tv[level]["points"][f"{s}@{k}"]
-            rk["gradient"][i] = max(0, min(n - 1, int(round(pg[0] * (n - 1) / math.pi))))
-            rk["variance"][i] = max(0, min(n - 1, int(round(pv[0] * (n - 1) / math.pi))))
+            pg, pv = pts_g[i], pts_v[i]
+            rk["gradient"][i] = _rw_theta_rank(pg[0], n, grid)
+            rk["variance"][i] = _rw_theta_rank(pv[0], n, grid)
             rk["mean"][i] = max(0, min(n - 1,
                                        int(round(((pg[3] / cb) - 0.65) / RW_CLAVE_SWING * (n - 1)))))
         rank_key = {r: [None] * n for r in ("gradient", "variance")}
@@ -984,9 +1187,10 @@ def _rw_push_derive_into(level: str, tch: str) -> bool:
             for i, k in enumerate(ks):
                 rank_key[r][rk[r][i]] = k
         if any(x is None for r in rank_key for x in rank_key[r]):
-            # theta takes exactly n values on the grid pi*k/(n-1), one per row, so the ranks
-            # are a permutation. If they are not, the table and the side file disagree about
-            # what this subset contains and the drone lookup would land on the wrong row.
+            # theta takes exactly n values on the grid (pi*k/(n-1) linspace, pi*(k+1/2)/n
+            # midpoint), one per row, so the ranks are a permutation. If they are not, the table
+            # and the side file disagree about what this subset contains and the drone lookup
+            # would land on the wrong row.
             print(f"  [rw:push:{tch}:{level}] {s}: table ranks are not a permutation - tier disabled")
             RW_PUSH_OK[level] = False
             RW_PUSH_WHY[level] = "the drone tables and the push side file disagree"
@@ -1006,10 +1210,18 @@ def _rw_push_derive_into(level: str, tch: str) -> bool:
             "keys": ks, "n": n, "nc": nc, "pos": {k: i for i, k in enumerate(ks)},
             "V": V, "mean": mean, "var": var, "grad": grad, "step": step,
             "sorted": {"gradient": sorted(grad), "variance": sorted(var), "mean": sorted(mean)},
-            "rk": rk, "rank_key": rank_key, "clave_base": cb,
+            "rk": rk, "rank_key": rank_key, "clave_base": cb, "grid": grid, "v1": v1,
         }
     tol = max(4, 0.005 * len(rows))
     ok = all(w <= tol for w in worst.values())
+    if ok and v1:
+        why = _rw_push_check_drone(level, tch, push, tg, tv)
+        if why:
+            RW_PUSH_OK[level] = False
+            RW_PUSH_WHY[level] = why
+            print(f"  [rw:push:{tch}:{level}] *** DRONE-HALF CHECK FAILED *** {why}. "
+                  f"THE PUSH TIER IS DISABLED.")
+            return False
     RW_PUSH_OK[level] = ok
     if not ok:
         RW_PUSH_WHY[level] = ("the push side file is out of step with the drone tables "
@@ -1022,8 +1234,87 @@ def _rw_push_derive_into(level: str, tch: str) -> bool:
     else:
         print(f"  [rw:push:{tch}:{level}] {len(rows)} terrain rows · "
               f"{sum(1 for lv, _ in RW_PUSH_DER if lv == level)} subsets · {pairs} pairs · "
-              f"self-check worst drift {max(worst.values())} rank(s) of {len(rows)}")
+              f"self-check worst drift {max(worst.values())} rank(s) of {len(rows)}"
+              + (" · P54 drone half: sealed, mode tables, completeness and the rank-0 / rank-n-1 "
+                 "rows exact" if v1 else ""))
     return ok
+
+
+def _rw_push_check_drone(level: str, tch: str, push: dict, tg: dict, tv: dict) -> str:
+    """The drone half's load-time guard (P54 V1). Returns "" or why the tier must not run.
+
+      1. every room's mode table (modes + comb, as THESE tables carry it) hashes to the side
+         file's "drone_ident" for that reading - the side file was built against these rooms;
+      2. every terrain point of every room has both targets (lo, hi) in both readings, each a
+         pressure plus at most one gain per mode, all finite;
+      3. EXACT IDENTITY: the row that already holds rank 0 gets back, as its "lo", precisely its
+         own table payload (pressure and every gain), and the row at rank n-1 as its "hi" - the
+         precompute's arithmetic and the tables' agree on the rows where they must coincide.
+      0. THE SEAL (fix round 3, 2026-10-04): sha256 of the canonical JSON of drone[stat] equals the
+         side file's "drone_sha256"[stat], and that of [ident, points] of the tables in force equals
+         "tables_sha256"[stat] - the side file was built against exactly these tables, and not one
+         target has changed since (an interior target edited, swapped, copied or truncated passed
+         checks 1-3 and was played; tamper review 2026-10-04). ~0.3 s per channel.
+    rw_push.py's build-time check is stronger (every row at its own rank, bit for bit, and the
+    weights against the library's own); this one is what the bridge can afford at load and is
+    what catches a side file and tables from two different builds."""
+    drone = push.get("drone") or {}
+    dig = push.get("drone_ident") or {}
+    seal_d, seal_t = push.get("drone_sha256") or {}, push.get("tables_sha256") or {}
+    for stat, tb in (("gradient", tg), ("variance", tv)):
+        dd, dg = drone.get(stat), dig.get(stat) or {}
+        if not isinstance(dd, dict):
+            return f"the push side file has no {stat} drone targets"
+        if not seal_d.get(stat) or not seal_t.get(stat):
+            return (f"the push side file carries no seal for its {stat} drone targets (re-run "
+                    f"dev/precompute/rw_push.py)")
+        if _canon_sha(dd) != seal_d[stat]:
+            return f"the {stat} drone targets do not match their seal (edited or damaged since the build)"
+        if _canon_sha([tb[level]["ident"], tb[level]["points"]]) != seal_t[stat]:
+            return (f"the {stat} drone targets were built against other {stat} tables than the ones in "
+                    f"force (re-run dev/precompute/rw_push.py)")
+        for s, ident in tb[level]["ident"].items():
+            D = RW_PUSH_DER.get((level, s))
+            if D is None:
+                continue
+            if dg.get(s) != _ident_digest(ident):
+                return f"room {s}'s mode table differs from the one the {stat} drone targets were built on"
+            nm = len(ident["modes"])
+            for k in D["keys"]:
+                pair = dd.get(f"{s}@{k}")
+                if (not isinstance(pair, list) or len(pair) != 2
+                        or any(not isinstance(t, list) or len(t) != nm + 1 for t in pair)
+                        or any(not (isinstance(x, (int, float)) and x == x and abs(x) != float("inf"))
+                               for t in pair for x in t)):
+                    return f"{stat} drone targets missing or malformed for {s}@{k}"
+            n = D["n"]
+            for end, r in ((0, 0), (1, n - 1)):
+                k = D["rank_key"][stat][r]
+                own = tb[level]["points"][f"{s}@{k}"]
+                got = dd[f"{s}@{k}"][end]
+                g_tab = list(own[5:])
+                g_side = list(got[1:]) + [0.0] * (len(g_tab) - (len(got) - 1))
+                if float(got[0]) != float(own[1]) or g_side != g_tab:
+                    return (f"{stat} {('lo', 'hi')[end]} target of {s}@{k} (rank {r}) is not its own "
+                            f"table payload")
+    return ""
+
+
+def _rw_v1_drone(level: str, subset: str, key: str, reading: str, r_to: int, holder_pt):
+    """P54 V1: THIS row's own content pressed at rank r_to (0 or n-1) under `reading`, from the side
+    file's drone half, as a TABLE-SHAPED point - [theta, pressure, rate, formant, accent, g0..] -
+    so everything downstream (d_theta, _rw_gains' pt[5:]) reads it as it reads a table row. theta
+    is the ring of r_to: the theta of `holder_pt`, the row that holds r_to in that reading's table.
+    Its rate / formant / accent ride along unread (the clave is computed from the ranks)."""
+    D = RW_PUSH_DER[(level, subset)]
+    end = 0 if r_to == 0 else 1 if r_to == D["n"] - 1 else None
+    if end is None:
+        raise ValueError(f"no precomputed drone at rank {r_to} of {D['n']}")
+    t = RW_PUSH[level]["drone"][reading][f"{subset}@{key}"][end]
+    width = len(holder_pt) - 5
+    gains = [float(g) for g in t[1:]]
+    gains += [0.0] * max(0, width - len(gains))
+    return [float(holder_pt[0]), float(t[0])] + list(holder_pt[2:5]) + gains
 
 
 def load_rw_push():
@@ -1036,7 +1327,34 @@ def load_rw_push():
             _rw_load_push_channel(tch)
         finally:
             _rw_push_bind(RW_TCHAN)
+    _rw_push_refuse_mixed()
+    _rw_apply_recipe()                          # the anchor + body gates of the recipe in force (P54)
     return any(RW_PUSH_OK.values())
+
+
+def _rw_push_refuse_mixed():
+    """ONE DRONE RECIPE OR NO TIER (fix 2026-10-04). The body anchor and gates are one set per
+    recipe, and a pushed drone is built by its recipe; side files of two recipes - a partial swap,
+    or one channel / one level rolled back - would give some replies the other recipe's dB
+    estimate and audibility. Like the air/water build drift check, a mixed set is an error
+    state: every level that derived OK is disabled with the reason, and nothing is guessed."""
+    got = {}
+    for tch in sorted(_RW_PUSH_BY_CH):
+        push, _der, ok, _why = _RW_PUSH_BY_CH[tch]
+        for lv, sd in push.items():
+            if sd is not None and ok.get(lv):
+                got[(tch, lv)] = _rw_side_recipe(sd)
+    if len(set(got.values())) <= 1:
+        return True
+    said = ", ".join(f"{t} {lv} {r}" for (t, lv), r in sorted(got.items()))
+    why = (f"the push side files were built with different drone recipes ({said}) - a partial "
+           f"swap or rollback; rebuild every channel with one RW_WEIGHT_MODE")
+    print(f"  [rw:push] *** {why}: push tier DISABLED")
+    for (tch, lv) in got:
+        _push, _der, ok, whyd = _RW_PUSH_BY_CH[tch]
+        ok[lv] = False
+        whyd[lv] = why
+    return False
 
 
 def _rw_load_push_channel(tch: str):
@@ -1230,6 +1548,20 @@ def _rw_gains(pt):
             for g in pt[5:]]
 
 
+def _rw_reading_body_differs(level, subset, reading) -> bool:
+    """Does `reading`'s table give this room another BODY than the reading in force (the
+    /rw_identity contents _rw_body_key covers)? False on every pre-P54 table and when either
+    table cannot be read (the evaluation then fails on its own, with its own reason)."""
+    if not level or not subset or reading == RW_STAT:
+        return False
+    a = ((RW.get(level) or {}).get("ident") or {}).get(subset)
+    t = _rw_tables(reading)
+    b = (((t or {}).get(level) or {}).get("ident") or {}).get(subset)
+    if a is None or b is None:
+        return False
+    return _rw_body_key(a) != _rw_body_key(b)
+
+
 def _rw_row_block(level, subset, key, row, direction=""):
     """Why this row cannot be played on this point, in one line, or "" if it can.
 
@@ -1261,6 +1593,8 @@ def _rw_row_block(level, subset, key, row, direction=""):
         return "the clave fader is at 0"
     if fam == "arp" and RW_MIX[2] <= 0:
         return "the arp fader is at 0"
+    # (P54 V1: the off-reading drone row is NOT refused for having another body - its hold loads
+    # that body, see rw_preview_hold. The interim refusal of fix round 2 was removed 2026-10-04.)
     if (RW_DRONE_OFFREADING == "block" and fam == "drone" and spec.get("stat")
             and spec["stat"] != RW_STAT and direction in ("lo", "hi")):
         return (f"under the {RW_STAT} reading this row moves only the clave, "
@@ -1344,6 +1678,28 @@ def _rw_push_eval(level, subset, key, row, direction):
     tbl_to = tg if reading_to == "gradient" else tv
     dkey = D["rank_key"][reading_to][r_to]
     pt_to = tbl_to[level]["points"][f"{subset}@{dkey}"]
+    # P54 V1: the drone is no longer a function of (subset, rank) - `dkey`'s payload is ANOTHER
+    # row's content at that ring. A drone row that really moves the rank sounds the listener's
+    # OWN content at the ring of the new rank (the decision above the side file's notes), read
+    # from the side file's drone half; theta stays the ring's, i.e. dkey's table theta. "same"
+    # and an unmoved rank keep the lookup of the row's own payload in `reading_to`'s table (the
+    # other reading's payload for "same" - pinned on THAT reading's body, which the hold loads:
+    # `body_to` below). The clave and
+    # arp rows pin the body, so for them pt_to only feeds the held body estimate (its theta).
+    own_r_to = D["rk"][reading_to][i]
+    if (D.get("v1") and spec["family"] == "drone" and direction in ("lo", "hi")
+            and r_to != own_r_to):
+        pt_to = _rw_v1_drone(level, subset, key, reading_to, r_to, pt_to)
+    # THE OTHER READING'S BODY (P54 V1, fix round 3, 2026-10-04). A drone row held under the
+    # reading you are NOT on plays a payload pinned on that reading's mode amps, rings and comb, so
+    # the hold must load that BODY too - its room's /rw_identity, the same bytes rw_set_stat would
+    # send - or SC renders the payload on the wrong body (measured: 0.5-2.6 dB median level error,
+    # up to ~18 dB, and the wrong timbre). Only where the two bodies really differ, so on pre-P54
+    # tables (one body per room) nothing extra is sent and the replies are unchanged.
+    body_to = None
+    if (spec["family"] == "drone" and reading_to != reading_from
+            and _rw_reading_body_differs(level, subset, reading_to)):
+        body_to = (tbl_to[level]["ident"][subset], reading_to)
     cb = D["clave_base"]
     # An unmoved rank re-uses the TABLE's own number rather than the formula, so "does not
     # move" is exact rather than exact-to-the-rounding, and a release gives back the
@@ -1382,10 +1738,44 @@ def _rw_push_eval(level, subset, key, row, direction):
             # rather than letting "rank 12 -> 140 of 141" imply one ordering.
             moves["body"]["reading_from"] = reading_from
             moves["body"]["reading_to"] = reading_to
+        if body_to is not None:
+            # the ring estimate covers the theta move only; the body itself changes too (another
+            # mode table and comb), for which no calibrated gate exists - so it is not called
+            # inaudible (the same rule as a content-only change, below), and (fix 2026-10-04) it
+            # carries NO dB figure either: the legend printed the ring-only number ("~0.04 dB")
+            # on a hold whose timbre changes. The ring figure is kept, under its own name.
+            moves["body"]["body_switch"] = True
+            moves["body"]["d_db_ring"] = moves["body"]["d_db_est"]
+            moves["body"]["d_db_est"] = None
+            aud.append(("body", True))
         aud.append(("body", d01 >= thr))
-        if d01 < thr:
+        if d01 < thr and body_to is None:
             near.append(("body",
                          f"the body moves ~{db:.2f} dB, at or under the bow-noise floor"))
+    elif D.get("v1") and fam == "drone":
+        # P54 V1 (fix 2026-10-04): THE RANK IS NOT THE WHOLE STORY ANY MORE. A drone is the row's
+        # own content at its ring, so a hold that lands on the SAME rank number under the OTHER
+        # reading ("same", or an off-reading lo/hi whose end equals your live rank) still sends
+        # a different payload - the other reading's content and pressure at the same ring
+        # (d_theta = 0 on the midpoint grid). Decided from what is SENT, never from ranks read
+        # off two different statistics. No calibrated gate exists for a content-only change
+        # (the anchor measures the ring), so it carries no dB estimate and is not called
+        # inaudible. On V1 tables "same" lands here on every point (with the other reading's
+        # body loaded for the hold, `body_to`).
+        sent_ = [float(pt_to[0]), float(pt_to[1])] + _rw_gains(pt_to)
+        own_ = [float(pt_own[0]), float(pt_own[1])] + _rw_gains(pt_own)
+        if sent_ != own_:
+            moves["body"] = {"rank_from": r_from, "rank_to": r_to, "n": n,
+                             "theta_from": round(float(pt_own[0]), 5),
+                             "theta_to": round(float(pt_to[0]), 5),
+                             "d_theta": round(float(pt_to[0]) - float(pt_own[0]), 5),
+                             "d_db_est": None, "content_changes": True}
+            if reading_to != reading_from:
+                moves["body"]["reading_from"] = reading_from
+                moves["body"]["reading_to"] = reading_to
+            if body_to is not None:
+                moves["body"]["body_switch"] = True
+            aud.append(("body", True))
     if rv2 != rv:
         lo, hi = sorted((float(pt_own[2]), float(rate_to)))
         moves["tempo"] = {"hz_from": round(float(pt_own[2]), 4), "hz_to": round(float(rate_to), 4)}
@@ -1563,18 +1953,27 @@ def _rw_push_eval(level, subset, key, row, direction):
     bed = {k: (list(v) if isinstance(v, tuple) else v) for k, v in bed.items()}
     bed["note"] = _rw_bed_note(fam, bed, held, twin, reading_from, reading_to, spec)
     notes = _rw_bed_notes(fam, held, twin, reading_from, reading_to, spec, direction)
+    if body_to is not None:
+        # V1 only, so the pre-P54 replies are unchanged byte for byte
+        bed["note"] += (f"; under P54 the {reading_to} reading has its own body (its own mode "
+                        f"table and comb), so that body is loaded for the hold and yours comes "
+                        f"back on release")
     return {"moves": moves, "moves_held": held, "bed": bed, "notes": notes,
             "audible": audible, "why": why, "column": column, "rho": rho,
             "twin": twin, "reading": reading_to, "_sends": sends,
-            "_verbs": tuple(v for v, _a in sends)}
+            "_verbs": tuple(v for v, _a in sends),
+            "_body": (None if body_to is None else
+                      (_rw_ident_args(level, subset, body_to[0]), _rw_body_key(body_to[0]),
+                       body_to[1]))}
 
 
 # ---- WHAT THE LISTENER IS HEARING, IN WORDS ----------------------------------------------
 # ON THE WIRE RATHER THAN IN THE PAGE, deliberately. Two consequences of the isolation rule
 # have to be SURFACED rather than papered over, and neither is visible from the sound:
-#   * clave.metre no longer moves the body, so the verified twin (accent == round(7 - 5*theta
-#     /pi) on every WINDOW point - the only points this tier runs on; not on the month roll-ups,
-#     see RW_TWINS, corrected 2026-10-01) stops being HEARD as one push arriving twice and
+#   * clave.metre no longer moves the body, so the verified twin (accent == round(7 - 5*r/(n-1))
+#     for the gradient rank r on every WINDOW point - the only points this tier runs on; not on
+#     the month roll-ups, see RW_TWINS, corrected 2026-10-01, rank form 2026-10-04) stops being
+#     HEARD as one push arriving twice and
 #     becomes a label. The reply has always carried `twin`; now it has to say it.
 #   * clave.index.* genuinely move the body on ~398 of 400 points, and pinning it hides a real
 #     consequence - so the dB estimate keeps being reported, with the reason it is not heard.
@@ -1678,7 +2077,7 @@ def _rw_preview_own(verbs):
 
 def rw_preview_hold(row: str, direction: str) -> dict:
     """A1. Push ONE quantity to its extreme on the point the listener is standing on."""
-    global RW_PREVIEW
+    global RW_PREVIEW, RW_LAST_IDENT
     level, key = RW_LAST_POINT if RW_LAST_POINT else (None, None)
     subset = RW_SUBSET.get(level) if level else None
     spec = RW_ROW_SPEC.get(row)
@@ -1713,10 +2112,33 @@ def rw_preview_hold(row: str, direction: str) -> dict:
         # (i) can show what this row WOULD do without a second finger changing the sound.
         out["ignored"] = True
         return out
+    body = ev.get("_body")
+    if body is not None:
+        # THE OTHER READING'S BODY FIRST (P54 V1): /rw_identity sets the room's freqs, amps,
+        # rings, comb and its resting gains; the drone preview after it puts the held payload's
+        # gains and pressure on that body - in that order, exactly as a reading switch's
+        # identity + /rw_drone + /rw_point do. RW_LAST_IDENT then names the body the engine
+        # REALLY holds, so a hold ended without a release (a navigation, a stat switch, a dead
+        # page) can never leave a later point of this room playing on the other reading's
+        # body: the next rw_send_identity sees another key and re-sends the room.
+        # EXCEPT WHEN NOTHING IS ON RECORD (fix 2026-10-04): None is attach()'s "forget what the
+        # engine was told", and it is what makes the next rw_send_identity run the level branch
+        # that re-sends the listener's mix to a restarted engine. Overwriting it with the held
+        # key swallowed that reset (the release then re-sent the room but not /rw_mix). None
+        # never equals a key, so the release, the next press or a stat switch still re-sends
+        # the room - and the mix after it, in the order the engine's identity handler needs.
+        if _osc_ok():
+            try:
+                _SEND_OSC("/rw_identity", list(body[0]))
+                if RW_LAST_IDENT is not None:
+                    RW_LAST_IDENT = (RW_TCHAN, level, subset, body[1])
+            except OSError:
+                pass
     for verb, args in ev["_sends"]:
         rw_preview_send(verb, args)
     RW_PREVIEW = {"row": row, "dir": direction, "verbs": set(ev["_verbs"]),
-                  "t": time.monotonic()}
+                  "t": time.monotonic(),
+                  "body": (level, body[2]) if body is not None else None}
     # A PREVIEW CHORD REPLACES THE LISTENER'S (P36, P38): SC gates the notes already in, spawns
     # none of the rest while it is held, and once it has cut into the chord drops the rest of it
     # this commit. So from here the chord cannot be set by position - later beating holds spawn
@@ -1761,6 +2183,16 @@ def rw_preview_release():
         t0, last, off = held["unmark"]
         if _RW_COMMIT["t"] == t0 and time.monotonic() - t0 < _RW_COMMIT["on"] - 0.1:
             _RW_COMMIT["last"], _RW_COMMIT["off"] = last, off
+    if held is not None and held.get("body"):
+        # THE LISTENER'S OWN BODY BACK FIRST (P54 V1): the room in force under the reading in
+        # force. rw_send_identity re-sends it because RW_LAST_IDENT names the held body; the
+        # level is unchanged, so the level-default (mixer) branch does not fire - unless the
+        # hold came straight after a page attach (RW_LAST_IDENT None), when it re-sends the
+        # listener's mix after the identity, exactly as the press it stands in for would have.
+        # Then the own payload, as for every hold, puts the gains and pressure back on it.
+        lv = held["body"][0]
+        if lv in RW:
+            rw_send_identity(lv, RW_SUBSET[lv])
     if held is not None:
         _rw_preview_own(held["verbs"])
     rw_preview_send("end", [])
@@ -1770,7 +2202,9 @@ def rw_preview_release():
 
 def rw_preview_abort():
     """A navigation or a reading change ends a hold without restoring the OLD point - the
-    commit that follows is about to set everything anyway."""
+    commit that follows is about to set everything anyway. That includes an off-reading hold's
+    BODY (P54 V1): RW_LAST_IDENT names the held body, so the commit's rw_send_identity re-sends
+    the room unless the new reading's body IS the held one (a switch to that reading)."""
     global RW_PREVIEW
     if RW_PREVIEW is None:
         return
@@ -1793,7 +2227,8 @@ def rw_preview_probe() -> dict:
            "twins": RW_TWINS.get(RW_STAT), "rows": {}, "blocked": {}}
     for rid, spec in RW_ROW_SPEC.items():
         dirs = list(spec["dirs"])
-        if spec["family"] == "drone" and spec.get("stat") != RW_STAT:
+        if (spec["family"] == "drone" and spec.get("stat") != RW_STAT
+                and not _rw_row_block(level, subset, key, rid, "same")):
             dirs.append("same")                  # only on the row for the reading you are NOT on
         blocked = _rw_row_block(level, subset, key, rid)
         if blocked:
@@ -1829,12 +2264,19 @@ def rw_preview_probe() -> dict:
 def rw_set_stat(stat: str):
     """Swap which reading of the data the body is under, live.
 
-    gradient and variance are the same rows under two statistics. They differ in EXACTLY the
-    /rw_drone payload - theta, pressure, the 35 gains - and in nothing else: the subset
-    identity (comb, base, clave base, all modes), the clave triple, the arp and the corpus are
-    identical between them. So there is no retune and no page re-init; SC needs no change.
-    Deliberately does NOT clear RW_LAST_IDENT: forcing a re-send would trip the level-default
-    branch in rw_send_identity and silently reset the four layer faders."""
+    gradient and variance are the same rows under two statistics. PRE-P54 they differed in
+    EXACTLY the /rw_drone payload - theta, pressure, the 35 gains - and the resting gains: the
+    subset identity (comb, base, clave base, all modes), the clave triple, the arp and the corpus
+    were identical between them, so there was no retune and no page re-init.
+    UNDER P54 V1 (fix 2026-10-04) THE BODY IS PER READING TOO: the two readings share the mode
+    freqs, base and clave base, NOT the mode amps (so not the rings) and NOT the comb (up to
+    ~295x and 14 Hz apart, air L0). The clave triple, arp and corpus are still identical. So on a
+    sounding point the re-voice below re-sends the room's identity of the NEW reading in the same
+    burst as /rw_drone + /rw_point - rw_send_identity keys on the body (_rw_body_key), not on
+    the reading, so on tables whose two bodies are equal (pre-P54, archive) nothing extra goes.
+    Still deliberately does NOT clear RW_LAST_IDENT on a sounding point: the level is unchanged,
+    so the level-default branch in rw_send_identity (which would silently reset the four layer
+    faders) cannot fire; only the body key differs."""
     global RW_LAST_IDENT
     stat = str(stat or RW_STAT_DEFAULT)
     if stat not in ("gradient", "variance") or stat == RW_STAT:
@@ -1855,7 +2297,7 @@ def rw_set_stat(stat: str):
         # that may have been restarted with its own defaults (review 2026-09-27).
         level = RW_LAST_POINT[0]
         if RW_LAST_IDENT is not None:
-            RW_LAST_IDENT = (RW_TCHAN, level, None)
+            RW_LAST_IDENT = (RW_TCHAN, level, None, None)
         rw_send_identity(level, RW_SUBSET[level])
     elif RW_LAST_POINT is not None:                # re-voice under the listener's hand
         rw_send_point(RW_LAST_POINT[0], RW_LAST_POINT[1])
@@ -2077,7 +2519,7 @@ def attach(client):
         CLIENTS.append(client)
     rw_client_new(client)                        # takes the sound if nobody holds it (P35)
     # A FRESH PAGE MEANS FORGET WHAT THE ENGINE WAS TOLD. The identity is deduplicated on
-    # (level, subset), which is right while one engine runs behind one display - but the two
+    # (channel, level, subset, body), which is right while one engine runs behind one display - but the two
     # are separate processes with separate launchers, so restarting the sound alone leaves
     # this side certain it has already sent a mode table that the new engine never received.
     # The drone then sits on the SynthDef's flat defaults and every point sounds the same,

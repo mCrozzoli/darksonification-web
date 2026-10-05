@@ -33,6 +33,9 @@
  *
  * WHAT THE INSTRUMENT ACTUALLY READS — three row statistics and one index, not sixteen:
  *   drone  theta -> all 35 mode gains, comb decay, level ....... rank of GRADIENT (shipped)
+ *          P54 V1 (2026-10-04, at the swap): the tones that ring <- this window's OWN 16 measures
+ *          (centred on the room's means) at the ring of its GRADIENT/VARIANCE rank, tilted by the
+ *          seesaw at that rank; the rank alone no longer sets them (the (i) words below: Miguel's call)
  *   clave  tempo  (0.8–9 Hz) .................................. rank of VARIANCE
  *   clave  colour (841–1747 Hz pulsaret formant) ............... rank of the MEAN of sixteen
  *   clave  metre  (accent every 2–7 ticks) ..................... rank of GRADIENT (the twin)
