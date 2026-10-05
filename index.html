@@ -101,6 +101,8 @@
     <radialGradient id="butter" cx="50%" cy="50%" r="55%">
       <stop offset="0" stop-color="#f3e7b8" stop-opacity=".75"/><stop offset="1" stop-color="#ecd98f" stop-opacity=".7"/>
     </radialGradient>
+    <radialGradient id="olive" r="60%"><stop offset="0" stop-color="#b9c98a" stop-opacity=".55"/><stop offset="1" stop-color="#8aa24f" stop-opacity=".62"/></radialGradient>
+    <radialGradient id="dawn" cx="50%" cy="50%" r="55%"><stop offset="0" stop-color="#f3e0a0" stop-opacity=".8"/><stop offset="1" stop-color="#ecbf7a" stop-opacity=".6"/></radialGradient>
     <radialGradient id="star" r="60%"><stop offset="0" stop-color="#2f5f8a" stop-opacity=".6"/><stop offset="1" stop-color="#1d4a66" stop-opacity=".78"/></radialGradient>
     <linearGradient id="beam" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e3c45a" stop-opacity=".92"/><stop offset=".55" stop-color="#ecd98f" stop-opacity=".5"/><stop offset="1" stop-color="#f3e7b8" stop-opacity="0"/></linearGradient>
     <linearGradient id="beam-l" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#e3c45a" stop-opacity=".7"/><stop offset=".6" stop-color="#ecd98f" stop-opacity=".35"/><stop offset="1" stop-color="#f3e7b8" stop-opacity="0"/></linearGradient>
@@ -147,6 +149,31 @@
       <g filter="url(#ink)">
         <circle cx="330" cy="62" r="6" fill="#39b8aa" stroke="#1f6f68" stroke-width="1.8"/>
         <circle cx="412" cy="134" r="4.4" fill="#39b8aa" stroke="#1f6f68" stroke-width="1.5"/>
+      </g>
+    </symbol>
+
+    <!-- dark re-wilding: the estate as an olive wash with a dawn wash rising over it, three years of an acoustic index
+         as one ink line with a summer in each hump, bird detections as ticks crowding the dawns, the water channel below -->
+    <symbol id="m-dark-re-wilding" viewBox="0 0 480 250">
+      <ellipse cx="236" cy="150" rx="178" ry="76" fill="url(#olive)" filter="url(#wash)"/>
+      <ellipse cx="352" cy="78" rx="104" ry="54" fill="url(#dawn)" filter="url(#wash)"/>
+      <g fill="none" stroke-linecap="round" filter="url(#ink)">
+        <path d="M24 158 C 60 156, 84 110, 118 104 S 162 150, 190 156 S 230 108, 262 102 S 302 150, 332 156 S 372 110, 404 104 S 444 150, 458 154" stroke="#33203a" stroke-width="1.7"/>
+        <path d="M30 196 C 80 188, 120 206, 170 196 S 260 186, 310 198 S 400 206, 452 194" stroke="#1d4a66" stroke-width="1.3" opacity=".8"/>
+      </g>
+      <g stroke="#33203a" stroke-width="1.2" stroke-linecap="round" filter="url(#ink)">
+        <path d="M104 92 v8 M112 86 v8 M120 90 v10 M128 94 v6 M136 98 v8"/>
+        <path d="M248 90 v8 M256 84 v10 M264 88 v8 M272 92 v8 M280 96 v6 M288 100 v8"/>
+        <path d="M392 92 v8 M400 86 v8 M408 90 v10 M416 96 v6"/>
+        <path d="M60 134 v5 M78 140 v4 M206 146 v5 M352 142 v5 M440 138 v5"/>
+      </g>
+      <g fill="#33203a" filter="url(#ink)">
+        <circle cx="46" cy="52" r="1.4"/><circle cx="196" cy="40" r="1.6"/><circle cx="314" cy="36" r="1.3"/><circle cx="452" cy="56" r="1.5"/>
+        <circle cx="70" cy="232" r="1.3"/><circle cx="420" cy="230" r="1.4"/>
+      </g>
+      <g filter="url(#ink)">
+        <circle cx="262" cy="102" r="6.5" fill="none" stroke="#c6922c" stroke-width="2"/>
+        <circle cx="118" cy="104" r="4.2" fill="#f1dc95" stroke="#c6922c" stroke-width="1.5"/>
       </g>
     </symbol>
 
@@ -211,7 +238,7 @@
         </div>
       </a>
       <a class="card" href="dark-re-wilding/">
-        <svg class="motif" viewBox="0 0 480 250" aria-hidden="true"><use href="#m-default"/></svg>
+        <svg class="motif" viewBox="0 0 480 250" aria-hidden="true"><use href="#m-dark-re-wilding"/></svg>
         <div class="card-text">
           <h2>dark re-wilding</h2>
           <p class="line">Knepp Estate, March 2023 – February 2026: three years of a rewilding soundscape in acoustic indices, bird detections and the recordings themselves</p>
