@@ -101,6 +101,9 @@
     <radialGradient id="butter" cx="50%" cy="50%" r="55%">
       <stop offset="0" stop-color="#f3e7b8" stop-opacity=".75"/><stop offset="1" stop-color="#ecd98f" stop-opacity=".7"/>
     </radialGradient>
+    <radialGradient id="star" r="60%"><stop offset="0" stop-color="#2f5f8a" stop-opacity=".6"/><stop offset="1" stop-color="#1d4a66" stop-opacity=".78"/></radialGradient>
+    <linearGradient id="beam" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e3c45a" stop-opacity=".92"/><stop offset=".55" stop-color="#ecd98f" stop-opacity=".5"/><stop offset="1" stop-color="#f3e7b8" stop-opacity="0"/></linearGradient>
+    <linearGradient id="beam-l" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#e3c45a" stop-opacity=".7"/><stop offset=".6" stop-color="#ecd98f" stop-opacity=".35"/><stop offset="1" stop-color="#f3e7b8" stop-opacity="0"/></linearGradient>
     <radialGradient id="atl" r="60%"><stop offset="0" stop-color="#3f7fb0" stop-opacity=".42"/><stop offset="1" stop-color="#2f6e9f" stop-opacity=".55"/></radialGradient>
     <radialGradient id="pol" r="60%"><stop offset="0" stop-color="#63b8a6" stop-opacity=".40"/><stop offset="1" stop-color="#4fa895" stop-opacity=".52"/></radialGradient>
     <radialGradient id="arc" r="60%"><stop offset="0" stop-color="#ef9f84" stop-opacity=".42"/><stop offset="1" stop-color="#e3876b" stop-opacity=".55"/></radialGradient>
@@ -122,6 +125,28 @@
       <g filter="url(#ink)">
         <circle cx="96" cy="210" r="7" fill="#3a82aa" stroke="#1d4a66" stroke-width="2"/>
         <circle cx="428" cy="70" r="5" fill="#3a82aa" stroke="#1d4a66" stroke-width="1.6"/>
+      </g>
+    </symbol>
+
+    <!-- dark pulsar: a neutron star in ink-blue, its beam sweeping as a butter wash, the averaged pulse profile in ink
+         (a sharp peak over a noisy baseline), and the population of the P–Ṗ diagram as dots crowding one corner -->
+    <symbol id="m-dark-pulsar" viewBox="0 0 480 250">
+      <ellipse cx="262" cy="112" rx="186" ry="78" fill="url(#butter)" filter="url(#wash)" opacity=".55"/>
+      <path d="M150 118 L 478 28 L 478 150 Z" fill="url(#beam)" filter="url(#wash)"/>
+      <path d="M150 118 L 2 182 L 2 92 Z" fill="url(#beam-l)" filter="url(#wash)"/>
+      <ellipse cx="150" cy="118" rx="50" ry="50" fill="url(#star)" filter="url(#wash)"/>
+      <ellipse cx="150" cy="118" rx="86" ry="27" fill="none" stroke="#c6922c" stroke-width="1.6" stroke-linecap="round" transform="rotate(-16 150 118)" filter="url(#ink)"/>
+      <path d="M28 214 C 58 212, 82 217, 106 212 S 148 216, 178 211 S 222 215, 250 211 C 266 209, 274 158, 284 150 C 292 144, 298 206, 312 212 S 358 215, 386 211 S 432 215, 454 212"
+            fill="none" stroke="#33203a" stroke-width="1.7" stroke-linecap="round" filter="url(#ink)"/>
+      <g fill="#33203a" filter="url(#ink)">
+        <circle cx="300" cy="196" r="1.5"/><circle cx="326" cy="200" r="1.8"/><circle cx="346" cy="192" r="1.3"/><circle cx="366" cy="198" r="2"/>
+        <circle cx="384" cy="188" r="1.4"/><circle cx="404" cy="196" r="1.7"/><circle cx="420" cy="184" r="1.3"/><circle cx="440" cy="194" r="1.9"/>
+        <circle cx="356" cy="176" r="1.2"/><circle cx="398" cy="172" r="1.4"/><circle cx="430" cy="160" r="1.2"/>
+        <circle cx="70" cy="46" r="1.6"/><circle cx="236" cy="38" r="1.3"/><circle cx="392" cy="26" r="1.5"/><circle cx="54" cy="236" r="1.3"/>
+      </g>
+      <g filter="url(#ink)">
+        <circle cx="330" cy="62" r="6" fill="#39b8aa" stroke="#1f6f68" stroke-width="1.8"/>
+        <circle cx="412" cy="134" r="4.4" fill="#39b8aa" stroke="#1f6f68" stroke-width="1.5"/>
       </g>
     </symbol>
 
@@ -195,7 +220,7 @@
         </div>
       </a>
       <a class="card" href="dark-pulsar/">
-        <svg class="motif" viewBox="0 0 480 250" aria-hidden="true"><use href="#m-default"/></svg>
+        <svg class="motif" viewBox="0 0 480 250" aria-hidden="true"><use href="#m-dark-pulsar"/></svg>
         <div class="card-text">
           <h2>dark pulsar</h2>
           <p class="line">1,297 pulsars from the ATNF catalogue and the EPN profile database: each one&#x27;s physics as a grain cloud cut from its own pulse profile, and its real rotation as a pulse</p>
