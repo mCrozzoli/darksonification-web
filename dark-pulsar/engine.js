@@ -324,8 +324,13 @@ class DarkEngine {
     this.send("/dark_master", [s("mute"), i(S.master.mute)]);
     if (S.master.rate !== 1.0) this.send("/dark_master", [s("rate"), f(S.master.rate)]);   // SC loads at 1.0; the page's speed
     if (S.legendMute) this.send("/dark_legend", [s("mute"), i(1)]);
-    if (S.nav && S.lastLevel !== "l1") this.relaySend(S.nav);    // the pulsar under the cursor sounds (at L1 the
-    if (S.hold) this.relaySend(S.hold);                           //   page's keepalive restarts the voices itself)
+    // the last L0 navigation ALWAYS goes first: it sets the parser's ~lastL0, ~curIdx and ~wt as on the desktop (the
+    // legend's previews start from it). If the page is at L1 by now, an l1 with idx -1 follows at once: ~cookL1(-1) is
+    // invalid, so it only re-mutes the cloud within the same control period (amp lags 0.1 s, nothing rises) and the
+    // page's keepalive restarts the voices on its next tick. (Audit 10-05: the earlier skip left ~lastL0 unset.)
+    if (S.nav) this.relaySend(S.nav);
+    if (S.nav && S.lastLevel === "l1") this.send("/dark_nav", [s("l1"), i(-1), f(0)]);
+    if (S.hold) this.relaySend(S.hold);
   }
 
   // ------------------------------------------------------------------ the page (bridge.py ws_handler)
