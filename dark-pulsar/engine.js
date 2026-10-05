@@ -12,6 +12,8 @@
 //    · relay(): its JSON → OSC relays (navsound → /dark_nav, legend → /dark_legend, master → /dark_master); the OSC
 //      goes into sclang with sclang.sendOsc() → the design's OSCdefs;
 //    · the `init` message (baked by build_data.py with the bridge's own functions) reaches the page through its socket;
+//    · the L1 voices' phase reports (scsynth's /dp_l1ph SendReply, 20/s per voice) reach the page as {type:"l1phase"},
+//      read from the server's replies here (the desktop relays them sclang → UDP → bridge.py → the socket);
 //    · state for a (re)start: the master, the last L0 navigation, a legend hold still held (replay()).
 //  Differences, because this is a browser: a page plays nothing before the visitor's first gesture, so SuperCollider
 //  starts on the first click or key press anywhere in the page (the site's rule since 2026-09-28); the profiles come
@@ -46,6 +48,13 @@ function notifyFlag(p) {                          // "/notify\0" ",i…" + int32
   return (b[12] << 24) | (b[13] << 16) | (b[14] << 8) | b[15];
 }
 const isDoneNotify = (p) => /^\/done\0+,s[^\0]*\0+\/notify\0/.test(head(p, 32));
+function l1Phase(p) {                             // "/dp_l1ph" ",iif" node idx phase (SendReply, 20/s per L1 voice) → {idx, phase}
+  const b = asBytes(p);
+  if (b.length < 32 || head(b, 9) !== "/dp_l1ph\0") return null;       // address 9 bytes → padded to 12
+  if (head(b, 16).slice(12, 16) !== ",iif") return null;               // typetags ",iif\0" → bytes 12..19
+  const dv = new DataView(b.buffer, b.byteOffset, b.byteLength);
+  return { node: dv.getInt32(20, false), idx: dv.getInt32(24, false), phase: dv.getFloat32(28, false) };
+}
 function firstNumber(p) {                         // /addr ,i|f <value>: the first argument of a one-number message
   const b = asBytes(p), dv = new DataView(b.buffer, b.byteOffset, b.byteLength);
   let k = 0; while (k < b.length && b[k] !== 0) k++; k = Math.ceil((k + 1) / 4) * 4;
@@ -196,6 +205,8 @@ class DarkEngine {
     };
     synth.onOscReply = (r) => {                                     // scsynth → sclang
       if (!live()) return;
+      const ph = l1Phase(r);                                        // an L1 voice's phase report: for the page, not sclang
+      if (ph) { this.l1phCount = (this.l1phCount || 0) + 1; this.l1phLast = ph; if (this.sock) this.sock.deliver({ type: "l1phase", idx: ph.idx, phase: ph.phase }); return; }
       this.trace("←", r);
       if (!notifyReply && isDoneNotify(r)) notifyReply = asBytes(r).slice();
       lang.sendOsc(r);

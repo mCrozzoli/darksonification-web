@@ -182,6 +182,7 @@
   #pl-slider { flex:1; min-width:80px; margin:0 4px; }
   #pl-slider::-webkit-slider-thumb, #ms-vol::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:13px; height:13px; border-radius:50%; background:var(--dp-thumb); cursor:pointer; }
   #profile { flex:1; display:block; width:100%; }
+  #profile circle.dot { stroke:var(--panel); stroke-width:1.5px; }   /* the rotation dot: a ring so it reads on a busy line */
   /* THE EDGE TABS: the sidebar (right, key i) and the perceptual legend (left, key L) */
   #side-tab, #legend-tab { position:fixed; top:50%; z-index:30; transform:translateY(-50%); writing-mode:vertical-rl;
     font:10px var(--dp-font); letter-spacing:1.5px; text-transform:uppercase; color:var(--dim); background:var(--panel); cursor:pointer;
@@ -267,7 +268,7 @@
       <div class="wcgrid" id="layout-btns"><!-- built from the manifest views (init message) --></div>
       <div class="seg">key</div>
       <div class="legend" id="key"></div>
-      <div class="note">Below the plot: the pulse profile of what sounds at L1, one line per pinned pulsar; the vertical line is the spotlight.</div>
+      <div class="note">Below the plot: the pulse profile of what sounds at L1, one line per pinned pulsar. The band is the spotlight; the dot is where each rotation is, as you hear it (fast pulsars glow). Below zero is faint: the L1 sound does not use it.</div>
       <div class="seg">look · T</div>
       <div id="ds-looks"></div>
     </div>
@@ -657,7 +658,11 @@ function renderLists(){
 let pfW=0,pfH=0; const px=d3.scaleLinear().domain([0,1]), py=d3.scaleLinear().domain([-1,1]);
 const gSpot=pf.append("g");      // the spotlight bands (lens), under the lines
 const gParents=pf.append("g");   // overlaid L1 profiles (one per selected parent)
+const gHead=pf.append("g").attr("pointer-events","none");   // the rotation you hear (L1 playheads, below)
 const gProfLbl=pf.append("text").attr("x",8).attr("y",14);
+// at L1 the sound uses only the part of a profile above zero (\pulsarAudif clips its envelope at 0), so the part
+// below zero is drawn faint (Miguel 2026-10-05, "fade it"); at L0 the whole profile is the grains' waveform
+const pfAbove=pf.append("defs").append("clipPath").attr("id","pf-above").append("rect").attr("x",0).attr("y",0);
 const profLine=d3.line().x((d,i)=>px(i/nBins)).y(d=>py(d));
 function fitProfile(){
   const w=document.getElementById("profile-wrap"), tr=document.getElementById("transport");
@@ -689,6 +694,9 @@ function drawProfile(){
   }
   const col=(d,i)=> d.live ? DP.live : PARENT_COLORS[i%PARENT_COLORS.length];
   const sounding = l1Audible();
+  const fade = curLevel==="l1";                         // L1: below zero is silent, so it is drawn faint
+  pfAbove.attr("width", pfW).attr("height", Math.max(0, py(0)));
+  lines.forEach(d=>{ d.path = profLine(d.values); });
   // the spotlight band: the part of each rotation the sound brings forward (half-width 0.06), one per line
   const bands = (curLevel==="l1" && lensSpot && scrub!=null) ? lines.filter(d=>!d.live) : [];
   const bs=gSpot.selectAll("rect.spot").data(bands, d=>d.idx);
@@ -699,11 +707,13 @@ function drawProfile(){
   const sel=gParents.selectAll("g.pp").data(lines, d=>d.idx);
   sel.exit().remove();
   const ent=sel.enter().append("g").attr("class","pp");
-  ent.append("path").attr("fill","none").attr("stroke-width",1.3);
+  ent.append("path").attr("class","faint").attr("fill","none").attr("stroke-width",1.3).attr("stroke-opacity",0.28);
+  ent.append("path").attr("class","main").attr("fill","none").attr("stroke-width",1.3);
   ent.append("line").attr("stroke-width",1.4).attr("y1",16);
   const merged=ent.merge(sel);
-  merged.select("path").attr("stroke",(d,i)=>col(d,i))
-        .attr("stroke-dasharray",d=>d.live?"4,3":null).attr("d",d=>profLine(d.values));
+  merged.select("path.faint").style("display", fade ? null : "none").attr("stroke",(d,i)=>col(d,i)).attr("d", d=> fade ? d.path : null);
+  merged.select("path.main").attr("stroke",(d,i)=>col(d,i)).attr("clip-path", fade ? "url(#pf-above)" : null)
+        .attr("stroke-dasharray",d=>d.live?"4,3":null).attr("d",d=>d.path);
   merged.select("line").each(function(d,i){
     const L=d3.select(this);
     if(curLevel==="l1" && scrub!=null) L.style("display",null).attr("stroke",col(d,i))
@@ -723,8 +733,72 @@ function drawProfile(){
   lines.forEach((d,i)=>{ if(i>0) gProfLbl.append("tspan").attr("fill",DP.label).text("  ·  ");
     gProfLbl.append("tspan").attr("fill",col(d,i)).attr("font-weight","bold").text(d.name + (d.live?" (live)":"")); });
   gProfLbl.append("tspan").attr("fill",DP.label).text(curLevel==="l1"
-    ? (sounding ? "   (intensity vs phase · the line is the spotlight)" : "   (stopped · press ▶ or drag the line)")
+    ? (sounding ? "   (the band is the spotlight · the dot is the rotation you hear)" : "   (stopped · press ▶ or drag the line)")
     : "   (intensity vs rotation phase)");
+}
+
+// ---------- THE ROTATION YOU HEAR (L1 playheads; Miguel 2026-10-05, "show the rotation") ----------
+// The line is a slow spotlight (one rotation per sweep); the sound runs at each pulsar's REAL rotation (J1718-3718
+// ticks every 3.38 s), and for slow pulsars the two rarely meet (the line crossed the pulse without a tick in 86% of
+// 8 s sweeps). So SC reports each voice's own phase (\pulsarAudif SendReply, 20/s; the bridge relays
+// {type:"l1phase", idx, phase}) and the page draws it: a dot riding the envelope the sound uses (the profile clipped
+// at 0; its height is the loudness of the stretch played since the last frame, so it climbs the pulse smoothly and
+// hovers near zero over the noise), big and bright inside the spotlight band (full level), small outside (30%),
+// with a faint hairline. Faster
+// than FOLLOW_HZ the eye cannot follow it, so that voice shows a steady glow along its envelope instead. No report =
+// no voice = nothing drawn (SC frees a voice 0.45 s after its last message; the reports stop with it).
+const FOLLOW_HZ = 4;
+const l1Ph = new Map();                         // idx -> {ph, at (ms), f}: a phase model, corrected by each report
+const l1PhPrev = new Map();                     // idx -> the phase drawn on the previous frame (the dot's height span)
+let _phRAF = null;
+function envSince(vals, from, to){              // RMS of the clipped envelope over the bins played from -> to
+  const n = vals.length, a = Math.floor(from*n), span = Math.max(1, Math.min(64, ((Math.floor(to*n) - a) % n + n) % n));
+  let acc = 0; for(let k=1; k<=span; k++){ const v = Math.max(0, vals[(a + k) % n]); acc += v*v; }
+  return Math.sqrt(acc/span);
+}
+function onL1Phase(m){
+  const p = byPos.get(m.idx), f = p && p.spin_hz!=null ? +p.spin_hz : null;
+  if(f==null || !(m.phase>=0)) return;
+  const now = performance.now(), cur = l1Ph.get(m.idx);
+  if(cur && now - cur.at < 300){
+    const pred = cur.ph + f*(now - cur.at)/1000;                // where the model says the voice is now
+    const err = ((m.phase - pred) % 1 + 1.5) % 1 - 0.5;         // wrapped to -0.5..0.5
+    l1Ph.set(m.idx, {ph: Math.abs(err) > 0.08 ? m.phase : ((pred + 0.3*err) % 1 + 1) % 1, at: now, f});   // a jump: snap; jitter: ease
+  } else l1Ph.set(m.idx, {ph: m.phase, at: now, f});
+  if(!_phRAF) _phRAF = requestAnimationFrame(drawHeads);
+}
+function spotWin(ph){                           // \pulsarAudif's triangle: 1 at the line, 0 outside the band
+  if(scrub==null) return 0;
+  const d = Math.abs(((ph - scrub) % 1 + 1.5) % 1 - 0.5);
+  return Math.max(0, 1 - d/SPOT_HALF);
+}
+function drawHeads(){
+  _phRAF = null;
+  const now = performance.now();
+  for(const [k,v] of l1Ph) if(now - v.at > 350){ l1Ph.delete(k); l1PhPrev.delete(k); }
+  const tg = curLevel==="l1" ? l1Targets() : [];               // colour slot = position in l1Targets(), as drawProfile
+  const data = tg.map((idx,i)=>({idx, i, m:l1Ph.get(idx), vals:profileArr(idx)})).filter(d=>d.m && d.vals)
+    .map(d=>({idx:d.idx, col:PARENT_COLORS[d.i%PARENT_COLORS.length], f:d.m.f, vals:d.vals,
+              ph:((d.m.ph + d.m.f*(now - d.m.at)/1000) % 1 + 1) % 1}));
+  const sel = gHead.selectAll("g.ph").data(data, d=>d.idx);
+  sel.exit().remove();
+  const ent = sel.enter().append("g").attr("class","ph");
+  ent.append("path").attr("class","glow").attr("fill","none").attr("stroke-width",5).attr("stroke-linejoin","round").attr("stroke-opacity",0.22);
+  ent.append("line").attr("class","hair").attr("stroke-width",1);
+  ent.append("circle").attr("class","dot");
+  ent.merge(sel).each(function(d){
+    const g = d3.select(this), fast = d.f >= FOLLOW_HZ;
+    const glow = g.select("path.glow").style("display", fast ? null : "none").attr("stroke", d.col);
+    if(fast){ const key = d.idx+":"+pfW+":"+pfH; if(glow.attr("data-k")!==key) glow.attr("data-k", key).attr("d", profLine(Array.from(d.vals, v=>Math.max(0, v)))); }
+    const w = spotWin(d.ph), x = px(d.ph), prev = l1PhPrev.get(d.idx);
+    const y = py(prev==null ? Math.max(0, d.vals[Math.min(d.vals.length-1, Math.floor(d.ph*d.vals.length))]) : envSince(d.vals, prev, d.ph));
+    l1PhPrev.set(d.idx, d.ph);
+    g.select("line.hair").style("display", fast ? "none" : null).attr("stroke", d.col).attr("stroke-opacity", 0.3 + 0.4*w)
+      .attr("x1", x).attr("x2", x).attr("y1", 16).attr("y2", pfH-14);
+    g.select("circle.dot").style("display", fast ? "none" : null).attr("fill", d.col).attr("fill-opacity", 0.8 + 0.2*w)
+      .attr("cx", x).attr("cy", y).attr("r", 4 + 3*w);
+  });
+  if(data.length || l1Ph.size) _phRAF = requestAnimationFrame(drawHeads);
 }
 
 // load every pulsar's profile ONCE (the bridge serves assets/profiles.f32 via a symlink
@@ -859,6 +933,7 @@ async function connect(){
   ws.onerror=()=> ws.close();
   ws.onmessage=ev=>{
     const m=JSON.parse(ev.data);
+    if(m.type==="l1phase"){ onL1Phase(m); return; }   // SC's L1 voice phase -> the playheads (20/s per voice)
     if(m.type==="init"){
       pulsars=m.pulsars; nBins=m.n_bins||1024;
       byPos=new Map(pulsars.map(p=>[p.idx,p]));

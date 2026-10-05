@@ -23,6 +23,11 @@ if (~profAA.notNil and: { ~profAA.numFrames.isNil or: { ~profAA.numFrames != (~s
         s.sendMsg("/dp_wt_want", idx);                   // the page fills ~wt with this pulsar's profile
     };
 };
+// THE L1 PHASE REPORTS (2026-10-05): \pulsarAudif sends '/dp_l1ph' [node, idx, phase] 20 times a second per voice; the
+// desktop parser relays them to the viz bridge over UDP (OSCdef \darkPulsarL1Phase -> ~vizOsc). In the tab sclang has no
+// UDP: the engine (engine.js) reads the server's replies itself and hands the page {type:"l1phase", idx, phase}, so the
+// parser's relay is released here (it would try NetAddr.sendMsg 20 times a second per voice).
+OSCdef(\darkPulsarL1Phase).free;
 ~webBuffersReady = false;
 fork {
     s.sync;
