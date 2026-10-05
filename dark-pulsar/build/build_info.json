@@ -1,5 +1,5 @@
 {
-  "built": "2026-10-05 09:26:39",
+  "built": "2026-10-05 10:01:43",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "sources": {
     "viz/index.html": "40fcd295f67ae8ca",
@@ -8,7 +8,7 @@
     "viz/darkstyle/darkstyle.js": "a5a154247a75ed38",
     "sc/darkpulsar_synths.scd": "220250bec63fd7c7",
     "sc/parse_darkpulsar.scd": "a2e7354430e425e5",
-    "lab/SoundDesign_Explanation/data.json": "42078d44a6dafff6",
+    "lab/SoundDesign_Explanation/data.json": "3deeb7e555e5ff31",
     "deploy/make_bundle.py": "7ae3f9b1cf702c39"
   },
   "patches": [
