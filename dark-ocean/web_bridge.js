@@ -2,7 +2,7 @@
 //  dark_ocean — web build · runs INSIDE view/map.html (the desktop page, copied by build_web.py),
 //  loaded right after d3 and before the page's own script.
 //
-//  1. data: the big JSON files (the cube, the daily tiles, the water-mass mix sidecars) are stored
+//  1. data: the big JSON files (the cube, the daily tiles, the water-mass mix and beyond-the-clip sidecars) are stored
 //     gzipped (GitHub Pages' 1 GB limit); d3.json fetches the
 //     .gz and decompresses it here, and drops the page's "?_=<time>" cache-busters so browsers cache.
 //  2. transport: exposes window.__darkWeb, which the patched connectBridge() uses instead of a
@@ -14,7 +14,7 @@
   let engine = null;
   try { engine = window.parent !== window ? window.parent.darkEngine || null : null; } catch (_) { engine = null; }
 
-  const GZIPPED = /(^|\/)(cube_time|map_time|daily\/daily_\d{4}-\d{2}|wmix\/(cube|daily_\d{4}-\d{2}))\.json$/;
+  const GZIPPED = /(^|\/)(cube_time|map_time|daily\/daily_\d{4}-\d{2}|(wmix|beyond)\/(cube|daily_\d{4}-\d{2}))\.json$/;
   const d3json = d3.json;
   d3.json = function (url, init) {
     const clean = String(url).replace(/\?_=\d+$/, "");

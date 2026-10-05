@@ -229,6 +229,7 @@
       <div class="wcgrid">
         <button id="coast-btn" class="mbtn on" title="the coastline under the data (map view only)">◍ coast</button>
         <button id="smooth-btn" class="mbtn on" title="smooth field: the native 0.25° data interpolated on the map. Off = the honest 0.25° boxes.">▦ smooth</button>
+        <button id="dens-btn" class="mbtn on full" title="in salinity × temperature: lines of constant density (σ, every 0.5 kg/m³) and a small diagram of where water is densest against freezing">◇ density lines · on</button>
         <button id="com-btn" class="mbtn full" title="on the map, for a trace anchored in a scatter view: the trail of its centre of mass, from the start of the dates shown up to the date shown, older dates fainter. Visual only.">◉ centre of mass · off</button>
         <button id="slope-btn" class="mbtn full" title="the slope of each trace, as drawn in the view shown (on the map, the direction it runs), and a strip above the timeline with how it changes over the dates shown. Visual only.">╱ slope · off</button>
         <button id="dyn" class="mbtn on full" title="the glimmer: a shimmer over upwelling (blue-white) or a productive front (gold-green) where you point and on the date shown. Visual only; the chimes are on the sound tab.">◈ glimmer on</button>
@@ -433,6 +434,45 @@ function fmtV(k,v){                                    // a 0..1 field value →
   const str=(u[k].signed&&p>0?"+":"")+p.toFixed(u[k].dp);
   return u[k].unit?`${str} ${u[k].unit}`:str;
 }
+// ══ BEYOND THE CLIP (2026-10-05, Björn's "collapsed points"; Miguel: "store full range and pin to the edge"). The bake
+//    stores temperature, salinity and nutrients clipped at the record's 1st and 99th percentiles, and phytoplankton at
+//    log(1 + chlorophyll) = 1.99, so ~1 % of the values sat ON each limit and the views in real units drew them as lines
+//    and walls. viz/gen_beyond.py lists, per date, only the cells beyond a limit with their TRUE value (viz/beyond/).
+//    The stored fields stay as they are (the sound, the colours, the neighbours and the chimes read them unchanged);
+//    the views in real units and the readouts read the true value, and a view pins what falls outside its fixed scale
+//    to the edge, hollow and counted, as the PCA views do. Attached to each frame as f._bx when loaded. ══
+let BEYOND={};
+function loadBeyond(){
+  const files = meta.multiyear ? ["beyond/cube.json"]
+    : meta.daily ? [...new Set(meta.dates.map(d=>d.slice(0,7)))].map(m=>"beyond/daily_"+m+".json") : [];
+  return Promise.all(files.map(fl=>d3.json(fl+"?_="+Date.now()).then(b=>{ if(!b) return;
+      b.dates.forEach((ds,k)=>{ const fr=b.frames[k], o={};
+        ["temp","sal","nut","chl"].forEach(q=>{ const a=fr[q]||[], m=new Map(); for(let j=0;j<a.length;j+=2) m.set(a[j], a[j+1]); o[q]=m; });
+        BEYOND[ds]=o; }); }).catch(()=>{})))
+    .then(()=>{ frames.forEach((f,ti)=>{ f._bx=BEYOND[meta.dates[ti]]||null; });
+      _pcache.clear(); _slopeCache.clear(); _comCache.clear(); _clockF={};
+      if(combo && !combo.geo){ computePositions(); draw(); } if(focusI>=0) renderCellInfo(); });
+}
+function trueVal(k,f,i){                               // temperature / salinity / nutrients, in physical units, unclipped
+  const b=f._bx&&f._bx[k]; if(b && b.has(i)) return b.get(i);
+  return phys(k, f[k]?f[k][i]:null);
+}
+function phytoHi(){ const P=SCALES&&SCALES.units&&SCALES.units.phyto; return P?P.log1p_range[1]:1.99; }
+function chlOf(f,i){                                   // chlorophyll, mg/m³, unclipped
+  const b=f._bx&&f._bx.chl; if(b && b.has(i)) return b.get(i);
+  const v=f.phyto?f.phyto[i]:null; return v==null?null:Math.expm1(v*phytoHi());
+}
+function phytoAxis(f,i){                               // the phytoplankton axis value (log space; beyond 1 past the clip)
+  const b=f._bx&&f._bx.chl; if(b && b.has(i)) return Math.log1p(b.get(i))/phytoHi();
+  return f.phyto?f.phyto[i]:null;
+}
+function fmtTrue(k,f,i){                               // a cell's value as text, unclipped where it was clipped
+  const v=f[k]?f[k][i]:null; if(v==null) return "—";
+  if(k==="phyto"){ const c=chlOf(f,i); return c==null?"—":`${c.toFixed(2)} mg/m³`; }
+  if(!["temp","sal","nut"].includes(k)) return fmtV(k,v);
+  const u=unitsFor(), p=trueVal(k,f,i); if(!u||!u[k]||p==null) return fmtV(k,v);
+  const str=p.toFixed(u[k].dp); return u[k].unit?`${str} ${u[k].unit}`:str;
+}
 function fmtLat(v){ return `${Math.abs(v).toFixed(1)}° ${v>=0?"N":"S"}`; }
 function fmtLon(v){ return `${Math.abs(v).toFixed(1)}° ${v>=0?"E":"W"}`; }
 // WATER-MASS MIX (2026-09-28, Björn's maps). Each cell's own shares of the three water masses: the server's numbers
@@ -560,6 +600,7 @@ d3.json("daily/manifest.json?_="+Date.now())
     for(let i=0;i<N;i++){ const w=f.wm[i]; if(w!=null){ c[w]++; tot++; } }
     return c.map(x=>x/tot); });
   buildGrid();                                     // grid adjacency for the ocean-dynamics flood-fill
+  loadBeyond();                                    // the true values of the clipped cells (viz/beyond/), small, async
   dataNonce++; _nutThr={}; _phytoThr={};            // invalidate the per-frame percentile caches
   for(const d of Object.values(DYN)) d.zones.clear();   // stale zone latches must NOT survive a data swap
   zoneTarget=0; zoneSet.clear();
@@ -698,13 +739,14 @@ function viewDef(cmb){
   return {cmb, ck, cky, pca, units, ts, bio, xr, yr};
 }
 // a cell's place in that plane on frame f: [x, y, pinned] in the axes' own values, or null (no value, or left out:
-// the biology views need physics AND biology, DECISIONS (s)). PCA cells beyond the scale are clamped to its edge
-// (Miguel 10-02: "pin the bloom cells to the edge instead of hiding").
+// the biology views need physics AND biology, DECISIONS (s)). Cells beyond the scale are clamped to its edge (Miguel
+// 10-02: "pin the bloom cells to the edge instead of hiding"; 10-05: the views in real units too, with true values).
 function viewXY(V, f, i){
   if((V.pca||V.bio) && (f.temp[i]==null || f.nut[i]==null)) return null;
-  const val=col=>{ const v=colVal(col,f,i); if(v==null||!V.units) return v; const fr=meta.colKey[col].frame; return fr==="phyto"?v:phys(fr,v); };
+  const val=col=>{ const v=colVal(col,f,i); if(v==null||!V.units) return v; const fr=meta.colKey[col].frame; return fr==="phyto"?phytoAxis(f,i):trueVal(fr,f,i); };
   const xv=val(V.cmb.x), yv=val(V.cmb.y); if(xv==null||yv==null) return null;
-  const pin=V.pca && (xv<V.xr[0]||xv>V.xr[1]||yv<V.yr[0]||yv>V.yr[1]);
+  // beyond the fixed scale: the PCA views' bloom cells, and (2026-10-05) the true values past a view in real units
+  const pin=(V.pca||V.units) && (xv<V.xr[0]||xv>V.xr[1]||yv<V.yr[0]||yv>V.yr[1]);
   return pin ? [Math.min(V.xr[1],Math.max(V.xr[0],xv)), Math.min(V.yr[1],Math.max(V.yr[0],yv)), true] : [xv, yv, false];
 }
 function computePositions(){
@@ -891,7 +933,74 @@ function draw(){
         if(TRACE_TOOL==="lasso"){ ctx.setLineDash([4/zt.k,4/zt.k]); ctx.beginPath(); ctx.moveTo(z[0],z[1]); ctx.lineTo(a[0],a[1]); ctx.stroke(); ctx.setLineDash([]); } } }
   }
   drawSlopeStrip();
+  if(DENSITY_ON && scatterAxes && scatterAxes.kind==="ts") drawDensityInset(T);
 }
+// ══ DENSITY IN THE T–S VIEW (2026-10-05, Björn's second test: "lines of constant density" and "the temperature of
+//    maximum density … where it hits the freezing point"). Seawater density at the surface by the UNESCO 1981 equation
+//    of state (EOS-80, one atmosphere), as σ_t = ρ − 1000 kg/m³. Every 0.5 kg/m³, labelled every 1, faint, under the
+//    cells. The maximum-density line meets the freezing line at salinity 24.6 (−1.34 °C), below this view's salinity
+//    range (30–36): water this salty gets denser all the way to freezing. So that line lives in a small INSET (Miguel's
+//    choice), salinity 0–36, with this region's salinities shaded. One lens-tab switch for both, on by default. ══
+let DENSITY_ON=true;
+function rhoSea(S,Tc){                                   // UNESCO 1981 (EOS-80), kg/m³, at the surface
+  const T=Tc, rw=999.842594+6.793952e-2*T-9.095290e-3*T*T+1.001685e-4*T**3-1.120083e-6*T**4+6.536332e-9*T**5;
+  const A=8.24493e-1-4.0899e-3*T+7.6438e-5*T*T-8.2467e-7*T**3+5.3875e-9*T**4, B=-5.72466e-3+1.0227e-4*T-1.6546e-6*T*T;
+  return rw+A*S+B*Math.pow(S,1.5)+4.8314e-4*S*S;
+}
+function tMaxDensity(S){                                 // the temperature where ρ peaks, at salinity S (bisection on dρ/dT)
+  const d=T=>rhoSea(S,T+1e-4)-rhoSea(S,T-1e-4); let a=-10, b=6;
+  for(let k=0;k<50;k++){ const m=(a+b)/2; if(d(m)>0) a=m; else b=m; } return (a+b)/2;
+}
+function tFreeze(S){ return -0.0575*S+1.710523e-3*Math.pow(S,1.5)-2.154996e-4*S*S; }   // UNESCO 1983, at the surface
+function drawIsopycnals(X, Y, k, T){
+  const [s0,s1]=X.domain(), [t0,t1]=Y.domain(), lo=Math.ceil((rhoSea(s0,t1)-1000)*2)/2, hi=Math.floor((rhoSea(s1,t0)-1000)*2)/2;
+  ctx.save(); ctx.strokeStyle=T.dim; ctx.fillStyle=T.dim; ctx.lineWidth=0.8/k; ctx.font=`${12/k}px ${T.fontCanvas}`;
+  for(let sg=lo; sg<=hi+1e-9; sg+=0.5){
+    const target=1000+sg, pts=[];
+    for(let j=0;j<=60;j++){ const S=s0+(s1-s0)*j/60;
+      // above the max-density temperature ρ falls with T, so T(σ, S) is one root: bisection over the view's range
+      let a=Math.max(t0, tMaxDensity(S)), b=t1; if(rhoSea(S,a)<target || rhoSea(S,b)>target) continue;
+      for(let q=0;q<40;q++){ const m=(a+b)/2; if(rhoSea(S,m)>target) a=m; else b=m; }
+      pts.push([X(S), Y((a+b)/2)]); }
+    if(pts.length<2) continue;
+    const major=Math.abs(sg-Math.round(sg))<1e-9;
+    ctx.globalAlpha=major?0.42:0.22; ctx.beginPath(); pts.forEach((q,j)=>j?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1])); ctx.stroke();
+    if(major){ const e=pts[pts.length-1]; ctx.globalAlpha=0.7; ctx.textAlign="right"; ctx.textBaseline="bottom";
+      ctx.fillText(`σ ${sg.toFixed(0)}`, e[0]-4/k, e[1]-3/k); }
+  }
+  ctx.restore();
+}
+function drawDensityInset(T){                            // salinity 0–36: where water is densest, against freezing
+  const r=cv.getBoundingClientRect(), dpr=window.devicePixelRatio||1, X=scatterAxes.X, Y=scatterAxes.Y;
+  const w=320, h=186, x0=Math.max(8, zt.x+X.range()[0]*zt.k+16), y0=Math.max(8, zt.y+Y.range()[1]*zt.k+12);
+  if(x0+w>r.width-8 || y0+h>r.height-8) return;
+  const L=x0+34, R=x0+w-12, Tp=y0+28, B=y0+h-30, S2x=S=>L+(R-L)*S/36, T2y=t=>B-(B-Tp)*(t+2.5)/7;    // T −2.5 … 4.5 °C
+  const mn=v=>v.toFixed(1).replace("-","−");
+  ctx.save(); ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.globalAlpha=0.94; ctx.fillStyle=T.mapBg; ctx.fillRect(x0,y0,w,h); ctx.globalAlpha=1;
+  ctx.strokeStyle=T.axis; ctx.lineWidth=1; ctx.strokeRect(x0+0.5,y0+0.5,w-1,h-1);
+  ctx.fillStyle=T.dim; ctx.globalAlpha=0.16; ctx.fillRect(S2x(30),Tp,S2x(36)-S2x(30),B-Tp); ctx.globalAlpha=1;   // this region's salinities
+  ctx.strokeStyle=T.axis; ctx.beginPath(); ctx.moveTo(L,Tp); ctx.lineTo(L,B); ctx.lineTo(R,B); ctx.stroke();
+  ctx.font=`11px ${T.fontCanvas}`; ctx.fillStyle=T.dim; ctx.textBaseline="alphabetic";
+  ctx.textAlign="center"; ctx.fillText("this", (S2x(30)+S2x(36))/2, Tp+13); ctx.fillText("region", (S2x(30)+S2x(36))/2, Tp+26);
+  [0,10,20,30].forEach(S=>ctx.fillText(String(S), S2x(S), B+13)); ctx.fillText("salinity", (L+R)/2, B+25);
+  ctx.textAlign="right"; [-2,0,2,4].forEach(t=>ctx.fillText(`${mn(t).replace(".0","")}°`, L-5, T2y(t)+4));
+  const line=(f,dash)=>{ ctx.setLineDash(dash); ctx.beginPath(); let on=false;
+    for(let j=0;j<=144;j++){ const S=36*j/144, t=f(S); if(t<-2.5||t>4.5){ on=false; continue; }
+      if(on) ctx.lineTo(S2x(S),T2y(t)); else { ctx.moveTo(S2x(S),T2y(t)); on=true; } } ctx.stroke(); ctx.setLineDash([]); };
+  ctx.strokeStyle=T.dim; ctx.lineWidth=1.3; line(tFreeze,[5,4]);
+  ctx.strokeStyle=T.txt; ctx.lineWidth=1.8; line(tMaxDensity,[]);
+  const Sm=24.62, tm=tFreeze(Sm);                        // where the two lines meet (computed: 24.6, −1.34 °C)
+  ctx.fillStyle=T.ring; ctx.beginPath(); ctx.arc(S2x(Sm),T2y(tm),4,0,2*Math.PI); ctx.fill();
+  ctx.font=`11px ${T.fontCanvas}`;
+  ctx.fillStyle=T.txt; ctx.textAlign="left"; ctx.fillText("max density", S2x(9.5), T2y(2.7));          // above its line
+  ctx.fillStyle=T.dim; ctx.fillText("freezing", S2x(2), T2y(-0.1)+14);                              // under its line
+  ctx.fillStyle=T.txt; ctx.textAlign="right"; ctx.fillText(`they meet at ${Sm.toFixed(1)}, ${mn(tm)} °C`, S2x(Sm)-8, T2y(-2.05));
+  ctx.font=`600 11.5px ${T.fontCanvas}`; ctx.textAlign="left"; ctx.fillText("where water is densest", x0+10, y0+17);
+  ctx.restore();
+}
+function paintDensity(){ const b=document.getElementById("dens-btn"); if(!b) return;
+  b.textContent=`◇ density lines · ${DENSITY_ON?"on":"off"}`; b.classList.toggle("on", DENSITY_ON); }
 function drawScatterAxes(){
   if(!scatterAxes) return;
   const T=DarkStyle.tokens();
@@ -907,6 +1016,7 @@ function drawScatterAxes(){
     // the fresh end is where the clipped Arctic coast piles up (the web session saw the label cover it, 10-02)
     ctx.fillStyle=T.dim; ctx.font=`${13/k}px ${T.fontCanvas}`; ctx.textAlign="right"; ctx.textBaseline="bottom";
     ctx.fillText("freezing", X(s1)-6/k, Y(Tf(s1))-4/k);
+    if(DENSITY_ON) drawIsopycnals(X, Y, k, T);
   }
   // A2 (Björn: "larger numbers … the fonts bigger"): numbers 16 px and names 20 px (were 10 and 12)
   const ticksFor=(S,fr)=>{ if(fr==="phyto"){ const P=SCALES&&SCALES.units&&SCALES.units.phyto, hi=P?P.log1p_range[1]:1.99;
@@ -1036,7 +1146,7 @@ function drawMixKey(){
     const name=WM_NAMES3[k]+` ${et} °C · S ${es}`;          // the two cold dots share a height: one label above, one below
     if(k===0) lab(name, x-8, y+4, "right"); else if(k===1) lab(name, x+4, y-8, "right"); else lab(name, x-4, y+15, "left"); });
   const i=focusI, f=frames[t];                            // the picked cell, where its temperature and salinity sit
-  if(i>=0 && f && f.temp[i]!=null && f.sal[i]!=null){ const pt=phys("temp",f.temp[i]), ps=phys("sal",f.sal[i]);
+  if(i>=0 && f && f.temp[i]!=null && f.sal[i]!=null){ const pt=trueVal("temp",f,i), ps=trueVal("sal",f,i);
     if(pt!=null && ps!=null){ const x=xOf(ps), y=yOf(pt);
       g.lineWidth=3.4; g.strokeStyle=T.mapBg; g.beginPath(); g.arc(x,y,5,0,2*Math.PI); g.stroke();
       g.lineWidth=1.8; g.strokeStyle=T.ring; g.beginPath(); g.arc(x,y,5,0,2*Math.PI); g.stroke(); } }
@@ -1054,9 +1164,8 @@ function axisText(col,f,i){                      // a scatter axis, named and in
   const v=colVal(col,f,i); if(v==null) return "—";
   const ck=meta.colKey[col]||{};
   if(ck.static) return ck.static==="lat"?fmtLat(v):fmtLon(v);
-  if(ck.frame==="phyto"){ const P=SCALES&&SCALES.units&&SCALES.units.phyto, hi=P?P.log1p_range[1]:1.99;
-    return `${Math.expm1(v*hi).toFixed(2)} mg/m³`; }                 // stored as log(1 + chlorophyll) on a fixed range
-  return ["temp","sal","nut","anom"].includes(ck.frame) ? fmtV(ck.frame,v) : (+v).toFixed(2);
+  if(ck.frame==="phyto") return fmtTrue("phyto",f,i);              // stored as log(1 + chlorophyll) on a fixed range
+  return ["temp","sal","nut","anom"].includes(ck.frame) ? fmtTrue(ck.frame,f,i) : (+v).toFixed(2);
 }
 function dynLabel(i){ const d=dynamicAt(i); return d==="upwell"?"upwelling here":(d==="prod"?"productive water here":""); }
 function showHover(i,e){
@@ -1067,7 +1176,7 @@ function showHover(i,e){
   if(combo && !combo.geo) L.push(`<span class="k">${combo.xlabel||combo.x}</span> ${axisText(combo.x,f,i)} · <span class="k">${combo.ylabel||combo.y}</span> ${axisText(combo.y,f,i)}`);
   if(mode==="km"){ const k=f.km[i]; if(k!=null) L.push(`<span class="hsw" style="background:${KM_COLORS[k]}"></span>cluster ${k}`); }
   else if(mode==="wmix"){ const s=f.temp[i]!=null && mixAt(i); if(s) L.push(`mix ${mixText(s)}`); }
-  else if(mode!=="wm" && f.temp[i]!=null){ const v=f[mode][i]; L.push(`${NAMES[mode]} ${v==null?"—":fmtV(mode,v)}`); }
+  else if(mode!=="wm" && f.temp[i]!=null){ L.push(`${NAMES[mode]} ${fmtTrue(mode,f,i)}`); }
   const dl=dynLabel(i); if(dl) L.push(`<span style="color:${dl[0]==="u"?LOOK.dyn.up:LOOK.dyn.prod}">${dl}</span>`);
   hbox.innerHTML=L.join("<br>"); hbox.style.display="block";
   const mr=document.getElementById("map").getBoundingClientRect(), bw=hbox.offsetWidth, bh=hbox.offsetHeight;
@@ -1089,7 +1198,7 @@ function renderCellInfo(){
     row("water mass", w==null?"—":`<span class="sw" style="background:${WM_COLORS[w]}"></span>${wmName(w)}`)+
     (mx ? row("mix", mixText(mx)) : "")+
     row(meta.daily?"cluster (daily fit)":"cluster", k==null?"—":`<span class="sw" style="background:${KM_COLORS[k]}"></span>${k}`)+
-    ["temp","sal","nut","anom"].map(q=>row(NAMES[q], (f.temp[i]==null||f[q][i]==null)?"—":fmtV(q,f[q][i]))).join("");
+    ["temp","sal","nut","anom"].map(q=>row(NAMES[q], (f.temp[i]==null||f[q][i]==null)?"—":fmtTrue(q,f,i))).join("");
   el.style.display="block";
   document.getElementById("cell-x").onclick=clearSel;
 }
@@ -1794,7 +1903,7 @@ function clockVals(ti, feat){                         // physical values per oce
   const P=SCALES&&SCALES.units&&SCALES.units.phyto, ph=P?P.log1p_range:[0,1.99];
   for(let i=0;i<N;i++){ const v=src?src[i]:null;
     if(v==null||f.temp[i]==null){ out[i]=NaN; continue; }
-    out[i]= feat==="chl" ? Math.expm1(ph[0]+v*(ph[1]-ph[0])) : (u&&u[feat] ? u[feat].lo+v*(u[feat].hi-u[feat].lo) : v); }
+    out[i]= feat==="chl" ? chlOf(f,i) : (u&&u[feat] ? trueVal(feat,f,i) : v); }          // unclipped (viz/beyond/, 2026-10-05)
   return out;
 }
 function clockFeat(feat){                             // every statistic of one feature on every date shown (cached)
@@ -2175,6 +2284,7 @@ document.getElementById("trk-btn").addEventListener("click", toggleTrackMode);
 document.querySelectorAll("#tr-anchor .tra").forEach(b=>b.addEventListener("click",()=>{ setAnchor(b.dataset.an); saveState(); }));
 document.getElementById("slope-btn").addEventListener("click",()=>{ SLOPE_ON=!SLOPE_ON; paintSlope(); draw(); saveState(); });
 document.getElementById("com-btn").addEventListener("click",()=>{ COM_ON=!COM_ON; paintCom(); draw(); saveState(); });
+document.getElementById("dens-btn").addEventListener("click",()=>{ DENSITY_ON=!DENSITY_ON; paintDensity(); draw(); saveState(); });
 document.querySelectorAll("#tr-tools .trt").forEach(b=>b.addEventListener("click",()=>{   // picking a tool arms tracing
   setTraceTool(b.dataset.t); if(!trackMode) toggleTrackMode(); saveState(); }));
 document.getElementById("coast-btn").addEventListener("click",function(){ baseMap=!baseMap; this.classList.toggle("on",baseMap); draw(); saveState(); });
@@ -2297,7 +2407,7 @@ function saveState(){
   if(!meta || _restoring) return;
   const st=readState();
   st.mode=mode; st.combo=combo?combo.label:null; st.nb=NB_K; st.coast=baseMap; st.smooth=smoothOn; st.glim=glimArmed; st.tool=TRACE_TOOL; st.clock=CLOCK;
-  st.anchor=TRACE_ANCHOR; st.slope=SLOPE_ON; st.com=COM_ON;
+  st.anchor=TRACE_ANCHOR; st.slope=SLOPE_ON; st.com=COM_ON; st.dens=DENSITY_ON;
   st.traces=st.traces||{};
   st.traces[gridSig()]=tracks.map(tr=>tr.anchor==="param"
     ? {id:tr.id, label:tr.label, slot:tr.slot, color:tr.color, anchor:"param", home:tr.home, cells:[]}
@@ -2319,6 +2429,7 @@ function restoreState(){
     if(st.anchor) setAnchor(st.anchor);
     if(st.slope!=null){ SLOPE_ON=!!st.slope; paintSlope(); }
     if(st.com!=null){ COM_ON=!!st.com; paintCom(); }
+    if(st.dens!=null){ DENSITY_ON=!!st.dens; paintDensity(); }
     if(st.clock){ ["acc","div","bri"].forEach(k=>{ if(st.clock[k]!=null) setClockSilent(k, st.clock[k]); }); paintClock(); }
     const tr=st.traces&&st.traces[gridSig()];
     if(Array.isArray(tr)){
