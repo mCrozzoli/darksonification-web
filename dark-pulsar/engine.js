@@ -85,7 +85,7 @@ class DarkEngine {
     this.watchers = [];
     // bridge.py has no sound state of its own for this design (SC keeps ~masterVol 0.8 and the page's Vol slider
     // starts at 0.80, unmuted); the engine remembers what the page sent so a (re)started SuperCollider gets it back
-    this.SOUND = { master: { vol: 0.8, mute: 0 }, nav: null, lastLevel: "l0", hold: null, legendMute: 0 };
+    this.SOUND = { master: { vol: 0.8, mute: 0, rate: 1.0 }, nav: null, lastLevel: "l0", hold: null, legendMute: 0 };   // rate: the L1 speed (10-05)
     this.curIdx = -1;                             // the parser's ~curIdx: the last pulsar swapped into ~wt
     this.filled = new Set();                      // pulsars whose L1 block is in ~profAA (this scsynth)
     this.wtBuf = this.aaBuf = this.aaFrames = this.aaStride = null;
@@ -322,6 +322,7 @@ class DarkEngine {
     const S = this.SOUND;
     this.send("/dark_master", [s("vol"), f(S.master.vol)]);
     this.send("/dark_master", [s("mute"), i(S.master.mute)]);
+    if (S.master.rate !== 1.0) this.send("/dark_master", [s("rate"), f(S.master.rate)]);   // SC loads at 1.0; the page's speed
     if (S.legendMute) this.send("/dark_legend", [s("mute"), i(1)]);
     if (S.nav && S.lastLevel !== "l1") this.relaySend(S.nav);    // the pulsar under the cursor sounds (at L1 the
     if (S.hold) this.relaySend(S.hold);                           //   page's keepalive restarts the voices itself)
@@ -361,6 +362,7 @@ class DarkEngine {
       case "master":
         if (d.cmd === "vol") S.master.vol = Math.max(0, Math.min(1, +d.value || 0));
         else if (d.cmd === "mute") S.master.mute = +d.value > 0.5 ? 1 : 0;
+        else if (d.cmd === "rate") S.master.rate = Math.min(1.5, Math.max(0.5, d.value == null ? 1.0 : +d.value));   // the L1 speed
         else return;
         break;
       default:
@@ -405,6 +407,7 @@ class DarkEngine {
         const cmd = String(d.cmd ?? "");
         if (cmd === "vol") return ["/dark_master", [s("vol"), f(d.value ?? 0.8)]];
         if (cmd === "mute") return ["/dark_master", [s("mute"), i(d.value ?? 0)]];
+        if (cmd === "rate") return ["/dark_master", [s("rate"), f(Math.min(1.5, Math.max(0.5, d.value == null ? 1.0 : +d.value)))]];   // the L1 speed, clamped as the bridge does
         return null;
       }
       default:

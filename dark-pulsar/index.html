@@ -178,9 +178,11 @@
   #pl-play { min-width:30px; font-weight:600; } #pl-play.on { background:var(--dp-on); border-color:var(--dp-on-line); color:var(--dp-on-txt); }
   .pl-idx { font-variant-numeric:tabular-nums; color:var(--ink); font-size:11px; min-width:84px; text-align:center; }
   .pl-loop { font-size:11px; color:var(--dim); display:flex; align-items:center; gap:4px; cursor:pointer; white-space:nowrap; }
-  #pl-slider, #ms-vol { -webkit-appearance:none; appearance:none; height:5px; border-radius:3px; background:var(--dp-slider-track); outline:none; }
+  #pl-slider, #ms-vol, #pl-rate { -webkit-appearance:none; appearance:none; height:5px; border-radius:3px; background:var(--dp-slider-track); outline:none; }
   #pl-slider { flex:1; min-width:80px; margin:0 4px; }
-  #pl-slider::-webkit-slider-thumb, #ms-vol::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:13px; height:13px; border-radius:50%; background:var(--dp-thumb); cursor:pointer; }
+  #pl-rate { width:110px; flex:none; }   /* the L1 speed: 50..150%, 100% (the real speed) in the middle */
+  .pl-rate-val { font-size:11px; color:var(--ink); min-width:36px; font-variant-numeric:tabular-nums; }
+  #pl-slider::-webkit-slider-thumb, #ms-vol::-webkit-slider-thumb, #pl-rate::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:13px; height:13px; border-radius:50%; background:var(--dp-thumb); cursor:pointer; }
   #profile { flex:1; display:block; width:100%; }
   #profile circle.dot { stroke:var(--panel); stroke-width:1.5px; }   /* the rotation dot: a ring so it reads on a busy line */
   /* THE EDGE TABS: the sidebar (right, key i) and the perceptual legend (left, key L) */
@@ -285,7 +287,7 @@
       <div class="seg">master</div>
       <div class="wcgrid"><span class="wbtn full" id="ms-mute" title="a true global cut on every voice">◼ mute</span></div>
       <div class="fader"><span>volume</span><input type="range" id="ms-vol" min="0" max="1" step="0.02" value="0.8"><span class="fv" id="ms-vol-val">0.80</span></div>
-      <div class="note">At L1 each pinned pulsar plays at its real spin: slow ones tick, fast ones sing. The line brings forward the part of the rotation under it. Hold a legend chip (L) to hear one feature or one layer alone.</div>
+      <div class="note">At L1 each pinned pulsar plays at its real spin: slow ones tick, fast ones sing. The band brings forward the part of the rotation under it; the speed under the plot plays every rotation at 50–150% of its real rate. Hold a legend chip (L) to hear one feature or one layer alone.</div>
     </div>
     <div class="tsec" data-tab="trace">
       <div class="seg" id="pa-head">parents · none</div>
@@ -322,7 +324,10 @@
       <span id="pl-stop" style="display:none"></span>
       <label class="pl-loop"><input type="checkbox" id="pl-loop" checked> loop</label>
       <span class="k" id="pl-interval-label">step · s / pulsar</span>
-      <input type="number" id="pl-interval" min="0.0001" max="120" step="0.01" value="1" title="L0: seconds per pulsar · L1: seconds per sweep of one rotation">
+      <input type="number" id="pl-interval" min="0.0001" max="5" step="0.01" value="1" title="L0: seconds per pulsar">
+      <span class="k" id="pl-rate-label" style="display:none">speed</span>
+      <input type="range" id="pl-rate" min="50" max="150" step="1" value="100" style="display:none" title="L1: every rotation at this share of its real speed (100% = real; double-click for 100%)">
+      <span class="pl-rate-val" id="pl-rate-val" style="display:none">100%</span>
     </div>
     <svg id="profile"></svg>
   </div>
@@ -392,7 +397,8 @@ let trail = [], allProfiles = null;   // allProfiles: every pulsar's 1024-bin pr
 let ticks = 0;
 let lensTrail = true, lensLive = true, lensSpot = true;   // the LENS tab: visual only
 // the transport, the master, a legend hold, a press on the plot or the profile: read by the INFORMATION line from the first paint
-let _playIdx=0, _playing=false, _playRAF=null, _playStart=0, _playFrom=0, _phaseFrom=0.5, _intervalL0=1.0, _sweepL1=8, _loopOn=true;
+let _playIdx=0, _playing=false, _playRAF=null, _playStart=0, _playFrom=0, _intervalL0=1.0, _loopOn=true;
+let _l1Rate=1.0;   // L1 speed: every rotation at this ratio of its real rate (0.5..1.5); not remembered, a load starts real
 let _muted=false, _vol=0.8, _holds=0, _padding=false, _profDrag=false;
 const SPOT_HALF = 0.06;               // the sound's spotlight: a triangle of half-width 0.06 rotation (\pulsarAudif width)
 
@@ -757,7 +763,7 @@ function envSince(vals, from, to){              // RMS of the clipped envelope o
   return Math.sqrt(acc/span);
 }
 function onL1Phase(m){
-  const p = byPos.get(m.idx), f = p && p.spin_hz!=null ? +p.spin_hz : null;
+  const p = byPos.get(m.idx), f = p && p.spin_hz!=null ? +p.spin_hz * _l1Rate : null;   // the rate it plays at
   if(f==null || !(m.phase>=0)) return;
   const now = performance.now(), cur = l1Ph.get(m.idx);
   if(cur && now - cur.at < 300){
@@ -847,8 +853,10 @@ function hearText(){
   if(curLevel==="l1"){
     const n=l1Targets().length;
     if(!n) return ["off", "L1 · nothing pinned: <b>click a pulsar</b> or pin parents"];
-    const what = n===1 ? "<b>"+nameOf(l1Targets()[0])+"</b> at its real spin" : "<b>"+n+" pulses</b> at their real spin";
-    if(_playing) return ["", "you hear: "+what+" · the line sweeps one rotation in "+_sweepL1+" s"];
+    const pct = Math.round(_l1Rate*100), whose = n===1 ? "its" : "their";
+    const what = (n===1 ? "<b>"+nameOf(l1Targets()[0])+"</b>" : "<b>"+n+" pulses</b>")
+               + (pct===100 ? " at "+whose+" real spin" : " at <b>"+pct+"%</b> of "+whose+" real spin");
+    if(_playing) return ["", "you hear: "+what];
     if(_profDrag||_padding) return ["", "you hear: "+what+" · the line is where you hold it"];
     return ["off", "L1 stopped · <b>press ▶</b> or drag the line to hear"];
   }
@@ -863,7 +871,7 @@ function renderInfo(){
   // whenever the GUI is connected, #hear is always two lines; only the level switch (on the transport) changes it
   document.getElementById("i-phase-row").style.display = atL1 ? "" : "none";
   if(atL1) document.getElementById("i-phase").textContent = scrub==null ? "—" :
-    "phase " + scrub.toFixed(3) + (wcConnected() ? " · the GUI's scrub" : _playing ? " · sweeping ("+_sweepL1+" s)" : ((_profDrag||_padding) ? " · held" : " · stopped"));
+    "phase " + scrub.toFixed(3) + (wcConnected() ? " · the GUI's scrub" : _playing ? " · playing" : ((_profDrag||_padding) ? " · held" : " · stopped"));
   const vh=document.getElementById("i-voices"); vh.innerHTML="";
   const targets = atL1 ? l1Targets() : [];
   vh.style.display = atL1 ? "" : "none";
@@ -942,6 +950,7 @@ async function connect(){
       px.domain([0,1]); setLayout(layout); drawProfile();
       buildLegend(); buildKey(); fmtIdx(); paintTransport(); loadProfiles();
       if(active<0) updateInfo(null); else renderInfo();   // the feature rows from the start (empty), so the first click keeps the height
+      sendMaster({cmd:"rate", value:_l1Rate});            // SC plays L1 at the page's speed (a load starts at 100%)
       if(m.web_control && m.web_control.web_ws && window.DarkWebControl) DarkWebControl.configure(m.web_control.web_ws);
       if(!pulsars.length) setConn("waiting","connected · no scatter (Save Project to enable)");
       return;
@@ -1001,7 +1010,7 @@ function setLevel(lvl){
     // L1 opens with the spotlight ON the pulse (99.3% of these profiles peak at the centre) and, standalone,
     // PLAYS: the transport owns the L1 sound (Miguel 2026-10-04); connected, the GUI's navigator does
     if(_playing) plStop();                     // an L0 stepping run ends; the sweep starts fresh
-    scrub=0.5; _phaseFrom=0.5; _playIdx=Math.round(0.5*((nBins||1)-1));
+    scrub=0.5; _playIdx=Math.round(0.5*((nBins||1)-1));
     fmtIdx(); paintTransport();
     if(!wcConnected() && l1Targets().length) plStart(); else { drawProfile(); renderInfo(); }
   } else {
@@ -1066,9 +1075,8 @@ function l1AfterHold(){
 // tick, at frame rate), or a press held on the profile or the plot. Stop sends nothing, and the voices go in 0.45 s.
 function l1Sounding(){ return curLevel==="l1" && !wcConnected() && (_playing || _profDrag || _padding); }
 function l1Audible(){ return curLevel==="l1" && (wcConnected() || _playing || _profDrag || _padding); }   // what the display shows: connected, the GUI's navigator drives the voices
-function scrubTo(fx){                         // a drag: the line moves to fx; while playing the sweep continues from there
+function scrubTo(fx){                         // a drag: the band moves to fx and stays there (it is parked)
   _playIdx=Math.round(fx*((nBins||1)-1)); fmtIdx(); scrub=fx;
-  _phaseFrom=fx; _playStart=performance.now();
   drawProfile(); renderInfo(); scrubNav(fx);
 }
 function nearestPulsar(dx, dy){
@@ -1209,12 +1217,14 @@ function buildKey(){
 buildKey();
 
 // ---------- player (transport) + master (vol/mute) ----------
-// The transport auto-advances navigation, LEVEL-AWARE like the GUI's own player: L0 steps the pulsar selection
-// (Interval = seconds per pulsar); L1 SWEEPS the spotlight line across one rotation (Interval = seconds per sweep,
-// default 8 s: 1,024 bins in 8 s = 7.8 ms per bin, the pulse lit about 1 s per sweep). Driven by ELAPSED TIME (not a
-// fixed timer), so Interval honours the full range with a throttled (≤ frame) wire rate. The backstop clock is a
-// WORKER: its timer is not throttled when the tab is hidden, so a playing L1 keeps its voices there too. It routes
-// through the same gate as clicks (GUI when connected, else standalone), so Play works headless too.
+// The transport is LEVEL-AWARE like the GUI's own player. L0: Play steps the pulsar selection (Interval = seconds per
+// pulsar), driven by ELAPSED TIME (not a fixed timer). L1 (Miguel 2026-10-05): Play/Stop starts and stops the
+// rotations, the sound and the dots; the spotlight band is PARKED where you put it (on the pulse at 0.5 when L1
+// opens; ‹ › ⏮ ⏭, the slider and a drag move it), and the SPEED control plays every rotation at 50..150% of its real
+// rate (one ratio for all, so their relations stay). The band used to sweep one rotation per 8 s; against the real
+// rotation that read as two unrelated clocks, so the dot is now the only thing that moves by itself. The backstop
+// clock is a WORKER (not throttled in a hidden tab): at L1 its 10 ticks a second are the keepalive (SC frees a voice
+// 0.45 s after its last message). It routes through the same gate as clicks (GUI when connected, else standalone).
 function playTotal(){ return curLevel==="l1" ? (nBins||1) : (pulsars.length||1); }
 function fmtIdx(){
   const t=playTotal(); _playIdx=Math.max(0, Math.min(_playIdx, t-1));
@@ -1225,18 +1235,21 @@ function paintTransport(){
   const atL1 = curLevel==="l1";
   document.querySelectorAll("#wc-level .lvl").forEach(b=>b.classList.toggle("on", b.dataset.l===curLevel));
   const pb=document.getElementById("pl-play"); pb.textContent=_playing?"■":"▶"; pb.classList.toggle("on", _playing);
-  pb.title = atL1 ? (_playing ? "stop: the line stays, the pulses go silent" : "play: the line sweeps one rotation, the pulses sound")
+  pb.title = atL1 ? (_playing ? "stop: the pulsars go silent; the band stays" : "play: the pulsars turn at their speed (the dots)")
                   : (_playing ? "stop stepping" : "play: step through the pulsars");
-  document.getElementById("pl-interval-label").textContent = atL1 ? "sweep · s / rotation" : "step · s / pulsar";
-  const inp=document.getElementById("pl-interval");
-  inp.value = atL1 ? _sweepL1 : _intervalL0; inp.min = atL1 ? 1 : 0.0001; inp.max = atL1 ? 120 : 5; inp.step = atL1 ? 1 : 0.01;
+  // L0: Loop + seconds per pulsar; L1: the speed (no loop, no seconds: the band does not move by itself)
+  const show=(el,on)=>{ el.style.display = on ? "" : "none"; };
+  show(document.querySelector(".pl-loop"), !atL1);
+  show(document.getElementById("pl-interval-label"), !atL1); show(document.getElementById("pl-interval"), !atL1);
+  ["pl-rate-label","pl-rate","pl-rate-val"].forEach(id=>show(document.getElementById(id), atL1));
+  document.getElementById("pl-interval-label").textContent = "step · s / pulsar";
+  document.getElementById("pl-interval").value = _intervalL0;
 }
 function playApply(i){
   const t=playTotal(); if(t<=0) return;
-  _playIdx = _loopOn ? ((i%t)+t)%t : Math.max(0, Math.min(t-1, i));
+  _playIdx = (_loopOn || curLevel==="l1") ? ((i%t)+t)%t : Math.max(0, Math.min(t-1, i));   // a rotation is circular
   if(curLevel==="l1"){
-    const ph = t>1 ? _playIdx/(t-1) : 0;                 // phase fraction across the profile
-    _phaseFrom=ph; _playStart=performance.now();         // a running sweep carries on from the new line (as a drag does)
+    const ph = t>1 ? _playIdx/(t-1) : 0;                 // the band's phase (it stays where it is put)
     if(wcConnected()) DarkWebControl.axes({pad_x: ph});  // GUI maps X -> the L1 phase index
     else if(l1Targets().length){ scrub=ph; drawProfile(); renderInfo(); scrubNav(ph); }
     fmtIdx();
@@ -1248,26 +1261,28 @@ function plStop(){
   const was=_playing;
   _playing=false; if(_playRAF){ cancelAnimationFrame(_playRAF); _playRAF=null; }
   paintTransport();
-  if(was && curLevel==="l1"){ drawProfile(); renderInfo(); }   // the line stays, dashed; the voices go in 0.45 s
+  if(was && curLevel==="l1"){ drawProfile(); renderInfo(); }   // the band stays, its line dashed; the voices go in 0.45 s
 }
 function plStart(){
   if(_playing||!playTotal()) return;
   if(curLevel==="l1" && !wcConnected() && !l1Targets().length){ renderInfo(); return; }   // nothing to sound yet
-  _playing=true; _playStart=performance.now(); _playFrom=_playIdx; _phaseFrom = scrub!=null ? scrub : 0.5;
+  _playing=true; _playStart=performance.now(); _playFrom=_playIdx;
   paintTransport(); renderInfo();
-  if(curLevel==="l1") drawProfile();
+  if(curLevel==="l1"){                     // the rotations sound at once; then the Worker's ticks keep them alive
+    if(scrub==null) scrub=0.5;
+    drawProfile();
+    if(wcConnected()) DarkWebControl.axes({pad_x: scrub}); else scrubNav(scrub);
+    return;
+  }
   _playRAF=requestAnimationFrame(plTick);
 }
 function plTick(now){
   if(!_playing) return;
   if(curLevel==="l1"){
-    // a CONTINUOUS sweep: phase from the clock; every tick re-sends the spotlight (the keepalive while sounding)
-    let ph = _phaseFrom + (now-_playStart)/1000/Math.max(1e-3,_sweepL1);
-    if(!_loopOn && ph>=1){ scrub=1; _playIdx=(nBins||1)-1; fmtIdx(); drawProfile(); scrubNav(1); plStop(); return; }
-    ph = ph - Math.floor(ph);
-    scrub=ph; _playIdx=Math.round(ph*((nBins||1)-1)); fmtIdx();
-    drawProfile(); renderInfo();
-    if(wcConnected()) DarkWebControl.axes({pad_x: ph}); else scrubNav(ph);
+    // the keepalive: the band is parked, so the Worker's 10 ticks a second are plenty (no rAF chain at L1);
+    // connected, the GUI's navigator holds the voices and the page sends nothing more
+    if(!wcConnected()) scrubNav(scrub ?? 0.5);
+    return;
   } else {
     const t=playTotal();
     let target=_playFrom + Math.floor((now-_playStart)/1000/_intervalL0);
@@ -1289,10 +1304,10 @@ try{
   };
 }catch(e){ console.warn("[darkpulsar] no Worker clock:", e); setInterval(()=>{ if(_playing) plTick(performance.now()); else if(l1Sounding() && scrub!=null) scrubNav(scrub); }, 100); }
 window.__plClock = __plClock;
-// ⏮ ‹ › ⏭ and the slider: at L0 they stop a stepping run and go to the pulsar; at L1 they move the line and a running
-// sweep KEEPS PLAYING from there (Miguel 2026-10-05; they used to stop it: half a second of sound, then silence)
+// ⏮ ‹ › ⏭ and the slider: at L0 they stop a stepping run and go to the pulsar; at L1 they move the band and the
+// pulsars KEEP PLAYING (Miguel 2026-10-05; they used to stop it: half a second of sound, then silence)
 function plGoto(i){ if(!(curLevel==="l1" && _playing)) plStop(); playApply(i); }
-function plStep(d){                                 // ‹ ›: a pulsar at L0; at L1 the line moves by one spotlight half-width
+function plStep(d){                                 // ‹ ›: a pulsar at L0; at L1 the band moves by its half-width
   if(curLevel==="l1") plGoto(_playIdx + d*Math.round(SPOT_HALF*((nBins||1)-1)));
   else plGoto(_playIdx + d);
 }
@@ -1304,12 +1319,25 @@ document.getElementById("pl-slider").addEventListener("input",e=>plGoto(+e.targe
 document.getElementById("pl-play").onclick=()=>{ if(_playing) plStop(); else plStart(); };
 document.getElementById("pl-stop").onclick=plStop;
 document.getElementById("pl-loop").addEventListener("change",e=>{ _loopOn=e.target.checked; saveState(); });
-document.getElementById("pl-interval").addEventListener("change",e=>{
-  if(curLevel==="l1"){ _sweepL1=Math.max(1, Math.min(120, +e.target.value||8)); e.target.value=_sweepL1; _phaseFrom = scrub ?? 0.5; }
-  else { _intervalL0=Math.max(0.0001, Math.min(5, +e.target.value||1)); e.target.value=_intervalL0; _playFrom=_playIdx; }
+document.getElementById("pl-interval").addEventListener("change",e=>{   // L0 only (hidden at L1)
+  _intervalL0=Math.max(0.0001, Math.min(5, +e.target.value||1)); e.target.value=_intervalL0; _playFrom=_playIdx;
   _playStart=performance.now();                      // rebase so the new rate applies smoothly
   renderInfo(); saveState();
 });
+// THE L1 SPEED (Miguel 2026-10-05): one ratio for every rotation, 50..150%, 100% (the real rate) in the middle with a
+// small detent; double-click = 100%. It goes straight to SC on the master channel (/dark_master "rate"), like volume,
+// so it works standalone and connected; the dots change speed at once (their reports correct any drift).
+function setL1Rate(pct){
+  pct = Math.max(50, Math.min(150, Math.round(+pct || 100)));
+  if(Math.abs(pct - 100) <= 3) pct = 100;
+  const r = pct/100, now = performance.now();
+  for(const [k,v] of l1Ph){ l1Ph.set(k, {ph: ((v.ph + v.f*(now - v.at)/1000) % 1 + 1) % 1, at: now, f: v.f/_l1Rate*r}); }
+  _l1Rate = r;
+  document.getElementById("pl-rate").value = pct; document.getElementById("pl-rate-val").textContent = pct + "%";
+  sendMaster({cmd:"rate", value:r}); renderInfo();
+}
+document.getElementById("pl-rate").addEventListener("input", e=>setL1Rate(e.target.value));
+document.getElementById("pl-rate").addEventListener("dblclick", ()=>setL1Rate(100));
 
 // master vol / mute -> SC /dark_master (true global gain on every voice). Goes straight
 // to SC, so it works standalone AND connected (the GUI's own master is OSC-inert).
@@ -1344,11 +1372,11 @@ function paintLens(){
   const set=(id,on,txt)=>{ const b=document.getElementById(id); b.classList.toggle("on",on); b.textContent=txt+" · "+(on?"on":"off"); };
   set("lens-trail", lensTrail, "◌ trail"); set("lens-live", lensLive, "┄ live profile at L0"); set("lens-spot", lensSpot, "◫ spotlight band");
 }
-function saveState(){ lsSet(LS.state, JSON.stringify({trail:lensTrail, live:lensLive, spot:lensSpot, sweep:_sweepL1, interval:_intervalL0, loop:_loopOn})); }
+function saveState(){ lsSet(LS.state, JSON.stringify({trail:lensTrail, live:lensLive, spot:lensSpot, interval:_intervalL0, loop:_loopOn})); }
 function restoreState(){
   let st={}; try{ st=JSON.parse(lsGet(LS.state)||"null")||{}; }catch(_){ st={}; }
   if(st.trail!=null) lensTrail=!!st.trail; if(st.live!=null) lensLive=!!st.live; if(st.spot!=null) lensSpot=!!st.spot;
-  if(st.sweep) _sweepL1=Math.max(1,Math.min(120,+st.sweep||8)); if(st.interval) _intervalL0=Math.max(0.0001,Math.min(5,+st.interval||1));
+  if(st.interval) _intervalL0=Math.max(0.0001,Math.min(5,+st.interval||1));
   if(st.loop!=null){ _loopOn=!!st.loop; document.getElementById("pl-loop").checked=_loopOn; }
 }
 function setupPanel(){

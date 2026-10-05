@@ -1,15 +1,15 @@
 {
-  "built": "2026-10-05 08:21:16",
+  "built": "2026-10-05 09:26:39",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "sources": {
-    "viz/index.html": "d1495309e2828f35",
+    "viz/index.html": "40fcd295f67ae8ca",
     "viz/darkstyle/KIT.json": "8ca3b7f24a0bf80c",
     "viz/darkstyle/darkstyle.css": "a2c1507972554138",
     "viz/darkstyle/darkstyle.js": "a5a154247a75ed38",
     "sc/darkpulsar_synths.scd": "220250bec63fd7c7",
-    "sc/parse_darkpulsar.scd": "a14d2c571d819b17",
-    "lab/SoundDesign_Explanation/data.json": "9a4e7d2db0cda753",
-    "deploy/make_bundle.py": "b6b4e6fc0dbff883"
+    "sc/parse_darkpulsar.scd": "a2e7354430e425e5",
+    "lab/SoundDesign_Explanation/data.json": "42078d44a6dafff6",
+    "deploy/make_bundle.py": "7ae3f9b1cf702c39"
   },
   "patches": [
     "the tab's title and a description (the page is the site's shell for this design)",
@@ -52,8 +52,8 @@
     "sc/web_buffers.scd"
   ],
   "data": {
-    "built": "2026-10-05 08:21:16",
-    "bridge_sha": "40902588184c0d9e",
+    "built": "2026-10-05 09:26:39",
+    "bridge_sha": "198a973a241bd45f",
     "files": {
       "init.json.gz": {
         "raw": 858160,
@@ -81,16 +81,16 @@
         "max_error": 1.537755542146968e-05
       },
       "aa_blocks.u16": {
-        "bytes": 94944,
-        "blocks": 46
+        "bytes": 103200,
+        "blocks": 50
       },
       "sc/web_tables.scd": {
-        "bytes": 94309,
+        "bytes": 94299,
         "spin_hz": 1297,
         "drivers_logpos": 5188
       }
     },
-    "seconds": 0.6
+    "seconds": 0.4
   },
   "credits": {
     "epn_papers": 45,
