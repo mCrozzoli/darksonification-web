@@ -122,6 +122,7 @@
   #hear.off { border-color:var(--dp-wait-line); } #hear.off b { color:var(--dp-wait); } #hear.none { color:var(--dim); }
   #hear b { color:var(--dp-txt-hi); font-weight:600; }
   #i-name { font-size:13px; font-weight:600; color:var(--msp); }
+  #i-spin { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }   /* one line: a steady INFORMATION height */
   .badges { display:flex; gap:6px; margin:5px 0 7px; }
   .badge { font-size:10px; padding:2px 7px; border-radius:9px; border:1px solid var(--dp-chip-line); color:var(--dim); }
   .badge.on { background:var(--dp-badge-bg); border-color:var(--dp-badge-line); color:var(--msp); }
@@ -751,12 +752,14 @@ function updateInfo(f){
   // 'binary' lights from the row's binary column when the export carries one; otherwise the badge stays off
   const bin = p && (p.binary===true || p.binary===1 || (typeof p.binary==="string" && p.binary && p.binary!=="*" && p.binary!=="nan"));
   document.getElementById("b-bin").classList.toggle("on", !!bin);
-  const spin = p && p.spin_hz!=null ? +p.spin_hz : null;      // a real spin rate, when the export carries one
-  // the row is there whenever the export carries spin_hz (a dash for a pulsar without one), so the height never
-  // changes from one pulsar to the next; today's rows carry only the MinMax period, so it stays hidden
+  const spin = p && p.spin_hz!=null ? +p.spin_hz : null;      // the real spin rate (the bridge adds it from spin_hz.wav)
+  // the row is there whenever the rows carry spin_hz (the table SC's L1 voice plays; a dash for a pulsar without
+  // one), so the height never changes from one pulsar to the next. One line for every pulsar: periods under a
+  // second in ms (the widest, "1.441 Hz · a pulse every 693.7 ms", is 205 of 214 px in paper)
   document.getElementById("i-spin-row").style.display = pulsars.some(q=>q.spin_hz!=null) ? "" : "none";
+  const sec = spin==null ? null : 1/spin;
   document.getElementById("i-spin").textContent = spin==null ? "—"
-    : spin.toFixed(spin<10?3:2) + " Hz · one pulse every " + (1/spin).toFixed(spin<10?2:4) + " s";
+    : spin.toFixed(spin<10?3:2) + " Hz · a pulse every " + (sec>=1 ? sec.toFixed(2)+" s" : (sec*1000).toFixed(sec<0.01?2:1)+" ms");
   renderInfo();
 }
 // the "you hear" line, the line's phase and the voices: from the page's own state (this design echoes nothing back)
