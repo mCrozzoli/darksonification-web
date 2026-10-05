@@ -404,7 +404,8 @@ function unitDomain(fr){                                      // the fixed range
   if(fr==="temp") return ts?ts.temp:[-2.5,17.5];
   if(fr==="sal") return ts?ts.sal:[30,36];
   if(fr==="nut") return un?un.nut:[1,23];
-  return [0,1];                                               // phytoplankton: its stored log range
+  const P=un&&un.phyto, top=P&&P.axis_mg_m3?P.axis_mg_m3[1]:null;      // phytoplankton: its stored log range, up to 11 mg/m³
+  return top ? [0, Math.log1p(top)/P.log1p_range[1]] : [0,1];       //   since 2026-10-05 (the blooms at their true value)
 }
 // MORE VIEWS (2026-10-02, Miguel): pairs in real units beside the four baked ones, added here so no data file is
 // re-baked; each needs both fields in the loaded data (the cube and the daily tiles carry nut and phyto)
