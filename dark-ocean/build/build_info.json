@@ -1,15 +1,15 @@
 {
-  "built": "2026-10-05 22:50:24",
+  "built": "2026-10-06 08:05:14",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "sources": {
-    "viz/map.html": "f26bfeddb7184d6e",
+    "viz/map.html": "26115b56e23834eb",
     "viz/legend.js": "b3688b6e37010295",
     "viz/timewheel.js": "7157e7b4710cf28c",
     "viz/sunburst.js": "05ca5c88d65998aa",
     "viz/coastline.geojson": "8c22327236fe742b",
     "viz/multiyear.json": "ea84e5350134adaa",
     "viz/units.json": "1aa315920a5d7e5a",
-    "viz/scales.json": "60a624dbc21e48ad",
+    "viz/scales.json": "2eb67f03213092ad",
     "viz/darkstyle/KIT.json": "d0624eba3edc748a",
     "viz/darkstyle/darkstyle.css": "a2c1507972554138",
     "viz/darkstyle/darkstyle.js": "a5a154247a75ed38",

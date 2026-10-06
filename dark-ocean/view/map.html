@@ -529,6 +529,7 @@ let TRACE_TOOL="brush";
 const TOOL_WORD={brush:"brush", lasso:"lasso", rect:"rectangle"};
 // TRACK_COLORS: one set per look (LOOK_DATA, above); a trace keeps its SLOT, so it takes the look's colour
 let zt=d3.zoomIdentity, zoomBehavior=null;               // pan/zoom transform (context-space) + the d3.zoom behaviour
+let szt=d3.zoomIdentity;                                // the SCATTER views' zoom: it re-scales their axes (2026-10-06), zt stays identity there
 let combo=null, scatterAxes=null;                        // current display combination (from meta.combinations)
 
 const proj0 = d3.geoStereographic();
@@ -608,15 +609,19 @@ d3.json("daily/manifest.json?_="+Date.now())
   extendViews();                                   // + the views in real units added 2026-10-02
   buildCombos();                                   // the combination switcher (from the baked manifest combos)
   buildTicks(); resize(); drawLegend(); update();
-  // zoom on WHEEL only, and ONLY on the geographic map — never the PCA / T-S scatters (those have
-  // their own fitted axes). plain drag is reserved for navigation (press-drag → axes).
+  // zoom on WHEEL (plain drag is reserved for navigation, press-drag → axes).
   //   WHEEL always zooms (on the map). DRAG pans only when already zoomed in (or Shift held) —
   //   otherwise plain drag stays the neighbourhood/navigation sweep. d3.zoom drives zt for both.
+  //   2026-10-06 (Miguel: "maybe zoom in and out in these views is for the axis resolution?"): the SCATTER views zoom
+  //   too, but their zoom re-scales the AXES (szt → computePositions → X/Y rescaled): ticks follow, cells outside the
+  //   visible range are pinned to its edges and counted. Every axis starts on the full range of the record. Double-
+  //   click resets a scatter view's zoom. The map keeps its picture zoom (zt).
   zoomBehavior=d3.zoom().scaleExtent([1,40])
-    .filter(e=> combo && combo.geo && !trackMode &&
-      (e.type==="wheel" || (e.type==="mousedown" && (e.shiftKey || zt.k>1.05))))
-    .on("zoom", ev=>{ zt=ev.transform; draw(); });
+    .filter(e=> combo && !trackMode &&
+      (e.type==="wheel" || (e.type==="mousedown" && (e.shiftKey || (combo.geo?zt.k:szt.k)>1.05))))
+    .on("zoom", ev=>{ if(combo.geo){ zt=ev.transform; draw(); } else { szt=ev.transform; computePositions(); draw(); } });
   d3.select(cv).call(zoomBehavior).on("dblclick.zoom", null);
+  cv.addEventListener("dblclick", ()=>{ if(combo && !combo.geo && (szt.k!==1||szt.x||szt.y)) d3.select(cv).call(zoomBehavior.transform, d3.zoomIdentity); });
   connectBridge();
   d3.json("coastline.geojson").then(g=>{ coastGeo=g; draw(); }).catch(()=>{});   // base map (optional)
   if(window.DarkLegend) DarkLegend.init({                        // the perceptual legend (left panel, key L)
@@ -693,7 +698,7 @@ function buildCombos(){
   const gi=meta.combinations.findIndex(c=>c.geo);           // default to the geographic map
   combo=meta.combinations[gi>=0?gi:0]; sel.value=meta.combinations.indexOf(combo);
   sel.onchange=()=>{ combo=meta.combinations[+sel.value]||meta.combinations[0];
-    zt=d3.zoomIdentity; hoverI=-1;
+    zt=d3.zoomIdentity; szt=d3.zoomIdentity; hoverI=-1;
     if(zoomBehavior) d3.select(cv).call(zoomBehavior.transform, d3.zoomIdentity);       // reset zoom (esp. leaving the map)
     resize(); saveState();
     if(wcReady&&window.DarkWebControl) DarkWebControl.set("comb_set", +sel.value); };  // drive the navigator's combination
@@ -762,16 +767,23 @@ function computePositions(){
     scatterAxes=null;
   } else {
     const f=frames[t], V=viewDef(combo), {pca, units, ts, bio, xr, yr}=V;
-    let leftOut=0, offScale=0;
+    let leftOut=0, offScale=0, outView=0;
     if(pca) for(let i=0;i<N;i++) if(f.temp[i]!=null && f.nut[i]==null) leftOut++;
     if(bio) for(let i=0;i<N;i++) if(f.temp[i]!=null && (colVal(combo.x,f,i)==null||colVal(combo.y,f,i)==null)) leftOut++;
-    const X=d3.scaleLinear().domain(xr).range([M+100, r.width-M-8]);   // room for the bigger axis text (A2), clear of the legend tab
-    const Y=d3.scaleLinear().domain(yr).range([r.height-M-72, M+30]);   // y axis points up
+    const X0=d3.scaleLinear().domain(xr).range([M+100, r.width-M-8]);   // room for the bigger axis text (A2), clear of the legend tab
+    const Y0=d3.scaleLinear().domain(yr).range([r.height-M-72, M+30]);   // y axis points up
+    const zoomed=szt.k!==1||szt.x!==0||szt.y!==0;                      // the zoom re-scales the axes (2026-10-06)
+    const X=zoomed?szt.rescaleX(X0):X0, Y=zoomed?szt.rescaleY(Y0):Y0;
+    const vx=X.domain(), vy=Y.domain(), x0=Math.min(...vx), x1=Math.max(...vx), y0=Math.min(...vy), y1=Math.max(...vy);
     for(let i=0;i<N;i++){ const q=viewXY(V,f,i);
       if(!q){ px[i]=NaN; py[i]=NaN; continue; }
-      if(q[2]){ offScale++; pinned[i]=1; }                             // beyond the scale: pinned to the frame edge, hollow, counted
-      px[i]=X(q[0]); py[i]=Y(q[1]); }
-    cellPx=3.4; scatterAxes={X,Y,leftOut,offScale,kind:pca?"pca":(ts?"ts":(units?"units":"plain")),fx:V.ck&&V.ck.frame,fy:V.cky&&V.cky.frame,V};
+      let x=q[0], y=q[1];
+      // zoomed in: a cell outside the window is out of frame, like on a map (Miguel 2026-10-06: "hide them, keep the
+      //   count"); pinning to the edge would draw lines along it again. At the full range nothing falls outside.
+      if(zoomed && (x<x0||x>x1||y<y0||y>y1)){ outView++; px[i]=NaN; py[i]=NaN; continue; }
+      if(q[2]){ offScale++; pinned[i]=1; }                             // beyond the full scale (none since 10-06): pinned, hollow, counted
+      px[i]=X(x); py[i]=Y(y); }
+    cellPx=3.4; scatterAxes={X,Y,leftOut,offScale,outView,zoomed,kind:pca?"pca":(ts?"ts":(units?"units":"plain")),fx:V.ck&&V.ck.frame,fy:V.cky&&V.cky.frame,V};
   }
   quad=d3.quadtree().x(i=>px[i]).y(i=>py[i]).addAll(d3.range(N).filter(i=>px[i]==px[i]));  // px==px drops NaN
 }
@@ -1021,7 +1033,10 @@ function drawScatterAxes(){
   }
   // A2 (Björn: "larger numbers … the fonts bigger"): numbers 16 px and names 20 px (were 10 and 12)
   const ticksFor=(S,fr)=>{ if(fr==="phyto"){ const P=SCALES&&SCALES.units&&SCALES.units.phyto, hi=P?P.log1p_range[1]:1.99;
-      return (P?P.ticks_mg_m3:[0,0.1,0.3,1,3]).map(c=>[Math.log1p(c)/hi, String(c)]); }
+      const [d0,d1]=[Math.min(...S.domain()), Math.max(...S.domain())], inView=c=>{ const v=Math.log1p(c)/hi; return v>=d0-1e-9 && v<=d1+1e-9; };
+      let L=(P?P.ticks_mg_m3:[0,0.1,0.3,1,3]).filter(inView);                // zoomed in: a denser set of marks
+      if(L.length<3) L=[0,0.01,0.02,0.05,0.1,0.2,0.3,0.5,1,2,3,5,10,20].filter(inView);
+      return L.map(c=>[Math.log1p(c)/hi, String(c)]); }
     const n=fr==="temp"?10:(fr==="sal"?7:6), fm=S.tickFormat(n); return S.ticks(n).map(v=>[v, fm(v)]); };
   const unitAxes=kind==="ts"||kind==="units";
   ctx.fillStyle=T.dim; ctx.font=`${16/k}px ${T.fontCanvas}`;
@@ -1067,6 +1082,7 @@ function drawScatterAxes(){
   const notes=[];                                                    // what the view leaves out, said where it happens
   if(scatterAxes.leftOut) notes.push(`${scatterAxes.leftOut.toLocaleString()} ocean cells with no biology data left out`);
   if(scatterAxes.offScale) notes.push(`${scatterAxes.offScale.toLocaleString()} beyond the scale, pinned to the edge (hollow)`);
+  if(scatterAxes.zoomed) notes.push(`zoomed in${scatterAxes.outView?` · ${scatterAxes.outView.toLocaleString()} outside the view`:""} · double-click for all`);
   if(notes.length){ ctx.font=`${13/k}px ${T.fontCanvas}`; ctx.textAlign="right"; ctx.fillText(notes.join(" · "), x1, y1-10/k); }
 }
 
@@ -1621,7 +1637,9 @@ function renderTrackList(){
 let TRACE_ANCHOR="space";
 const _pcache=new Map(), _comCache=new Map();
 function shapeOf(V){                                      // the gesture → a shape in the view's axis values (normalized on V's scales)
-  const X=scatterAxes.X, Y=scatterAxes.Y, w=Math.abs(X.range()[1]-X.range()[0]), h=Math.abs(Y.range()[1]-Y.range()[0]);
+  const X=scatterAxes.X, Y=scatterAxes.Y;                      // w, h: the plot's size at the FULL range (zoom divides the span)
+  const w=Math.abs(X.range()[1]-X.range()[0])*(V.xr[1]-V.xr[0])/Math.abs(X.domain()[1]-X.domain()[0]);
+  const h=Math.abs(Y.range()[1]-Y.range()[0])*(V.yr[1]-V.yr[0])/Math.abs(Y.domain()[1]-Y.domain()[0]);
   const uv=p=>[(X.invert(p[0])-V.xr[0])/(V.xr[1]-V.xr[0]), (Y.invert(p[1])-V.yr[0])/(V.yr[1]-V.yr[0])];
   const P=brushPath.map(uv), s={xr:V.xr.slice(), yr:V.yr.slice()};
   if(TRACE_TOOL==="rect"){ const a=P[0], b=P[P.length-1];
@@ -1728,7 +1746,8 @@ function drawParamExtras(T){                              // the shape in its ow
     else { ctx.beginPath(); s.pts.forEach((p,k)=>{ const q=P(p); k?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]); });
       if(s.type==="lasso"){ ctx.closePath(); ctx.stroke(); }
       else { ctx.setLineDash([]); ctx.globalAlpha=0.22; ctx.lineCap="round"; ctx.lineJoin="round";
-        ctx.lineWidth=2*s.r*Math.abs(X.range()[1]-X.range()[0])/s.w; ctx.stroke(); } }
+        const Vh=paramHome(tr), wNow=Math.abs(X.range()[1]-X.range()[0])*(Vh.xr[1]-Vh.xr[0])/Math.abs(X.domain()[1]-X.domain()[0]);
+        ctx.lineWidth=2*s.r*wNow/s.w; ctx.stroke(); } }
     ctx.restore();
   });
 }
@@ -2254,7 +2273,7 @@ function navAt(e){
 // → KNN neighbourhood · drag → navigate.
 let downXY=null, moved=0;
 cv.addEventListener("pointerdown",e=>{
-  if(combo.geo && !trackMode && (e.shiftKey || zt.k>1.05)) return;   // zoomed/Shift → d3.zoom pans; don't navigate
+  if(!trackMode && (e.shiftKey || (combo.geo?zt.k:szt.k)>1.05)) return;   // zoomed/Shift → d3.zoom pans; don't navigate
   downXY=[e.clientX,e.clientY]; moved=0;
   try{cv.setPointerCapture(e.pointerId);}catch(_){}
   if(trackMode){ brushing=true; const p=evBase(e); brushPath=[p]; brushCells=new Set(); if(TRACE_TOOL==="brush") brushStroke(p,p); draw(); }
