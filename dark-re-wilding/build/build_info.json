@@ -1,5 +1,5 @@
 {
-  "built": "2026-10-05 07:42:38",
+  "built": "2026-10-08 12:48:57",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "sources": {
     "viz/index.html": "6cb4bd5f2458816a",
@@ -75,7 +75,7 @@
     ]
   },
   "data": {
-    "built": "2026-10-05 07:42:38",
+    "built": "2026-10-08 12:48:57",
     "bridge_sha": "19f7022ff92d8b81",
     "bridge_lines": 1530,
     "rw_core_sha": "61e597aa7d95a611",
@@ -115,75 +115,75 @@
         "gz": 354108
       },
       "core/tables/air/rw_tables_L0_gradient.json.gz": {
-        "raw": 486729,
-        "gz": 131975,
-        "sha_source": "2926a7a78a683003",
+        "raw": 486740,
+        "gz": 131991,
+        "sha_source": "80e675e0ce8eb6d6",
         "built": true
       },
       "core/tables/air/rw_tables_L1_gradient.json.gz": {
-        "raw": 4421863,
-        "gz": 1291393,
-        "sha_source": "aedbd5fbb99c251e",
+        "raw": 4421869,
+        "gz": 1291396,
+        "sha_source": "b60d1fa46980ba6e",
         "built": true
       },
       "core/tables/air/rw_tables_L0_variance.json.gz": {
-        "raw": 486293,
-        "gz": 131866,
-        "sha_source": "f06c7142b7f4e071",
+        "raw": 486303,
+        "gz": 131850,
+        "sha_source": "664b5ca3d90e985f",
         "built": true
       },
       "core/tables/air/rw_tables_L1_variance.json.gz": {
-        "raw": 4417447,
-        "gz": 1289458,
-        "sha_source": "e6c418ebe5dd1a01",
+        "raw": 4417442,
+        "gz": 1289451,
+        "sha_source": "e214896fb307d5f5",
         "built": true
       },
       "core/push/air/rw_push_L0.json.gz": {
         "raw": 366676,
-        "gz": 91208,
-        "sha_source": "37cdc071f12f8ad4",
+        "gz": 91205,
+        "sha_source": "8477017db263c48a",
         "built": true
       },
       "core/push/air/rw_push_L1.json.gz": {
         "raw": 7138831,
         "gz": 1313785,
-        "sha_source": "df431c00b53a7b54",
+        "sha_source": "9222c0b03a2c3c87",
         "built": true
       },
       "core/tables/water/rw_tables_L0_gradient.json.gz": {
-        "raw": 192955,
-        "gz": 66137,
-        "sha_source": "aa7860eb2315fd3a",
+        "raw": 192934,
+        "gz": 66146,
+        "sha_source": "004090ad0b82a6ff",
         "built": true
       },
       "core/tables/water/rw_tables_L1_gradient.json.gz": {
-        "raw": 2502511,
+        "raw": 2502526,
         "gz": 826614,
-        "sha_source": "c9839be9c35ccd95",
+        "sha_source": "4e5fbcac14fb680f",
         "built": true
       },
       "core/tables/water/rw_tables_L0_variance.json.gz": {
-        "raw": 193169,
-        "gz": 66287,
-        "sha_source": "4e3291d55dc10ff8",
+        "raw": 193163,
+        "gz": 66296,
+        "sha_source": "a6f2f41df6912daa",
         "built": true
       },
       "core/tables/water/rw_tables_L1_variance.json.gz": {
-        "raw": 2502108,
+        "raw": 2502113,
         "gz": 828221,
-        "sha_source": "e23d2040e613f46d",
+        "sha_source": "3e5cf3b54de7b05e",
         "built": true
       },
       "core/push/water/rw_push_L0.json.gz": {
         "raw": 373790,
-        "gz": 91389,
-        "sha_source": "84648f952c67c4a5",
+        "gz": 91388,
+        "sha_source": "7101a369c98aa052",
         "built": true
       },
       "core/push/water/rw_push_L1.json.gz": {
         "raw": 7022148,
-        "gz": 1244221,
-        "sha_source": "23c1ff9b84f73c4b",
+        "gz": 1244224,
+        "sha_source": "9a089a7d1702ec45",
         "built": true
       }
     },
@@ -192,8 +192,8 @@
       "gz_total": 3486418,
       "empty": []
     },
-    "total_gz": 14865144,
-    "seconds": 7.7
+    "total_gz": 14865157,
+    "seconds": 7.8
   },
   "pyodide": "vendored (web_implementation/pyodide/)",
   "engine_js_source": {
