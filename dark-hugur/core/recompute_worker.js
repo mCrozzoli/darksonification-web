@@ -39,7 +39,7 @@
 
 import { loadLexicon, loadSpace, stageSites, countSites } from './hugur_sites.js';
 import { attachLayoutsAsync, makeUmapHook, makeTsneHook, tsneProjectedMs, cancelError, isCancelled } from './hugur_layouts.js';
-import { vizData, normColumn } from './hugur_vizdata.js';
+import { vizData, normColumn, VIZ_GEN } from './hugur_vizdata.js';
 import { pyRound4 } from './hugur_drivers.js';
 
 export const GZIPPED = /(^|\/)(sites|tokens|bin|[^/]+\.(tokens|sentences))\.json$/;   // ships only as .gz (build_web.py GZIP)
@@ -358,7 +358,7 @@ export async function runRecompute(job, env) {
     vocab: space.vocab, counts, filtered: { kept: filtered.kept, dropped: filtered.dropped, rule: filtered.rule } };
 
   if (n === 0) {                                                       // nothing to place: the page says "none of these words occur"
-    const meta = { gen: 8, fields: lex.fieldNames.slice(0, 8), sagas, n_sites: 0, lexicon_hash: listId,
+    const meta = { gen: VIZ_GEN, fields: lex.fieldNames.slice(0, 8), sagas, n_sites: 0, lexicon_hash: listId,
       methods: manifest.methods || (shippedMeta && shippedMeta.methods) || {}, layouts: [], lexicon: lexicon.fields.filter((r) => r.lemma), recompute: metaExtra };
     timings.total = Math.round(now() - t0);
     return { type: 'done', jobId, sites: [], tokens: {}, entities: [], meta, vecs: new Float32Array(0), siteCount: 0, n: 0, dim,

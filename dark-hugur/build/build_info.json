@@ -1,16 +1,16 @@
 {
-  "built": "2026-10-12 11:48:02",
+  "built": "2026-10-12 13:35:58",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "sources": {
-    "viz/data/meta.json": "6ef27d74fb132ca7",
-    "viz/data/sites.json": "b39f50476c636c66",
+    "viz/data/meta.json": "7a52c8955291e6f9",
+    "viz/data/sites.json": "ac66e5c4ecf3bb10",
     "darkdata/manifest.json": "462d3761bdec357d",
     "data/export_manifest.json": "94d0eecb042e8551",
-    "viz/index.html": "dec9bf0447f16da5",
+    "viz/index.html": "79b2169c567187dd",
     "sc/hugur_synths.scd": "20b73fac08eac0f1",
-    "sc/hugur_synthdefs.scd": "649dd0a4d1dd9a5b",
-    "sc/parse_hugur.scd": "c095084da1e350c7",
-    "sc/hugur_cook.scd": "37347b7d10b804ed",
+    "sc/hugur_synthdefs.scd": "fe419909d76ba5ae",
+    "sc/parse_hugur.scd": "c98004393234edf8",
+    "sc/hugur_cook.scd": "fa89d196c2098a8b",
     "iris/web_implementation/vendor/d3.v7.min.js": "f2094bbf6141b359",
     "build/vendor_src/umap-js.min.js": "9d226db25cc57eae",
     "build/vendor_src/tsne.min.js": "552fd8a3317e3484",
@@ -181,7 +181,7 @@
   "source_pins": {
     "viz/index.html": {
       "pinned": "dec9bf0447f16da5",
-      "current": "dec9bf0447f16da5"
+      "current": "79b2169c567187dd"
     },
     "sc/hugur_synths.scd": {
       "pinned": "20b73fac08eac0f1",
@@ -189,15 +189,37 @@
     },
     "sc/parse_hugur.scd": {
       "pinned": "c095084da1e350c7",
-      "current": "c095084da1e350c7"
+      "current": "c98004393234edf8"
     },
     "sc/hugur_synthdefs.scd": {
       "pinned": "649dd0a4d1dd9a5b",
-      "current": "649dd0a4d1dd9a5b"
+      "current": "fe419909d76ba5ae"
     },
     "sc/hugur_cook.scd": {
       "pinned": "37347b7d10b804ed",
-      "current": "37347b7d10b804ed"
+      "current": "fa89d196c2098a8b"
+    }
+  },
+  "source_accepted": {
+    "note": "source accepted",
+    "when": "2026-10-12 13:35:58",
+    "pins": {
+      "viz/index.html": {
+        "was": "dec9bf0447f16da5",
+        "now": "79b2169c567187dd"
+      },
+      "sc/parse_hugur.scd": {
+        "was": "c095084da1e350c7",
+        "now": "c98004393234edf8"
+      },
+      "sc/hugur_synthdefs.scd": {
+        "was": "649dd0a4d1dd9a5b",
+        "now": "fe419909d76ba5ae"
+      },
+      "sc/hugur_cook.scd": {
+        "was": "37347b7d10b804ed",
+        "now": "fa89d196c2098a8b"
+      }
     }
   },
   "abs_path_scan": {
@@ -802,12 +824,12 @@
     }
   },
   "data": {
-    "built": "2026-10-12 11:48:02",
+    "built": "2026-10-12 13:35:58",
     "files": {
       "sites.json.gz": {
-        "raw": 386283,
-        "gz": 90598,
-        "sha": "b39f50476c636c66"
+        "raw": 399199,
+        "gz": 95388,
+        "sha": "ac66e5c4ecf3bb10"
       },
       "tokens.json.gz": {
         "raw": 1039716,
@@ -1231,7 +1253,7 @@
       },
       "meta.json": {
         "raw": 2763,
-        "sha": "6ef27d74fb132ca7"
+        "sha": "7a52c8955291e6f9"
       },
       "entities.json": {
         "raw": 27649,
@@ -1352,7 +1374,9 @@
         "vopnfirdinga_saga.sentences.json"
       ],
       "freshness": "by content (sha), never by mtime",
-      "regzipped": {}
+      "regzipped": {
+        "sites.json": "raw sha ac66e5c4ecf3bb10 != data_info.json's recorded b39f50476c636c66"
+      }
     },
     "skip_data": false
   },

@@ -3,7 +3,11 @@
 // ten OSC messages to SuperCollider — ported statement by statement (design WEB_P1_DESIGN.md §2; line references
 // below are to brain.py). P2 (WEB_PLAN.md §10.2): nav `layer` {name, value} → /dark/layer (the SOUND faders, kept in
 // `layers`), nav `spread` {value} → γ, the semantic spread, an exponent on the live query's stored base sims
-// (`query_z`): both in the state payload, both mirrored in brain.py line for line.
+// (`query_z`): both in the state payload, both mirrored in brain.py line for line. v3 (WEB_PLAN.md §13, RUNNER_CONTRACT.md v3,
+// 2026-10-12): the driver vector is 19 floats — 16 feel · 17 focus · 18 change, the bed's three statistics across the fields
+// (hugur_drivers.js siteStats = brain.py §stats), kept per site in `stats` at load and after a rebuild; the legend gains
+// `hold [field, dir]` (the page's less · more chips): the current site's vector with one value pushed to 0 or 1, sent to
+// SuperCollider as an `iso` — brain.py L565–571.
 //
 // ES module usable from Node and the browser: no DOM, no Node-only API, no I/O of its own. Files come through an
 // injected loader (`load(loader)`), sound and page traffic go through injected hooks:
@@ -24,18 +28,18 @@
 //
 // On the desktop the brain boots from sites_l0.parquet; here it boots from the page's own sites.json rows (the
 // desktop brain's output: `lemma`, `saga`, `field`, `speech`, `text`, `who`, `kwd` and `drivers[0..14]` = the
-// normalised drivers already rounded to 4 dp), plus sites.vectors.f32, space.json + space.vectors.f32 and bin.json
+// normalised drivers already rounded to 4 dp, `drivers[16..18]` = the three statistics since v3), plus sites.vectors.f32, space.json + space.vectors.f32 and bin.json
 // for the queries. The rows are shared with the page and never mutated here; what the brain indexes it copies.
 //
 // Dropped, by design (§2.8): the 3 s heartbeat, the parent watch, the sticky replay, the lock, the BÍN preload
 // (replaced by the static table), the dead L1_BASE / PITCH_BY_CAT / l1_abort. Everything else is here.
 
 import { pySortedStrings, pyStrip, pyLower, pyStr } from './hugur_sites.js';
-import { DRIVER_DIM, npRound4, pyRound4, pyRound3 } from './hugur_drivers.js';
+import { DRIVER_DIM, N_DRIVER_COLS, SIM_IDX, STAT_IDX, siteStats, npRound4, pyRound4, pyRound3 } from './hugur_drivers.js';
 import { normalizeRows, vocabMap, runQuery } from './hugur_query.js';
 
 export { DRIVER_DIM };
-export const VIZ_GEN = 8;                                   // brain.py L33
+export const VIZ_GEN = 9;                                   // brain.py L50 (9: the drivers carry 19 floats — v3, 2026-10-12)
 export const LAYER_NAMES = Object.freeze(['bed', 'pad', 'whisper', 'events']);   // the SOUND faders, /dark/layer's names
 
 // Typed OSC arguments: the same {t, v} objects osc.js's f()/i()/s() build (its typed() passes them through), so a
@@ -80,8 +84,11 @@ const hasKey = (m, k) => Object.prototype.hasOwnProperty.call(m, k);
  * viz/bridge.py `_relay_to_brain` (L146–163), flattened: the page object → the positional args the handler got.
  *   nav    → [str(cmd)] + idx? + value? + name? + [str(w) for w in words]   (each key only if present)
  *   query  → [str(word)]
- *   legend → [str(cmd)] + field? + site? + layer? + value?
+ *   legend → [str(cmd)] + field? + site? + layer? + value? + dir?
  * Returns { addr, args } or null for an unknown type (the bridge relays nothing then).
+ * `dir` (v3, 2026-10-12): the legend's `hold {field, dir}` of WEB_PLAN.md §13.3 — appended after bridge.py's four keys so
+ * the desktop's order is untouched; bridge.py L214's tuple ("field", "site", "layer", "value") has to gain "dir" the same
+ * way for the desktop page's hold to reach brain.py (until then a page may send the direction as `value`: both flatten).
  */
 export function flattenPageMessage(m) {
   if (!m || typeof m !== 'object') return null;
@@ -95,7 +102,7 @@ export function flattenPageMessage(m) {
   if (t === 'query') return { addr: '/dark_query', args: [hasKey(m, 'word') ? pyStr(m.word) : ''] };
   if (t === 'legend') {
     const args = [hasKey(m, 'cmd') ? pyStr(m.cmd) : ''];
-    for (const k of ['field', 'site', 'layer', 'value']) if (hasKey(m, k)) args.push(m[k]);
+    for (const k of ['field', 'site', 'layer', 'value', 'dir']) if (hasKey(m, k)) args.push(m[k]);
     return { addr: '/dark_legend', args };
   }
   return null;
@@ -133,6 +140,7 @@ export class HugurBrain {
     this.last_query = null;                               // {word, lemma, top, surface} of the last hit: re-delivered when γ changes
     // web-only: the tables and the load state
     this.data = { rows: null, meta: null, fields: [], nSites: 0, dim: 0, siteVecs: null, vocab: new Map(), vocabAll: null, lemmaVecs: null, bin: null, loadErrors: {} };
+    this.stats = null;                                    // v3: {feel, focus, change} Float64Arrays per site (+ source), set by _bindRows (brain.py self.stats)
     this._gen = 0;                                        // the rows generation: rebuild() bumps it; load()'s background site vectors bind only to the generation they were asked for
     this.loaded = false;                                  // the picture tables (rows + meta) are in
     this.queryLoaded = false;                             // the query assets have settled (loaded or failed)
@@ -212,8 +220,34 @@ export class HugurBrain {
       this.textLower[k] = pyLower(String(r.text == null ? '' : r.text));
       if (r.kwd === 'rej') this.rej.add(k);               // parse-rejected keywords (excluded from braids)
     }
+    this.stats = this._siteStats(rows);
     this.loaded = true;
     this._readyResolve(this);
+  }
+  /**
+   * v3 (brain.py §stats, L112–132, 2026-10-12): the bed's three statistics per site — feel · focus · change, np.round 4 as the
+   * wire carries them. brain.py computes them at boot from its UN-rounded normalised drivers; this brain never sees those,
+   * only sites.json's 4-dp ones, so: rows that carry 19 drivers (a v3 sites.json, or vizData's after a recompute) bring
+   * them in slots 16..18, computed by their producer (brain.py _gen_viz_data / hugur_vizdata.js) from the un-rounded
+   * drivers in reading order — read as they are, the only exact source; rows with 16 (a pre-v3 sites.json, until it is
+   * regenerated at gen 9) get them derived by siteStats over the rounded 15 and the rows' sagas, in row order — the same
+   * rule on 4-dp inputs (|Δ| vs the desktop up to that rounding) — and a warning says so. `source` says which.
+   */
+  _siteStats(rows) {
+    const n = rows.length;
+    const v3 = n > 0 && rows.every((r) => Array.isArray(r.drivers) && r.drivers.length >= DRIVER_DIM);
+    if (v3) {
+      const feel = new Float64Array(n), focus = new Float64Array(n), change = new Float64Array(n);
+      for (let k = 0; k < n; k++) {
+        const d = rows[k].drivers;
+        feel[k] = npRound4(Number(d[STAT_IDX])); focus[k] = npRound4(Number(d[STAT_IDX + 1])); change[k] = npRound4(Number(d[STAT_IDX + 2]));
+      }
+      return { feel, focus, change, source: 'rows' };
+    }
+    const d15 = rows.map((r) => (Array.isArray(r.drivers) ? r.drivers : []).slice(0, N_DRIVER_COLS).map(Number));
+    const st = siteStats(d15, rows);
+    if (n) this.hooks.warn(`[brain] sites.json drivers carry ${Array.isArray(rows[0].drivers) ? rows[0].drivers.length : 0} floats (pre-v3): feel · focus · change derived from the rounded drivers — regenerate the data (gen ${VIZ_GEN}) for the exact ones`);
+    return { feel: st.feel, focus: st.focus, change: st.change, source: 'derived' };
   }
   /** site_vecs, vocab, lemma_vecs (L102–108) and the BÍN table; accepts raw float32 or already-normalised tables. */
   _bindQueryTables(q) {
@@ -260,7 +294,8 @@ export class HugurBrain {
    * layouts…), the new window vectors as raw float32 (n × dim; null → no semantic queries). Keeps master / mute /
    * comb / persons / saga filter / layers / spread; resets sel, level, braid, trajectory, tracked, query_sims (+ its
    * base and the last query); re-announces (state, then hello) and re-sends the current site. The fields, the
-   * drivers and their normalisation come with the rows (vizData's `drivers`, meta.fields) — _bindRows re-indexes.
+   * drivers and their normalisation come with the rows (vizData's `drivers`, meta.fields; v3: the three statistics in
+   * slots 16..18, computed over the new l0 in reading order) — _bindRows re-indexes and re-reads `stats`.
    * opts (P2, design §4 + §5.2 step 10):
    *   vocab  the vocabulary floor's filtered vocab (Map lemma → row, or space.json's object; the worker's
    *          loadSpace(…, {minCount}).vocab, or hugur_query.vocabFloor) — resolveLemma then treats a word below the
@@ -299,13 +334,16 @@ export class HugurBrain {
   deliver(payload) { this.hooks.deliver(payload); }
   clamp(idx) { return Math.max(0, Math.min(this.n - 1, idx)); }    // max(0, min(len(l0) - 1, int(x)))
 
-  /** brain.py L112–114: the 16 numbers — np.round(drivers[i], 4) (sites.json's `drivers` already are) + round(sim, 4). */
+  /** brain.py L154–156: the 19 numbers (v3) — np.round(drivers[i], 4) (sites.json's `drivers` already are) + round(sim, 4) +
+   *  np.round(stats[i], 4) (this.stats: feel, focus, change). */
   driver_vec(k) {
     const row = this.data.rows[k].drivers;
     const sim = this.query_sims !== null ? this.query_sims[k] : 0.0;
     const out = new Array(DRIVER_DIM);
-    for (let c = 0; c < DRIVER_DIM - 1; c++) out[c] = npRound4(Number(row[c]));
-    out[DRIVER_DIM - 1] = pyRound4(sim);
+    for (let c = 0; c < N_DRIVER_COLS; c++) out[c] = npRound4(Number(row[c]));
+    out[SIM_IDX] = pyRound4(sim);
+    const st = this.stats;
+    out[STAT_IDX] = npRound4(st.feel[k]); out[STAT_IDX + 1] = npRound4(st.focus[k]); out[STAT_IDX + 2] = npRound4(st.change[k]);
     return out;
   }
   state_payload() {                                        // L227–231 (+ layers, spread: 2026-10-08)
@@ -316,7 +354,7 @@ export class HugurBrain {
     return { type: 'hello', fields: this.fields.slice(), n_sites: this.n };
   }
   push_state() { this.deliver(this.state_payload()); }    // L232–233
-  send_site(k) {                                           // L235–236: /dark/drivers i + 16 f
+  send_site(k) {                                           // L283: /dark/drivers i + 19 f (v3)
     this.osc('/dark/drivers', [i(k), ...this.driver_vec(k).map(f)]);
   }
   /**
@@ -550,7 +588,7 @@ export class HugurBrain {
       const vec = new Array(DRIVER_DIM).fill(0.0);
       const fi = pyInt(args[1]); if (fi === null) return;
       const val = args.length > 2 ? pyFloat(args[2]) : 1.0; if (val === null) return;
-      if (fi >= 0 && fi < DRIVER_DIM - 1) vec[fi] = val;    // 0..14 (15 = live sim, not isolable)
+      if (fi >= 0 && fi < DRIVER_DIM && fi !== 15) vec[fi] = val;   // brain.py L545: 0..18 but 15 (the live sim, not isolable); 16..18 the bed's statistics
       if (fi !== 14) vec[14] = 0.5;                         // narrative position: mid register
       vec[15] = 0.5;                                        // query closeness: mid presence
       this.osc('/dark/legend', [s('iso'), ...vec.map(f)]);
@@ -568,6 +606,14 @@ export class HugurBrain {
         this.osc('/dark/legend', [s('iso'), ...vec.map(f)]);
         this.hooks.timer(250, () => this.osc('/dark/legend', [s('end')]));
       }
+    } else if (cmd === 'hold' && args.length > 2) {
+      // v3 (brain.py L565–571, WEB_PLAN §13.3): the legend's less · more — the CURRENT site's vector (the live sim at 15)
+      // with ONE value pushed to 0 (dir 0) or 1 (dir 1), sent as an iso: the parser previews it like any iso, `end` restores
+      const fi = pyInt(args[1]); if (fi === null) return;    // fi, d = int(args[1]), int(args[2]): either raising → nothing sent
+      const d = pyInt(args[2]); if (d === null) return;
+      const vec = this.driver_vec(this.sel);
+      if (fi >= 0 && fi < DRIVER_DIM) vec[fi] = d ? 1.0 : 0.0;
+      this.osc('/dark/legend', [s('iso'), ...vec.map(f)]);
     } else if (cmd === 'site' && args.length > 1) {
       const v = pyInt(args[1]); if (v === null) return;
       const k = this.clamp(v);

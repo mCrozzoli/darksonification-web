@@ -26,11 +26,16 @@
 // The honest labels (design §4.4): with opts.umapPending the umap layout is labelled `semantic · pca (umap
 // pending)` (P2: attachLayouts wrote the emb_0/emb_1 fallback because no JS UMAP was passed); a t-SNE whose
 // columns are absent is dropped from `layouts` and from the rows — brain.py already does that.
+//
+// v3 (WEB_PLAN.md §13.1, 2026-10-12): the `drivers` column carries 19 floats — the 15 normalised drivers, the sim slot
+// (0.0 at generation, as before) and the bed's three statistics feel · focus · change, hugur_drivers.siteStats over the
+// l0 it is given IN ITS ROW ORDER (reading order: the recompute's stageSites walks the sagas in order and numbers the
+// sites along them, like the desktop's preprocess) — brain.py _gen_viz_data writes driver_vec(i) the same way.
 
 import { pySortedStrings, pyStrip, pyStr } from './hugur_sites.js';
-import { deriveFields, normalizeDrivers, driverVec, pyRound4, asFloat } from './hugur_drivers.js';
+import { deriveFields, normalizeDrivers, siteStats, statsAt, driverVec, pyRound4, asFloat } from './hugur_drivers.js';
 
-export const VIZ_GEN = 8;                          // brain.py L33
+export const VIZ_GEN = 9;                          // brain.py L50 (9: the drivers carry 19 floats — v3, 2026-10-12)
 export const LAYOUT_KEYS = Object.freeze(['umap', 'som', 'tsne', 'gpca']);
 
 const hasCol = (l0, c) => l0.length > 0 && Object.prototype.hasOwnProperty.call(l0[0], c);
@@ -121,6 +126,7 @@ export function vizData({ l0, l1, entities = null, manifest = {}, lexicon = null
   const { fields: FIELDS, warning } = deriveFields(l0);
   if (warning) warn(warning);
   const { drivers } = normalizeDrivers(l0, FIELDS);
+  const stats = siteStats(drivers, l0);              // v3: feel · focus · change per site, over l0 in reading order (brain.py §stats)
   const coords = layoutCoords(l0, opts);
   if (!coords.umap) throw new Error('vizData: l0 has no umap_x / umap_y columns (brain.py would fail here too)');
   const hasKm = hasCol(l0, 'km_cluster');
@@ -142,7 +148,7 @@ export function vizData({ l0, l1, entities = null, manifest = {}, lexicon = null
       speech: Boolean(r.is_direct_speech),
       text: r.window_text,
       who: whoS ? pySortedStrings(new Set(String(whoS).split(';'))) : [],   // set(s.split(";")) if s else set()
-      drivers: driverVec(drivers[i], 0.0),         // query_sims is None at generation: sim 0.0
+      drivers: driverVec(drivers[i], 0.0, statsAt(stats, i)),   // 19 (v3): query_sims is None at generation → sim 0.0; 16..18 the site's statistics
     };
     if (hasCands) {
       const cands = pyStr(r.kw_candidates).split(';').filter((c) => c);

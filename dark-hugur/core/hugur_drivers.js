@@ -7,7 +7,21 @@
 //   deriveFields(l0)             brain.py L74–83: FIELDS = sorted field names + the 8-field cap by density
 //   driverColumns(fields)        brain.py L84–86: the 15 driver columns, in contract order
 //   normalizeDrivers(l0, fields) brain.py L87–90: corpus min-max over ALL sites → drivers[i][c] in 0..1
-//   driverVec(drivers_i, sim)    brain.py L112–114: np.round(drivers[i], 4) + [round(sim, 4)]
+//   siteStats(drivers, l0)       brain.py §stats (2026-10-12, L112–132): feel · focus · change per site, corpus min-max
+//   driverVec(drivers_i, sim, stats_i)  brain.py L154–156: np.round(drivers[i], 4) + [round(sim, 4)] + np.round(stats[i], 4)
+//
+// v3 (WEB_PLAN.md §13.1, RUNNER_CONTRACT.md v3, 2026-10-12): the driver vector is 19 floats — 0..7 fields, 8 subj, 9 middle,
+// 10 neg, 11 litotes, 12 experiencer, 13 speech, 14 pos, 15 sim (live), 16 feel, 17 focus, 18 change. The three statistics
+// are computed ACROSS the eight normalised field drivers d[0..7] of a site (brain.py §stats, 2026-10-12 — mirrored statement
+// by statement in siteStats below):
+//   feel[i]   = mean(d_i[0..7])                                          (F.mean(axis=1))
+//   focus[i]  = population variance of d_i[0..7] = Σ(d − mean)² / 8      (F.var(axis=1), divisor 8)
+//   change[i] = (Σ over the neighbours of mean_f |d_i[f] − d_nb[f]|) / k — the neighbours = row i−1 and row i+1 of l0 IN
+//               READING ORDER (site_id order), each counted only when its saga is site i's (k = 1 or 2); an end site has
+//               its one neighbour, a site alone in its saga 0           (acc / k; 0.0 when k = 0)
+//   then each statistic min-max normalised over ALL sites: span = hi − lo > 1e-9 ? hi − lo : 1.0, (x − lo) / span — a
+//   constant statistic is 0 everywhere after the centring; on the wire np.round(…, 4) like the 15 drivers (npRound4).
+// The 8-element reductions use numpy's pairwise summation order (sum8 below; numpy 1.26.4, verified 2026-10-12).
 //
 // Two roundings live in brain.py and they are NOT the same function (verified 2026-10-08 on the shipped
 // sites.json: numpy's and Python's round differ at 9 of the 8,205 driver cells, and sites.json carries numpy's):
@@ -16,13 +30,18 @@
 //   round(x, 4)      = Python float.__round__: the exact binary value correctly rounded to 4 decimals,
 //                      half to even on an EXACT decimal tie (only odd multiples of 1/32 tie at 4 dp), then the
 //                      nearest double to that decimal (_Py_dg_dtoa mode 3 + strtod)
-// Used by: the 15 drivers → np.round (npRound4); the query sim (driver_vec), the layout coordinates and
+// Used by: the 15 drivers and the three statistics (v3) → np.round (npRound4); the query sim (driver_vec), the layout coordinates and
 // narrative_pos in _gen_viz_data → round(x, 4) (pyRound4 = round4); sims in query_result → round(x, 3) (round3).
 // Math.round(x * 1e4) / 1e4 is neither (it rounds half UP), so it is not used anywhere in these modules.
 
 import { pySortedStrings } from './hugur_sites.js';
 
-export const DRIVER_DIM = 16;                          // 8 fields + subj, middle, neg, litotes, experiencer, speech, pos, sim
+export const DRIVER_DIM = 19;                          // 8 fields + subj, middle, neg, litotes, experiencer, speech, pos, sim + feel, focus, change (v3)
+export const N_DRIVER_COLS = 15;                       // the normalised columns (brain.py self.drivers' width): slots 0..14
+export const SIM_IDX = 15;                             // the live query closeness (driverVec's `sim`, Python round)
+export const STAT_IDX = 16;                            // 16 feel · 17 focus · 18 change (siteStats, np.round)
+export const STAT_NAMES = Object.freeze(['feel', 'focus', 'change']);
+export const ZERO_STATS = Object.freeze([0.0, 0.0, 0.0]);   // the three statistics of an iso (neutral), never a site's
 export const MAX_FIELDS = 8;                           // the SC driver contract carries 8 field slots (RUNNER_CONTRACT.md)
 export const FIELD_COL_RE = /^field_(.+)_ratio$/;
 export const EXTRA_COLS = Object.freeze(['subj_ratio', 'middle_ratio', 'neg_ratio', 'litotes',
@@ -160,16 +179,97 @@ export function normalizeDrivers(l0, fields) {
   return { drivers, lo, hi, span, cols };
 }
 
+// ------------------------------------------------------ the bed's three statistics (v3) --
+
 /**
- * brain.py L112–114: `list(np.round(self.drivers[i], 4)) + [round(sim, 4)]` — 16 numbers. `drivers_i` is one
- * site's 15 normalised drivers (un-rounded, or sites.json's already-rounded ones: np.round is idempotent on them).
+ * numpy's pairwise summation of exactly eight doubles (numpy/core/src/umath/loops_utils.h.src `pairwise_sum`, n = 8: the
+ * eight accumulators r[0..7] = a[0..7], then ((r0 + r1) + (r2 + r3)) + ((r4 + r5) + (r6 + r7))) — the order in which
+ * F.mean(axis=1), F.var(axis=1) and np.abs(v).mean() reduce an 8-vector (numpy 1.26.4, verified 2026-10-12 on this
+ * machine: a sequential left-to-right sum differs by an ulp on some inputs, which np.round could carry into the 4th decimal).
  */
-export function driverVec(driversI, sim = 0.0) {
+export function sum8(a) {
+  return ((a[0] + a[1]) + (a[2] + a[3])) + ((a[4] + a[5]) + (a[6] + a[7]));
+}
+
+/** brain.py L130–132 on one statistic, in place: lo = St.min, hi = St.max (numpy's min/max propagate NaN), span =
+ *  np.where(hi − lo > 1e-9, hi − lo, 1.0), (x − lo) / span — then np.round(…, 4). Returns {lo, hi, span}. */
+function minMaxRound4(S) {
+  let lo = Infinity, hi = -Infinity;
+  for (let i = 0; i < S.length; i++) {
+    const v = S[i];
+    if (Number.isNaN(v)) { lo = NaN; hi = NaN; break; }
+    if (v < lo) lo = v;
+    if (v > hi) hi = v;
+  }
+  const span = hi - lo > 1e-9 ? hi - lo : 1.0;
+  for (let i = 0; i < S.length; i++) S[i] = npRound4((S[i] - lo) / span);
+  return { lo, hi, span };
+}
+
+/**
+ * brain.py §stats (2026-10-12, L112–132), statement by statement. `drivers` = the n × 15 normalised drivers of
+ * normalizeDrivers (un-rounded, the desktop's; or a sites.json's rounded 15 — hugur_brain.js's pre-v3 fallback), `l0` =
+ * the n rows IN READING ORDER (site_id order) with their `saga` (the l0 table's rows, or sites.json's: both carry it).
+ *   F = drivers[:, :8]; feel = F.mean(axis=1); focus = F.var(axis=1)        (population variance, divisor 8)
+ *   change[i] = (Σ over the same-saga neighbours i−1, i+1 of float(np.abs(F[i] − F[nb]).mean())) / k  (k = 0 → 0.0)
+ *   each min-max normalised over all sites (span ≤ 1e-9 → 1.0: a constant statistic is 0 after the centring)
+ * Returns {feel, focus, change} as Float64Arrays over the n sites, normalised and np.round(…, 4) — the values the wire
+ * carries (brain.py keeps self.stats un-rounded and rounds in driver_vec; np.round is idempotent on 4-dp values, so
+ * driverVec's rounding of these is a no-op) — plus {lo, hi, span} per statistic (feel, focus, change) for the probes.
+ */
+export function siteStats(drivers, l0) {
+  const n = drivers.length;
+  if (!Array.isArray(l0) || l0.length !== n) throw new TypeError(`siteStats: l0 has ${l0 ? l0.length : 'no'} rows, drivers ${n}`);
+  const sagas = new Array(n);
+  for (let i = 0; i < n; i++) sagas[i] = String(l0[i].saga);   // sagas = [str(x) for x in self.l0["saga"]]
+  const feel = new Float64Array(n), focus = new Float64Array(n), change = new Float64Array(n);
+  const tmp = new Float64Array(8);
+  for (let i = 0; i < n; i++) {
+    const F = drivers[i];
+    const m = sum8(F) / 8;                               // F.mean(axis=1): the pairwise sum / the count
+    feel[i] = m;
+    for (let c = 0; c < 8; c++) { const d = F[c] - m; tmp[c] = d * d; }   // _var: x = arr − arrmean; x = x * x
+    focus[i] = sum8(tmp) / 8;                            // umr_sum(x) / (count − ddof), ddof = 0
+  }
+  for (let i = 0; i < n; i++) {
+    let acc = 0.0, k = 0;
+    if (i > 0 && sagas[i - 1] === sagas[i]) {           // if i > 0 and sagas[i − 1] == sagas[i]
+      const A = drivers[i], B = drivers[i - 1];
+      for (let c = 0; c < 8; c++) tmp[c] = Math.abs(A[c] - B[c]);
+      acc += sum8(tmp) / 8; k += 1;                      // acc += float(np.abs(F[i] − F[i − 1]).mean()); k += 1
+    }
+    if (i + 1 < n && sagas[i + 1] === sagas[i]) {       // if i + 1 < n and sagas[i + 1] == sagas[i]
+      const A = drivers[i + 1], B = drivers[i];
+      for (let c = 0; c < 8; c++) tmp[c] = Math.abs(A[c] - B[c]);
+      acc += sum8(tmp) / 8; k += 1;                      // acc += float(np.abs(F[i + 1] − F[i]).mean()); k += 1
+    }
+    change[i] = k ? acc / k : 0.0;                       // change[i] = acc / k if k else 0.0
+  }
+  const lo = new Array(3), hi = new Array(3), span = new Array(3);
+  [feel, focus, change].forEach((S, c) => { const r = minMaxRound4(S); lo[c] = r.lo; hi[c] = r.hi; span[c] = r.span; });
+  return { feel, focus, change, lo, hi, span };
+}
+
+/** The three statistics of site i as driverVec's `stats_i`: [feel, focus, change]. */
+export function statsAt(stats, i) {
+  return [stats.feel[i], stats.focus[i], stats.change[i]];
+}
+
+/**
+ * brain.py L154–156: `list(np.round(self.drivers[i], 4)) + [round(sim, 4)] + list(np.round(self.stats[i], 4))` — 19
+ * numbers (v3). `drivers_i` is one site's 15 normalised drivers (un-rounded, or sites.json's already-rounded ones:
+ * np.round is idempotent on them; a 19-long sites.json row is read on its first 15); `stats_i` = [feel, focus, change]
+ * of the site (siteStats / statsAt). Without `stats_i` the three are 0.0 — an iso's neutral, never a site's: vizData
+ * and the brain always pass the site's.
+ */
+export function driverVec(driversI, sim = 0.0, statsI = ZERO_STATS) {
   const out = new Array(DRIVER_DIM);
-  for (let c = 0; c < DRIVER_DIM - 1; c++) out[c] = npRound4(driversI[c]);
-  out[DRIVER_DIM - 1] = pyRound4(sim);
+  for (let c = 0; c < N_DRIVER_COLS; c++) out[c] = npRound4(driversI[c]);
+  out[SIM_IDX] = pyRound4(sim);
+  for (let c = 0; c < 3; c++) out[STAT_IDX + c] = npRound4(statsI[c]);
   return out;
 }
 
-export default { DRIVER_DIM, MAX_FIELDS, EXTRA_COLS, rint, npRound, npRound4, pyRound, pyRound4, pyRound3,
-  round4, round3, asFloat, deriveFields, driverColumns, normalizeDrivers, driverVec };
+export default { DRIVER_DIM, N_DRIVER_COLS, SIM_IDX, STAT_IDX, STAT_NAMES, ZERO_STATS, MAX_FIELDS, EXTRA_COLS, rint, npRound,
+  npRound4, pyRound, pyRound4, pyRound3, round4, round3, asFloat, deriveFields, driverColumns, normalizeDrivers, sum8,
+  siteStats, statsAt, driverVec };

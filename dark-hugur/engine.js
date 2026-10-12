@@ -323,7 +323,7 @@ class DarkEngine {
   remember(d) {                                   // pulsar's SOUND.hold: the last legend iso | site | solo, until an end
     if (d.type !== "legend") return;
     const cmd = String(d.cmd ?? ""), has = (k) => d[k] !== undefined;
-    if ((cmd === "iso" && has("field")) || (cmd === "site" && has("site")) || (cmd === "solo" && has("layer"))) this.hold = d;
+    if ((cmd === "iso" && has("field")) || (cmd === "hold" && has("field") && has("dir")) || (cmd === "site" && has("site")) || (cmd === "solo" && has("layer"))) this.hold = d;   // v3: the legend's less · more
     else if (cmd !== "demo") this.hold = null;    // `end`, an unknown cmd or a hold without its argument → the brain sends /dark/legend end
   }
   deliver(m) {                                    // brain → page: once the page has its data, one macrotask later, in order
