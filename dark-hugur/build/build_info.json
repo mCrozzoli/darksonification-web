@@ -1,0 +1,1472 @@
+{
+  "built": "2026-10-12 11:48:02",
+  "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
+  "sources": {
+    "viz/data/meta.json": "6ef27d74fb132ca7",
+    "viz/data/sites.json": "b39f50476c636c66",
+    "darkdata/manifest.json": "462d3761bdec357d",
+    "data/export_manifest.json": "94d0eecb042e8551",
+    "viz/index.html": "dec9bf0447f16da5",
+    "sc/hugur_synths.scd": "20b73fac08eac0f1",
+    "sc/hugur_synthdefs.scd": "649dd0a4d1dd9a5b",
+    "sc/parse_hugur.scd": "c095084da1e350c7",
+    "sc/hugur_cook.scd": "37347b7d10b804ed",
+    "iris/web_implementation/vendor/d3.v7.min.js": "f2094bbf6141b359",
+    "build/vendor_src/umap-js.min.js": "9d226db25cc57eae",
+    "build/vendor_src/tsne.min.js": "552fd8a3317e3484",
+    "viz/darkstyle/KIT.json": "56d037f6a7011bdb",
+    "build/about.template.html": "52c23c392a26a672"
+  },
+  "patches": [
+    "tab title + description (the page is the site's shell for this design; wording for Miguel, design §9 Q9)",
+    "d3 vendored (cross-origin isolation blocks d3js.org) + web_page.js inserted — there is no web_control.js tag to replace, so it rides on the d3 line",
+    "no bridge on the web: skip the .viz_ports.json 404 (re-wilding's patch)",
+    "the transport: the in-tab socket in place of the WebSocket; the rest of connect() (onopen → S.connected, sendSagas; the onmessage dispatch) is unchanged",
+    "the three data fetches go through the gzip-aware, memoised loader the brain shares (one patch, four lines)",
+    "desktop wording: the no-data message",
+    "desktop wording: on the web this status means the query assets are still downloading",
+    "the title links to the about page (a new tab, so the sound keeps playing)"
+  ],
+  "sc_patches": [
+    {
+      "file": "hugur_synths.scd",
+      "why": "the ( ) block fork-wrapped; s.sync + ~webSynthsReady appended"
+    },
+    {
+      "file": "hugur_synths.scd",
+      "why": "the `var dir = …` (nowExecutingPath) line dropped"
+    },
+    {
+      "file": "hugur_synths.scd",
+      "why": "sc/hugur_synthdefs.scd inlined in place of `~defs =(dir +/+ \"hugur_synthdefs.scd\").load;`"
+    },
+    {
+      "file": "parse_hugur.scd",
+      "why": "the `var dir = …` (nowExecutingPath) line dropped"
+    },
+    {
+      "file": "parse_hugur.scd",
+      "why": "sc/hugur_cook.scd inlined in place of `(dir +/+ \"hugur_cook.scd\").load;`"
+    }
+  ],
+  "generated": [
+    "data/sites.json.gz",
+    "data/tokens.json.gz",
+    "data/bin.json.gz",
+    "data/bandamanna_saga.tokens.json.gz",
+    "data/bardar_saga_snaefellsass.tokens.json.gz",
+    "data/bjarnar_saga_hitdaelakappa.tokens.json.gz",
+    "data/droplaugarsona_saga.tokens.json.gz",
+    "data/egla.tokens.json.gz",
+    "data/eiriks_saga_rauda.tokens.json.gz",
+    "data/eyrbyggja_saga.tokens.json.gz",
+    "data/faereyinga_saga.tokens.json.gz",
+    "data/finnboga_saga_ramma.tokens.json.gz",
+    "data/fljotsdaela_saga.tokens.json.gz",
+    "data/floamanna_saga.tokens.json.gz",
+    "data/fostbraedra_saga.tokens.json.gz",
+    "data/gisla_saga_surssonar.tokens.json.gz",
+    "data/graenlendinga_saga.tokens.json.gz",
+    "data/grettis_saga.tokens.json.gz",
+    "data/gull-thoris_saga.tokens.json.gz",
+    "data/gunnars_saga_keldugnupsfifls.tokens.json.gz",
+    "data/gunnlaugs_saga_ormstungu.tokens.json.gz",
+    "data/haensna-thoris_saga.tokens.json.gz",
+    "data/hallfredar_saga_vandraedaskalds.tokens.json.gz",
+    "data/hardar_saga_og_holmverja.tokens.json.gz",
+    "data/havardar_saga_isfirdings.tokens.json.gz",
+    "data/heidarviga_saga.tokens.json.gz",
+    "data/hrafnkels_saga_freysgoda.tokens.json.gz",
+    "data/kjalnesinga_saga.tokens.json.gz",
+    "data/kormaks_saga.tokens.json.gz",
+    "data/kroka-refs_saga.tokens.json.gz",
+    "data/laxdaela_saga.tokens.json.gz",
+    "data/ljosvetninga_saga.tokens.json.gz",
+    "data/njala.tokens.json.gz",
+    "data/olkofra_saga.tokens.json.gz",
+    "data/reykdaela_saga_og_viga-skutu.tokens.json.gz",
+    "data/svarfdaela_saga.tokens.json.gz",
+    "data/thordar_saga_hredu.tokens.json.gz",
+    "data/thorsteins_saga_hvita.tokens.json.gz",
+    "data/thorsteins_saga_sidu-hallssonar.tokens.json.gz",
+    "data/valla-ljots_saga.tokens.json.gz",
+    "data/vatnsdaela_saga.tokens.json.gz",
+    "data/viga-glums_saga.tokens.json.gz",
+    "data/viglundar_saga.tokens.json.gz",
+    "data/vopnfirdinga_saga.tokens.json.gz",
+    "data/bandamanna_saga.sentences.json.gz",
+    "data/bardar_saga_snaefellsass.sentences.json.gz",
+    "data/bjarnar_saga_hitdaelakappa.sentences.json.gz",
+    "data/droplaugarsona_saga.sentences.json.gz",
+    "data/egla.sentences.json.gz",
+    "data/eiriks_saga_rauda.sentences.json.gz",
+    "data/eyrbyggja_saga.sentences.json.gz",
+    "data/faereyinga_saga.sentences.json.gz",
+    "data/finnboga_saga_ramma.sentences.json.gz",
+    "data/fljotsdaela_saga.sentences.json.gz",
+    "data/floamanna_saga.sentences.json.gz",
+    "data/fostbraedra_saga.sentences.json.gz",
+    "data/gisla_saga_surssonar.sentences.json.gz",
+    "data/graenlendinga_saga.sentences.json.gz",
+    "data/grettis_saga.sentences.json.gz",
+    "data/gull-thoris_saga.sentences.json.gz",
+    "data/gunnars_saga_keldugnupsfifls.sentences.json.gz",
+    "data/gunnlaugs_saga_ormstungu.sentences.json.gz",
+    "data/haensna-thoris_saga.sentences.json.gz",
+    "data/hallfredar_saga_vandraedaskalds.sentences.json.gz",
+    "data/hardar_saga_og_holmverja.sentences.json.gz",
+    "data/havardar_saga_isfirdings.sentences.json.gz",
+    "data/heidarviga_saga.sentences.json.gz",
+    "data/hrafnkels_saga_freysgoda.sentences.json.gz",
+    "data/kjalnesinga_saga.sentences.json.gz",
+    "data/kormaks_saga.sentences.json.gz",
+    "data/kroka-refs_saga.sentences.json.gz",
+    "data/laxdaela_saga.sentences.json.gz",
+    "data/ljosvetninga_saga.sentences.json.gz",
+    "data/njala.sentences.json.gz",
+    "data/olkofra_saga.sentences.json.gz",
+    "data/reykdaela_saga_og_viga-skutu.sentences.json.gz",
+    "data/svarfdaela_saga.sentences.json.gz",
+    "data/thordar_saga_hredu.sentences.json.gz",
+    "data/thorsteins_saga_hvita.sentences.json.gz",
+    "data/thorsteins_saga_sidu-hallssonar.sentences.json.gz",
+    "data/valla-ljots_saga.sentences.json.gz",
+    "data/vatnsdaela_saga.sentences.json.gz",
+    "data/viga-glums_saga.sentences.json.gz",
+    "data/viglundar_saga.sentences.json.gz",
+    "data/vopnfirdinga_saga.sentences.json.gz",
+    "data/meta.json",
+    "data/entities.json",
+    "data/sites.vectors.f32",
+    "data/space.json",
+    "data/space.vectors.f32",
+    "data/corpus.json",
+    "data/lexicon.json",
+    "data/export_manifest.json",
+    "index.html",
+    "sc/hugur_synths.scd",
+    "sc/parse_hugur.scd",
+    "vendor/d3.v7.min.js",
+    "vendor/umap-js.esm.js",
+    "vendor/tsne.esm.js",
+    "darkstyle/darkstyle.css",
+    "darkstyle/darkstyle.js",
+    "darkstyle/KIT.json",
+    "about.html",
+    "build/build_info.json"
+  ],
+  "hand_written": [
+    "web_page.js",
+    "engine.js",
+    "osc.js",
+    "coi-sw.js",
+    "sc/web_boot.scd",
+    "core/recompute_worker.js",
+    "core/hugur_brain.js",
+    "core/hugur_query.js",
+    "core/hugur_sites.js",
+    "core/hugur_drivers.js",
+    "core/hugur_vizdata.js",
+    "core/hugur_layouts.js"
+  ],
+  "darkstyle": "adopted",
+  "wording": "final",
+  "interim_texts": [],
+  "clearance_marker": null,
+  "clearance_rule": "the marker is written iff INTERIM is non-empty (K2); WORDING must agree or the build stops",
+  "shared_copies": {
+    "osc.js": "identical to darkpulsar's",
+    "coi-sw.js": "identical to darkpulsar's"
+  },
+  "source_pins": {
+    "viz/index.html": {
+      "pinned": "dec9bf0447f16da5",
+      "current": "dec9bf0447f16da5"
+    },
+    "sc/hugur_synths.scd": {
+      "pinned": "20b73fac08eac0f1",
+      "current": "20b73fac08eac0f1"
+    },
+    "sc/parse_hugur.scd": {
+      "pinned": "c095084da1e350c7",
+      "current": "c095084da1e350c7"
+    },
+    "sc/hugur_synthdefs.scd": {
+      "pinned": "649dd0a4d1dd9a5b",
+      "current": "649dd0a4d1dd9a5b"
+    },
+    "sc/hugur_cook.scd": {
+      "pinned": "37347b7d10b804ed",
+      "current": "37347b7d10b804ed"
+    }
+  },
+  "abs_path_scan": {
+    "inputs": {
+      "hits": [],
+      "engine_warnings": [
+        "engine/README_WASM.md (projects/web/engines, outside this folder — every live design ships it)"
+      ],
+      "needle": "slash-Users-slash (not written literally: this file ships)"
+    },
+    "output": {
+      "hits": [],
+      "engine_warnings": [
+        "engine/README_WASM.md (projects/web/engines, outside this folder — every live design ships it)"
+      ],
+      "needle": "slash-Users-slash (not written literally: this file ships)"
+    }
+  },
+  "data_source": {
+    "darkdata": "projects/designs/dark_hugur/darkdata_web",
+    "viz_data": "projects/designs/dark_hugur/darkdata_web/viz",
+    "tables": 41,
+    "default": [
+      "egla",
+      "njala"
+    ]
+  },
+  "corpus_fingerprints": {
+    "bandamanna_saga": {
+      "data_is": [
+        12,
+        66175
+      ],
+      "tokens_stamp": [
+        12,
+        66175
+      ],
+      "parse_stamp": [
+        12,
+        66175
+      ]
+    },
+    "bardar_saga_snaefellsass": {
+      "data_is": [
+        22,
+        82005
+      ],
+      "tokens_stamp": [
+        22,
+        82005
+      ],
+      "parse_stamp": [
+        22,
+        82005
+      ]
+    },
+    "bjarnar_saga_hitdaelakappa": {
+      "data_is": [
+        34,
+        122096
+      ],
+      "tokens_stamp": [
+        34,
+        122096
+      ],
+      "parse_stamp": [
+        34,
+        122096
+      ]
+    },
+    "droplaugarsona_saga": {
+      "data_is": [
+        15,
+        58890
+      ],
+      "tokens_stamp": [
+        15,
+        58890
+      ],
+      "parse_stamp": [
+        15,
+        58890
+      ]
+    },
+    "egla": {
+      "data_is": [
+        90,
+        400940
+      ],
+      "tokens_stamp": [
+        90,
+        400940
+      ],
+      "parse_stamp": [
+        90,
+        400940
+      ]
+    },
+    "eiriks_saga_rauda": {
+      "data_is": [
+        14,
+        48461
+      ],
+      "tokens_stamp": [
+        14,
+        48461
+      ],
+      "parse_stamp": [
+        14,
+        48461
+      ]
+    },
+    "eyrbyggja_saga": {
+      "data_is": [
+        66,
+        242935
+      ],
+      "tokens_stamp": [
+        66,
+        242935
+      ],
+      "parse_stamp": [
+        66,
+        242935
+      ]
+    },
+    "faereyinga_saga": {
+      "data_is": [
+        59,
+        170199
+      ],
+      "tokens_stamp": [
+        59,
+        170199
+      ],
+      "parse_stamp": [
+        59,
+        170199
+      ]
+    },
+    "finnboga_saga_ramma": {
+      "data_is": [
+        43,
+        142490
+      ],
+      "tokens_stamp": [
+        43,
+        142490
+      ],
+      "parse_stamp": [
+        43,
+        142490
+      ]
+    },
+    "fljotsdaela_saga": {
+      "data_is": [
+        26,
+        161750
+      ],
+      "tokens_stamp": [
+        26,
+        161750
+      ],
+      "parse_stamp": [
+        26,
+        161750
+      ]
+    },
+    "floamanna_saga": {
+      "data_is": [
+        33,
+        108497
+      ],
+      "tokens_stamp": [
+        33,
+        108497
+      ],
+      "parse_stamp": [
+        33,
+        108497
+      ]
+    },
+    "fostbraedra_saga": {
+      "data_is": [
+        34,
+        201166
+      ],
+      "tokens_stamp": [
+        34,
+        201166
+      ],
+      "parse_stamp": [
+        34,
+        201166
+      ]
+    },
+    "gisla_saga_surssonar": {
+      "data_is": [
+        38,
+        118106
+      ],
+      "tokens_stamp": [
+        38,
+        118106
+      ],
+      "parse_stamp": [
+        38,
+        118106
+      ]
+    },
+    "graenlendinga_saga": {
+      "data_is": [
+        9,
+        39297
+      ],
+      "tokens_stamp": [
+        9,
+        39297
+      ],
+      "parse_stamp": [
+        9,
+        39297
+      ]
+    },
+    "grettis_saga": {
+      "data_is": [
+        93,
+        383338
+      ],
+      "tokens_stamp": [
+        93,
+        383338
+      ],
+      "parse_stamp": [
+        93,
+        383338
+      ]
+    },
+    "gull-thoris_saga": {
+      "data_is": [
+        20,
+        74256
+      ],
+      "tokens_stamp": [
+        20,
+        74256
+      ],
+      "parse_stamp": [
+        20,
+        74256
+      ]
+    },
+    "gunnars_saga_keldugnupsfifls": {
+      "data_is": [
+        17,
+        61046
+      ],
+      "tokens_stamp": [
+        17,
+        61046
+      ],
+      "parse_stamp": [
+        17,
+        61046
+      ]
+    },
+    "gunnlaugs_saga_ormstungu": {
+      "data_is": [
+        13,
+        64261
+      ],
+      "tokens_stamp": [
+        13,
+        64261
+      ],
+      "parse_stamp": [
+        13,
+        64261
+      ]
+    },
+    "haensna-thoris_saga": {
+      "data_is": [
+        17,
+        52427
+      ],
+      "tokens_stamp": [
+        17,
+        52427
+      ],
+      "parse_stamp": [
+        17,
+        52427
+      ]
+    },
+    "hallfredar_saga_vandraedaskalds": {
+      "data_is": [
+        12,
+        65368
+      ],
+      "tokens_stamp": [
+        12,
+        65368
+      ],
+      "parse_stamp": [
+        12,
+        65368
+      ]
+    },
+    "hardar_saga_og_holmverja": {
+      "data_is": [
+        41,
+        115708
+      ],
+      "tokens_stamp": [
+        41,
+        115708
+      ],
+      "parse_stamp": [
+        41,
+        115708
+      ]
+    },
+    "havardar_saga_isfirdings": {
+      "data_is": [
+        24,
+        95696
+      ],
+      "tokens_stamp": [
+        24,
+        95696
+      ],
+      "parse_stamp": [
+        24,
+        95696
+      ]
+    },
+    "heidarviga_saga": {
+      "data_is": [
+        44,
+        171249
+      ],
+      "tokens_stamp": [
+        44,
+        171249
+      ],
+      "parse_stamp": [
+        44,
+        171249
+      ]
+    },
+    "hrafnkels_saga_freysgoda": {
+      "data_is": [
+        20,
+        55159
+      ],
+      "tokens_stamp": [
+        20,
+        55159
+      ],
+      "parse_stamp": [
+        20,
+        55159
+      ]
+    },
+    "kjalnesinga_saga": {
+      "data_is": [
+        18,
+        65427
+      ],
+      "tokens_stamp": [
+        18,
+        65427
+      ],
+      "parse_stamp": [
+        18,
+        65427
+      ]
+    },
+    "kormaks_saga": {
+      "data_is": [
+        27,
+        82273
+      ],
+      "tokens_stamp": [
+        27,
+        82273
+      ],
+      "parse_stamp": [
+        27,
+        82273
+      ]
+    },
+    "kroka-refs_saga": {
+      "data_is": [
+        20,
+        66714
+      ],
+      "tokens_stamp": [
+        20,
+        66714
+      ],
+      "parse_stamp": [
+        20,
+        66714
+      ]
+    },
+    "laxdaela_saga": {
+      "data_is": [
+        89,
+        380931
+      ],
+      "tokens_stamp": [
+        89,
+        380931
+      ],
+      "parse_stamp": [
+        89,
+        380931
+      ]
+    },
+    "ljosvetninga_saga": {
+      "data_is": [
+        34,
+        167898
+      ],
+      "tokens_stamp": [
+        34,
+        167898
+      ],
+      "parse_stamp": [
+        34,
+        167898
+      ]
+    },
+    "njala": {
+      "data_is": [
+        159,
+        608267
+      ],
+      "tokens_stamp": [
+        159,
+        608267
+      ],
+      "parse_stamp": [
+        159,
+        608267
+      ]
+    },
+    "olkofra_saga": {
+      "data_is": [
+        4,
+        17624
+      ],
+      "tokens_stamp": [
+        4,
+        17624
+      ],
+      "parse_stamp": [
+        4,
+        17624
+      ]
+    },
+    "reykdaela_saga_og_viga-skutu": {
+      "data_is": [
+        30,
+        140425
+      ],
+      "tokens_stamp": [
+        30,
+        140425
+      ],
+      "parse_stamp": [
+        30,
+        140425
+      ]
+    },
+    "svarfdaela_saga": {
+      "data_is": [
+        32,
+        126664
+      ],
+      "tokens_stamp": [
+        32,
+        126664
+      ],
+      "parse_stamp": [
+        32,
+        126664
+      ]
+    },
+    "thordar_saga_hredu": {
+      "data_is": [
+        14,
+        98175
+      ],
+      "tokens_stamp": [
+        14,
+        98175
+      ],
+      "parse_stamp": [
+        14,
+        98175
+      ]
+    },
+    "thorsteins_saga_hvita": {
+      "data_is": [
+        8,
+        22167
+      ],
+      "tokens_stamp": [
+        8,
+        22167
+      ],
+      "parse_stamp": [
+        8,
+        22167
+      ]
+    },
+    "thorsteins_saga_sidu-hallssonar": {
+      "data_is": [
+        7,
+        32937
+      ],
+      "tokens_stamp": [
+        7,
+        32937
+      ],
+      "parse_stamp": [
+        7,
+        32937
+      ]
+    },
+    "valla-ljots_saga": {
+      "data_is": [
+        9,
+        41920
+      ],
+      "tokens_stamp": [
+        9,
+        41920
+      ],
+      "parse_stamp": [
+        9,
+        41920
+      ]
+    },
+    "vatnsdaela_saga": {
+      "data_is": [
+        47,
+        177819
+      ],
+      "tokens_stamp": [
+        47,
+        177819
+      ],
+      "parse_stamp": [
+        47,
+        177819
+      ]
+    },
+    "viga-glums_saga": {
+      "data_is": [
+        28,
+        117020
+      ],
+      "tokens_stamp": [
+        28,
+        117020
+      ],
+      "parse_stamp": [
+        28,
+        117020
+      ]
+    },
+    "viglundar_saga": {
+      "data_is": [
+        23,
+        76756
+      ],
+      "tokens_stamp": [
+        23,
+        76756
+      ],
+      "parse_stamp": [
+        23,
+        76756
+      ]
+    },
+    "vopnfirdinga_saga": {
+      "data_is": [
+        19,
+        57876
+      ],
+      "tokens_stamp": [
+        19,
+        57876
+      ],
+      "parse_stamp": [
+        19,
+        57876
+      ]
+    }
+  },
+  "data": {
+    "built": "2026-10-12 11:48:02",
+    "files": {
+      "sites.json.gz": {
+        "raw": 386283,
+        "gz": 90598,
+        "sha": "b39f50476c636c66"
+      },
+      "tokens.json.gz": {
+        "raw": 1039716,
+        "gz": 139009,
+        "sha": "beb5ded7ddd6a3ae"
+      },
+      "bin.json.gz": {
+        "raw": 1116329,
+        "gz": 237322,
+        "sha": "8c32829eb4954187"
+      },
+      "bandamanna_saga.tokens.json.gz": {
+        "raw": 913120,
+        "gz": 143760,
+        "sha": "a5a7d5dc779ad08d"
+      },
+      "bardar_saga_snaefellsass.tokens.json.gz": {
+        "raw": 1054941,
+        "gz": 173525,
+        "sha": "8e0f5c8010af958e"
+      },
+      "bjarnar_saga_hitdaelakappa.tokens.json.gz": {
+        "raw": 1628560,
+        "gz": 255225,
+        "sha": "c621ad76c2fea88b"
+      },
+      "droplaugarsona_saga.tokens.json.gz": {
+        "raw": 759401,
+        "gz": 121844,
+        "sha": "cb329bd631561724"
+      },
+      "egla.tokens.json.gz": {
+        "raw": 5451078,
+        "gz": 816402,
+        "sha": "5a7139a18b0eb586"
+      },
+      "eiriks_saga_rauda.tokens.json.gz": {
+        "raw": 617171,
+        "gz": 103787,
+        "sha": "bad2e00f3a10a77a"
+      },
+      "eyrbyggja_saga.tokens.json.gz": {
+        "raw": 3155172,
+        "gz": 486024,
+        "sha": "797116cf7f12e8f5"
+      },
+      "faereyinga_saga.tokens.json.gz": {
+        "raw": 2317695,
+        "gz": 347307,
+        "sha": "66ecedc61dc083b0"
+      },
+      "finnboga_saga_ramma.tokens.json.gz": {
+        "raw": 1899130,
+        "gz": 288487,
+        "sha": "ca18c7a015b55fde"
+      },
+      "fljotsdaela_saga.tokens.json.gz": {
+        "raw": 2182241,
+        "gz": 332760,
+        "sha": "b7766ccfaaf24fd4"
+      },
+      "floamanna_saga.tokens.json.gz": {
+        "raw": 1428069,
+        "gz": 227941,
+        "sha": "e2ac7cb285babb8e"
+      },
+      "fostbraedra_saga.tokens.json.gz": {
+        "raw": 2678890,
+        "gz": 405173,
+        "sha": "f71cdca5e815b143"
+      },
+      "gisla_saga_surssonar.tokens.json.gz": {
+        "raw": 1590475,
+        "gz": 250115,
+        "sha": "8788478ddf0a9a62"
+      },
+      "graenlendinga_saga.tokens.json.gz": {
+        "raw": 503243,
+        "gz": 82056,
+        "sha": "eaf70c27259e9e48"
+      },
+      "grettis_saga.tokens.json.gz": {
+        "raw": 5111165,
+        "gz": 785075,
+        "sha": "a3b0d7ce155730a9"
+      },
+      "gull-thoris_saga.tokens.json.gz": {
+        "raw": 953801,
+        "gz": 154585,
+        "sha": "d5f4a9dc1821c48e"
+      },
+      "gunnars_saga_keldugnupsfifls.tokens.json.gz": {
+        "raw": 820833,
+        "gz": 126525,
+        "sha": "d83ea6af93ab227c"
+      },
+      "gunnlaugs_saga_ormstungu.tokens.json.gz": {
+        "raw": 831976,
+        "gz": 135734,
+        "sha": "6b785d637f2b1480"
+      },
+      "haensna-thoris_saga.tokens.json.gz": {
+        "raw": 700559,
+        "gz": 112145,
+        "sha": "09fc26a56d6b9b8b"
+      },
+      "hallfredar_saga_vandraedaskalds.tokens.json.gz": {
+        "raw": 863608,
+        "gz": 142235,
+        "sha": "0c3b8db8b8abb03c"
+      },
+      "hardar_saga_og_holmverja.tokens.json.gz": {
+        "raw": 1522905,
+        "gz": 241550,
+        "sha": "f1e3dfc12d34094e"
+      },
+      "havardar_saga_isfirdings.tokens.json.gz": {
+        "raw": 1269203,
+        "gz": 197553,
+        "sha": "3235731f1d48ef22"
+      },
+      "heidarviga_saga.tokens.json.gz": {
+        "raw": 2284779,
+        "gz": 361800,
+        "sha": "b2ebda33d7f3ba5b"
+      },
+      "hrafnkels_saga_freysgoda.tokens.json.gz": {
+        "raw": 755671,
+        "gz": 120264,
+        "sha": "a07dd2ff2c6dc298"
+      },
+      "kjalnesinga_saga.tokens.json.gz": {
+        "raw": 883653,
+        "gz": 141694,
+        "sha": "cbbe45272c55647a"
+      },
+      "kormaks_saga.tokens.json.gz": {
+        "raw": 1070036,
+        "gz": 179266,
+        "sha": "b30f10406ccd1a9a"
+      },
+      "kroka-refs_saga.tokens.json.gz": {
+        "raw": 893394,
+        "gz": 144012,
+        "sha": "3f40e1ebf4ca43a2"
+      },
+      "laxdaela_saga.tokens.json.gz": {
+        "raw": 5052536,
+        "gz": 767234,
+        "sha": "c1c9ca48ea8e10c8"
+      },
+      "ljosvetninga_saga.tokens.json.gz": {
+        "raw": 2274349,
+        "gz": 343404,
+        "sha": "80e692212f7e74a3"
+      },
+      "njala.tokens.json.gz": {
+        "raw": 8316105,
+        "gz": 1204144,
+        "sha": "d6244bc67eb0fc7d"
+      },
+      "olkofra_saga.tokens.json.gz": {
+        "raw": 228867,
+        "gz": 37649,
+        "sha": "43f481e3a2bf5ff5"
+      },
+      "reykdaela_saga_og_viga-skutu.tokens.json.gz": {
+        "raw": 1842493,
+        "gz": 277981,
+        "sha": "c7812d8969f499f5"
+      },
+      "svarfdaela_saga.tokens.json.gz": {
+        "raw": 1711303,
+        "gz": 264388,
+        "sha": "a52646f320319266"
+      },
+      "thordar_saga_hredu.tokens.json.gz": {
+        "raw": 1289954,
+        "gz": 201196,
+        "sha": "816f1412dacd5dd3"
+      },
+      "thorsteins_saga_hvita.tokens.json.gz": {
+        "raw": 275218,
+        "gz": 46522,
+        "sha": "7ebbcf0fa95f7361"
+      },
+      "thorsteins_saga_sidu-hallssonar.tokens.json.gz": {
+        "raw": 422577,
+        "gz": 71266,
+        "sha": "b7af774d22c751d1"
+      },
+      "valla-ljots_saga.tokens.json.gz": {
+        "raw": 556912,
+        "gz": 92463,
+        "sha": "a0cbb885a66df950"
+      },
+      "vatnsdaela_saga.tokens.json.gz": {
+        "raw": 2350810,
+        "gz": 364477,
+        "sha": "dd9e470dc3380aa6"
+      },
+      "viga-glums_saga.tokens.json.gz": {
+        "raw": 1567333,
+        "gz": 245486,
+        "sha": "407b92a33335eb81"
+      },
+      "viglundar_saga.tokens.json.gz": {
+        "raw": 1006801,
+        "gz": 159618,
+        "sha": "da36ec706b27fd91"
+      },
+      "vopnfirdinga_saga.tokens.json.gz": {
+        "raw": 759312,
+        "gz": 122052,
+        "sha": "4bb9f9d519ae4d3b"
+      },
+      "bandamanna_saga.sentences.json.gz": {
+        "raw": 142352,
+        "gz": 28840,
+        "sha": "33bf1a4c70a1adab"
+      },
+      "bardar_saga_snaefellsass.sentences.json.gz": {
+        "raw": 195316,
+        "gz": 41504,
+        "sha": "20acf2fe4bed964a"
+      },
+      "bjarnar_saga_hitdaelakappa.sentences.json.gz": {
+        "raw": 259698,
+        "gz": 51973,
+        "sha": "b21306d2d0656789"
+      },
+      "droplaugarsona_saga.sentences.json.gz": {
+        "raw": 138914,
+        "gz": 27340,
+        "sha": "fbcf23d755dfe28f"
+      },
+      "egla.sentences.json.gz": {
+        "raw": 734901,
+        "gz": 141726,
+        "sha": "bca250644e0bd5db"
+      },
+      "eiriks_saga_rauda.sentences.json.gz": {
+        "raw": 114937,
+        "gz": 24526,
+        "sha": "797b930a38a3f487"
+      },
+      "eyrbyggja_saga.sentences.json.gz": {
+        "raw": 554337,
+        "gz": 110861,
+        "sha": "289b1e50b4c6e79e"
+      },
+      "faereyinga_saga.sentences.json.gz": {
+        "raw": 319441,
+        "gz": 62096,
+        "sha": "08a82ea55ba8a37b"
+      },
+      "finnboga_saga_ramma.sentences.json.gz": {
+        "raw": 324721,
+        "gz": 63256,
+        "sha": "2e75285089cf4f6e"
+      },
+      "fljotsdaela_saga.sentences.json.gz": {
+        "raw": 380572,
+        "gz": 76617,
+        "sha": "12be49dd59fbc85f"
+      },
+      "floamanna_saga.sentences.json.gz": {
+        "raw": 253425,
+        "gz": 52132,
+        "sha": "1d1ddb9c88ce946d"
+      },
+      "fostbraedra_saga.sentences.json.gz": {
+        "raw": 456678,
+        "gz": 89837,
+        "sha": "045e849ce049e2e9"
+      },
+      "gisla_saga_surssonar.sentences.json.gz": {
+        "raw": 241109,
+        "gz": 49188,
+        "sha": "3d7e0489096e7649"
+      },
+      "graenlendinga_saga.sentences.json.gz": {
+        "raw": 90284,
+        "gz": 18756,
+        "sha": "11e71c0ab1507486"
+      },
+      "grettis_saga.sentences.json.gz": {
+        "raw": 885151,
+        "gz": 180099,
+        "sha": "1ff98daa6c22accd"
+      },
+      "gull-thoris_saga.sentences.json.gz": {
+        "raw": 182474,
+        "gz": 37502,
+        "sha": "72e6813867d0bb25"
+      },
+      "gunnars_saga_keldugnupsfifls.sentences.json.gz": {
+        "raw": 152679,
+        "gz": 30050,
+        "sha": "032725f2a4c7a232"
+      },
+      "gunnlaugs_saga_ormstungu.sentences.json.gz": {
+        "raw": 136319,
+        "gz": 27697,
+        "sha": "37cd085a81ec3def"
+      },
+      "haensna-thoris_saga.sentences.json.gz": {
+        "raw": 120206,
+        "gz": 24500,
+        "sha": "e5116658cd5c66b0"
+      },
+      "hallfredar_saga_vandraedaskalds.sentences.json.gz": {
+        "raw": 146284,
+        "gz": 30303,
+        "sha": "fccc6a7dbe7d9be2"
+      },
+      "hardar_saga_og_holmverja.sentences.json.gz": {
+        "raw": 268972,
+        "gz": 55647,
+        "sha": "c7e40e1ced1906fc"
+      },
+      "havardar_saga_isfirdings.sentences.json.gz": {
+        "raw": 223144,
+        "gz": 43966,
+        "sha": "d48a021973378e9d"
+      },
+      "heidarviga_saga.sentences.json.gz": {
+        "raw": 343217,
+        "gz": 72240,
+        "sha": "160935d4cafbdd47"
+      },
+      "hrafnkels_saga_freysgoda.sentences.json.gz": {
+        "raw": 123873,
+        "gz": 25850,
+        "sha": "354bd0582a9cd416"
+      },
+      "kjalnesinga_saga.sentences.json.gz": {
+        "raw": 161972,
+        "gz": 33272,
+        "sha": "b82023ec20c0bae8"
+      },
+      "kormaks_saga.sentences.json.gz": {
+        "raw": 171581,
+        "gz": 35410,
+        "sha": "e7d0a796c7ba42aa"
+      },
+      "kroka-refs_saga.sentences.json.gz": {
+        "raw": 155019,
+        "gz": 32093,
+        "sha": "421b05e7b67e1c9c"
+      },
+      "laxdaela_saga.sentences.json.gz": {
+        "raw": 881283,
+        "gz": 176293,
+        "sha": "8b48d56dad1fdb83"
+      },
+      "ljosvetninga_saga.sentences.json.gz": {
+        "raw": 390992,
+        "gz": 77411,
+        "sha": "eb1440398a82be59"
+      },
+      "njala.sentences.json.gz": {
+        "raw": 1385406,
+        "gz": 265427,
+        "sha": "7033f090255fbc62"
+      },
+      "olkofra_saga.sentences.json.gz": {
+        "raw": 35801,
+        "gz": 8060,
+        "sha": "a153c15f8110ca1a"
+      },
+      "reykdaela_saga_og_viga-skutu.sentences.json.gz": {
+        "raw": 322888,
+        "gz": 61679,
+        "sha": "9c42324433473176"
+      },
+      "svarfdaela_saga.sentences.json.gz": {
+        "raw": 267520,
+        "gz": 54036,
+        "sha": "c31f2c76ae20906f"
+      },
+      "thordar_saga_hredu.sentences.json.gz": {
+        "raw": 226938,
+        "gz": 44374,
+        "sha": "014b16b50bded3fd"
+      },
+      "thorsteins_saga_hvita.sentences.json.gz": {
+        "raw": 52469,
+        "gz": 11143,
+        "sha": "a2cbd08562632614"
+      },
+      "thorsteins_saga_sidu-hallssonar.sentences.json.gz": {
+        "raw": 64314,
+        "gz": 13869,
+        "sha": "29c517cd4fb81347"
+      },
+      "valla-ljots_saga.sentences.json.gz": {
+        "raw": 93761,
+        "gz": 19708,
+        "sha": "197f8c41cb003c36"
+      },
+      "vatnsdaela_saga.sentences.json.gz": {
+        "raw": 373317,
+        "gz": 76829,
+        "sha": "72e21e2c26adfd02"
+      },
+      "viga-glums_saga.sentences.json.gz": {
+        "raw": 256371,
+        "gz": 52566,
+        "sha": "117cdeae7bf317a6"
+      },
+      "viglundar_saga.sentences.json.gz": {
+        "raw": 164113,
+        "gz": 33244,
+        "sha": "a7c67c2bcaadf6f0"
+      },
+      "vopnfirdinga_saga.sentences.json.gz": {
+        "raw": 130491,
+        "gz": 26817,
+        "sha": "0628ea4d77c2b77b"
+      },
+      "meta.json": {
+        "raw": 2763,
+        "sha": "6ef27d74fb132ca7"
+      },
+      "entities.json": {
+        "raw": 27649,
+        "sha": "c812cf587ffbe326"
+      },
+      "sites.vectors.f32": {
+        "raw": 218800,
+        "sha": "287876d749bc3375"
+      },
+      "space.json": {
+        "raw": 210613,
+        "sha": "042d95bcae7bc085"
+      },
+      "space.vectors.f32": {
+        "raw": 2541600,
+        "sha": "a2009ee3b3895941"
+      },
+      "corpus.json": {
+        "raw": 5186,
+        "sha": "69e49922438a427e"
+      },
+      "lexicon.json": {
+        "raw": 3087,
+        "sha": "7e1011e4ed560f25"
+      },
+      "export_manifest.json": {
+        "raw": 18825,
+        "sha": "94d0eecb042e8551"
+      }
+    },
+    "gzip": {
+      "level": 6,
+      "ships_only_gz": [
+        "sites.json",
+        "tokens.json",
+        "bin.json",
+        "bandamanna_saga.tokens.json",
+        "bardar_saga_snaefellsass.tokens.json",
+        "bjarnar_saga_hitdaelakappa.tokens.json",
+        "droplaugarsona_saga.tokens.json",
+        "egla.tokens.json",
+        "eiriks_saga_rauda.tokens.json",
+        "eyrbyggja_saga.tokens.json",
+        "faereyinga_saga.tokens.json",
+        "finnboga_saga_ramma.tokens.json",
+        "fljotsdaela_saga.tokens.json",
+        "floamanna_saga.tokens.json",
+        "fostbraedra_saga.tokens.json",
+        "gisla_saga_surssonar.tokens.json",
+        "graenlendinga_saga.tokens.json",
+        "grettis_saga.tokens.json",
+        "gull-thoris_saga.tokens.json",
+        "gunnars_saga_keldugnupsfifls.tokens.json",
+        "gunnlaugs_saga_ormstungu.tokens.json",
+        "haensna-thoris_saga.tokens.json",
+        "hallfredar_saga_vandraedaskalds.tokens.json",
+        "hardar_saga_og_holmverja.tokens.json",
+        "havardar_saga_isfirdings.tokens.json",
+        "heidarviga_saga.tokens.json",
+        "hrafnkels_saga_freysgoda.tokens.json",
+        "kjalnesinga_saga.tokens.json",
+        "kormaks_saga.tokens.json",
+        "kroka-refs_saga.tokens.json",
+        "laxdaela_saga.tokens.json",
+        "ljosvetninga_saga.tokens.json",
+        "njala.tokens.json",
+        "olkofra_saga.tokens.json",
+        "reykdaela_saga_og_viga-skutu.tokens.json",
+        "svarfdaela_saga.tokens.json",
+        "thordar_saga_hredu.tokens.json",
+        "thorsteins_saga_hvita.tokens.json",
+        "thorsteins_saga_sidu-hallssonar.tokens.json",
+        "valla-ljots_saga.tokens.json",
+        "vatnsdaela_saga.tokens.json",
+        "viga-glums_saga.tokens.json",
+        "viglundar_saga.tokens.json",
+        "vopnfirdinga_saga.tokens.json",
+        "bandamanna_saga.sentences.json",
+        "bardar_saga_snaefellsass.sentences.json",
+        "bjarnar_saga_hitdaelakappa.sentences.json",
+        "droplaugarsona_saga.sentences.json",
+        "egla.sentences.json",
+        "eiriks_saga_rauda.sentences.json",
+        "eyrbyggja_saga.sentences.json",
+        "faereyinga_saga.sentences.json",
+        "finnboga_saga_ramma.sentences.json",
+        "fljotsdaela_saga.sentences.json",
+        "floamanna_saga.sentences.json",
+        "fostbraedra_saga.sentences.json",
+        "gisla_saga_surssonar.sentences.json",
+        "graenlendinga_saga.sentences.json",
+        "grettis_saga.sentences.json",
+        "gull-thoris_saga.sentences.json",
+        "gunnars_saga_keldugnupsfifls.sentences.json",
+        "gunnlaugs_saga_ormstungu.sentences.json",
+        "haensna-thoris_saga.sentences.json",
+        "hallfredar_saga_vandraedaskalds.sentences.json",
+        "hardar_saga_og_holmverja.sentences.json",
+        "havardar_saga_isfirdings.sentences.json",
+        "heidarviga_saga.sentences.json",
+        "hrafnkels_saga_freysgoda.sentences.json",
+        "kjalnesinga_saga.sentences.json",
+        "kormaks_saga.sentences.json",
+        "kroka-refs_saga.sentences.json",
+        "laxdaela_saga.sentences.json",
+        "ljosvetninga_saga.sentences.json",
+        "njala.sentences.json",
+        "olkofra_saga.sentences.json",
+        "reykdaela_saga_og_viga-skutu.sentences.json",
+        "svarfdaela_saga.sentences.json",
+        "thordar_saga_hredu.sentences.json",
+        "thorsteins_saga_hvita.sentences.json",
+        "thorsteins_saga_sidu-hallssonar.sentences.json",
+        "valla-ljots_saga.sentences.json",
+        "vatnsdaela_saga.sentences.json",
+        "viga-glums_saga.sentences.json",
+        "viglundar_saga.sentences.json",
+        "vopnfirdinga_saga.sentences.json"
+      ],
+      "freshness": "by content (sha), never by mtime",
+      "regzipped": {}
+    },
+    "skip_data": false
+  },
+  "sc_files": [
+    "web_boot.scd",
+    "hugur_synths.scd",
+    "parse_hugur.scd"
+  ],
+  "shims": {
+    "files": {
+      "umap-js.esm.js": {
+        "from": "build/vendor_src/umap-js.min.js",
+        "source_sha": "9d226db25cc57eae",
+        "bytes": 83692,
+        "ctor": "UMAP"
+      },
+      "tsne.esm.js": {
+        "from": "build/vendor_src/tsne.min.js",
+        "source_sha": "552fd8a3317e3484",
+        "bytes": 93087,
+        "ctor": "TSNE"
+      }
+    },
+    "node_check": {
+      "umap": "t",
+      "tsne": "t",
+      "umapMethods": [
+        "initializeFit",
+        "step",
+        "getEmbedding",
+        "setPrecomputedKNN"
+      ],
+      "tsneMethods": [
+        "constructor",
+        "init",
+        "run",
+        "rerun",
+        "getOutput",
+        "getOutputScaled",
+        "_gradDesc"
+      ]
+    },
+    "node": "/opt/homebrew/bin/node"
+  },
+  "darkstyle_kit": {
+    "copied_from": "viz/darkstyle/",
+    "kit_copied": "2026-10-08 12:45",
+    "files": {
+      "darkstyle.css": "a2c1507972554138",
+      "darkstyle.js": "a5a154247a75ed38",
+      "KIT.json": "56d037f6a7011bdb"
+    }
+  },
+  "about_interim": [],
+  "about_final": [
+    "CREDITS_PEOPLE",
+    "SOUND_METHOD"
+  ],
+  "credits": {
+    "sagas": [
+      "bandamanna_saga",
+      "bardar_saga_snaefellsass",
+      "bjarnar_saga_hitdaelakappa",
+      "droplaugarsona_saga",
+      "egla",
+      "eiriks_saga_rauda",
+      "eyrbyggja_saga",
+      "faereyinga_saga",
+      "finnboga_saga_ramma",
+      "fljotsdaela_saga",
+      "floamanna_saga",
+      "fostbraedra_saga",
+      "gisla_saga_surssonar",
+      "graenlendinga_saga",
+      "grettis_saga",
+      "gull-thoris_saga",
+      "gunnars_saga_keldugnupsfifls",
+      "gunnlaugs_saga_ormstungu",
+      "haensna-thoris_saga",
+      "hallfredar_saga_vandraedaskalds",
+      "hardar_saga_og_holmverja",
+      "havardar_saga_isfirdings",
+      "heidarviga_saga",
+      "hrafnkels_saga_freysgoda",
+      "kjalnesinga_saga",
+      "kormaks_saga",
+      "kroka-refs_saga",
+      "laxdaela_saga",
+      "ljosvetninga_saga",
+      "njala",
+      "olkofra_saga",
+      "reykdaela_saga_og_viga-skutu",
+      "svarfdaela_saga",
+      "thordar_saga_hredu",
+      "thorsteins_saga_hvita",
+      "thorsteins_saga_sidu-hallssonar",
+      "valla-ljots_saga",
+      "vatnsdaela_saga",
+      "viga-glums_saga",
+      "viglundar_saga",
+      "vopnfirdinga_saga"
+    ],
+    "default": [
+      "egla",
+      "njala"
+    ],
+    "saga_titles": [
+      "Egils saga Skalla-Grímssonar",
+      "Brennu-Njáls saga"
+    ],
+    "n_sites": 547,
+    "n_tokens": 999286,
+    "n_lexicon": 38,
+    "n_bin_forms": 40101,
+    "lexicon_hash": "a4f445756c"
+  }
+}

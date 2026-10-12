@@ -1,0 +1,601 @@
+{
+ "counts": {
+  "bandamanna_saga.sentences": 768,
+  "bandamanna_saga.tokens": 13067,
+  "bardar_saga_snaefellsass.sentences": 982,
+  "bardar_saga_snaefellsass.tokens": 14660,
+  "bin_forms": 40101,
+  "bin_forms_with_candidates": 34426,
+  "bin_keyword_lemmas": 30,
+  "bin_keyword_lemmas_in_vocab": 23,
+  "bin_keyword_lemmas_surface_only": [
+   "glotta",
+   "kvíða",
+   "roðna",
+   "skelfa",
+   "svella",
+   "syrgja",
+   "þrútna"
+  ],
+  "bin_keyword_lemmas_via_bin": [
+   "glotta",
+   "kvíða",
+   "svella",
+   "þrútna"
+  ],
+  "bin_lemma_keys": 50,
+  "bin_lemma_keys_unattested": [
+   "angra",
+   "blikna",
+   "blöskra",
+   "brosa",
+   "fölna",
+   "glotta",
+   "gremja",
+   "grátur",
+   "hryggð",
+   "ofbjóða",
+   "roðna",
+   "skelfa",
+   "svella",
+   "sárna",
+   "tregi",
+   "óa",
+   "þrútna"
+  ],
+  "bin_reynir": "3.6.1",
+  "bin_seconds": 2.5,
+  "bin_token_forms": 40084,
+  "bjarnar_saga_hitdaelakappa.sentences": 1152,
+  "bjarnar_saga_hitdaelakappa.tokens": 22686,
+  "bytes_gz_total": 13460230,
+  "corpus_rows": 41,
+  "droplaugarsona_saga.sentences": 719,
+  "droplaugarsona_saga.tokens": 10619,
+  "egla.sentences": 2457,
+  "egla.tokens": 76531,
+  "eiriks_saga_rauda.sentences": 571,
+  "eiriks_saga_rauda.tokens": 8664,
+  "eyrbyggja_saga.sentences": 2429,
+  "eyrbyggja_saga.tokens": 43359,
+  "faereyinga_saga.sentences": 1521,
+  "faereyinga_saga.tokens": 32549,
+  "finnboga_saga_ramma.sentences": 1744,
+  "finnboga_saga_ramma.tokens": 26418,
+  "fljotsdaela_saga.sentences": 2005,
+  "fljotsdaela_saga.tokens": 30237,
+  "floamanna_saga.sentences": 1337,
+  "floamanna_saga.tokens": 19850,
+  "fostbraedra_saga.sentences": 2226,
+  "fostbraedra_saga.tokens": 37175,
+  "gisla_saga_surssonar.sentences": 1037,
+  "gisla_saga_surssonar.tokens": 22359,
+  "graenlendinga_saga.sentences": 392,
+  "graenlendinga_saga.tokens": 7147,
+  "grettis_saga.sentences": 4514,
+  "grettis_saga.tokens": 70452,
+  "gull-thoris_saga.sentences": 872,
+  "gull-thoris_saga.tokens": 13269,
+  "gunnars_saga_keldugnupsfifls.sentences": 833,
+  "gunnars_saga_keldugnupsfifls.tokens": 11612,
+  "gunnlaugs_saga_ormstungu.sentences": 690,
+  "gunnlaugs_saga_ormstungu.tokens": 11792,
+  "haensna-thoris_saga.sentences": 620,
+  "haensna-thoris_saga.tokens": 9971,
+  "hallfredar_saga_vandraedaskalds.sentences": 829,
+  "hallfredar_saga_vandraedaskalds.tokens": 12234,
+  "hardar_saga_og_holmverja.sentences": 1407,
+  "hardar_saga_og_holmverja.tokens": 21097,
+  "havardar_saga_isfirdings.sentences": 1222,
+  "havardar_saga_isfirdings.tokens": 17799,
+  "heidarviga_saga.sentences": 1788,
+  "heidarviga_saga.tokens": 31784,
+  "hrafnkels_saga_freysgoda.sentences": 639,
+  "hrafnkels_saga_freysgoda.tokens": 10808,
+  "kjalnesinga_saga.sentences": 924,
+  "kjalnesinga_saga.tokens": 12464,
+  "kormaks_saga.sentences": 1153,
+  "kormaks_saga.tokens": 15015,
+  "kroka-refs_saga.sentences": 855,
+  "kroka-refs_saga.tokens": 12612,
+  "laxdaela_saga.sentences": 4510,
+  "laxdaela_saga.tokens": 69323,
+  "lexicon_experiencer": 14,
+  "lexicon_fields": 38,
+  "ljosvetninga_saga.sentences": 2007,
+  "ljosvetninga_saga.tokens": 31622,
+  "njala.sentences": 7217,
+  "njala.tokens": 114351,
+  "olkofra_saga.sentences": 169,
+  "olkofra_saga.tokens": 3225,
+  "reykdaela_saga_og_viga-skutu.sentences": 1193,
+  "reykdaela_saga_og_viga-skutu.tokens": 25333,
+  "site_vectors_shape": [
+   547,
+   100
+  ],
+  "space_shape": [
+   6354,
+   100
+  ],
+  "svarfdaela_saga.sentences": 1370,
+  "svarfdaela_saga.tokens": 24057,
+  "thordar_saga_hredu.sentences": 1227,
+  "thordar_saga_hredu.tokens": 18092,
+  "thorsteins_saga_hvita.sentences": 258,
+  "thorsteins_saga_hvita.tokens": 3880,
+  "thorsteins_saga_sidu-hallssonar.sentences": 297,
+  "thorsteins_saga_sidu-hallssonar.tokens": 5981,
+  "valla-ljots_saga.sentences": 491,
+  "valla-ljots_saga.tokens": 7972,
+  "vatnsdaela_saga.sentences": 1831,
+  "vatnsdaela_saga.tokens": 32549,
+  "viga-glums_saga.sentences": 1247,
+  "viga-glums_saga.tokens": 21915,
+  "viglundar_saga.sentences": 870,
+  "viglundar_saga.tokens": 14030,
+  "vopnfirdinga_saga.sentences": 603,
+  "vopnfirdinga_saga.tokens": 10726
+ },
+ "exporter": "web_implementation/build/export_corpus.py",
+ "files": {
+  "bandamanna_saga.sentences.json": {
+   "bytes": 142352,
+   "sha256": "33bf1a4c70a1adab5991e4fc8fd72e380c7dbf7ab369b36e763a780c9359332d"
+  },
+  "bandamanna_saga.tokens.json": {
+   "bytes": 913120,
+   "sha256": "a5a7d5dc779ad08d5bc530459ead0b438c3ed40395afd571a29efc6303bade57"
+  },
+  "bardar_saga_snaefellsass.sentences.json": {
+   "bytes": 195316,
+   "sha256": "20acf2fe4bed964a5a84959f6b262777141ee3c37da1d9cfb468642de455ae7d"
+  },
+  "bardar_saga_snaefellsass.tokens.json": {
+   "bytes": 1054941,
+   "sha256": "8e0f5c8010af958e32050a54a7a33820cc2fb5c67fc06ff3cdbf3e16de772dc2"
+  },
+  "bin.json": {
+   "bytes": 1116329,
+   "sha256": "8c32829eb495418782ed0c8210fda8293ac654e7d38cb93b9d3472f2e9a39357"
+  },
+  "bjarnar_saga_hitdaelakappa.sentences.json": {
+   "bytes": 259698,
+   "sha256": "b21306d2d0656789e5932848cd5ec73af316a3db7f02d45ea4a969f3c4d4c173"
+  },
+  "bjarnar_saga_hitdaelakappa.tokens.json": {
+   "bytes": 1628560,
+   "sha256": "c621ad76c2fea88bda2e377e39992ac5619e2a5999ed04e240604b784f335e1f"
+  },
+  "corpus.json": {
+   "bytes": 5186,
+   "sha256": "69e49922438a427e2329c3ff2a7d7fee9cdc6290ee75ba39f209f19639ab977e"
+  },
+  "droplaugarsona_saga.sentences.json": {
+   "bytes": 138914,
+   "sha256": "fbcf23d755dfe28fa2b9d763deedc0c05d30b3165b60ec628ecc35efd63e3e8f"
+  },
+  "droplaugarsona_saga.tokens.json": {
+   "bytes": 759401,
+   "sha256": "cb329bd6315617249200be192c6d38e36511a1f8813d6173050f944be0ce8250"
+  },
+  "egla.sentences.json": {
+   "bytes": 734901,
+   "sha256": "bca250644e0bd5db55df9c48f43886b2bacff4ae4b47c59d3b9e716dfaffc1f3"
+  },
+  "egla.tokens.json": {
+   "bytes": 5451078,
+   "sha256": "5a7139a18b0eb586b06d1ff6f2f50d453be1613ad884fda7fc7a8d0c267f1e05"
+  },
+  "eiriks_saga_rauda.sentences.json": {
+   "bytes": 114937,
+   "sha256": "797b930a38a3f48748c2d43bfaf013280cf2b83291b0fc3e3ea801b3ee1bd1c0"
+  },
+  "eiriks_saga_rauda.tokens.json": {
+   "bytes": 617171,
+   "sha256": "bad2e00f3a10a77a8c3dba1187c98954a5f62b730c126c97179d1ef9c8de0b79"
+  },
+  "eyrbyggja_saga.sentences.json": {
+   "bytes": 554337,
+   "sha256": "289b1e50b4c6e79e435555e0dd6a296175f53681f2330e1822b81aeac69f1461"
+  },
+  "eyrbyggja_saga.tokens.json": {
+   "bytes": 3155172,
+   "sha256": "797116cf7f12e8f5fc82d5541bb5940eb3f7c127d93895b6d2eb975d201c0244"
+  },
+  "faereyinga_saga.sentences.json": {
+   "bytes": 319441,
+   "sha256": "08a82ea55ba8a37bc61ab75cdfc2d74801a5d15978a0ee888af9b73710e21b3d"
+  },
+  "faereyinga_saga.tokens.json": {
+   "bytes": 2317695,
+   "sha256": "66ecedc61dc083b00026e65d594fefa6fa63c779dc376257a2ae815083c844ed"
+  },
+  "finnboga_saga_ramma.sentences.json": {
+   "bytes": 324721,
+   "sha256": "2e75285089cf4f6ebfbd353b2e644d4748e4e865dbcd47e30675e003e04a9627"
+  },
+  "finnboga_saga_ramma.tokens.json": {
+   "bytes": 1899130,
+   "sha256": "ca18c7a015b55fdec73e6ea92181c5106e5e6a918e0b54b8a17f549fa37360a1"
+  },
+  "fljotsdaela_saga.sentences.json": {
+   "bytes": 380572,
+   "sha256": "12be49dd59fbc85f98312d091058c4a662413027a371f141213bed20eea255e4"
+  },
+  "fljotsdaela_saga.tokens.json": {
+   "bytes": 2182241,
+   "sha256": "b7766ccfaaf24fd449252d0c7cadc4924ac3fa3b1804bcf78bbfaf02babb83a5"
+  },
+  "floamanna_saga.sentences.json": {
+   "bytes": 253425,
+   "sha256": "1d1ddb9c88ce946d94358c2d5a6fdee8e594a2f8ee5ceba10b70d5c77e9f6e88"
+  },
+  "floamanna_saga.tokens.json": {
+   "bytes": 1428069,
+   "sha256": "e2ac7cb285babb8ee22acf11c90ec4e9d8b4b628ee3b6948b4f9c3d51a1d1c58"
+  },
+  "fostbraedra_saga.sentences.json": {
+   "bytes": 456678,
+   "sha256": "045e849ce049e2e9b7890dd0fef1106a216943adc8f8a28da62e2459c6fff25b"
+  },
+  "fostbraedra_saga.tokens.json": {
+   "bytes": 2678890,
+   "sha256": "f71cdca5e815b1433c92a4bee9d1177946d279fbc3ec9326fbd57f1405eec226"
+  },
+  "gisla_saga_surssonar.sentences.json": {
+   "bytes": 241109,
+   "sha256": "3d7e0489096e76490eb72014f5b93f6bc789841b3adcbe7521a3dc13e579b02d"
+  },
+  "gisla_saga_surssonar.tokens.json": {
+   "bytes": 1590475,
+   "sha256": "8788478ddf0a9a620dc8360d37dfc37e30fad9fb95237785c4ca4f8a831fcce9"
+  },
+  "graenlendinga_saga.sentences.json": {
+   "bytes": 90284,
+   "sha256": "11e71c0ab1507486eef4beacbf5f126f4e122fbeb98bbaa2c9975a9184441225"
+  },
+  "graenlendinga_saga.tokens.json": {
+   "bytes": 503243,
+   "sha256": "eaf70c27259e9e484095fdfba5b9117d680c9e7452020eb84308f4546527c01f"
+  },
+  "grettis_saga.sentences.json": {
+   "bytes": 885151,
+   "sha256": "1ff98daa6c22accd0e7947f6d9f30e70ff31fece058cfefd40b4103e7fa2da35"
+  },
+  "grettis_saga.tokens.json": {
+   "bytes": 5111165,
+   "sha256": "a3b0d7ce155730a90bd6c400d0e59226513cbccd7e7085bf661fa3236765c008"
+  },
+  "gull-thoris_saga.sentences.json": {
+   "bytes": 182474,
+   "sha256": "72e6813867d0bb250cb65128d1ce4aecd2b3a13f7070cd40d3eb08a1931d125d"
+  },
+  "gull-thoris_saga.tokens.json": {
+   "bytes": 953801,
+   "sha256": "d5f4a9dc1821c48e679e87ee9e302d501380787a58c8e0ebdc1e1a4c14052571"
+  },
+  "gunnars_saga_keldugnupsfifls.sentences.json": {
+   "bytes": 152679,
+   "sha256": "032725f2a4c7a232738082ae886c876d69d91be0e2576cbf10f3af1e7a207f2b"
+  },
+  "gunnars_saga_keldugnupsfifls.tokens.json": {
+   "bytes": 820833,
+   "sha256": "d83ea6af93ab227c7633f5959038cd1eb5d4c7025e6b8144ceb5eed5dfbd476b"
+  },
+  "gunnlaugs_saga_ormstungu.sentences.json": {
+   "bytes": 136319,
+   "sha256": "37cd085a81ec3def46f0ee3c9c8730577c07aa493795638804fc262d70619ef8"
+  },
+  "gunnlaugs_saga_ormstungu.tokens.json": {
+   "bytes": 831976,
+   "sha256": "6b785d637f2b1480811e8d2409e942afdedff89c336b41840fb5da56bdb623cf"
+  },
+  "haensna-thoris_saga.sentences.json": {
+   "bytes": 120206,
+   "sha256": "e5116658cd5c66b029c943f1bee74df107216903ed75a366f107ada4be035a35"
+  },
+  "haensna-thoris_saga.tokens.json": {
+   "bytes": 700559,
+   "sha256": "09fc26a56d6b9b8b717c00a39d8d4e0b8d3ea117d9c81a73c9af655bee03877a"
+  },
+  "hallfredar_saga_vandraedaskalds.sentences.json": {
+   "bytes": 146284,
+   "sha256": "fccc6a7dbe7d9be2f1017cba4fde753de0a79a548925989a747adb5416509ed7"
+  },
+  "hallfredar_saga_vandraedaskalds.tokens.json": {
+   "bytes": 863608,
+   "sha256": "0c3b8db8b8abb03c9a61a4aeec2067d73624e2201c59848f48a561ba0429d036"
+  },
+  "hardar_saga_og_holmverja.sentences.json": {
+   "bytes": 268972,
+   "sha256": "c7e40e1ced1906fc201580cec94788dbbd42b025fae30eebde1641d4b56140fa"
+  },
+  "hardar_saga_og_holmverja.tokens.json": {
+   "bytes": 1522905,
+   "sha256": "f1e3dfc12d34094e288912e58b436871f2e0b01d557f2580120bc6e25278ed6d"
+  },
+  "havardar_saga_isfirdings.sentences.json": {
+   "bytes": 223144,
+   "sha256": "d48a021973378e9d5996a3e5436d3f6a41c928c8b2e2715c76299eec20221c57"
+  },
+  "havardar_saga_isfirdings.tokens.json": {
+   "bytes": 1269203,
+   "sha256": "3235731f1d48ef22a16d4b460b3fdb9a2e2e0752828520925750809a49887abc"
+  },
+  "heidarviga_saga.sentences.json": {
+   "bytes": 343217,
+   "sha256": "160935d4cafbdd47367519410c77758606486c2958243c118cf29ac52e6294f7"
+  },
+  "heidarviga_saga.tokens.json": {
+   "bytes": 2284779,
+   "sha256": "b2ebda33d7f3ba5b782c8edded62391b95fb67f4be9f6ea6458a62b18882b24a"
+  },
+  "hrafnkels_saga_freysgoda.sentences.json": {
+   "bytes": 123873,
+   "sha256": "354bd0582a9cd416a6168f947e601fe20fa6b10d9c4c103bc9256d6661e56f69"
+  },
+  "hrafnkels_saga_freysgoda.tokens.json": {
+   "bytes": 755671,
+   "sha256": "a07dd2ff2c6dc29828cb9928fcc69813df8412dbe96fbf580ca1c4b430eadb12"
+  },
+  "kjalnesinga_saga.sentences.json": {
+   "bytes": 161972,
+   "sha256": "b82023ec20c0bae815c5842c31fceeb1713422f2ccbdce769a9b1c99c2dde968"
+  },
+  "kjalnesinga_saga.tokens.json": {
+   "bytes": 883653,
+   "sha256": "cbbe45272c55647a5f1ad5726b0f51949278a1583f5cb09c58960feec105c930"
+  },
+  "kormaks_saga.sentences.json": {
+   "bytes": 171581,
+   "sha256": "e7d0a796c7ba42aa4b9cf2e7f6b7fadccbb1a6f5638325d69c8eb4d06e589d8f"
+  },
+  "kormaks_saga.tokens.json": {
+   "bytes": 1070036,
+   "sha256": "b30f10406ccd1a9a6687cd9f3a5ddb8fa8d46179e534dd4bfcd6cf47e3395877"
+  },
+  "kroka-refs_saga.sentences.json": {
+   "bytes": 155019,
+   "sha256": "421b05e7b67e1c9ca2561053e76c65329c66ba20932e90c981cd5751db726849"
+  },
+  "kroka-refs_saga.tokens.json": {
+   "bytes": 893394,
+   "sha256": "3f40e1ebf4ca43a2eb84dc0ebea94a4b2bf41ca26c6a5069335505f04210e3ee"
+  },
+  "laxdaela_saga.sentences.json": {
+   "bytes": 881283,
+   "sha256": "8b48d56dad1fdb830800539b0ad53eb25e1e910d3750c8f8dbbed39564da9400"
+  },
+  "laxdaela_saga.tokens.json": {
+   "bytes": 5052536,
+   "sha256": "c1c9ca48ea8e10c8c49c8b2c9465afcc2ff400005b3c72243d425fda8c0f6466"
+  },
+  "lexicon.json": {
+   "bytes": 3087,
+   "sha256": "7e1011e4ed560f250fd015429b2ad60e4979f7c78d76825d9e2d40857ad4df13"
+  },
+  "ljosvetninga_saga.sentences.json": {
+   "bytes": 390992,
+   "sha256": "eb1440398a82be591f132701721d715c106a31b6540caa48f0bd099343fbb9ab"
+  },
+  "ljosvetninga_saga.tokens.json": {
+   "bytes": 2274349,
+   "sha256": "80e692212f7e74a3d68299670a481361daab80effe000c860800da944e0e2330"
+  },
+  "njala.sentences.json": {
+   "bytes": 1385406,
+   "sha256": "7033f090255fbc62eb967c5c5eecc591a8c66f3a16190284756f74a9eda400d2"
+  },
+  "njala.tokens.json": {
+   "bytes": 8316105,
+   "sha256": "d6244bc67eb0fc7da8764aa385b0f1d36e562b1d8becd0ed9761d6f390c2cb74"
+  },
+  "olkofra_saga.sentences.json": {
+   "bytes": 35801,
+   "sha256": "a153c15f8110ca1a3c3f5bc4929df3b56e3a1e4d4703aa468b16ba0e1abfe32c"
+  },
+  "olkofra_saga.tokens.json": {
+   "bytes": 228867,
+   "sha256": "43f481e3a2bf5ff5cb79bad414572044ffdd2d9415d59b5082605c98ceb07cb3"
+  },
+  "reykdaela_saga_og_viga-skutu.sentences.json": {
+   "bytes": 322888,
+   "sha256": "9c4232443347317623ebe848cb92b2e63e77d7c19749e91ade7131afeff8f791"
+  },
+  "reykdaela_saga_og_viga-skutu.tokens.json": {
+   "bytes": 1842493,
+   "sha256": "c7812d8969f499f599df03d096180a150b845205e01fd10def97d176c5a767f6"
+  },
+  "sites.vectors.f32": {
+   "bytes": 218800,
+   "sha256": "287876d749bc337547fa02f93f8d1c78a42050fc85b1e3345eecc0cfd7484c6a"
+  },
+  "space.json": {
+   "bytes": 210613,
+   "sha256": "042d95bcae7bc085560f7f3b677ca4fc13ee04a607f1ccb9f9ff6ee44a6d66b3"
+  },
+  "space.vectors.f32": {
+   "bytes": 2541600,
+   "sha256": "a2009ee3b3895941b6902b4c3bd5327345c7897ec492ca1536134cc4fdc8e039"
+  },
+  "svarfdaela_saga.sentences.json": {
+   "bytes": 267520,
+   "sha256": "c31f2c76ae20906ff43f4ee2cb89eb3efaef187c4238d606a68a426965cb37a6"
+  },
+  "svarfdaela_saga.tokens.json": {
+   "bytes": 1711303,
+   "sha256": "a52646f320319266bb5d65285f61c0266a0787b69bd38a9876449e1eb5b10329"
+  },
+  "thordar_saga_hredu.sentences.json": {
+   "bytes": 226938,
+   "sha256": "014b16b50bded3fd905a81778dbf1e21f88766233e026695e0732dcb67bcd552"
+  },
+  "thordar_saga_hredu.tokens.json": {
+   "bytes": 1289954,
+   "sha256": "816f1412dacd5dd3788e608206eb17f4ba36d7135ef948b92f3b9734dfff6deb"
+  },
+  "thorsteins_saga_hvita.sentences.json": {
+   "bytes": 52469,
+   "sha256": "a2cbd0856263261421175bb24c37496cb3e5df0ec2bb1087a7e50f345a224f69"
+  },
+  "thorsteins_saga_hvita.tokens.json": {
+   "bytes": 275218,
+   "sha256": "7ebbcf0fa95f736128b217ca132809bfb9ff7c525ed3fc2c2c76e490c5315a85"
+  },
+  "thorsteins_saga_sidu-hallssonar.sentences.json": {
+   "bytes": 64314,
+   "sha256": "29c517cd4fb813479a81cbc0bdd9cf763b6a52a4c340ef921469707ea9ae4923"
+  },
+  "thorsteins_saga_sidu-hallssonar.tokens.json": {
+   "bytes": 422577,
+   "sha256": "b7af774d22c751d1e446ab65bebbfdb366621b82a351ad0df37a95c21594f0a8"
+  },
+  "valla-ljots_saga.sentences.json": {
+   "bytes": 93761,
+   "sha256": "197f8c41cb003c366ab579e41f9188b24152c10ba70bdb7b545e0dc412ee1e96"
+  },
+  "valla-ljots_saga.tokens.json": {
+   "bytes": 556912,
+   "sha256": "a0cbb885a66df95074009c87d8646121d28bc25adc605a778e7cc6827b19d271"
+  },
+  "vatnsdaela_saga.sentences.json": {
+   "bytes": 373317,
+   "sha256": "72e21e2c26adfd026e6764fe2de198f45bb7db18e3e24648fa568296efa91c7c"
+  },
+  "vatnsdaela_saga.tokens.json": {
+   "bytes": 2350810,
+   "sha256": "dd9e470dc3380aa6c28d07ce611b944a8c9de806031ece913d86c03b3bb4c5a8"
+  },
+  "viga-glums_saga.sentences.json": {
+   "bytes": 256371,
+   "sha256": "117cdeae7bf317a6b2ec1ac34f6d74621a7671ce377eec0a0b517ab3c5ce2616"
+  },
+  "viga-glums_saga.tokens.json": {
+   "bytes": 1567333,
+   "sha256": "407b92a33335eb81b4faab761853b3a9929fd6ab3a7e62a78d4f7b0ea7ea5b49"
+  },
+  "viglundar_saga.sentences.json": {
+   "bytes": 164113,
+   "sha256": "a7c67c2bcaadf6f0e605a5020d0cec2898bb95d75a80e5f1e16cc6ba1c9f231e"
+  },
+  "viglundar_saga.tokens.json": {
+   "bytes": 1006801,
+   "sha256": "da36ec706b27fd9131ef09cba0cc666fc7bf91c0c19099917cace6707e88b3e8"
+  },
+  "vopnfirdinga_saga.sentences.json": {
+   "bytes": 130491,
+   "sha256": "0628ea4d77c2b77b61fffa5c78915bf97c2815a0a0540830e66ae68e3657daf6"
+  },
+  "vopnfirdinga_saga.tokens.json": {
+   "bytes": 759312,
+   "sha256": "4bb9f9d519ae4d3ba1197813fbe68f9648e9b7b552f48c16d62f300412f1861f"
+  }
+ },
+ "ref_dir": "projects/designs/dark_hugur/web_implementation/probe/ref/darkdata_web",
+ "sagas": [
+  "bandamanna_saga",
+  "bardar_saga_snaefellsass",
+  "bjarnar_saga_hitdaelakappa",
+  "droplaugarsona_saga",
+  "egla",
+  "eiriks_saga_rauda",
+  "eyrbyggja_saga",
+  "faereyinga_saga",
+  "finnboga_saga_ramma",
+  "fljotsdaela_saga",
+  "floamanna_saga",
+  "fostbraedra_saga",
+  "gisla_saga_surssonar",
+  "graenlendinga_saga",
+  "grettis_saga",
+  "gull-thoris_saga",
+  "gunnars_saga_keldugnupsfifls",
+  "gunnlaugs_saga_ormstungu",
+  "haensna-thoris_saga",
+  "hallfredar_saga_vandraedaskalds",
+  "hardar_saga_og_holmverja",
+  "havardar_saga_isfirdings",
+  "heidarviga_saga",
+  "hrafnkels_saga_freysgoda",
+  "kjalnesinga_saga",
+  "kormaks_saga",
+  "kroka-refs_saga",
+  "laxdaela_saga",
+  "ljosvetninga_saga",
+  "njala",
+  "olkofra_saga",
+  "reykdaela_saga_og_viga-skutu",
+  "svarfdaela_saga",
+  "thordar_saga_hredu",
+  "thorsteins_saga_hvita",
+  "thorsteins_saga_sidu-hallssonar",
+  "valla-ljots_saga",
+  "vatnsdaela_saga",
+  "viga-glums_saga",
+  "viglundar_saga",
+  "vopnfirdinga_saga"
+ ],
+ "sites_sagas": [
+  "egla",
+  "njala"
+ ],
+ "source": {
+  "darkdata": "projects/designs/dark_hugur/darkdata_web",
+  "lexicon_dir": "projects/designs/dark_hugur/lexicon",
+  "lexicon_hash": "a4f445756c",
+  "manifest_generated": "2026-10-11T22:08:39.827329",
+  "manifest_lexicon_hash": "a4f445756c",
+  "manifest_sagas": [
+   "egla",
+   "njala"
+  ],
+  "manifest_window": 25,
+  "sites_sagas": [
+   "egla",
+   "njala"
+  ],
+  "sites_stamp": {
+   "lexicon": "a4f445756c",
+   "parse": {
+    "egla": {
+     "fp": [
+      90,
+      400940
+     ],
+     "quick": false
+    },
+    "njala": {
+     "fp": [
+      159,
+      608267
+     ],
+     "quick": false
+    }
+   },
+   "sagas": [
+    "egla",
+    "njala"
+   ],
+   "tokens": {
+    "egla": {
+     "fp": [
+      90,
+      400940
+     ],
+     "quick": false
+    },
+    "njala": {
+     "fp": [
+      159,
+      608267
+     ],
+     "quick": false
+    }
+   },
+   "window": 25
+  },
+  "window": 25
+ },
+ "written": "2026-10-11T20:10:08+00:00"
+}
