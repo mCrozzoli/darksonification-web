@@ -102,6 +102,7 @@ svg text { cursor:default }
     <div class="row"><span class="k">top bird</span><span class="v" id="i-sp">—</span></div>
     <div id="i-ret" style="color:var(--rw-dawn); margin:3px 0"></div>
     <div id="i-fault"></div>   <!-- P52: a probable recorder fault (findings/14), on water -->
+    <div id="i-rec"></div>     <!-- P60: water's recording and where its moments come from -->
     <div class="row"><span class="k">weather</span><span class="v" id="i-wx">—</span></div>
     <div id="i-ax" style="margin-top:8px"></div>
     <div class="wc-seglabel" style="color:var(--dim);font-size:11px;letter-spacing:.1em;margin:10px 0 6px">VIEW</div>
@@ -423,7 +424,7 @@ function markHead(){
   const d=curPoint;
   // no point in focus (a resolution / reading / channel change clears it): the claim goes, or a
   // released grouping would outlive its own caption in this line (review 2026-09-27)
-  if(!d){ d3.select("#i-head .k").text("· drag to hear"); d3.select("#i-fault").html(""); return; }
+  if(!d){ d3.select("#i-head .k").text("· drag to hear"); d3.select("#i-fault").html(""); d3.select("#i-rec").html(""); return; }
   const out = d.day!=null && outOfGroup(d.win);
   d3.select("#i-head").html(`${d.day==null?"MONTH":"WINDOW"} <span class="k" style="font-weight:normal">· `
     + (out ? `outside the ${dielFilter.toUpperCase()} grouping` : "drag to hear") + `</span>`);
@@ -721,6 +722,7 @@ function hover(d){
   d3.select("#i-nsp").text(noNsp ? "—" : d.nsp==null ? "not analysed" : d.nsp); d3.select("#i-sp").text(d.sp||"—");
   d3.select("#i-ret").text(d.returner ? "returner · "+retText(d.returner) : "returner —");
   d3.select("#i-fault").html(window.WC && WC.faultNote ? (d.day!=null ? WC.faultNote(d.key) : WC.faultMonthNote(keyOf(d))) : "");   // P52
+  d3.select("#i-rec").html(window.WC && WC.recordingNote ? WC.recordingNote(d.day!=null ? d.key : keyOf(d), d.win) : "");   // P60
   d3.select("#i-wx").text(wxText(d.wx));
   if(d.air){                                          // combined: both channels' index values
     Object.keys(d.air).forEach(k=>host.append("div").attr("class","row")
@@ -891,6 +893,7 @@ async function connect(){
     if(m.type==="init"){
       window.RW_COVERAGE = m.coverage || {};           // per month: hours, windows, partial (bridge month_coverage)
       window.RW_FAULTS = m.faults || [];               // P52: probable recorder-fault days (findings/14); [] on air
+      window.RW_RECORDINGS = m.recordings || {};       // P60: water's recordings and their source files; {} on air
       channel=m.channel||"air"; channels=m.channels||[];
       if(window.WC && WC.channelPref()!==channel && channels.includes(WC.channelPref())){
         ws.send(JSON.stringify({type:"channel",channel:WC.channelPref()})); return; }   // honour saved choice

@@ -76,6 +76,7 @@
     <div class="row"><span class="k">day · phase</span><span class="v" id="w-when">—</span></div>
     <div class="row"><span class="k">top bird</span><span class="v" id="w-sp">—</span></div>
     <div id="w-ret" style="color:var(--rw-dawn); margin:3px 0"></div>
+    <div id="w-rec"></div>     <!-- P60: water's recording and where its moments come from -->
     <div id="w-fault"></div>   <!-- P52: a probable recorder fault (findings/14), on water -->
     <div id="w-ax" style="margin-top:6px"></div>
     <div class="wc-seglabel" style="color:var(--dim);font-size:11px;letter-spacing:.1em;margin:10px 0 6px">VIEW</div>
@@ -253,7 +254,7 @@ function draw(){
   else {
     gScrub.style("display","none"); hovered=-1;
     if(!(heard && heard.key===rowsKey)){                 // the rows are not the numbers of what sounds
-      d3.select("#w-sp").text("—"); d3.select("#w-ret").text(""); d3.select("#w-ax").selectAll("*").remove();
+      d3.select("#w-sp").text("—"); d3.select("#w-ret").text(""); d3.select("#w-rec").html(""); d3.select("#w-ax").selectAll("*").remove();
       d3.select("#w-fault").html("");
       rowsKey=null;
     }
@@ -366,7 +367,7 @@ function drawCompare(keys){
     hits.push({ x:xs(v.x), y:Y(v.v), mk:v.mk, d:v.d, ph:v.ph, v:v.v, sp:v.sp, nsp:v.nsp }); }));
   svg.node().__qt=d3.quadtree().x(p=>p.x).y(p=>p.y).addAll(hits);
   d3.select("#w-title").text(`COMPARE \u00b7 ${keys.length} months`);
-  d3.select("#w-when").text("scrub a day"); d3.select("#w-sp").text("\u2014"); d3.select("#w-ret").text(""); rowsKey=null;
+  d3.select("#w-when").text("scrub a day"); d3.select("#w-sp").text("\u2014"); d3.select("#w-ret").text(""); d3.select("#w-rec").html(""); rowsKey=null;
   d3.select("#w-fault").html("");
   d3.select("#w-ax").selectAll("*").remove();
   drawCompareLegend(profiles);
@@ -420,7 +421,7 @@ function drawChannelCompare(){
   // x is four diel phases, not points: nothing here to look up or to stroke over
   svg.node().__qt=null; if(_brush){ _brush.destroy(); _brush=null; }
   d3.select("#w-title").text(`AIR × WATER · ${MON[+monthKey.split("-")[1]]} ${monthKey.split("-")[0]}`);
-  d3.select("#w-when").text("scrub a phase"); d3.select("#w-sp").text("—"); d3.select("#w-ret").text(""); rowsKey=null;
+  d3.select("#w-when").text("scrub a phase"); d3.select("#w-sp").text("—"); d3.select("#w-ret").text(""); d3.select("#w-rec").html(""); rowsKey=null;
   d3.select("#w-ax").selectAll("*").remove();
   const host=d3.select("#legend"); host.selectAll("*").remove();
   host.append("span").attr("class","lg").html(`<i style="background:${AIR_COLOR}"></i>air`);
@@ -467,6 +468,7 @@ function scrubCmpDay(mx,cmp){
   d3.select("#w-when").text(`day ${best.d} \u00b7 ${best.ph}`);
   d3.select("#w-sp").text(best.sp||"\u2014");
   d3.select("#w-ret").text(best.returner ? "returner \u00b7 "+retText(best.returner) : "returner \u2014");
+  d3.select("#w-rec").html(window.WC && WC.recordingNote && best.mk ? WC.recordingNote(`${best.mk}-${String(best.d).padStart(2,"0")}`, best.ph) : "");   // P60
   const host=d3.select("#w-ax"); host.selectAll("*").remove();
   cmp.profiles.forEach(p=>{ const v=p.vals.find(x=>x.d===best.d && x.ph===best.ph);
     host.append("div").attr("class","row")
@@ -531,6 +533,7 @@ function scrubTo(i,quiet){
   d3.select("#w-sp").text(d.sp||"—");
   d3.select("#w-ret").text(d.returner ? "returner · "+retText(d.returner) : "returner —");
   d3.select("#w-fault").html(window.WC && WC.faultNote ? WC.faultNote(`${monthKey}-${String(d.d).padStart(2,"0")}`) : "");   // P52
+  d3.select("#w-rec").html(window.WC && WC.recordingNote ? WC.recordingNote(`${monthKey}-${String(d.d).padStart(2,"0")}`, d.win) : "");   // P60
   const host=d3.select("#w-ax"); host.selectAll("*").remove();
   AXK.forEach(k=>host.append("div").attr("class","row").attr("title",glossOf(k))
     .html(`<span class="k">${k}</span><span class="v">${d.ax[k]!=null ? d.ax[k].toFixed(2)
@@ -732,6 +735,7 @@ async function connect(){
     if(m.type==="init"){
       window.RW_COVERAGE = m.coverage || {};           // per month: hours, windows, partial (bridge month_coverage)
       window.RW_FAULTS = m.faults || [];               // P52: probable recorder-fault days (findings/14); [] on air
+      window.RW_RECORDINGS = m.recordings || {};       // P60: water's recordings and their source files; {} on air
       channel=m.channel||"air"; channels=m.channels||[];
       if(window.WC && WC.channelPref()!==channel && channels.includes(WC.channelPref())){
         ws.send(JSON.stringify({type:"channel",channel:WC.channelPref()})); return; }

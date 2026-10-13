@@ -340,6 +340,39 @@ window.WC = (function () {
   // that draws no flag says only that the month includes a fault day, which raises its values)
   const faultMonthFlagNote = key => faultsIn(key).map(f => faultLine(f.month_flag_note || f.month_note)).join("");
   const faultKeyNote = key => faultNote(key) || faultMonthNote(key);   // a day or a month (the hour views' traceKey)
+  // ---- WATER'S RECORDINGS (P60, 2026-10-12; the init's `recordings`, data/water_corpus_traces.json) ----------------
+  // {points: {"YYYY-MM-DD|win" | "YYYY-MM|win" | "YYYY-MM": collage name or null}, clips: {name: {label, moments:
+  // [{date, hour_utc, file, at_s, at_s_exact}]}}, archive}. Every point the water tables hold is listed (null = no
+  // recording), so a month x window that is a point but has no recording does NOT fall back to the bare month - the
+  // same resolution rw_core.rw_navigate makes. Air and air+water carry none, and the line is empty there.
+  const recs = () => (window.RW_RECORDINGS && window.RW_RECORDINGS.points ? window.RW_RECORDINGS : null);
+  function recordingOf(key, win) {
+    const R = recs(); if (!R) return null;
+    const d = dateOf(key), mk = monthOf(key);
+    const kw = /^(?:w:)?\d{4}-\d{2}(?:-\d{2})?:(\w+)/.exec(typeof key === "string" ? key : "");
+    const w = String(win || (kw ? kw[1] : "")).trim().toLowerCase();
+    let name = null;
+    if (d) name = w ? R.points[`${d}|${w}`] : null;
+    else if (mk) name = (w && (`${mk}|${w}` in R.points)) ? R.points[`${mk}|${w}`] : R.points[mk];
+    return name ? Object.assign({ name }, R.clips[name] || {}) : null;
+  }
+  const recMMSS = s => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`;
+  const recDate = ds => { const [y, m, dd] = ds.split("-"); return `${+dd} ${MON3[+m - 1]} ${y}`; };   // MON3: above
+  // plain text (the line's title): one line per moment - where to find it in the hydrophone's hour files
+  function recordingText(key, win) {
+    const r = recordingOf(key, win); if (!r || !r.moments) return "";
+    const R = recs();
+    return r.moments.map(m => `${recDate(m.date)}, ${String(m.hour_utc).padStart(2, "0")} UTC \u00b7 ${m.file.split("/").pop()} `
+      + `at ${m.at_s_exact === false ? "about " : ""}${recMMSS(m.at_s)}`).join("\n")
+      + (r.moments.some(m => m.at_s_exact === false) ? "\n(\u2018about\u2019: within \u00b130 s)" : "")
+      + (R && R.archive ? `\nhour files: ${R.archive}` : "");
+  }
+  const recordingNote = (key, win) => {                    // the INFORMATION panel's line (HTML); hover it for the files
+    const r = recordingOf(key, win); if (!r) return "";
+    const n = (r.moments || []).length, days = new Set((r.moments || []).map(m => m.date)).size;
+    return `<div class="k wc-rec-note" style="margin-top:3px; cursor:help" title="${escHTML(recordingText(key, win))}">`
+      + `recording \u00b7 ${escHTML(r.label || r.name)} \u00b7 ${n} moment${n === 1 ? "" : "s"} from ${days} day${days === 1 ? "" : "s"}</div>`;
+  };
   // THE MARK: a small × over the point, on the casing the echo rings use, so it reads on any fill. `g` is an svg
   // group translated to the point, `r` the point's radius.
   function faultX(g, r) {
@@ -579,17 +612,20 @@ window.WC = (function () {
       b.classList.toggle("on", b.getAttribute("data-ch") === cur));
     updateLayerAvail();
   }
-  // ON WATER the arp and the corpus are silent: they are BirdNET, which ran on the air recorder
-  // only (the tables are per channel since 2026-09-26). The faders stay settable - the mix is
-  // the listener's and comes back on air - but say so. air+water plays air's tables.
+  // ON WATER the arp is silent: it is BirdNET, which ran on the air recorder only (the tables are
+  // per channel since 2026-09-26). The fader stays settable - the mix is the listener's and comes
+  // back on air - but says so. air+water plays air's tables. The corpus plays on water since
+  // 2026-10-11 (TASKS P60): a hydrophone recording of the band that stands out in the spectrogram.
   function updateLayerAvail() {
     const noBird = (opts.channel && opts.channel()) === "water";
     document.querySelectorAll("#wc-mix .wc-fader").forEach(f => {
       const inp = f.querySelector("input"); if (!inp) return;
-      const k = inp.getAttribute("data-layer"), off = noBird && (k === "arp" || k === "corpus");
+      const k = inp.getAttribute("data-layer"), off = noBird && k === "arp";
       const def = (LAYER_FADERS.find(x => x[0] === k) || [])[2] || "";
       f.classList.toggle("na", off);
-      f.title = off ? `${k} is silent on water: BirdNET ran on the air recorder only` : def;
+      f.title = off ? `${k} is silent on water: BirdNET ran on the air recorder only`
+        : (noBird && k === "corpus") ? "a real hydrophone recording from that month: the band that stands out in the spectrogram (chosen by rule, not identified)"
+        : def;
     });
   }
   function updateSoundBtn() {
@@ -805,6 +841,8 @@ window.WC = (function () {
     faultMonthFlagNote,                      // key -> the month's line where the map's anomaly flag is drawn (the biplot)
     faultText, faultMonthText,               // the same, plain text (a title)
     faultX,                                  // (svg group at the point, its radius) -> the × mark
+    // ---- WATER'S RECORDINGS (P60; the init's `recordings`) --------------------------------------
+    recordingOf, recordingNote, recordingText, // (key, win) -> the collage / its INFORMATION line (HTML) / its sources
     PALETTE,
 
     // level-dependent defaults, applied when the RESOLUTION changes (month <-> day)

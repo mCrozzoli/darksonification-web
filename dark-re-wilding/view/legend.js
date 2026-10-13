@@ -1159,7 +1159,7 @@ window.LEG = (function () {
        <div class="lrow"><b>clave</b> · the woodblock tick</div>
        <div class="lrow"><b>arp</b> · a chord, one note per species</div>
        <div class="lrow"><b>corpus</b> · real recordings from Knepp</div>
-       <div class="lrow" ${dim}>drone + clave follow the acoustic measures · arp + corpus follow BirdNET${tchan() === "water" ? " — air only, so silent on water" : ""}</div>
+       <div class="lrow" ${dim}>drone + clave follow the acoustic measures · ${tchan() === "water" ? "arp follows BirdNET — air only, so silent on water · corpus plays the band that stands out in the spectrogram" : "arp + corpus follow BirdNET"}</div>
        <div class="lrow" style="margin-top:6px">${STAT_LINE[s]}</div>`);
   }
   function toggle(force) {

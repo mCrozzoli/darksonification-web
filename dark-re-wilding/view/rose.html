@@ -119,6 +119,7 @@
     <svg id="focus"></svg>
     <div id="f-info" style="margin-top:6px"></div>
     <div id="r-ret" style="margin-top:6px; color:var(--rw-dawn)"></div>
+    <div id="r-rec"></div>     <!-- P60: water's recording and where its moments come from -->
     <div class="wc-seglabel" style="color:var(--dim);font-size:11px;letter-spacing:.1em;margin:10px 0 6px">VIEW</div>
     <div class="wc-seglabel" style="color:var(--dim);font-size:11px;letter-spacing:.1em;margin:4px 0 6px">RESOLUTION</div>
     <div class="wcgrid" id="res-toggle" style="margin-bottom:8px">
@@ -790,7 +791,7 @@ function clearFocus(){
   d3.select("#focus-title").text("PRESS A MONTH");
   d3.select("#focus").selectAll("*").remove();
   d3.select("#f-info").selectAll("*").remove();
-  d3.select("#r-ret").text("");
+  d3.select("#r-ret").text(""); d3.select("#r-rec").html("");
 }
 // ---- the month strip: the SHOWN filter, spelled the way the other five views spell it ----
 function mountMonthBar(){
@@ -827,6 +828,7 @@ function focusDraw(mo){
     if(roseHours) hoursInfo(host, mo);                  // P55
     if(window.WC && WC.faultNote && lastDay) host.append("div").html(WC.faultNote(lastDay));   // P52
     d3.select("#r-ret").text(retText(mo.returner));
+    d3.select("#r-rec").html(window.WC && WC.recordingNote && lastDay ? WC.recordingNote(lastDay, lastWin) : "");   // P60
     return;
   }
   DIEL_CLOCK.forEach(w=>{ const c=mo.win[w];
@@ -840,6 +842,7 @@ function focusDraw(mo){
     .text("shaded: the middle half of the month's days · line: the month's average (a few extreme days can pull it outside the shading)");
   if(window.WC && WC.faultMonthNote) host.append("div").html(WC.faultMonthNote(mo.key));   // P52
   d3.select("#r-ret").text(retText(mo.returner));
+  d3.select("#r-rec").html(window.WC && WC.recordingNote ? WC.recordingNote(mo.key, lastWin) : "");   // P60
 }
 // THE GROUPING. The grid's rows ARE years, so the row you are pressing in is the selection
 // whose body the drone should be. Sent only on a change, or a drag across a row would
@@ -1130,6 +1133,7 @@ async function connect(){
     if(m.type==="init"){
       window.RW_COVERAGE = m.coverage || {};           // per month: hours, windows, partial (bridge month_coverage)
       window.RW_FAULTS = m.faults || [];               // P52: probable recorder-fault days (findings/14); [] on air
+      window.RW_RECORDINGS = m.recordings || {};       // P60: water's recordings and their source files; {} on air
       channel=m.channel||"air"; channels=m.channels||[];
       if(window.WC && WC.channelPref()!==channel && channels.includes(WC.channelPref())){
         ws.send(JSON.stringify({type:"channel",channel:WC.channelPref()})); return; }

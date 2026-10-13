@@ -214,13 +214,17 @@ def _rw_tables(stat: str, tchan: str = None):
                   f"dev/precompute/rw_tables.py{'' if tch == 'air' else ' --channel ' + tch})")
             return None
         arp, corpus = t["arp"], t["corpus"]
-        if tch != "air" and (arp or corpus):
-            # BirdNET exists only for the air recorder. A non-air table carrying chords or clips
-            # was built by an older rw_tables.py that read air's parquets for every channel -
-            # exactly the bug being fixed - so they are refused here, not played.
-            print(f"  [rw:{tch}:{level}] *** {len(arp)} chords / {len(corpus)} clips in a {tch} "
+        # BirdNET exists only for the air recorder. A non-air table carrying chords or bird clips
+        # was built by an older rw_tables.py that read air's parquets for every channel - exactly
+        # the bug being fixed - so they are refused here, not played. Water's OWN corpus (the band
+        # its spectrogram flags, TASKS P60) lives under water_bands/ and is kept.
+        birds = ({k: v for k, v in corpus.items() if not str(v).startswith("water_bands/")
+                  and "/water_bands/" not in str(v)} if tch != "air" else {})
+        if tch != "air" and (arp or birds):
+            print(f"  [rw:{tch}:{level}] *** {len(arp)} chords / {len(birds)} bird clips in a {tch} "
                   f"table are AIR's BirdNET - dropped (rebuild with rw_tables.py --channel {tch})")
-            arp, corpus = {}, {}
+            arp = {}
+            corpus = {k: v for k, v in corpus.items() if k not in birds}
         built[level] = {"ident": t["ident"], "points": t["points"], "arp": arp, "corpus": corpus}
         print(f"  [rw:{tch}:{level}:{stat}] {len(t['ident'])} subsets · {len(t['points'])} points · "
               f"{len(arp)} chords · {len(corpus)} clips")

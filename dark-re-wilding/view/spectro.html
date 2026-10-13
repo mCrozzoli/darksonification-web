@@ -305,6 +305,7 @@ async function connect(){
     if(m.type==="init"){
       window.RW_COVERAGE = m.coverage || {};           // per month: hours, windows, partial (bridge month_coverage)
       window.RW_FAULTS = m.faults || [];               // P52: probable recorder-fault days (findings/14); [] on air
+      window.RW_RECORDINGS = m.recordings || {};       // P60: water's recordings and their source files; {} on air
       channel=m.channel||"air"; channels=m.channels||[];
       if(window.WC && WC.channelPref()!==channel && channels.includes(WC.channelPref())){
         ws.send(JSON.stringify({type:"channel",channel:WC.channelPref()})); return; }

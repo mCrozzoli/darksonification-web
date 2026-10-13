@@ -102,6 +102,7 @@
     <div class="row"><span class="k">n_species</span><span class="v" id="m-nsp">—</span></div>
     <div class="row"><span class="k">pca</span><span class="v" id="m-pca">—</span></div>
     <div id="m-ret" style="color:var(--rw-dawn); margin:3px 0"></div>
+    <div id="m-rec"></div>     <!-- P60: water's recording and where its moments come from -->
     <div id="m-fault"></div>   <!-- P52: a probable recorder fault (findings/14), on water -->
     <div class="row"><span class="k">weather</span><span class="v" id="m-wx">—</span></div>
     <div id="m-feats" style="margin-top:6px"></div>
@@ -542,6 +543,7 @@ function hover(m){
   d3.select("#m-pca").text(pl ? `${m.pca_0.toFixed(2)}, ${m.pca_1.toFixed(2)}` : "not placed (no BirdNET)");
   d3.select("#m-ret").text(m.returner ? "returner · "+retText(m.returner) : "returner —");
   d3.select("#m-fault").html(window.WC && WC.faultNote ? (resolution==="day" ? WC.faultNote(m.key) : WC.faultMonthFlagNote(m.key)) : "");   // P52
+  d3.select("#m-rec").html(window.WC && WC.recordingNote ? WC.recordingNote(m.key, m.win) : "");   // P60
   d3.select("#m-wx").text(wxText(m.wx));
   const host=d3.select("#m-feats"); host.selectAll("*").remove();
   Object.entries(m.feats).forEach(([k,v])=>host.append("div").attr("class","row")
@@ -661,7 +663,7 @@ function applyRes(){
   loadings = (resolution==="day" ? day_loadings : month_loadings);
   hovered=-1; curKey=null; gCur.style("display","none");
   d3.select("#m-cl").text("—"); d3.select("#m-nsp").text("—"); d3.select("#m-pca").text("—");
-  d3.select("#m-ret").text(""); d3.select("#m-feats").selectAll("*").remove(); d3.select("#m-fault").html("");
+  d3.select("#m-ret").text(""); d3.select("#m-feats").selectAll("*").remove(); d3.select("#m-fault").html(""); d3.select("#m-rec").html("");
   markRes(); drawYears(); renderMonthBar(); draw();
 }
 // year filter (mirrors the scatter): all | 2023.. — filters the shown points
@@ -736,6 +738,7 @@ async function connect(){
     if(m.type==="init"){
       window.RW_COVERAGE = m.coverage || {};           // per month: hours, windows, partial (bridge month_coverage)
       window.RW_FAULTS = m.faults || [];               // P52: probable recorder-fault days (findings/14); [] on air
+      window.RW_RECORDINGS = m.recordings || {};       // P60: water's recordings and their source files; {} on air
       channel=m.channel||"air"; channels=m.channels||[];
       if(window.WC && WC.channelPref()!==channel && channels.includes(WC.channelPref())){
         ws.send(JSON.stringify({type:"channel",channel:WC.channelPref()})); return; }
