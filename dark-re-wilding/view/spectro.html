@@ -72,6 +72,7 @@
     <div class="row"><span class="k">sounds as</span><span class="v" id="c-win">—</span></div>
     <div class="row"><span class="k">level</span><span class="v" id="c-db">—</span></div>
     <div class="row"><span class="k">recorded</span><span class="v" id="c-sup">—</span></div>
+    <div id="c-rec"></div>     <!-- P60: water's recording and where its moments come from -->
     <h4>DIEL WINDOWS</h4>
     <div id="diel-key"></div>
     <h4 id="legend-h">ENERGY</h4>
@@ -207,11 +208,15 @@ function hover(b,h,cw,ch,xy){
   const i=HV.voiceHour(h);                          // the sound: this hour's window, nothing else
   if(!i || !i.recorded){ d3.select("#c-win").text((i&&i.drop ? "dropout" : "not recorded")
       + (i&&i.still ? ` · sound unchanged (${i.still})` : " · sound unchanged"));
-    d3.select("#c-db").text("—"); d3.select("#c-sup").text("—"); return; }
+    d3.select("#c-db").text("—"); d3.select("#c-sup").text("—"); return; }   // the sound (and its recording line) stays as it was
   d3.select("#c-win").html(i.sound==="month" ? `${HV.label(e)} · whole month`
     : i.sound ? `${DIEL.dot(DIEL.COLOR[i.sound])}${HV.label(e)} · ${i.sound}` : "sound unchanged");
   d3.select("#c-db").text(dbTxt(e,b,h)||"—");
   d3.select("#c-sup").text(i.support||"—");
+  // P60 (2026-10-13, Miguel via the video session): water's recording for the window you HEAR here (the day's, or the
+  // month's), as in the other views' INFORMATION panels. Empty on air.
+  d3.select("#c-rec").html(window.WC && WC.recordingNote && i.sound
+    ? WC.recordingNote(HV.traceKey(), i.sound==="month" ? null : i.sound) : "");
 }
 
 // THE HOVER BOX — the scatter's look. What you are on, what you HEAR there, the real value, and

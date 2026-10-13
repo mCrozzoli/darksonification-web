@@ -86,6 +86,7 @@
     <div class="row"><span class="k">sounds as</span><span class="v" id="c-win">—</span></div>
     <div class="row"><span class="k">value</span><span class="v" id="c-raw">—</span></div>
     <div class="row"><span class="k">recorded</span><span class="v" id="c-sup">—</span></div>
+    <div id="c-rec"></div>     <!-- P60: water's recording and where its moments come from -->
     <h4>DIEL WINDOWS</h4>
     <div id="diel-key"></div>
     <h4>INTENSITY</h4>
@@ -198,11 +199,15 @@ function hover(c,h,cw,ch,xy){
   const i=HV.voiceHour(h);                          // the sound: this hour's window, nothing else
   if(!i || !i.recorded){ d3.select("#c-win").text((i&&i.drop ? "dropout" : "not recorded")
       + (i&&i.still ? ` · sound unchanged (${i.still})` : " · sound unchanged"));
-    d3.select("#c-raw").text("—"); d3.select("#c-sup").text("—"); return; }
+    d3.select("#c-raw").text("—"); d3.select("#c-sup").text("—"); return; }   // the sound (and its recording line) stays as it was
   d3.select("#c-win").html(i.sound==="month" ? `${HV.label(e)} · whole month`
     : i.sound ? `${DIEL.dot(DIEL.COLOR[i.sound])}${HV.label(e)} · ${i.sound}` : "sound unchanged");
   d3.select("#c-raw").text(rawTxt(e,c,h)||"—");
   d3.select("#c-sup").text(i.support||"—");
+  // P60 (2026-10-13, Miguel via the video session): water's recording for the window you HEAR here (the day's, or the
+  // month's), as in the other views' INFORMATION panels. Empty on air.
+  d3.select("#c-rec").html(window.WC && WC.recordingNote && i.sound
+    ? WC.recordingNote(HV.traceKey(), i.sound==="month" ? null : i.sound) : "");
 }
 // THE HOVER BOX — the scatter's look. "colour" is where this hour sits in the coefficient's own
 // range; "value" is the coefficient itself (the month's mean, or the day's hour).
