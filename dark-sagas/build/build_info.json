@@ -1,12 +1,12 @@
 {
-  "built": "2026-10-13 10:10:22",
+  "built": "2026-10-13 12:04:24",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "sources": {
     "viz/data/meta.json": "7a52c8955291e6f9",
     "viz/data/sites.json": "ac66e5c4ecf3bb10",
     "darkdata/manifest.json": "462d3761bdec357d",
     "data/export_manifest.json": "94d0eecb042e8551",
-    "viz/index.html": "3c998b50b20de165",
+    "viz/index.html": "ce68d4ecf999d69e",
     "sc/hugur_synths.scd": "20b73fac08eac0f1",
     "sc/hugur_synthdefs.scd": "fe419909d76ba5ae",
     "sc/parse_hugur.scd": "c98004393234edf8",
@@ -180,8 +180,8 @@
   },
   "source_pins": {
     "viz/index.html": {
-      "pinned": "f5afbf72af00427d",
-      "current": "3c998b50b20de165"
+      "pinned": "5cfaa84a1be0666e",
+      "current": "ce68d4ecf999d69e"
     },
     "sc/hugur_synths.scd": {
       "pinned": "20b73fac08eac0f1",
@@ -202,11 +202,11 @@
   },
   "source_accepted": {
     "note": "source accepted",
-    "when": "2026-10-13 10:10:22",
+    "when": "2026-10-13 12:04:24",
     "pins": {
       "viz/index.html": {
-        "was": "f5afbf72af00427d",
-        "now": "3c998b50b20de165"
+        "was": "5cfaa84a1be0666e",
+        "now": "ce68d4ecf999d69e"
       }
     }
   },
@@ -812,7 +812,7 @@
     }
   },
   "data": {
-    "built": "2026-10-13 10:10:22",
+    "built": "2026-10-13 12:04:25",
     "files": {
       "sites.json.gz": {
         "raw": 399199,
