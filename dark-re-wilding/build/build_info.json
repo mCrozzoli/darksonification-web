@@ -1,5 +1,5 @@
 {
-  "built": "2026-10-13 12:17:54",
+  "built": "2026-10-15 20:30:19",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "sources": {
     "viz/index.html": "916d3cd993c5f4c5",
@@ -28,7 +28,7 @@
     "sc/rw_preview.scd": "eb85df98d8dea1d6",
     "viz/rw_core.py": "c6107b40eca70654",
     "viz/bridge.py (the shell; build_data.py's loaders, not shipped)": "e2096607db77073c",
-    "sc/web_clips.scd (web only, hand-written)": "ee600e54d9f7e7fa"
+    "sc/web_clips.scd (web only, hand-written)": "c89bdd3e24da0bee"
   },
   "patches": {
     "index.html": [
