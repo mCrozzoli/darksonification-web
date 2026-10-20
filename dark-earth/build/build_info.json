@@ -1,5 +1,5 @@
 {
-  "built": "2026-10-20 23:46:35",
+  "built": "2026-10-20 23:48:38",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "clearance": {
     "status": "cleared",
@@ -7,7 +7,7 @@
   },
   "name": "Dark Earth",
   "sources": {
-    "viz/app.js": "cbea169e531b81db",
+    "viz/app.js": "a3c0c9e1318f8e3b",
     "viz/cook.js": "29bff4e52604ec4c",
     "viz/darkstyle/KIT.json": "9d472947fb97a66c",
     "viz/darkstyle/darkstyle.css": "a2c1507972554138",
@@ -106,7 +106,7 @@
     "README.md": "611ada04d42a08ad"
   },
   "data": {
-    "built": "2026-10-20 23:46:35",
+    "built": "2026-10-20 23:48:38",
     "bridge_sha": "bb868199de1b0d18",
     "schema_sha": "b9e14db4b38f0170",
     "contract": "0.11.9",
