@@ -1,0 +1,1003 @@
+{
+  "_what": "CONTRACT v0.11 \u00a75 + \u00a75.0 + \u00a75.1 as data: one table read by the page (cook.js: field order, validation, debug panel) and by the bridge (bridge.py: JSON <-> OSC). Field order == OSC arg order. W3 keeps this in step with lab/CONTRACT.md; it never changes the contract.",
+  "contract": "0.11.9",
+  "page_to_engine": {
+    "zoom": {
+      "addr": "/svk_zoom",
+      "args": [
+        [
+          "zoom",
+          "f"
+        ],
+        [
+          "w0",
+          "f"
+        ],
+        [
+          "w1",
+          "f"
+        ],
+        [
+          "w2",
+          "f"
+        ],
+        [
+          "w3",
+          "f"
+        ],
+        [
+          "w4",
+          "f"
+        ],
+        [
+          "speed",
+          "f"
+        ]
+      ],
+      "max_hz": 20
+    },
+    "cursor": {
+      "addr": "/svk_cursor",
+      "args": [
+        [
+          "day",
+          "i"
+        ],
+        [
+          "sec",
+          "f"
+        ],
+        [
+          "level",
+          "i"
+        ]
+      ],
+      "max_hz": 20
+    },
+    "tension": {
+      "addr": "/svk_tension",
+      "args": [
+        [
+          "recharge_frac",
+          "f"
+        ],
+        [
+          "u_rate_abs",
+          "f"
+        ],
+        [
+          "phase",
+          "i"
+        ],
+        [
+          "gap",
+          "i"
+        ],
+        [
+          "wait_rel",
+          "f"
+        ],
+        [
+          "above_last_start_mm",
+          "f"
+        ],
+        [
+          "u_abs",
+          "f"
+        ],
+        [
+          "ref_abs",
+          "f"
+        ]
+      ],
+      "nullable": [
+        "recharge_frac",
+        "u_rate_abs",
+        "wait_rel",
+        "above_last_start_mm",
+        "ref_abs"
+      ]
+    },
+    "body": {
+      "addr": "/svk_body",
+      "args": [
+        [
+          "e_micro",
+          "f"
+        ],
+        [
+          "e_tremor",
+          "f"
+        ],
+        [
+          "e_mid",
+          "f"
+        ],
+        [
+          "e_vt",
+          "f"
+        ],
+        [
+          "c_micro",
+          "f"
+        ],
+        [
+          "c_tremor",
+          "f"
+        ],
+        [
+          "c_mid",
+          "f"
+        ],
+        [
+          "c_vt",
+          "f"
+        ],
+        [
+          "gap",
+          "i"
+        ]
+      ]
+    },
+    "swarm": {
+      "addr": "/svk_swarm",
+      "args": [
+        [
+          "rate_play_hz",
+          "f"
+        ],
+        [
+          "b_abs",
+          "f"
+        ],
+        [
+          "depth_abs",
+          "f"
+        ],
+        [
+          "mmax_abs",
+          "f"
+        ],
+        [
+          "gap",
+          "i"
+        ]
+      ],
+      "nullable": [
+        "b_abs",
+        "depth_abs"
+      ]
+    },
+    "event": {
+      "addr": "/svk_event",
+      "args": [
+        [
+          "delay_s",
+          "f"
+        ],
+        [
+          "mag",
+          "f"
+        ],
+        [
+          "depth_km",
+          "f"
+        ],
+        [
+          "fc_hz",
+          "f"
+        ],
+        [
+          "pan",
+          "f"
+        ],
+        [
+          "id_hash",
+          "i"
+        ],
+        [
+          "depth_abs",
+          "f"
+        ]
+      ],
+      "nullable": [
+        "depth_km",
+        "fc_hz",
+        "depth_abs"
+      ]
+    },
+    "ground": {
+      "addr": "/svk_ground",
+      "args": [
+        [
+          "cmd",
+          "i"
+        ],
+        [
+          "chan",
+          "i"
+        ],
+        [
+          "day",
+          "i"
+        ],
+        [
+          "sec",
+          "f"
+        ],
+        [
+          "ground_speed",
+          "f"
+        ]
+      ]
+    },
+    "fill": {
+      "addr": "/svk_filled",
+      "args": [
+        [
+          "chan",
+          "i"
+        ],
+        [
+          "ring_off",
+          "i"
+        ],
+        [
+          "n",
+          "i"
+        ]
+      ]
+    },
+    "legend": {
+      "addr": "/dark_legend",
+      "args": [
+        [
+          "layer",
+          "i"
+        ],
+        [
+          "qty",
+          "i"
+        ],
+        [
+          "value",
+          "f"
+        ],
+        [
+          "hold",
+          "i"
+        ]
+      ]
+    },
+    "master": {
+      "addr": "/dark_master",
+      "args": [
+        [
+          "gain",
+          "f"
+        ]
+      ]
+    },
+    "mode": {
+      "addr": "/svk_mode",
+      "args": [
+        [
+          "mode",
+          "i"
+        ]
+      ]
+    },
+    "tension_mode": {
+      "addr": "/svk_tension_mode",
+      "args": [
+        [
+          "mode",
+          "i"
+        ]
+      ],
+      "_what": "v0.8\u2013v0.10 \u00a75.0: 0 T-A, 1 T-B, 2 T-C (DESIGN \u00a74.1's one switch; v0.10 default T-C, Miguel's choice)"
+    },
+    "tilt": {
+      "addr": "/svk_tilt",
+      "args": [
+        [
+          "tilt",
+          "f"
+        ]
+      ],
+      "max_hz": 20,
+      "_what": "v0.8 \u00a75.0: \u22121\u20261, hours/minutes only; the horizontal mass-position change since the record's start / the record's largest change, signed along LME"
+    },
+    "hello": {
+      "addr": "/svk_hello",
+      "args": [],
+      "_what": "v0.8 \u00a75.0: on connect; SC re-sends /svk_ready \u00d73 + /svk_bufinfo \u00d73"
+    },
+    "deform": {
+      "addr": "/svk_deform",
+      "args": [
+        [
+          "cycle_period_d",
+          "f"
+        ],
+        [
+          "inflow_rel",
+          "f"
+        ],
+        [
+          "h1",
+          "f"
+        ],
+        [
+          "h2",
+          "f"
+        ],
+        [
+          "h3",
+          "f"
+        ],
+        [
+          "h4",
+          "f"
+        ],
+        [
+          "h5",
+          "f"
+        ],
+        [
+          "h6",
+          "f"
+        ],
+        [
+          "gap",
+          "i"
+        ]
+      ],
+      "nullable": [
+        "cycle_period_d",
+        "inflow_rel",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6"
+      ],
+      "_what": "v0.9 (T-C): with each cursor wherever tension is sent; only T-C reads it. h1 = 1, h2\u2013h6 relative to h1; gap as in tension"
+    },
+    "array": {
+      "addr": "/svk_array",
+      "args": [
+        [
+          "sksh_n",
+          "f"
+        ],
+        [
+          "sksh_e",
+          "f"
+        ],
+        [
+          "sksh_u",
+          "f"
+        ],
+        [
+          "seng_n",
+          "f"
+        ],
+        [
+          "seng_e",
+          "f"
+        ],
+        [
+          "seng_u",
+          "f"
+        ],
+        [
+          "thob_n",
+          "f"
+        ],
+        [
+          "thob_e",
+          "f"
+        ],
+        [
+          "thob_u",
+          "f"
+        ],
+        [
+          "gap_sksh",
+          "i"
+        ],
+        [
+          "gap_seng",
+          "i"
+        ],
+        [
+          "gap_thob",
+          "i"
+        ]
+      ],
+      "nullable": [
+        "sksh_n",
+        "sksh_e",
+        "sksh_u",
+        "seng_n",
+        "seng_e",
+        "seng_u",
+        "thob_n",
+        "thob_e",
+        "thob_u"
+      ],
+      "_what": "v0.10 (Array, DESIGN \u00a74.7): levels 1\u20134; each velocity signed \u22121\u20261 on its own p01/p99; gaps 0/1/2 as in tension"
+    },
+    "rumble": {
+      "addr": "/svk_rumble",
+      "args": [
+        [
+          "logE_abs",
+          "f"
+        ],
+        [
+          "n_abs",
+          "f"
+        ],
+        [
+          "gap",
+          "i"
+        ]
+      ],
+      "nullable": [
+        "logE_abs"
+      ],
+      "_what": "v0.10 (Rumble): levels 2\u20134; eq_logE and eq_n (log) on the tier's p01\u2013p99; at day level from the page's own binning"
+    },
+    "pol": {
+      "addr": "/svk_pol",
+      "args": [
+        [
+          "az_deg",
+          "f"
+        ],
+        [
+          "R",
+          "f"
+        ],
+        [
+          "rect",
+          "f"
+        ]
+      ],
+      "nullable": [
+        "az_deg",
+        "R",
+        "rect"
+      ],
+      "_what": "v0.10: levels 0\u20131; polarization from the f10s tiles (R over the minute: a single 10-s frame's R is 1 by definition)"
+    },
+    "identity": {
+      "addr": "/svk_identity",
+      "args": [
+        [
+          "kind",
+          "i"
+        ],
+        [
+          "id",
+          "i"
+        ],
+        [
+          "n",
+          "i"
+        ],
+        [
+          "comb_hz",
+          "f"
+        ]
+      ],
+      "repeat": [
+        {
+          "field": "modes",
+          "count": "n",
+          "args": [
+            [
+              "freq_hz",
+              "f"
+            ],
+            [
+              "amp",
+              "f"
+            ],
+            [
+              "ring_s",
+              "f"
+            ],
+            [
+              "harm",
+              "i"
+            ],
+            [
+              "detune",
+              "f"
+            ]
+          ]
+        },
+        {
+          "field": "rest_gains",
+          "count": "n",
+          "args": [
+            [
+              "rest_gain",
+              "f"
+            ]
+          ]
+        }
+      ],
+      "_what": "v0.11 \u00a79.3: once per room change; kind 0 sequence, 1 cycle, 2 regime; from viz/data/body/identity/<kind>_<id>.json. v0.11.6: one trailing arg room_gain after the rest gains (the room's resting body levelled to sequence_0's render; null = NaN = SC's 1). v0.11.7 (W2): a 2nd trailing arg bow_neutral_db, the room's median bow over its measured days, which SC plays a veiled bow at (v0.11.9: null \u2192 the page sends sequence_0's value; NaN only if that is missing too)",
+      "tail": [
+        [
+          "room_gain",
+          "f"
+        ],
+        [
+          "bow_neutral_db",
+          "f"
+        ]
+      ],
+      "nullable": [
+        "room_gain",
+        "bow_neutral_db"
+      ]
+    },
+    "body2": {
+      "addr": "/svk_body2",
+      "args": [
+        [
+          "theta",
+          "f"
+        ],
+        [
+          "pressure",
+          "f"
+        ],
+        [
+          "pin",
+          "f"
+        ],
+        [
+          "gap",
+          "i"
+        ],
+        [
+          "g00",
+          "f"
+        ],
+        [
+          "g01",
+          "f"
+        ],
+        [
+          "g02",
+          "f"
+        ],
+        [
+          "g03",
+          "f"
+        ],
+        [
+          "g04",
+          "f"
+        ],
+        [
+          "g05",
+          "f"
+        ],
+        [
+          "g06",
+          "f"
+        ],
+        [
+          "g07",
+          "f"
+        ],
+        [
+          "g08",
+          "f"
+        ],
+        [
+          "g09",
+          "f"
+        ],
+        [
+          "g10",
+          "f"
+        ],
+        [
+          "g11",
+          "f"
+        ],
+        [
+          "g12",
+          "f"
+        ],
+        [
+          "g13",
+          "f"
+        ],
+        [
+          "g14",
+          "f"
+        ],
+        [
+          "g15",
+          "f"
+        ],
+        [
+          "g16",
+          "f"
+        ],
+        [
+          "g17",
+          "f"
+        ],
+        [
+          "g18",
+          "f"
+        ],
+        [
+          "g19",
+          "f"
+        ],
+        [
+          "g20",
+          "f"
+        ],
+        [
+          "g21",
+          "f"
+        ],
+        [
+          "g22",
+          "f"
+        ],
+        [
+          "g23",
+          "f"
+        ],
+        [
+          "g24",
+          "f"
+        ],
+        [
+          "g25",
+          "f"
+        ],
+        [
+          "g26",
+          "f"
+        ],
+        [
+          "g27",
+          "f"
+        ],
+        [
+          "g28",
+          "f"
+        ],
+        [
+          "g29",
+          "f"
+        ],
+        [
+          "g30",
+          "f"
+        ],
+        [
+          "g31",
+          "f"
+        ],
+        [
+          "g32",
+          "f"
+        ],
+        [
+          "g33",
+          "f"
+        ],
+        [
+          "g34",
+          "f"
+        ],
+        [
+          "g35",
+          "f"
+        ]
+      ],
+      "nullable": [
+        "g00",
+        "g01",
+        "g02",
+        "g03",
+        "g04",
+        "g05",
+        "g06",
+        "g07",
+        "g08",
+        "g09",
+        "g10",
+        "g11",
+        "g12",
+        "g13",
+        "g14",
+        "g15",
+        "g16",
+        "g17",
+        "g18",
+        "g19",
+        "g20",
+        "g21",
+        "g22",
+        "g23",
+        "g24",
+        "g25",
+        "g26",
+        "g27",
+        "g28",
+        "g29",
+        "g30",
+        "g31",
+        "g32",
+        "g33",
+        "g34",
+        "g35"
+      ],
+      "_what": "v0.11 \u00a79.3: with each cursor; the current room's row (null gain = a silent mode)"
+    },
+    "bow": {
+      "addr": "/svk_bow",
+      "args": [
+        [
+          "bow_db",
+          "f"
+        ],
+        [
+          "dust_hz",
+          "f"
+        ],
+        [
+          "gap",
+          "i"
+        ]
+      ],
+      "_what": "v0.11 \u00a79.3: with each cursor. v0.11.7: bow_db null (unknown inflow) = NaN with gap 2: SC plays the bow veiled at the room's bow_neutral_db; the \u221230 dB floor is for measured low inflow only. v0.11.8: gap = W1's bow_gap column (0 measured inflow, 1 no data, 2 unknown = veiled); /svk_body2's gap stays the row's GNSS gap",
+      "nullable": [
+        "bow_db"
+      ]
+    },
+    "strike": {
+      "addr": "/svk_strike",
+      "args": [
+        [
+          "delay_s",
+          "f"
+        ],
+        [
+          "size",
+          "f"
+        ],
+        [
+          "kind",
+          "i"
+        ]
+      ],
+      "_what": "v0.11 \u00a79.3: when the play cursor crosses an eruption (0.5 s lookahead); size = |dU_SKSH| on its range, hidden 0.5; kind 0 magmatic, 1 hidden"
+    }
+  },
+  "engine_to_page": {
+    "/svk_want": {
+      "type": "want",
+      "args": [
+        [
+          "chan",
+          "i"
+        ],
+        [
+          "ring_off",
+          "i"
+        ],
+        [
+          "n",
+          "i"
+        ]
+      ]
+    },
+    "/svk_playhead": {
+      "type": "playhead",
+      "args": [
+        [
+          "chan",
+          "i"
+        ],
+        [
+          "day",
+          "i"
+        ],
+        [
+          "sec",
+          "f"
+        ]
+      ]
+    },
+    "/svk_ready": {
+      "type": "ready",
+      "args": [
+        [
+          "what",
+          "s"
+        ]
+      ]
+    },
+    "/svk_bufinfo": {
+      "type": "bufinfo",
+      "args": [
+        [
+          "chan",
+          "i"
+        ],
+        [
+          "bufnum",
+          "i"
+        ],
+        [
+          "frames",
+          "i"
+        ]
+      ]
+    },
+    "/svk_readout": {
+      "type": "readout",
+      "args": [
+        [
+          "layer",
+          "i"
+        ],
+        [
+          "hz",
+          "f"
+        ],
+        [
+          "level",
+          "f"
+        ]
+      ],
+      "nullable": [
+        "hz"
+      ],
+      "_what": "CONTRACT v0.5/v0.8: what is SOUNDING, ~4 Hz, from SC's voices (SendReply). hz null (NaN on the wire) = silent. level = linear amplitude before the master. The page shows a pitch only from this.",
+      "hz_by_layer": {
+        "0": "the Tension voice's frequency (T-A or T-B, whichever SC plays)",
+        "1": "the centre of the Body's dominant band (the cooked balance)",
+        "2": "the Swarm's click rate, or the centre of its noise band above ~800 Hz",
+        "3": "the zero-crossing frequency of the audified signal, loudest playing channel (open: Miguel; reads 3\u20135 kHz on MELH at 250\u00d7, above the \u2248 0.8 kHz spectral peak)",
+        "4": "the Array: the pitch of its most excited voice (37\u2013147 Hz)",
+        "5": "the Rumble: unpitched, hz NaN (level only)",
+        "6": "Body v2 (as W2 defines)"
+      }
+    }
+  },
+  "transport_local": {
+    "_what": "Not engine messages: how the desktop page hands the bridge a Ground ring block. The bridge sends it to scsynth as /b_setn bufnum ring_off n floats..., split so each UDP datagram stays under 64 KB. In the web build engine.js does the same /b_setn straight into the tab's scsynth.",
+    "setn": {
+      "fields": [
+        "bufnum",
+        "ring_off",
+        "n",
+        "data_b64_f32"
+      ],
+      "osc": "/b_setn",
+      "chunk_frames": 1024
+    }
+  },
+  "enums": {
+    "phase": {
+      "pre": 0,
+      "recharge": 1,
+      "deflation": 2,
+      "post": 3
+    },
+    "gap": {
+      "measured": 0,
+      "no_data": 1,
+      "interpolated": 2
+    },
+    "chan": {
+      "Z": 0,
+      "N": 1,
+      "E": 2
+    },
+    "mode": {
+      "archive": 0,
+      "replay_live": 1,
+      "live": 2
+    },
+    "layer": {
+      "tension": 0,
+      "body": 1,
+      "swarm": 2,
+      "ground": 3,
+      "array": 4,
+      "rumble": 5,
+      "body2": 6
+    },
+    "legend_qty": {
+      "tension": {
+        "recharge_frac": 0,
+        "u_rate_abs": 1,
+        "veil": 2,
+        "wait_rel": 3,
+        "above_last_start_mm": 4,
+        "u_abs": 5,
+        "cycle_period_d": 6,
+        "inflow_rel": 7,
+        "restrike": 8
+      },
+      "body": {
+        "micro": 0,
+        "tremor": 1,
+        "mid": 2,
+        "vt": 3
+      },
+      "swarm": {
+        "rate_play_hz": 0,
+        "b_abs": 1,
+        "depth_abs": 2,
+        "mmax_abs": 3,
+        "bell_mag": 4
+      },
+      "ground": {
+        "ground_speed": 0
+      },
+      "body2": {
+        "theta": 0,
+        "pressure": 1,
+        "bow": 2,
+        "mode_m": "10 + m"
+      },
+      "array": {
+        "component": "0\u20138 in /svk_array order (sksh_n \u2026 thob_u)",
+        "value": "a signed velocity \u22121\u20261"
+      },
+      "rumble": {
+        "logE_abs": 0,
+        "n_abs": 1
+      }
+    },
+    "_legend_qty": "CONTRACT v0.9.2 \u00a75.1 (W2's numbering; tension 6/7/8 for T-C, 8 = re-strike, value ignored; a hold of 6\u20138 sounds T-C whatever the switch)",
+    "ground_cmd": {
+      "stop": 0,
+      "play": 1,
+      "speed_only": 2
+    },
+    "tension_mode": {
+      "T-A": 0,
+      "T-B": 1,
+      "T-C": 2
+    },
+    "identity_kind": {
+      "sequence": 0,
+      "cycle": 1,
+      "regime": 2
+    },
+    "strike_kind": {
+      "magmatic": 0,
+      "hidden": 1
+    }
+  },
+  "_null": "OSC has no null. A field listed in a type's 'nullable' may be JSON null; the bridge (and engine.js) send it as float NaN, which W2's parser reads as nil (sc/parse_dark_svartsengi.scd ~svkNum). A null never becomes a sound (R3).",
+  "constants": {
+    "_what": "CONTRACT constants the page needs where the manifest does not carry them (the manifest wins)",
+    "TRANSPOSE": 250,
+    "DEFORM_OCTAVES": 30
+  },
+  "_repeat": "A type may carry 'repeat' groups after its fixed args (v0.11 /svk_identity): {field, count, args}. In JSON the field is a list of `count` items (objects with the group's arg names, or plain numbers for a one-arg group); on the wire each item's args follow in order, group after group.",
+  "_tail": "v0.11.6: `tail` = args after the repeat groups, in order (/svk_identity room_gain); nullable like `args`"
+}
