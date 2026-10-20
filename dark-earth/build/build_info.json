@@ -1,5 +1,5 @@
 {
-  "built": "2026-10-20 23:44:22",
+  "built": "2026-10-20 23:46:35",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "clearance": {
     "status": "cleared",
@@ -7,7 +7,7 @@
   },
   "name": "Dark Earth",
   "sources": {
-    "viz/app.js": "afd9ff57b8e87eca",
+    "viz/app.js": "cbea169e531b81db",
     "viz/cook.js": "29bff4e52604ec4c",
     "viz/darkstyle/KIT.json": "9d472947fb97a66c",
     "viz/darkstyle/darkstyle.css": "a2c1507972554138",
@@ -106,7 +106,7 @@
     "README.md": "611ada04d42a08ad"
   },
   "data": {
-    "built": "2026-10-20 23:44:22",
+    "built": "2026-10-20 23:46:35",
     "bridge_sha": "bb868199de1b0d18",
     "schema_sha": "b9e14db4b38f0170",
     "contract": "0.11.9",
@@ -126,8 +126,8 @@
       "not_for_publication": "IMO lava-flow / effusion data (none of it is in viz/data)"
     },
     "data": {
-      "copied": 220,
-      "kept": 0,
+      "copied": 0,
+      "kept": 220,
       "removed": 0,
       "digest": "27bfc5a4115f2ca9",
       "files": 220,
