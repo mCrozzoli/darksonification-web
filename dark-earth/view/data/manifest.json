@@ -1,6 +1,6 @@
 {
  "contract": "0.11.7",
- "built": "2026-10-20T13:48:53.908Z",
+ "built": "2026-10-20T21:41:01.340Z",
  "t0": 1685577600,
  "t_end": 1790294400.0,
  "n_days": 1212,
@@ -656,7 +656,7 @@
    ]
   },
   "wait_rel": {
-   "label": "the wait so far, relative to the longest earlier wait between falls (1 = as long as the longest before; causal)",
+   "label": "the wait so far, relative to the longest earlier interval between eruptions (1 = as long as the longest before; causal; the hidden Jan/Feb 2024 eruptions count)",
    "unit": "ratio",
    "log": false,
    "epistemic": "inference",
@@ -669,6 +669,22 @@
    "range": [
     0,
     3.32061
+   ]
+  },
+  "longest_wait_d": {
+   "label": "the longest earlier interval between eruptions, the denominator of wait_rel (magmatic + hidden eruptions; causal)",
+   "unit": "days",
+   "log": false,
+   "epistemic": "inference",
+   "marks": [
+    "stale"
+   ],
+   "marked_by": {
+    "stale": "recharge_stale"
+   },
+   "range": [
+    38.0,
+    131.0
    ]
   },
   "above_last_start_mm": {
@@ -2282,11 +2298,21 @@
    "source": "gnss"
   },
   "wait_rel": {
-   "p01": 0.0111698,
-   "p50": 0.719101,
+   "p01": 0.011354,
+   "p50": 0.812532,
    "p99": 3.24832,
    "min": 0.0,
    "max": 3.32061,
+   "n": 948,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "longest_wait_d": {
+   "p01": 38.0,
+   "p50": 131.0,
+   "p99": 131.0,
+   "min": 38.0,
+   "max": 131.0,
    "n": 948,
    "tier": "f1d",
    "source": "gnss"
@@ -4285,11 +4311,19 @@
      "n": 986
     },
     "wait_rel": {
-     "p01": 0.0111698,
-     "p50": 0.719101,
+     "p01": 0.011354,
+     "p50": 0.812532,
      "p99": 3.24832,
      "min": 0.0,
      "max": 3.32061,
+     "n": 948
+    },
+    "longest_wait_d": {
+     "p01": 38.0,
+     "p50": 131.0,
+     "p99": 131.0,
+     "min": 38.0,
+     "max": 131.0,
      "n": 948
     },
     "above_last_start_mm": {
