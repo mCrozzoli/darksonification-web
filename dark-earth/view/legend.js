@@ -229,6 +229,7 @@ window.DarkLegend = (function () {
 
   // ── panel ──
   function setOpen(open) {
+    if (open && !isOpen()) render();                 // fresh "now" chips and the current room's modes, every time it opens
     document.body.classList.toggle("lg-open", open);
     try { localStorage.setItem(LS_OPEN, open ? "1" : "0"); } catch (_) {}
     if (!open) releaseHold();
