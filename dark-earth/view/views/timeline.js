@@ -69,19 +69,17 @@ window.SvkTimeline = (function () {
     // ------------------------------------------------------------------------------------------ lanes per level
     // [key, height share]; the lanes of the two levels in a crossfade overlap and fade into each other
     const LAYOUT = {
-      4: [["gnss", 0.50], ["cycle", 0.11], ["array", 0.17], ["density", 0.37], ["coverage", 0.10]],
-      3: [["gnss", 0.50], ["cycle", 0.11], ["array", 0.17], ["events", 0.37], ["coverage", 0.10]],
+      4: [["gnss", 0.47], ["cycle", 0.11], ["array", 0.17], ["density", 0.16], ["coverage", 0.09]],
+      3: [["gnss", 0.34], ["array", 0.20], ["events", 0.37], ["coverage", 0.09]],
       2: [["ribbons", 0.42], ["events", 0.36], ["tilt", 0.22]],
       1: [["spec", 0.40], ["wave1", 0.28], ["ticks", 0.14], ["tilt", 0.18]],
       0: [["wave3", 0.70], ["ticks", 0.12], ["tilt", 0.18]],
     };
-    // the velocity and cycle-period lanes are the lens's (off by default: not part of what you hear); the others share their room
-    function layoutOf(level) {
-      const L = (ctx.lens && ctx.lens()) || {};
-      const rows = LAYOUT[level].filter(([k]) => (k === "array" ? L.velocities : k === "cycle" ? L.cycle : true));
-      const sum = rows.reduce((a, [, h]) => a + h, 0) || 1;
-      return rows.map(([k, h]) => [k, h / sum]);
-    }
+    // each level draws its own picture (DESIGN §3's Picture column): the sequence's sawtooth with its eruption levels, the cycle
+    // length and the velocities; the cycle's uplift, velocities and quakes by depth; the day's four bands; the hours' spectrogram;
+    // the minutes' three components. They are the level, not lens extras (Miguel 2026-10-22: the calm page had hidden them), and
+    // two neighbouring levels crossfade their different layouts at the boundary
+    const layoutOf = (level) => LAYOUT[level];
     function lanesOf(level) {
       const top = PAD_T, avail = H - AXIS_H - STRIP_H - PAD_T;
       let y = top;
@@ -147,7 +145,7 @@ window.SvkTimeline = (function () {
         if (!a) continue;
         for (let i = i0; i < i1; i++) if (isNum(a[i]) && !sp[i]) { lo = Math.min(lo, a[i]); hi = Math.max(hi, a[i]); }
       }
-      const th = (ctx.lens && ctx.lens().thresholds) ? thresholds().filter((r) => r.t1 > t0 && r.t0 < t1) : [];
+      const th = thresholds().filter((r) => r.t1 > t0 && r.t0 < t1);
       for (const r of th) { lo = Math.min(lo, r.U); hi = Math.max(hi, r.U); }
       if (!(hi > lo)) { hi = lo + 1; lo -= 1; }
       const padv = (hi - lo) * 0.08, y = d3.scaleLinear().domain([lo - padv, hi + padv]).range([lane.y + lane.h, lane.y + 14]);
@@ -511,7 +509,7 @@ window.SvkTimeline = (function () {
       g.restore();
     }
 
-    const DRAW = { gnss: drawGnss, cycle: (lane, a) => { if (lane.level === 4) drawCycle(lane, a); }, array: drawArray, density: drawDensity, coverage: drawCoverage, events: drawEvents, ribbons: drawRibbons,
+    const DRAW = { gnss: drawGnss, cycle: drawCycle, array: drawArray, density: drawDensity, coverage: drawCoverage, events: drawEvents, ribbons: drawRibbons,
                    tilt: drawTilt, spec: drawSpec, wave1: drawWave1, wave3: drawWave3, ticks: drawTicks };
     let lastLanes = [];
 

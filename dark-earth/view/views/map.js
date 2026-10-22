@@ -18,7 +18,7 @@ window.SvkMap = (function () {
       <canvas class="map-cv"></canvas>
       <div class="map-pol"><svg viewBox="-40 -40 80 80"><circle r="30" class="pol-ring"></circle><text y="-32" class="pol-n">N</text>
         <line class="pol-arrow" x1="0" y1="0" x2="0" y2="0"></line><path class="pol-h1"></path><path class="pol-h2"></path></svg>
-        <div class="pol-txt"></div></div>
+        <canvas class="map-hodo" title="particle motion: 4 s around the cursor · east → · north ↑ · the sensor's frame"></canvas><div class="pol-txt"></div></div>
       <div class="map-pending"></div><div class="map-sel"></div><div class="hbox map-hbox"></div>`;
     const svg = d3.select(host).select(".map-svg"), cv = host.querySelector(".map-cv"), g = cv.getContext("2d");
     const hbox = host.querySelector(".map-hbox");
@@ -122,7 +122,8 @@ window.SvkMap = (function () {
       el.style.opacity = w > 0.02 ? Math.min(1, w).toFixed(2) : 0;
       el.style.pointerEvents = w > 0.5 ? "auto" : "none";
       const arrow = d3.select(el).select(".pol-arrow"), h1 = d3.select(el).select(".pol-h1"), h2 = d3.select(el).select(".pol-h2");
-      if (!p) { arrow.attr("x2", 0).attr("y2", 0); h1.attr("d", null); h2.attr("d", null); el.querySelector(".pol-txt").textContent = ctx.polText(null); return; }
+      // no direction here (no waveform): the whole arrow goes; resetting one end only left a stale half-arrow from the last minute
+      if (!p) { arrow.attr("x1", 0).attr("y1", 0).attr("x2", 0).attr("y2", 0); h1.attr("d", null); h2.attr("d", null); el.querySelector(".pol-txt").textContent = ctx.polText(null); el.title = ctx.polText(null); return; }
       const L = 28 * Math.max(0.15, p.R), a = (p.az * Math.PI) / 180, dx = Math.sin(a) * L, dy = -Math.cos(a) * L;
       arrow.attr("x1", -dx).attr("y1", -dy).attr("x2", dx).attr("y2", dy);
       const head = (sx, sy, ux, uy) => `M${sx},${sy} L${sx - ux * 7 - uy * 4},${sy - uy * 7 + ux * 4} L${sx - ux * 7 + uy * 4},${sy - uy * 7 - ux * 4} Z`;
