@@ -70,9 +70,11 @@ window.SvkMap = (function () {
         .attr("transform", (s) => `translate(${proj([s.lon, s.lat])})`)
         .call((gg) => { gg.select("path").attr("d", "M0,-6 L5,4 L-5,4 Z"); gg.select("text").attr("x", 7).attr("y", 4).text((s) => s.id); });
       const pend = (S.M.stations || []).filter((s) => !(isNum(s.lat) && isNum(s.lon)) || s.pending);
-      host.querySelector(".map-pending").innerHTML = pend.length
-        ? `<span class="dim">not placed · coordinates pending StationXML:</span> ${pend.map((s) => `<span class="pst" title="${esc(s.label || s.id)}">${esc(s.id.split(".").slice(-2, -1)[0] || s.id)}</span>`).join(" ")}`
-        : "";
+      // listed, never placed; one short line, the stations' names on hover (the calm page, 2026-10-22)
+      const mp = host.querySelector(".map-pending");
+      mp.textContent = pend.length ? `${pend.length} station${pend.length > 1 ? "s" : ""} not placed` : "";
+      mp.title = pend.length ? `coordinates pending StationXML: ${pend.map((s) => s.label || s.id).join(" · ")}` : "";
+      mp.style.display = pend.length ? "" : "none";
     }
     const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
@@ -97,12 +99,18 @@ window.SvkMap = (function () {
       // the events just sent to the engine ring once in gold (what you hear, where it is)
       g.globalAlpha = 0.95; g.strokeStyle = ctx.tok("--ds-cur"); g.lineWidth = 1.3;
       for (const k of ctx.recentEvents()) { const [px, py] = proj([E.lon[k], E.lat[k]]); if (isNum(px)) { g.beginPath(); g.arc(px, py, 6, 0, 7); g.stroke(); } }
+      // traced moments: their quakes ringed in the trace's colour (re_wilding 3.10: a trace marks, it hides nothing)
+      g.lineWidth = 1.4;
+      for (const r of (ctx.traces && ctx.traces()) || []) {
+        const T = ctx.src.events(r.t0, r.t1); g.strokeStyle = r.color; g.globalAlpha = 0.95;
+        for (let k = T.i0; k < T.i1 && k < T.i0 + 400; k++) { const q = proj([T.lon[k], T.lat[k]]); if (q && isNum(q[0])) { g.beginPath(); g.arc(q[0], q[1], 4.5, 0, 7); g.stroke(); } }
+      }
       g.globalAlpha = 1;
       drawPol();
       const n = sel ? countSel(E, sel) : null;
-      host.querySelector(".map-sel").innerHTML = sel
-        ? `<b>${n}</b> of ${E.n} quakes on screen inside your box · the Swarm hears only these · <button class="mini" data-clear>✕ clear</button>`
-        : `<span class="dim">${E.n} quakes on screen · drag a box to select by place</span>`;
+      const ms = host.querySelector(".map-sel");
+      ms.innerHTML = sel ? `<b>${n}</b> of ${E.n} in your box <button class="mini" data-clear title="clear the selection">✕</button>` : `${E.n} quakes`;
+      ms.title = sel ? "the Swarm hears only the quakes inside your box" : "the quakes on screen, fading with age before the cursor; drag a box to choose which ones the Swarm plays";
       const cl = host.querySelector("[data-clear]"); if (cl) cl.onclick = () => { box = null; bg.call(brush.move, null); ctx.setSelection(null); };
     }
     function countSel(E, sel) { let n = 0; for (let k = E.i0; k < E.i1; k++) if (sel(k)) n++; return n; }
@@ -121,9 +129,11 @@ window.SvkMap = (function () {
       const ux = dx / (L || 1), uy = dy / (L || 1);
       h1.attr("d", head(dx, dy, ux, uy)); h2.attr("d", head(-dx, -dy, -ux, -uy));
       el.querySelector(".pol-txt").textContent = ctx.polText(p);
+      el.title = ctx.polText(p);
     }
 
     function hover(e) {
+      if (ctx.hoverOn && !ctx.hoverOn()) { hbox.style.display = "none"; return; }
       const [px, py] = d3.pointer(e, host);
       const [t0, t1] = S.view, E = ctx.src.events(t0, t1);
       let best = -1, bd = 64;

@@ -53,8 +53,8 @@ window.SvkLatent = (function () {
     function key() {
       const C = ctx.col();
       host.querySelector(".lat-key").innerHTML = groups.map((gp) =>
-        `<span class="lk" title="${gp.n} minutes${gp.hint ? ` · the pipeline's hint: “${gp.hint}”, ${Math.round((gp.share || 0) * 100)}% of its minutes fall in that window of FINDINGS F2` : ""}"><span class="sw" style="background:${C.clusters[gp.c % C.clusters.length]}"></span>group ${gp.c + 1} · mostly ${fmt(new Date(gp.from * 1000))}–${fmt(new Date(gp.to * 1000))}${gp.hint ? ` <span class="dim">(${gp.hint}?)</span>` : ""}</span>`).join("")
-        + `<span class="lk"><span class="sw ring"></span>unusual for its group</span>`;
+        `<span class="lk" title="mostly ${fmt(new Date(gp.from * 1000))}–${fmt(new Date(gp.to * 1000))} UTC · ${gp.n} minutes${gp.hint ? ` · the pipeline's hint: “${gp.hint}”, ${Math.round((gp.share || 0) * 100)}% of its minutes fall in that window of FINDINGS F2` : ""}"><span class="sw" style="background:${C.clusters[gp.c % C.clusters.length]}"></span>group ${gp.c + 1}${gp.hint ? ` · ${gp.hint}?` : ""}</span>`).join("")
+        + `<span class="lk"><span class="sw ring"></span>unusual</span>`;
     }
     function draw() {
       if (!dirty || !L || !sx) return; dirty = false;
@@ -75,6 +75,12 @@ window.SvkLatent = (function () {
         }
       }
       g.globalAlpha = 1;
+      // traced moments: their minutes ringed in the trace's colour (re_wilding 3.10)
+      const TR = (ctx.traces && ctx.traces()) || [];
+      if (TR.length) {
+        g.lineWidth = 1.6;
+        for (const r of TR) { g.strokeStyle = r.color; for (let i = 0; i < L.t.length; i++) if (L.t[i] + 60 > r.t0 && L.t[i] < r.t1) { g.beginPath(); g.arc(sx(L.x[i]), sy(L.y[i]), 6.5, 0, 7); g.stroke(); } }
+      }
       // the cursor's minute (gold = you)
       const k = nearestT(S.cursor);
       if (k >= 0 && Math.abs(L.t[k] + 30 - S.cursor) <= 60) {
@@ -95,12 +101,14 @@ window.SvkLatent = (function () {
       return best;
     }
     cv.addEventListener("pointermove", (e) => {
+      if (ctx.hoverOn && !ctx.hoverOn()) { hbox.style.display = "none"; return; }
       const r = cv.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top, i = pick(px, py);
       if (i < 0) { hbox.style.display = "none"; return; }
       const gp = groups.find((q) => q.c === L.cluster[i]);
       hbox.innerHTML = [`<b>${fmtD(new Date(L.t[i] * 1000))} UTC</b> · one minute`,
         `group ${L.cluster[i] + 1}${gp ? ` (mostly ${fmt(new Date(gp.from * 1000))}–${fmt(new Date(gp.to * 1000))}${gp.hint ? `; hint “${gp.hint}”` : ""})` : ""}${L.anomaly[i] ? " · unusual" + (L.anomaly_score ? ` (score ${L.anomaly_score[i].toFixed(2)})` : "") : ""}`,
-        `<span class="dim">click: go to this minute and hear its ground motion</span>`].map((l) => `<div>${l}</div>`).join("");
+        ...((ctx.traces && ctx.traces()) || []).filter((r) => L.t[i] + 60 > r.t0 && L.t[i] < r.t1).map((r) => `<span style="color:${r.color}">◎ traced</span> · ${r.label}`),
+        `<span class="dim">click: go to this minute and hear its ground motion · shift-click: trace it</span>`].map((l) => `<div>${l}</div>`).join("");
       hbox.style.display = "block";
       const bw = hbox.offsetWidth, bh = hbox.offsetHeight;
       hbox.style.left = Math.max(2, px + 14 + bw > W ? px - bw - 14 : px + 14) + "px";
@@ -109,6 +117,7 @@ window.SvkLatent = (function () {
     cv.addEventListener("pointerleave", () => (hbox.style.display = "none"));
     cv.addEventListener("click", (e) => {
       const r = cv.getBoundingClientRect(), i = pick(e.clientX - r.left, e.clientY - r.top);
+      if (i >= 0 && e.shiftKey && ctx.traceAt) { ctx.traceAt(L.t[i] + 30, 0); return; }
       if (i >= 0) ctx.jumpToMinute(L.t[i]);
     });
 

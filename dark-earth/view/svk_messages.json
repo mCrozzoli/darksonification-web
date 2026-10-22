@@ -1,6 +1,6 @@
 {
   "_what": "CONTRACT v0.11 \u00a75 + \u00a75.0 + \u00a75.1 as data: one table read by the page (cook.js: field order, validation, debug panel) and by the bridge (bridge.py: JSON <-> OSC). Field order == OSC arg order. W3 keeps this in step with lab/CONTRACT.md; it never changes the contract.",
-  "contract": "0.11.9",
+  "contract": "0.12",
   "page_to_engine": {
     "zoom": {
       "addr": "/svk_zoom",
@@ -790,6 +790,32 @@
         ]
       ],
       "_what": "v0.11 \u00a79.3: when the play cursor crosses an eruption (0.5 s lookahead); size = |dU_SKSH| on its range, hidden 0.5; kind 0 magmatic, 1 hidden"
+    },
+    "mix": {
+      "addr": "/svk_mix",
+      "args": [
+        [
+          "body",
+          "f"
+        ],
+        [
+          "strike",
+          "f"
+        ],
+        [
+          "swarm",
+          "f"
+        ],
+        [
+          "bells",
+          "f"
+        ],
+        [
+          "ground",
+          "f"
+        ]
+      ],
+      "_what": "v0.12 (the calm page's SOUND tab, W3; W2's OSCdef): one fader per layer, 0-1, multiplying that layer's level after the zoom-level mix (1 = the design's level; NaN or a missing arg = 1, out of range clipped): body = Body v2, strike, swarm = clave + grains + ticks, bells, ground = the 3-C Ground. Sent on every change and on every (re)connect; the faders act on what is sounding (~0.1 s; one-shot voices at their next onset). Legend holds are not faded."
     }
   },
   "engine_to_page": {

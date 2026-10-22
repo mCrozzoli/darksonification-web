@@ -1,9 +1,10 @@
 // dark_svartsengi · PERCEPTUAL LEGEND (manual C5 §19; modelled on dark_ocean/viz/legend.js). W3.
 //
 // A LEFT-DOCKED panel (key L, and its own edge tab) so the timeline stays in view while you listen.
-// THE FACE IS A MAP LEGEND: each row is NAME → what you hear, one line of range in the data, an epistemic tag
-// (measurement · inference · evidence), then the chips. Meaning lives in the (i): a popover (hover opens it, click pins
-// it, Escape or a click outside closes it), written with textContent only.
+// THE FACE IS A MAP LEGEND (Miguel 2026-10-22: "the legend: minimal", as dark_re_wilding's, DISPLAY_DESIGN §5 there): each row
+// is NAME · plain meaning, at most one range line, then the chips. The layer's kind (measurement · inference · evidence) is
+// said once, on its heading. Meaning lives in the (i): 2–3 plain sentences and "in the data: <column>", a popover (hover opens
+// it, click pins it, Escape or a click outside closes it), written with textContent only. A layer with no chip has no row.
 //
 //   HEAR   HOLD a chip = your own point with ONE quantity pushed (DESIGN §4.6); let go = back to exactly your point.
 //          Wire: {type:"legend", layer, qty, value, hold:1} on press and the same with hold:0 on release
@@ -35,30 +36,27 @@ window.DarkLegend = (function () {
     // v0.11 Body v2 (layer 6): qty 0 θ, 1 pressure, 2 the bow, 10 + m one mode alone. Values from the current room
     const rn = api.roomNow ? api.roomNow() : {}, B2 = rn.body2, ident = rn.ident, BW = rn.bow;
     const top = ident && ident.modes ? ident.modes.map((m, k) => [m, k]).sort((p, q) => (q[0].amp || 0) - (p[0].amp || 0)).slice(0, 3) : [];
-    const body2 = { layer: 6, name: "body", pair: "the volcano's own modes", info: "one bowed body whose 36 modes are found in the data of the room you are in",
+    const now = (v, d = 2) => (cooked2(v) ? [[`now ${v.toFixed(d)}`, v]] : []);
+    const body2 = { layer: 6, name: "body", epi: "measurement",
       rows: [
-        { key: "b2theta", qty: 0, name: "where in the cycle (θ)", to: "the balance across the modes: a seesaw", epistemic: "measurement",
-          range: B2 && isFinite(B2.theta) ? (rn.room && rn.room.kind === "regime" ? `0 the regime's lowest frequency index · 1 its highest · now ${B2.theta.toFixed(2)}`
-            : `0 just after a fall · 1 when the wait is longer than any before · now ${B2.theta.toFixed(2)}`) : "",
-          chips: [["just after (0)", 0], ["halfway (0.5)", 0.5], ["full (1)", 1], ...(B2 && cooked2(B2.theta) ? [[`now (${B2.theta.toFixed(2)})`, B2.theta]] : [])],
-          info: "How long the ground has waited since the last fall, as a seesaw across the body's modes: just after a fall the low modes lead; as the wait grows the balance tips. It is fully tipped only when the wait is longer than any before. In the vent's regime rooms it is the minute's place on the frequency index instead.",
-          data: "theta = clip(days since the last eruption / the longest earlier interval) in deformation rooms (v0.11.3); the frame's rank on fi in regime rooms" },
-        { key: "b2press", qty: 1, name: "how high the ground stands in this room (pressure)", to: "how hard the body is pressed: a brighter, longer room", epistemic: "measurement",
-          range: B2 && isFinite(B2.pressure) ? `0 the room's lowest · 1 its highest · now ${B2.pressure.toFixed(2)}` : "",
-          chips: [["lowest (0)", 0], ["highest (1)", 1], ...(B2 && cooked2(B2.pressure) ? [[`now (${B2.pressure.toFixed(2)})`, B2.pressure]] : [])],
-          info: "Where the ground stands between its lowest and highest in this room. Higher pressure presses the body harder and lengthens the room's echo.",
-          data: "pressure = (SKSH_u_ds − the room's min) / (max − min); the frame's energy in regime rooms" },
-        { key: "b2bow", qty: 2, name: lab("inflow_rel", "the inflow"), to: "the bow: how hard the body is played", epistemic: "measurement",
-          range: BW && Number.isFinite(BW.bow_db) ? `now ${BW.bow_db.toFixed(0)} dB (floor −30 dB)` : BW && BW.gap === 2 ? "now veiled (inflow not measured): the room's usual level" : "",
-          chips: [["floor (−30 dB)", -30], ...(BW && Number.isFinite(BW.bow_db) ? [[`now (${BW.bow_db.toFixed(0)} dB)`, BW.bow_db]] : []), ["full (0 dB)", 0]],
-          info: "The bow is the inflow: how fast magma is still arriving. Its decay since 2024 is heard as the bow easing off the body.",
-          data: "bow_db = 20·log10(inflow_rel), floor −30 for measured low inflow; null where inflow_rel is unknown (sent as NaN, gap 2: veiled at the room's bow_neutral_db)" },
-        { key: "b2modes", qty: null, name: "one mode alone", to: "the body taken apart", epistemic: "measurement",
-          range: ident ? `${(ident.modes || []).length} modes · comb ${Math.round(SvkCook.combHeard(ident) || 0)} Hz heard` : "",
-          chips: top.map(([m, k]) => [`${m.sensor || m.comp || "mode"} ${m.harm ? "h" + m.harm : ""} · ${hz(SvkCook.heardHz(m))}`, 10 + k]),
-          info: "Each mode is one sensor's own rhythm found in the data (a GNSS station's direction, or a band of the vent's shaking), moved up to an audible pitch. Hold one to hear it alone. These are the room's three strongest.",
-          data: "viz/data/body/identity/<kind>_<id>.json modes[] (freq_hz, amp, ring_s, detune); heard at freq_hz × (1 + detune), the comb octave-folded (comb_render_hz)" },
-      ] };
+        { key: "b2theta", qty: 0, name: "θ", to: "how long the ground has waited",
+          chips: [["just after ◀", 0], ["the longest ▶", 1], ...now(B2 && B2.theta)],
+          info: "How long the ground has waited since the last eruption, against the longest wait before it. As the wait grows the body's balance tips from its low modes to its high ones. In the vent's regime rooms it is the minute's place in its regime.",
+          data: "theta (the body tables)" },
+        { key: "b2press", qty: 1, name: "pressure", to: "how high the ground stands in this room",
+          chips: [["lowest ◀", 0], ["highest ▶", 1], ...now(B2 && B2.pressure)],
+          info: "Where the ground stands between its lowest and highest in this room. Higher presses the body harder: brighter, with a longer echo.",
+          data: "pressure, from SKSH_u_ds" },
+        { key: "b2bow", qty: 2, name: "bow", to: "how fast magma is arriving",
+          range: "−30 dB at the slowest · 0 dB at the fastest",
+          chips: [["slowest ◀", -30], ["fastest ▶", 0], ...(BW && Number.isFinite(BW.bow_db) ? [[`now ${BW.bow_db.toFixed(0)} dB`, BW.bow_db]] : [])],
+          info: "The bow is the inflow: how fast magma is still arriving. It has been easing off since 2024. Where the inflow was not measured, the bow plays veiled at the room's usual level.",
+          data: "bow_db = 20·log10(inflow_rel)" },
+        { key: "b2modes", qty: null, name: "one mode", to: "the body taken apart",
+          chips: top.map(([m, k]) => [`${m.sensor || m.comp || "mode"} · ${hz(SvkCook.heardHz(m))}`, 10 + k]),
+          info: "Each mode is one sensor's own rhythm, found in the data and moved up to a pitch you can hear. Hold one to hear it alone; these are the room's three strongest.",
+          data: "modes[] in body/identity/<room>.json" },
+      ].filter((r) => r.chips.length) };
     const v1 = api.compareV1 && api.compareV1();
     const all = [
       { layer: 0, name: "tension", pair: "continuous", info: "the ground's height at SKSH against the last eruption's start, and the wait since the ground last fell",
@@ -123,18 +121,17 @@ window.DarkLegend = (function () {
             info: `The ground's shaking between ${lo} and ${hi} Hz, measured at the vent station. Louder shaking in this band makes this resonance of the body stronger; the balance of the four tells you which kind of shaking dominates. Where no waveform was recorded the body is silent, and the timeline hatches it.`,
             data: `rsam_${b} (${melh ? melh.id : "seismic station"}, mean |velocity| in counts)` };
         }) },
-      { layer: 2, name: "swarm", pair: "discrete", info: "IMO's catalogue: located, magnitude-estimated claims",
+      { layer: 2, name: "swarm", epi: epi("eq_n", "inference"),
         rows: [
-          { key: "rate", qty: 0, name: lab("eq_n"), to: "clicks: a rhythm, then a pitch, then a noise", epistemic: epi("eq_n", "inference"),
-            range: R.eq_n ? `${R.eq_n.p50} a day typical · up to ${Math.round(R.eq_n.max)} a day` : "",
-            chips: [["4 a second (rhythm)", 4], ["200 a second (pitch)", 200], ["2,000 a second (noise)", 2000]],
-            info: "The quakes IMO located, played as clicks at their true rate times the playback speed. Slow swarms are a rhythm; when time is compressed enough the rhythm becomes a pitch; very dense swarms become a band of noise. Brushing the map limits it to the quakes you selected.",
-            data: "eq_n, events/eq.json t; rate_play_hz = events per real second × speed" },
-          { key: "bells", qty: 4, name: lab("mag", lab("eq_mmax", "magnitude")), to: "a bell per quake of M 2 or more", epistemic: epi("fc_hz", "inference"),
-            range: `M2 ≈ ${hz(brune(2) * TR)} · M3 ≈ ${hz(brune(3) * TR)} · M4 ≈ ${hz(brune(4) * TR)}`,
+          { key: "rate", qty: 0, name: "clicks", to: "the quakes, one click each",
+            chips: [["a rhythm ◀", 4], ["a pitch", 200], ["a noise ▶", 2000]],
+            info: "The quakes IMO located, at their true rate times the playback speed: a slow swarm is a rhythm, a dense one a pitch, the densest a noise. A box drawn on the map limits it to those quakes.",
+            data: "eq_n · events/eq.json" },
+          { key: "bells", qty: 4, name: "bells", to: "one per quake of M 2 or more",
+            range: `M 2 ≈ ${hz(brune(2) * TR)} · M 4 ≈ ${hz(brune(4) * TR)}`,
             chips: [["M 2", 2], ["M 3", 3], ["M 4", 4]],
-            info: `Each larger quake rings a bell at its corner frequency times ${TR}, so a bigger quake rings lower. The corner frequency is the typical one for that magnitude (an assumed 3 MPa stress drop, ML treated as Mw), not measured from this quake's own record.`,
-            data: "mag, fc_hz (Brune, CONTRACT §2.4)" }] },
+            info: "Each larger quake rings a bell: the bigger the quake, the lower the bell. Its pitch is the typical corner frequency for that magnitude, not one measured from the quake itself.",
+            data: "mag, fc_hz (Brune)" }] },
       // v0.10 (DESIGN §4.7): two layers with data for the whole record. /dark_legend has no layer numbers for them yet, so
       // their rows explain the mapping and carry no chips
       // v0.10.3 legend layers 4 (array: qty 0–8 = the component in /svk_array order, value = a signed velocity −1…1) and
@@ -156,27 +153,26 @@ window.DarkLegend = (function () {
           range: "", chips: [["one quake (0)", 0], ["a swarm (1)", 1]],
           info: "How many quakes there are in the bin, on its own log range: a single quake barely thickens the rumble, a swarm fills it.",
           data: "eq_n (log) on the bin's range" }] },
-      { layer: 3, name: "ground", pair: "evidence", info: "the real ground motion, audified",
-        rows: [{ key: "speed", qty: 0, name: "ground motion at the vent", to: "the recording itself, sped up", epistemic: "evidence",
-          range: `0.1–45 Hz × ${TR} → ${hz(0.1 * TR)}–${hz(45 * TR)}; slower is lower, faster is higher · ${covTxt || "only where a waveform exists"}`,
-          chips: [["50×", 50], [`${TR}×`, TR], ["1000×", 1000]],
-          info: `The seismometer's own recording, played faster so it is audible: at ${TR}× a 2-second earthquake lasts 8 ms. Nothing is added: a gentle high-pass and a limiter only. Changing the speed changes the pitch of everything in it together.`,
-          data: `${melh ? melh.id : "seismic"} HHZ/HHN/HHE, wave chunks (counts)` }] },
+      { layer: 3, name: "ground", epi: "evidence",
+        rows: [{ key: "speed", qty: 0, name: "speed", to: "the recording itself, played faster",
+          range: `${hz(0.1 * TR)} – ${hz(45 * TR)} at ${TR}×`,
+          chips: [["50× ◀", 50], [`${TR}×`, TR], ["1000× ▶", 1000]],
+          info: `The seismometer's own recording, sped up so you can hear it. Nothing is added. A faster speed raises everything in it together; it exists only where ${melh ? melh.id.split(".")[1] || melh.id : "the station"} recorded.`,
+          data: `${melh ? melh.id : "seismic"} HHZ/HHN/HHE` }] },
     ];
     // v0.11: Body v2 replaces the tension, body v1, array and rumble voices in the default mix; they return to the
     // legend only with "compare v1 layers" on
-    return v1 ? [body2, ...all] : [body2, ...all.filter((ly) => ly.name === "swarm" || ly.name === "ground")];
+    return v1 ? [body2, ...all] : [body2, ...all.filter((ly) => ly.name === "swarm" || ly.name === "ground")].filter((ly) => ly.rows.length);
   }
   const cooked2 = (v) => typeof v === "number" && isFinite(v);
 
   const SEE = () => [
-    ["timeline", "drag to move, wheel or pinch to zoom; the span on screen picks the level; gold is you (cursor and playhead); hatching = no waveform; dashed = not measured"],
-    ["sequence", "ground height at three GNSS stations (SKSH bold); dashed lines at the level each eruption began; small rings = one-day spikes in the file; quakes per day as a colour strip; WAIT = days since the ground last fell"],
-    ["cycle · day", "quakes by time and depth, size = magnitude, rings at M 2 or more; the four bands of shaking; tilt"],
-    ["hours · minutes", "spectrogram and waveform of the vent station; catalogue ticks above, the station's own detections below"],
-    ["array", "the three GNSS stations' velocity, north (dashed) / east (dotted) / up (solid), each on its own range; shaded = not measured"],
-    ["map", "quakes on screen, fading with age before the cursor; drag a box to choose which quakes the Swarm plays"],
-    ["latent map", "one dot per recorded minute, placed by how its shaking sounds; colour = group, ring = unusual; click to hear that minute"],
+    ["gold", "you: the cursor, and the room you are in (the band)"],
+    ["faint grey", "not measured"],
+    ["dashed line", "a straight line in the GNSS file: not measured"],
+    ["◎", "a trace"],
+    ["map", "the quakes on screen, fading with age"],
+    ["latent map", "one dot per recorded minute · colour = group · ring = unusual"],
   ];
 
   // ── hold: one module-level hold, released on EVERY path (dark_ocean / re_wilding legend.js) ──
@@ -240,27 +236,23 @@ window.DarkLegend = (function () {
   function render() {
     if (!host || !api) return;
     const L = layers();
-    const body = L.map((ly) => `
-      <div class="lsec" data-sec="${ly.name}">${esc(ly.name)}<span class="lpair">${esc(ly.pair)}</span><span class="lchev">▾</span></div>
-      <div class="lbody"><div class="llay">${esc(ly.info)}</div>${ly.rows.map((r) => `
+    const rowHtml = (r) => `
         <div class="lrow" data-k="${r.key}">
-          <div class="lhead"><span class="lname">${esc(r.name)}</span><span class="larrow">→</span><span class="lto">${esc(r.to)}</span>
-            <span class="lepi lepi-${esc(r.epistemic)}" title="${esc(epiTitle(r.epistemic))}">${esc(r.epistemic)}</span>
+          <div class="lhead"><span class="lname">${r.name === "θ" ? '<i class="sym">θ</i>' : esc(r.name)}</span><span class="lto">· ${esc(r.to)}</span>
             <button class="linfo" data-k="${r.key}" aria-label="what this means">i</button></div>
           ${r.range ? `<div class="lrange">${esc(r.range)}</div>` : ""}
           <div class="lchips">${r.chips.map((c, j) => `<button class="lchip" data-k="${r.key}" data-c="${j}">${esc(c[0])}</button>`).join("")}</div>
           <div class="ltip" data-k="${r.key}"></div>
-        </div>`).join("")}</div>`).join("");
+        </div>`;
+    const hear = L.map((ly) => `<div class="llay">${esc(ly.name.toUpperCase())}<span class="lepi" title="${esc(epiTitle(ly.epi || ""))}">${esc(ly.epi || ly.pair || "")}</span></div>${ly.rows.map(rowHtml).join("")}`).join("");
     const cat = api.catalogue ? api.catalogue() : [];
     const go = cat.length ? cat.map((c, j) => `<button class="lchip lgo-chip" data-j="${j}">${esc(c.label)}<small>${esc(c.sub || "")}</small></button>`).join("")
                           : `<span class="lrange">nothing loaded yet</span>`;
-    host.innerHTML = `<button id="lgp-close" title="close the legend (L)">✕</button>
-      <h2>LEGEND</h2>
-      <div class="lsub">hold a chip to hear one change on your own point; let go to return</div>
-      <div class="lg-held" role="status" aria-live="polite"></div>
-      ${body}
-      <div class="lsec" data-sec="go">go to<span class="lchev">▾</span></div><div class="lbody"><div class="lgo">${go}</div></div>
-      <div class="lsec" data-sec="see">see<span class="lchev">▾</span></div><div class="lbody lsee">${SEE().map((s) => `<div><b>${esc(s[0])}</b> <span>· ${esc(s[1])}</span></div>`).join("")}</div>`;
+    host.innerHTML = `<div class="dock-h"><h2>PERCEPTUAL LEGEND</h2><button class="dock-x" id="lgp-close" title="close the legend (L)">✕ close (L)</button></div>
+      <div class="lsec" data-sec="go">catalogue · real moments (click = go there)<span class="lchev">▾</span></div><div class="lbody"><div class="lgo">${go}</div></div>
+      <div class="lsec" data-sec="hear">pick a moment, then hold a chip to hear the difference<span class="lchev">▾</span></div>
+      <div class="lbody"><div class="lg-held" role="status" aria-live="polite"></div>${hear}</div>
+      <div class="lsec" data-sec="see">see<span class="lchev">▾</span></div><div class="lbody lsee">${SEE().map((x) => `<div><b>${esc(x[0])}</b> <span>· ${esc(x[1])}</span></div>`).join("")}</div>`;
     // the popovers' text goes in with textContent only (C5 §19.6)
     for (const ly of L) for (const r of ly.rows) {
       const tip = host.querySelector(`.ltip[data-k="${r.key}"]`);

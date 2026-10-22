@@ -1,5 +1,5 @@
 {
-  "built": "2026-10-21 01:07:29",
+  "built": "2026-10-22 13:34:20",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "clearance": {
     "status": "cleared",
@@ -7,25 +7,25 @@
   },
   "name": "Dark Earth",
   "sources": {
-    "viz/app.js": "1287133df085ca98",
+    "viz/app.js": "828e53afa21ad09e",
     "viz/cook.js": "29bff4e52604ec4c",
     "viz/darkstyle/KIT.json": "9d472947fb97a66c",
     "viz/darkstyle/darkstyle.css": "a2c1507972554138",
     "viz/darkstyle/darkstyle.js": "a5a154247a75ed38",
     "viz/geo/SOURCE.md": "56992082c4c13ddd",
     "viz/geo/reykjanes_coast.geojson": "b384b96f49ff2c82",
-    "viz/index.html": "4997599338e64d81",
-    "viz/legend.js": "7d646e9dd1a38413",
-    "viz/source.js": "9da44a5193b6ba5f",
-    "viz/svk_messages.json": "b9e14db4b38f0170",
+    "viz/index.html": "2895dca0f1ebc2f6",
+    "viz/legend.js": "b0a3ecfdc70b4003",
+    "viz/source.js": "f4e4060423d91cc5",
+    "viz/svk_messages.json": "a3a17ec1f363bc69",
     "viz/vendor/d3.v7.min.js": "f2094bbf6141b359",
-    "viz/views/latent.js": "4c06cb1fd02d41bc",
-    "viz/views/map.js": "b634f15f868b4a71",
-    "viz/views/timeline.js": "f9de5ce3de532877",
+    "viz/views/latent.js": "18dbaad816ec6fb8",
+    "viz/views/map.js": "90289ec368dceb2d",
+    "viz/views/timeline.js": "d789be2299d72b7d",
     "sc/dark_svartsengi_boot.scd": "c80719c8905c61af",
     "sc/svk_synthdefs.scd": "6279ba6bb4ff6f21",
-    "sc/parse_dark_svartsengi.scd": "9b1834eafdbbbb27",
-    "sc/svk_cook.scd": "0c27f824d8bd877d",
+    "sc/parse_dark_svartsengi.scd": "9b38a49cf4da6a1c",
+    "sc/svk_cook.scd": "ed72e187e9deed2a",
     "build/about.template.html": "f533f14123899e34"
   },
   "patches": [
@@ -106,11 +106,11 @@
     "README.md": "611ada04d42a08ad"
   },
   "data": {
-    "built": "2026-10-21 01:07:29",
+    "built": "2026-10-22 13:34:20",
     "bridge_sha": "bb868199de1b0d18",
-    "schema_sha": "b9e14db4b38f0170",
-    "contract": "0.11.9",
-    "contract_warning": null,
+    "schema_sha": "a3a17ec1f363bc69",
+    "contract": "0.12",
+    "contract_warning": "manifest contract 0.11.7 ≠ svk_messages.json contract 0.12: the data and the message table are from different contract versions",
     "manifest": {
       "sha": "6a996b1e441a50a2",
       "contract": "0.11.7",
@@ -138,7 +138,7 @@
       "dev_mock/data/"
     ],
     "relay_vectors": {
-      "page_to_engine": 80,
+      "page_to_engine": 81,
       "engine_to_page": 10,
       "setn": 2
     },
@@ -235,8 +235,8 @@
     "sclang.data": "697d847b716b6e36"
   },
   "relay_check": {
-    "checked": 92,
+    "checked": 93,
     "failed": 0,
-    "contract": "0.11.9"
+    "contract": "0.12"
   }
 }

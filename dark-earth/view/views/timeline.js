@@ -8,7 +8,9 @@
 //   hours     spectrogram + waveform + catalogue ticks over the station's own detections + tilt
 //   minutes   waveform, three components + catalogue ticks + tilt (the particle motion is drawn in the side panel)
 // Canvas for the marks, one SVG on top for the axis, the cursor/playhead (gold = you), the right edge (now) and input.
-// Gaps are hatched and named (manual C5 §10.7); interpolated GNSS is dashed (CONTRACT v0.2).
+// Gaps are a faint grey band, named on hover (manual C5 §10.7; Miguel 2026-10-22: the red hatching was overwhelming);
+// interpolated GNSS is dashed (CONTRACT v0.2). The calm page (2026-10-22): no text boxes over the plot; a strip of month
+// blocks over the axis; the room you are in lit as a band; traces as rings; the lens adds the optional lanes.
 window.SvkTimeline = (function () {
   "use strict";
   const DAY = 86400;
@@ -25,10 +27,10 @@ window.SvkTimeline = (function () {
     host.innerHTML = `<canvas class="tl-cv"></canvas><svg class="tl-ov"><g class="tl-labels"></g><g class="tl-axis"></g>
       <line class="tl-end"></line><text class="tl-endtxt"></text><g class="tl-cur"><line class="tl-curline"></line><path class="tl-head"></path></g>
       <g class="tl-ph"><line class="tl-phline"></line><path class="tl-phdot"></path></g><rect class="tl-hit"></rect></svg>
-      <div class="tl-wait"></div><div class="hbox tl-hbox"></div>`;
+      <div class="hbox tl-hbox"></div>`;
     const cv = host.querySelector(".tl-cv"), g = cv.getContext("2d");
-    const svg = d3.select(host).select("svg"), hit = svg.select(".tl-hit"), hbox = host.querySelector(".tl-hbox"), waitEl = host.querySelector(".tl-wait");
-    const AXIS_H = 22, PAD_T = 4;
+    const svg = d3.select(host).select("svg"), hit = svg.select(".tl-hit"), hbox = host.querySelector(".tl-hbox");
+    const AXIS_H = 22, PAD_T = 4, STRIP_H = 8;
     let W = 300, H = 200, dpr = 1, dirty = true;
     const x = d3.scaleLinear();     // epoch s → px (the view)
     const x0 = d3.scaleLinear();    // epoch s → px (the base: t0 … now)
@@ -39,7 +41,8 @@ window.SvkTimeline = (function () {
       ctx.setView(nx.domain()[0], nx.domain()[1], { from: "zoom", user: !!e.sourceEvent });
     });
     hit.call(zoom).on("dblclick.zoom", null);
-    hit.on("click", (e) => { const [px] = d3.pointer(e); ctx.setCursor(x.invert(px), { from: "timeline" }); });
+    // a click puts the cursor there; shift-click traces that moment instead (re_wilding 3.2: navigating never traces)
+    hit.on("click", (e) => { const [px] = d3.pointer(e); if (e.shiftKey && ctx.traceAt) { ctx.traceAt(x.invert(px)); return; } ctx.setCursor(x.invert(px), { from: "timeline" }); });
     hit.on("pointermove", (e) => hover(e)).on("pointerleave", () => { hbox.style.display = "none"; ctx.hoverT && ctx.hoverT(null); });
 
     function baseDomain() { return [S.M.t0, Math.max(S.M.t0 + 10, ctx.now())]; }
@@ -66,35 +69,32 @@ window.SvkTimeline = (function () {
     // ------------------------------------------------------------------------------------------ lanes per level
     // [key, height share]; the lanes of the two levels in a crossfade overlap and fade into each other
     const LAYOUT = {
-      4: [["gnss", 0.47], ["cycle", 0.11], ["array", 0.17], ["density", 0.16], ["coverage", 0.09]],
-      3: [["gnss", 0.34], ["array", 0.20], ["events", 0.37], ["coverage", 0.09]],
+      4: [["gnss", 0.50], ["cycle", 0.11], ["array", 0.17], ["density", 0.37], ["coverage", 0.10]],
+      3: [["gnss", 0.50], ["cycle", 0.11], ["array", 0.17], ["events", 0.37], ["coverage", 0.10]],
       2: [["ribbons", 0.42], ["events", 0.36], ["tilt", 0.22]],
       1: [["spec", 0.40], ["wave1", 0.28], ["ticks", 0.14], ["tilt", 0.18]],
       0: [["wave3", 0.70], ["ticks", 0.12], ["tilt", 0.18]],
     };
+    // the velocity and cycle-period lanes are the lens's (off by default: not part of what you hear); the others share their room
+    function layoutOf(level) {
+      const L = (ctx.lens && ctx.lens()) || {};
+      const rows = LAYOUT[level].filter(([k]) => (k === "array" ? L.velocities : k === "cycle" ? L.cycle : true));
+      const sum = rows.reduce((a, [, h]) => a + h, 0) || 1;
+      return rows.map(([k, h]) => [k, h / sum]);
+    }
     function lanesOf(level) {
-      const top = PAD_T, avail = H - AXIS_H - PAD_T;
+      const top = PAD_T, avail = H - AXIS_H - STRIP_H - PAD_T;
       let y = top;
-      return LAYOUT[level].map(([key, h]) => { const lane = { key, y, h: h * avail - 3, level }; y += h * avail; return lane; });
+      return layoutOf(level).map(([key, h]) => { const lane = { key, y, h: h * avail - 3, level }; y += h * avail; return lane; });
     }
 
+    // not measured: an absence (Miguel 2026-10-22, point 7: "a faint grey band or just an absence"). Nothing is drawn but one
+    // faint dotted line through the lane, so the gap is not read as a zero; the hover names it. (A grey fill read LIGHTER than
+    // the measured ground in the dark look, i.e. highlighted: the opposite of what it means.)
     function hatch(x0p, x1p, y, h, why, alpha) {
       if (x1p <= x0p) return;
-      g.save(); g.globalAlpha = alpha * 0.9; g.beginPath(); g.rect(x0p, y, x1p - x0p, h); g.clip();
-      g.strokeStyle = ctx.col().gap; g.lineWidth = 1;
-      for (let k = x0p - h; k < x1p; k += 7) { g.beginPath(); g.moveTo(k, y + h); g.lineTo(k + h, y); g.stroke(); }
-      g.restore();
-      if (why && x1p - x0p > 120) {
-        g.save(); g.globalAlpha = alpha; g.font = `11px ${ctx.tok("--ds-font-canvas")}`;
-        // never squeeze the words: the full reason where it fits, else its first clause (the hover box has the rest)
-        const room = x1p - x0p - 16, text = g.measureText(why).width <= room ? why : why.split(" · ")[0];
-        const tw = g.measureText(text).width, tx = Math.max(x0p + 8, 8);
-        if (tw <= room) {
-          g.fillStyle = ctx.tok("--ds-bg"); g.globalAlpha = alpha * 0.85; g.fillRect(tx - 4, y + h / 2 - 9, tw + 8, 17);
-          g.globalAlpha = alpha; g.fillStyle = ctx.tok("--ds-dim"); g.fillText(text, tx, y + h / 2 + 4);
-        }
-        g.restore();
-      }
+      g.save(); g.globalAlpha = alpha * 0.35; g.strokeStyle = ctx.tok("--ds-dim"); g.lineWidth = 1; g.setLineDash([1, 4]);
+      g.beginPath(); g.moveTo(x0p, y + h / 2); g.lineTo(x1p, y + h / 2); g.stroke(); g.restore();
     }
     // hatch everything in [t0,t1] that a source's coverage leaves out; returns true when nothing is covered
     function hatchUncovered(source, lane, alpha, why) {
@@ -147,7 +147,7 @@ window.SvkTimeline = (function () {
         if (!a) continue;
         for (let i = i0; i < i1; i++) if (isNum(a[i]) && !sp[i]) { lo = Math.min(lo, a[i]); hi = Math.max(hi, a[i]); }
       }
-      const th = thresholds().filter((r) => r.t1 > t0 && r.t0 < t1);
+      const th = (ctx.lens && ctx.lens().thresholds) ? thresholds().filter((r) => r.t1 > t0 && r.t0 < t1) : [];
       for (const r of th) { lo = Math.min(lo, r.U); hi = Math.max(hi, r.U); }
       if (!(hi > lo)) { hi = lo + 1; lo -= 1; }
       const padv = (hi - lo) * 0.08, y = d3.scaleLinear().domain([lo - padv, hi + padv]).range([lane.y + lane.h, lane.y + 14]);
@@ -161,13 +161,7 @@ window.SvkTimeline = (function () {
         if (xb < 0 || xa > W) continue;
         lane.stale.push([T.t[a], T.t[b] + DAY]);
         g.globalAlpha = alpha * 0.5; g.fillStyle = ctx.tok("--ds-raised"); g.fillRect(xa, lane.y + 12, xb - xa, lane.h - 12);
-        g.globalAlpha = alpha; g.font = `10px ${ctx.tok("--ds-font-canvas")}`; g.fillStyle = ctx.tok("--ds-dim");
-        const txt = ctx.staleText ? ctx.staleText() : "reference eruption unknown", tw = g.measureText(txt).width;
-        if (xb - xa > tw + 8) g.fillText(txt, xa + 4, lane.y + 24);
-        else if (xb - xa > 10) {                      // a narrow stretch: the words run down the band, clipped to the lane
-          g.save(); g.beginPath(); g.rect(xa, lane.y + 12, xb - xa, lane.h - 12); g.clip();
-          g.translate(xa + 9, lane.y + 16); g.rotate(Math.PI / 2); g.fillText(txt, 0, 0); g.restore();
-        }
+        g.globalAlpha = alpha;
       }
       // deflation markers: ▼ magmatic · ◇ hidden by interpolation · × a spike (never a fall) · ? unknown
       for (const e of S.M.deflation_events || []) {
@@ -224,9 +218,10 @@ window.SvkTimeline = (function () {
       axisLeft(lane, y, alpha, "mm");
     }
     function axisLeft(lane, y, alpha, unit) {
+      if (lane.level !== S.levelIdx) return;          // a crossfade's fading level draws no scale of its own (one set of numbers)
       g.save(); g.globalAlpha = alpha * 0.9; g.fillStyle = ctx.tok("--ds-label"); g.font = `10px ${ctx.tok("--ds-font-canvas")}`;
       g.strokeStyle = ctx.tok("--ds-axis"); g.lineWidth = 1;
-      for (const v of y.ticks(3)) { const py = y(v); if (py < lane.y + 16 || py > lane.y + lane.h - 6) continue; g.beginPath(); g.moveTo(0, py); g.lineTo(5, py); g.stroke(); g.fillText(`${d3.format("~s")(v)}${unit ? " " + unit : ""}`, 18, py + 3); }
+      for (const v of y.ticks(3)) { const py = y(v); if (py < lane.y + 16 || py > lane.y + lane.h - 6) continue; g.beginPath(); g.moveTo(0, py); g.lineTo(5, py); g.stroke(); g.fillText(`${d3.format("~s")(v)}${unit ? " " + unit : ""}`, 26, py + 3); }
       g.restore();
     }
 
@@ -434,7 +429,7 @@ window.SvkTimeline = (function () {
         const y = d3.scaleLog().domain([meta.f_lo, meta.f_hi]).range([lane.y + lane.h, lane.y + 12]);
         lane.y_ = y; lane.meta = meta;
         g.save(); g.globalAlpha = alpha; g.fillStyle = ctx.tok("--ds-label"); g.font = `10px ${ctx.tok("--ds-font-canvas")}`;
-        for (const f of [1, 5, 15, 45]) { const py = y(f); g.fillText(`${f} Hz`, 6, py + 3); }
+        for (const f of [1, 5, 15, 45]) { const py = y(f); g.fillText(`${f} Hz`, 26, py + 3); }
         g.restore();
       }
     }
@@ -479,7 +474,8 @@ window.SvkTimeline = (function () {
         g.stroke();
       }
       g.fillStyle = ctx.tok("--ds-dim"); g.font = `10px ${ctx.tok("--ds-font-canvas")}`;
-      const lt = `${label} · ±${d3.format(".2s")(tr.peak)} ${(S.M.units && S.M.units.waveform) || ""} (scaled to the window)`;
+      // the component and its scale only (calm page); "raw counts, scaled to the window" is the lane's hover
+      const lt = `${(label.match(/\b(HH|LM)[ZNE]\b/) || [label])[0]} · ±${d3.format(".2s")(tr.peak)}`;
       g.fillText(lt, W - g.measureText(lt).width - 8, y0 + 11);
       g.restore();
       return tr;
@@ -515,7 +511,7 @@ window.SvkTimeline = (function () {
       g.restore();
     }
 
-    const DRAW = { gnss: drawGnss, cycle: drawCycle, array: drawArray, density: drawDensity, coverage: drawCoverage, events: drawEvents, ribbons: drawRibbons,
+    const DRAW = { gnss: drawGnss, cycle: (lane, a) => { if (lane.level === 4) drawCycle(lane, a); }, array: drawArray, density: drawDensity, coverage: drawCoverage, events: drawEvents, ribbons: drawRibbons,
                    tilt: drawTilt, spec: drawSpec, wave1: drawWave1, wave3: drawWave3, ticks: drawTicks };
     let lastLanes = [];
 
@@ -524,7 +520,7 @@ window.SvkTimeline = (function () {
       if (!t) return;
       g.save(); g.globalAlpha = alpha; g.font = `11px ${ctx.tok("--ds-font-canvas")}`;
       const w = g.measureText(t.text).width;
-      const L0 = 18;                                 // clear of the legend's edge tab
+      const L0 = 26;                                 // clear of the left edge tabs (legend, sources)
       g.fillStyle = ctx.tok("--ds-pop"); g.fillRect(L0 - 4, lane.y, w + 10, 13);
       g.fillStyle = ctx.tok("--ds-label"); g.fillText(t.text, L0, lane.y + 10);
       let kx = L0 + 6 + w;
@@ -537,6 +533,60 @@ window.SvkTimeline = (function () {
       g.restore();
     }
 
+    // the room the body sounds, lit as a band (Miguel 2026-10-22, point 2: "highlight the space being navigated"): gold is you
+    function drawRoom() {
+      const r = ctx.roomSpan && ctx.roomSpan(); if (!r) return;
+      const xa = Math.max(0, x(r.t0)), xb = Math.min(W, x(r.t1)); if (xb <= xa) return;
+      const yb = H - AXIS_H - STRIP_H;
+      g.save(); g.globalAlpha = 0.055; g.fillStyle = ctx.tok("--ds-cur"); g.fillRect(xa, PAD_T, xb - xa, yb - PAD_T);
+      g.globalAlpha = 0.45; g.strokeStyle = ctx.tok("--ds-cur"); g.lineWidth = 1;
+      for (const xe of [x(r.t0), x(r.t1)]) if (xe > 1 && xe < W - 1) { g.beginPath(); g.moveTo(xe, PAD_T); g.lineTo(xe, yb); g.stroke(); }
+      g.globalAlpha = 0.8; g.fillStyle = ctx.tok("--ds-cur"); g.fillRect(xa, yb - 2, xb - xa, 2);
+      g.font = `10px ${ctx.tok("--ds-font-canvas")}`; const tw = g.measureText(r.label).width;
+      if (xb - xa > tw + 12) { g.globalAlpha = 0.9; g.fillStyle = ctx.tok("--ds-cur-txt"); g.fillText(r.label, Math.max(xa, 0) + 22, yb - 6); }
+      g.restore();
+    }
+    // the time strip over the axis (Miguel 2026-10-22, point 8; re_wilding's month strip): months in their own colours, the
+    // years divided through the plot, so time reads in chunks at a glance; a finer span alternates days, hours or minutes
+    const monthColor = (m0) => d3.interpolateSinebow(m0 / 12);
+    function drawStrip() {
+      const [t0, t1] = S.view, span = t1 - t0, y0 = H - AXIS_H - STRIP_H;
+      g.save(); g.font = `8px ${ctx.tok("--ds-font-canvas")}`;
+      if (span > 60 * DAY) {
+        for (let d = d3.utcMonth.floor(utc(t0)); +d / 1000 < t1; d = d3.utcMonth.offset(d, 1)) {
+          const n = d3.utcMonth.offset(d, 1), xa = Math.max(0, x(+d / 1000)), xb = Math.min(W, x(+n / 1000));
+          g.globalAlpha = 0.5; g.fillStyle = monthColor(d.getUTCMonth()); g.fillRect(xa, y0 + 1, Math.max(0, xb - xa - 1), STRIP_H - 2);
+        }
+      } else {
+        const step = span > 2 * DAY ? DAY : span > 2 * 3600 ? 3600 : span > 120 ? 60 : 10;
+        for (let tt = Math.floor(t0 / step) * step; tt < t1; tt += step) {
+          const xa = Math.max(0, x(tt)), xb = Math.min(W, x(tt + step));
+          g.globalAlpha = 1; g.fillStyle = ctx.tok(Math.floor(tt / step) % 2 ? "--ds-raised" : "--ds-line"); g.fillRect(xa, y0 + 1, Math.max(0, xb - xa), STRIP_H - 2);
+        }
+      }
+      // the years (and at the day level and finer, the days) divided through the whole plot, faintly
+      const div = span > 60 * DAY ? d3.utcYear : span > 2 * DAY ? d3.utcMonth : span > 2 * 3600 ? d3.utcDay : null;
+      if (div) {
+        g.globalAlpha = 0.5; g.strokeStyle = ctx.tok("--ds-axis"); g.lineWidth = 1;
+        for (let d = div.ceil(utc(t0)); +d / 1000 < t1; d = div.offset(d, 1)) { const px = Math.round(x(+d / 1000)) + 0.5; g.beginPath(); g.moveTo(px, PAD_T); g.lineTo(px, y0 + STRIP_H); g.stroke(); }
+      }
+      g.restore();
+    }
+    // a trace: a ring at the top and a faint band of its minute, hour or day, in its own colour (re_wilding 3.10)
+    function drawTraces() {
+      const T = (ctx.traces && ctx.traces()) || []; if (!T.length) return;
+      const yb = H - AXIS_H - STRIP_H;
+      g.save();
+      for (const r of T) {
+        const xa = x(r.t0), xb = x(r.t1); if (xb < -8 || xa > W + 8) continue;
+        const xm = (xa + xb) / 2;
+        if (xb - xa >= 2) { g.globalAlpha = 0.13; g.fillStyle = r.color; g.fillRect(xa, PAD_T, xb - xa, yb - PAD_T); }
+        g.globalAlpha = 0.55; g.strokeStyle = r.color; g.lineWidth = 1; g.setLineDash([1, 3]); g.beginPath(); g.moveTo(xm, PAD_T + 13); g.lineTo(xm, yb); g.stroke(); g.setLineDash([]);
+        g.globalAlpha = 1; g.lineWidth = 2; g.beginPath(); g.arc(xm, PAD_T + 7, 5, 0, 7); g.stroke();
+      }
+      g.restore();
+    }
+
     function draw() {
       if (!dirty) return;
       dirty = false;
@@ -545,19 +595,17 @@ window.SvkTimeline = (function () {
       g.clearRect(0, 0, W, H);
       const w = S.w;
       lastLanes = [];
+      drawRoom();
       for (let lvl = 4; lvl >= 0; lvl--) {
         const a = w[lvl]; if (a < 0.02) continue;
         for (const lane of lanesOf(lvl)) {
           try { DRAW[lane.key](lane, a); } catch (e) { console.warn("[timeline]", lane.key, e); }
-          laneLabel(lane, a);
+          if (lvl === S.levelIdx) laneLabel(lane, Math.max(a, 0.6));
           lane.alpha = a; lastLanes.push(lane);
         }
       }
-      // the wait (sequence and cycle levels): days since the ground last fell, against the longest wait before (v0.3)
-      // v0.11: the ROOM block at every level; WAIT / CYCLE / INFLOW under it at sequence and cycle
-      const wa = w[3] + w[4];
-      waitEl.style.opacity = 1;
-      waitEl.innerHTML = (ctx.roomText ? ctx.roomText() : "") + (wa > 0.02 ? `<div style="opacity:${Math.min(1, wa).toFixed(2)}">${ctx.waitText()}</div>` : "");
+      drawStrip();
+      drawTraces();
       // axis
       const ax = d3.scaleUtc().domain(S.view.map(utc)).range([0, W]);
       const axis = d3.axisBottom(ax).ticks(Math.max(2, Math.floor(W / 120))).tickSizeOuter(0);
@@ -585,6 +633,7 @@ window.SvkTimeline = (function () {
     function hover(e) {
       const [px, py] = d3.pointer(e);
       const t = x.invert(px);
+      if (ctx.hoverOn && !ctx.hoverOn()) { hbox.style.display = "none"; ctx.hoverT && ctx.hoverT(null); return; }
       ctx.hoverT && ctx.hoverT(t);
       const lane = lastLanes.filter((l) => py >= l.y && py <= l.y + l.h).sort((a, b) => b.alpha - a.alpha)[0];
       const lines = [`<b>${fmtT(utc(t))} UTC</b>`];
@@ -592,6 +641,10 @@ window.SvkTimeline = (function () {
         const extra = ctx.laneHover(lane, t, py, px, x);
         if (extra) lines.push(...extra);
       }
+      const rs = ctx.roomSpan && ctx.roomSpan();
+      if (rs && t >= rs.t0 && t < rs.t1) lines.push(`<span class="dim">the band: ${rs.label}, the room you are in</span>`);
+      if (py > H - AXIS_H - STRIP_H - 2 && !lane) lines.push(`<span class="dim">${d3.utcFormat("%B %Y")(utc(t))}</span>`);
+      for (const r of (ctx.traces && ctx.traces()) || []) if (t >= r.t0 && t < r.t1 + (S.view[1] - S.view[0]) / 300) lines.push(`<span style="color:${r.color}">◎ traced</span> · ${r.label}`);
       hbox.innerHTML = lines.map((l) => `<div>${l}</div>`).join("");
       hbox.style.display = "block";
       const r = host.getBoundingClientRect(), bw = hbox.offsetWidth, bh = hbox.offsetHeight;

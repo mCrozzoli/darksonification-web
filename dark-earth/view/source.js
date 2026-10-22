@@ -344,13 +344,17 @@ window.SvkSource = (function () {
     }
     // the newest time the feed has delivered (a replay-as-live server's clock is in the past: that is fine)
     now() { return this._live.seen ? this._live.now : this._m.t_end; }
+    // the sources panel's disconnect: no more retries
+    close() { this._closed = true; try { this._ws && this._ws.close(); } catch (_) {} }
     _connect() {
+      if (this._closed) return;
       let ws;
       try { ws = new WebSocket(this.url); } catch (e) { this.status = "failed"; return; }
       this._ws = ws;
       ws.onopen = () => { this.status = "open"; this._retry = 0; this._emit({ type: "status", status: "open" }); };
       // a feed that is down is retried with backoff (3 s … 60 s), so a dead feed does not flood the console
-      ws.onclose = () => { this.status = "closed"; this._emit({ type: "status", status: "closed" }); this._retry = (this._retry || 0) + 1; setTimeout(() => this._connect(), Math.min(60000, 3000 * 2 ** (this._retry - 1))); };
+      ws.onclose = () => { this.status = this._closed ? "disconnected" : "closed"; this._emit({ type: "status", status: this.status }); if (this._closed) return;
+        this._retry = (this._retry || 0) + 1; setTimeout(() => this._connect(), Math.min(60000, 3000 * 2 ** (this._retry - 1))); };
       ws.onerror = () => {};
       ws.onmessage = (e) => {
         let m; try { m = JSON.parse(e.data); } catch (_) { return; }
