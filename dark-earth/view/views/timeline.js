@@ -26,12 +26,12 @@ window.SvkTimeline = (function () {
     host.classList.add("tl");
     host.innerHTML = `<canvas class="tl-cv"></canvas><svg class="tl-ov"><g class="tl-labels"></g><g class="tl-axis"></g>
       <line class="tl-end"></line><text class="tl-endtxt"></text><g class="tl-cur"><line class="tl-curline"></line><path class="tl-head"></path></g>
-      <g class="tl-ph"><line class="tl-phline"></line><path class="tl-phdot"></path></g><rect class="tl-hit"></rect></svg>
-      <div class="hbox tl-hbox"></div>`;
+      <g class="tl-ph"><line class="tl-phline"></line><path class="tl-phdot"></path></g><rect class="tl-hit"></rect><rect class="tl-ovhit"></rect></svg>
+      <input type="date" class="tl-date" title="go to a date (day, month, year) at the zoom you are at"><div class="hbox tl-hbox"></div>`;
     const cv = host.querySelector(".tl-cv"), g = cv.getContext("2d");
     const svg = d3.select(host).select("svg"), hit = svg.select(".tl-hit"), hbox = host.querySelector(".tl-hbox");
-    const AXIS_H = 22, PAD_T = 4, STRIP_H = 8;
-    let W = 300, H = 200, dpr = 1, dirty = true;
+    const AXIS_H = 22, PAD_T = 4, STRIP_H = 8, OV_H = 40, OV_X = 142;   // OV: the time-series stripe under the axis, OV_X its left edge
+    let W = 300, H = 200, HM = 160, dpr = 1, dirty = true;              // HM: the bottom of the main plot (above the stripe)
     const x = d3.scaleLinear();     // epoch s → px (the view)
     const x0 = d3.scaleLinear();    // epoch s → px (the base: t0 … now)
     let ignoreZoom = false;
@@ -42,7 +42,13 @@ window.SvkTimeline = (function () {
     });
     hit.call(zoom).on("dblclick.zoom", null);
     // a click puts the cursor there; shift-click traces that moment instead (re_wilding 3.2: navigating never traces)
-    hit.on("click", (e) => { const [px] = d3.pointer(e); if (e.shiftKey && ctx.traceAt) { ctx.traceAt(x.invert(px)); return; } ctx.setCursor(x.invert(px), { from: "timeline" }); });
+    hit.on("click", (e) => {
+      const [px, py] = d3.pointer(e);
+      if (e.shiftKey && ctx.traceAt) { ctx.traceAt(x.invert(px)); return; }
+      // the "no seismometer recording here" strip goes to the recording
+      if (ctx.gotoRecording && lastLanes.some((l) => l.key === "nomelh" && py >= l.y && py <= l.y + l.h)) { ctx.gotoRecording(); return; }
+      ctx.setCursor(x.invert(px), { from: "timeline" });
+    });
     hit.on("pointermove", (e) => hover(e)).on("pointerleave", () => { hbox.style.display = "none"; ctx.hoverT && ctx.hoverT(null); });
 
     function baseDomain() { return [S.M.t0, Math.max(S.M.t0 + 10, ctx.now())]; }
@@ -59,10 +65,12 @@ window.SvkTimeline = (function () {
     }
     function resize() {
       const r = host.getBoundingClientRect();
-      W = Math.max(200, r.width); H = Math.max(160, r.height); dpr = window.devicePixelRatio || 1;
+      W = Math.max(200, r.width); H = Math.max(200, r.height); HM = H - OV_H; dpr = window.devicePixelRatio || 1;
       cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + "px"; cv.style.height = H + "px";
       svg.attr("width", W).attr("height", H);
-      hit.attr("x", 0).attr("y", 0).attr("width", W).attr("height", H - AXIS_H);
+      hit.attr("x", 0).attr("y", 0).attr("width", W).attr("height", HM - AXIS_H);
+      ovhit.attr("x", OV_X).attr("y", HM + 2).attr("width", Math.max(10, W - OV_X - 4)).attr("height", OV_H - 4);
+      dateEl.style.top = `${HM + 9}px`;
       syncZoom(); dirty = true;
     }
 
@@ -79,9 +87,17 @@ window.SvkTimeline = (function () {
     // length and the velocities; the cycle's uplift, velocities and quakes by depth; the day's four bands; the hours' spectrogram;
     // the minutes' three components. They are the level, not lens extras (Miguel 2026-10-22: the calm page had hidden them), and
     // two neighbouring levels crossfade their different layouts at the boundary
-    const layoutOf = (level) => LAYOUT[level];
+    // …but the vent station recorded only one day (14 Jan 2024). Where the window holds none of it, the day / hours / minutes
+    // MELH lanes (four bands, spectrogram, waveform, tilt) collapse into one thin quiet strip, and the room goes to what exists
+    // every day: the ground's height, its velocities (day) and the quakes by depth (Miguel 2026-10-22: the empty lanes "take
+    // over the screen"). Both levels of a crossfade read the same window, so the crossfade stays one picture into another
+    // one layout for the three levels, so a crossfade between them fades each quake in place (not two rows of the same dots)
+    const NO_MELH_ROWS = [["gnss", 0.34], ["array", 0.20], ["events", 0.40], ["nomelh", 0.06]];
+    const NO_MELH = { 2: NO_MELH_ROWS, 1: NO_MELH_ROWS, 0: NO_MELH_ROWS };
+    const melhHere = () => { const s = ctx.seismic(); return !s || ctx.src.covered(s.id, S.view[0], S.view[1]); };
+    const layoutOf = (level) => (level <= 2 && !melhHere() ? NO_MELH[level] : LAYOUT[level]);
     function lanesOf(level) {
-      const top = PAD_T, avail = H - AXIS_H - STRIP_H - PAD_T;
+      const top = PAD_T, avail = HM - AXIS_H - STRIP_H - PAD_T;
       let y = top;
       return layoutOf(level).map(([key, h]) => { const lane = { key, y, h: h * avail - 3, level }; y += h * avail; return lane; });
     }
@@ -509,7 +525,9 @@ window.SvkTimeline = (function () {
       g.restore();
     }
 
-    const DRAW = { gnss: drawGnss, cycle: drawCycle, array: drawArray, density: drawDensity, coverage: drawCoverage, events: drawEvents, ribbons: drawRibbons,
+    // the collapsed MELH lanes: one thin strip, an absence (the hover names the one recorded day)
+    function drawNoMelh(lane, alpha) { hatch(0, W, lane.y + 12, Math.max(4, lane.h - 12), null, alpha); }
+    const DRAW = { nomelh: drawNoMelh, gnss: drawGnss, cycle: drawCycle, array: drawArray, density: drawDensity, coverage: drawCoverage, events: drawEvents, ribbons: drawRibbons,
                    tilt: drawTilt, spec: drawSpec, wave1: drawWave1, wave3: drawWave3, ticks: drawTicks };
     let lastLanes = [];
 
@@ -535,7 +553,7 @@ window.SvkTimeline = (function () {
     function drawRoom() {
       const r = ctx.roomSpan && ctx.roomSpan(); if (!r) return;
       const xa = Math.max(0, x(r.t0)), xb = Math.min(W, x(r.t1)); if (xb <= xa) return;
-      const yb = H - AXIS_H - STRIP_H;
+      const yb = HM - AXIS_H - STRIP_H;
       g.save(); g.globalAlpha = 0.055; g.fillStyle = ctx.tok("--ds-cur"); g.fillRect(xa, PAD_T, xb - xa, yb - PAD_T);
       g.globalAlpha = 0.45; g.strokeStyle = ctx.tok("--ds-cur"); g.lineWidth = 1;
       for (const xe of [x(r.t0), x(r.t1)]) if (xe > 1 && xe < W - 1) { g.beginPath(); g.moveTo(xe, PAD_T); g.lineTo(xe, yb); g.stroke(); }
@@ -548,7 +566,7 @@ window.SvkTimeline = (function () {
     // years divided through the plot, so time reads in chunks at a glance; a finer span alternates days, hours or minutes
     const monthColor = (m0) => d3.interpolateSinebow(m0 / 12);
     function drawStrip() {
-      const [t0, t1] = S.view, span = t1 - t0, y0 = H - AXIS_H - STRIP_H;
+      const [t0, t1] = S.view, span = t1 - t0, y0 = HM - AXIS_H - STRIP_H;
       g.save(); g.font = `8px ${ctx.tok("--ds-font-canvas")}`;
       if (span > 60 * DAY) {
         for (let d = d3.utcMonth.floor(utc(t0)); +d / 1000 < t1; d = d3.utcMonth.offset(d, 1)) {
@@ -573,7 +591,7 @@ window.SvkTimeline = (function () {
     // a trace: a ring at the top and a faint band of its minute, hour or day, in its own colour (re_wilding 3.10)
     function drawTraces() {
       const T = (ctx.traces && ctx.traces()) || []; if (!T.length) return;
-      const yb = H - AXIS_H - STRIP_H;
+      const yb = HM - AXIS_H - STRIP_H;
       g.save();
       for (const r of T) {
         const xa = x(r.t0), xb = x(r.t1); if (xb < -8 || xa > W + 8) continue;
@@ -584,6 +602,129 @@ window.SvkTimeline = (function () {
       }
       g.restore();
     }
+
+    // ------------------------------------------------------------------------- the time-series stripe (Miguel 2026-10-22)
+    // Under the axis: the time AROUND the view, about 30× its span (the hour around a minutes view, the day and a bit around an
+    // hours view, the month around a day view, the whole record from the cycle up), so it adapts to the resolution on screen.
+    // Rows: where the seismometer recorded (the day / hours / minutes graphs' data), the GNSS days (the cycle / sequence graphs'
+    // data), the quakes binned to its own pixels; ticks at the eruptions; the view you are in, gold (you). The row this level's
+    // graphs read is bright, the other dim. Click or drag: go there at the zoom you are at (near the seismometer's data it snaps
+    // onto it). When this level's data lies outside the stripe, an edge hint names it and goes there. At its left, a calendar
+    const ovhit = svg.select(".tl-ovhit"), dateEl = host.querySelector(".tl-date");
+    const xo = d3.scaleLinear();
+    let ovHint = null;                              // {x0, x1} of the edge hint, for clicks
+    let ovFrozen = null;                            // the stripe's range held still while you drag on it
+    function ovRange() {
+      if (ovFrozen) return ovFrozen;
+      const T0 = S.M.t0, T1 = Math.max(T0 + 10, ctx.now()), [v0, v1] = S.view, span = v1 - v0;
+      const cs = Math.min(T1 - T0, Math.max(span, span * 30)), c = (v0 + v1) / 2;
+      let a = c - cs / 2, b = c + cs / 2;
+      if (a < T0) { b += T0 - a; a = T0; } if (b > T1) { a -= b - T1; b = T1; }
+      return [Math.max(T0, a), b];
+    }
+    function drawOverview() {
+      const [a, b] = ovRange(), C = ctx.col(), y0 = HM + 4, seisY = y0 + 2, gY = y0 + 10, qY = y0 + 18, rowH = 6, x1 = W - 4;
+      xo.domain([a, b]).range([OV_X, x1]);
+      const melhLevel = S.levelIdx <= 2, s = ctx.seismic(), cov = (s && s.coverage) || [];
+      g.save();
+      g.fillStyle = ctx.tok("--ds-panel"); g.fillRect(0, HM, W, OV_H);
+      g.strokeStyle = ctx.tok("--ds-line"); g.beginPath(); g.moveTo(0, HM + 0.5); g.lineTo(W, HM + 0.5); g.stroke();
+      // months (or days) as faint blocks, so the stripe reads in time chunks too
+      const span = b - a;
+      if (span > 60 * DAY) for (let d = d3.utcMonth.floor(utc(a)); +d / 1000 < b; d = d3.utcMonth.offset(d, 1)) {
+        const xa = Math.max(OV_X, xo(+d / 1000)), xb = Math.min(x1, xo(+d3.utcMonth.offset(d, 1) / 1000));
+        g.globalAlpha = 0.16; g.fillStyle = monthColor(d.getUTCMonth()); g.fillRect(xa, y0, Math.max(0, xb - xa - 1), 26);
+      } else {
+        const step = span > 2 * DAY ? DAY : span > 2 * 3600 ? 3600 : 60;
+        for (let tt = Math.floor(a / step) * step; tt < b; tt += step) {
+          const xa = Math.max(OV_X, xo(tt)), xb = Math.min(x1, xo(tt + step));
+          g.globalAlpha = Math.floor(tt / step) % 2 ? 0.5 : 0.25; g.fillStyle = ctx.tok("--ds-raised"); g.fillRect(xa, y0, Math.max(0, xb - xa), 26);
+        }
+      }
+      // the seismometer's recording: the day / hours / minutes graphs' data (at least 6 px, so one day in three years shows)
+      g.globalAlpha = melhLevel ? 1 : 0.35; g.fillStyle = C.bands.tremor;
+      for (const [ca, cb] of cov) { if (cb < a || ca > b) continue; const xa = Math.max(OV_X, xo(ca)), xb = Math.min(x1, Math.max(xa + 6, xo(cb))); g.fillRect(xa, seisY, xb - xa, rowH - 1); }
+      // the GNSS days: measured solid, a straight line in the file faint (the cycle / sequence graphs' data)
+      const G = D.gnss, st = ctx.gnssStations()[0];
+      if (G && st) {
+        const u = G.cols[`${st}_u_mm`], ip = G.cols[`${st}_interp`] || [];
+        const i0 = Math.max(0, Math.floor((a - G.t[0]) / DAY)), i1 = Math.min(G.t.length, Math.ceil((b - G.t[0]) / DAY) + 1);
+        for (let i = i0; i < i1; i++) {
+          if (!isNum(u[i])) continue;
+          const xa = Math.max(OV_X, xo(G.t[i])), xb = Math.min(x1, Math.max(xa + 1, xo(G.t[i] + DAY)));
+          g.globalAlpha = (melhLevel ? 0.35 : 0.9) * (ip[i] ? 0.35 : 1); g.fillStyle = C.gnss[st] || ctx.tok("--ds-txt"); g.fillRect(xa, gY, xb - xa, rowH - 2);
+        }
+      }
+      // the quakes, binned to the stripe's pixels (log intensity)
+      const E = ctx.src.events(a, b), px = Math.max(1, Math.round(x1 - OV_X)), bins = new Float32Array(px);
+      for (let k = E.i0; k < E.i1; k++) { const j = Math.floor(xo(E.t[k]) - OV_X); if (j >= 0 && j < px) bins[j]++; }
+      let top = 1; for (const v of bins) top = Math.max(top, v);
+      const ramp = C.densityRamp;
+      g.globalAlpha = 1;
+      for (let j = 0; j < px; j++) if (bins[j] > 0) { g.fillStyle = ramp(0.25 + 0.75 * Math.log10(1 + bins[j]) / Math.log10(1 + top)); g.fillRect(OV_X + j, qY, 1, rowH); }
+      // the eruptions
+      g.globalAlpha = 0.8; g.fillStyle = ctx.tok("--ds-txt");
+      for (const e of S.M.deflation_events || []) { if (e.kind !== "magmatic" && e.kind !== "hidden_by_interpolation") continue;
+        const te = Date.parse(`${e.date_start}T12:00:00Z`) / 1000; if (te < a || te > b) continue; const xe = xo(te); g.fillRect(xe - 0.5, y0, 1.5, 26); }
+      // the view you are in (gold = you), at least 5 px wide
+      const vx0 = xo(S.view[0]), vx1 = xo(S.view[1]), vw = Math.max(5, vx1 - vx0), vxa = (vx0 + vx1) / 2 - vw / 2;
+      g.globalAlpha = 0.12; g.fillStyle = ctx.tok("--ds-cur"); g.fillRect(vxa, y0 - 2, vw, 30);
+      g.globalAlpha = 1; g.strokeStyle = ctx.tok("--ds-cur"); g.lineWidth = 1.5; g.strokeRect(vxa, y0 - 2, vw, 30);
+      // the ends of the stripe, and (at the seismometer's levels) a hint to its data when it lies outside
+      g.font = `9px ${ctx.tok("--ds-font-canvas")}`; g.fillStyle = ctx.tok("--ds-dim"); g.globalAlpha = 0.9;
+      const fmtEnd = span > 2 * DAY ? d3.utcFormat("%-d %b %Y") : d3.utcFormat("%-d %b %H:%M");
+      const le = fmtEnd(utc(a)), re = fmtEnd(utc(b));
+      g.fillText(le, OV_X + 2, HM + OV_H - 3); g.fillText(re, x1 - g.measureText(re).width - 2, HM + OV_H - 3);
+      ovHint = null;
+      if (melhLevel && cov.length && !cov.some(([ca, cb]) => cb >= a && ca <= b)) {
+        const left = cov[0][1] < a, txt = left ? `◂ seismometer: ${d3.utcFormat("%-d %b %Y")(utc(cov[0][0]))}` : `seismometer: ${d3.utcFormat("%-d %b %Y")(utc(cov[0][0]))} ▸`;
+        g.font = `10px ${ctx.tok("--ds-font-canvas")}`; const tw = g.measureText(txt).width, hx = left ? OV_X + 2 : x1 - tw - 2, hy = seisY + 7;
+        g.globalAlpha = 0.92; g.fillStyle = ctx.tok("--ds-panel"); g.fillRect(hx - 3, seisY - 2, tw + 6, 12);
+        g.globalAlpha = 1; g.fillStyle = C.bands.tremor; g.fillText(txt, hx, hy);
+        ovHint = { x0: hx - 3, x1: hx + tw + 3 };
+      }
+      g.restore();
+      // the calendar keeps the date you are at (unless you are typing in it)
+      if (document.activeElement !== dateEl) {
+        const t = S.cursor >= S.view[0] && S.cursor <= S.view[1] ? S.cursor : (S.view[0] + S.view[1]) / 2;
+        dateEl.value = d3.utcFormat("%Y-%m-%d")(utc(t));
+      }
+      dateEl.min = d3.utcFormat("%Y-%m-%d")(utc(S.M.t0)); dateEl.max = d3.utcFormat("%Y-%m-%d")(utc(ctx.now()));
+      dateEl.style.colorScheme = DarkStyle.get() === "dark" ? "dark" : "light";
+    }
+    let ovDrag = false;
+    function ovGo(e, snap) {
+      const [px] = d3.pointer(e, svg.node());
+      if (snap && ovHint && px >= ovHint.x0 && px <= ovHint.x1 && ctx.gotoRecording) { ctx.gotoRecording(); return; }
+      let t = xo.invert(px); const span = S.view[1] - S.view[0], s = ctx.seismic();
+      if (snap && S.levelIdx <= 2) for (const [ca, cb] of (s && s.coverage) || []) {
+        const xa = xo(ca), xb = Math.max(xa + 6, xo(cb));
+        if (px >= xa - 8 && px <= xb + 8) { t = Math.min(Math.max(t, ca + Math.min(span, cb - ca) / 2), cb - Math.min(span, cb - ca) / 2); break; }
+      }
+      ctx.setView(t - span / 2, t + span / 2, { user: true }); ctx.setCursor(t, { from: "timeline" });
+    }
+    function ovHover(e) {
+      if (ctx.hoverOn && !ctx.hoverOn()) { hbox.style.display = "none"; return; }
+      const [px, py] = d3.pointer(e, svg.node()), t = xo.invert(px), s = ctx.seismic();
+      const lines = [`<b>${d3.utcFormat(xo.domain()[1] - xo.domain()[0] > 2 * DAY ? "%a %-d %b %Y" : "%a %-d %b %Y %H:%M")(utc(t))}</b>`];
+      if (ovHint && px >= ovHint.x0 && px <= ovHint.x1) lines.push(`click: go to the seismometer's recording (${ctx.noWaveText().replace(/^no waveform here · /, "")})`);
+      else {
+        lines.push(s && ctx.src.covered(s.id, t, t + 1) ? "the seismometer recorded here: the day, hours and minutes graphs are drawn" : `<span class="dim">no seismometer recording here</span>`);
+        const G = D.gnss, st = ctx.gnssStations()[0], i = G ? Math.floor((t - G.t[0]) / DAY) : -1;
+        if (G && st && i >= 0 && i < G.t.length) lines.push((G.cols[`${st}_interp`] || [])[i] ? `<span class="dim">GNSS: a straight line in the file (not measured)</span>` : isNum(G.cols[`${st}_u_mm`][i]) ? "GNSS: measured" : `<span class="dim">no GNSS</span>`);
+        const w = (xo.domain()[1] - xo.domain()[0]) / Math.max(1, W - OV_X), E = ctx.src.events(t - w * 2, t + w * 2);
+        lines.push(`${E.i1 - E.i0} quakes here`);
+        lines.push(`<span class="dim">click or drag: go there at this zoom</span>`);
+      }
+      hbox.innerHTML = lines.map((l) => `<div>${l}</div>`).join(""); hbox.style.display = "block";
+      const bw = hbox.offsetWidth, bh = hbox.offsetHeight;
+      hbox.style.left = Math.max(2, Math.min(W - bw - 4, px - bw / 2)) + "px"; hbox.style.top = Math.max(2, HM - bh - 6) + "px";
+    }
+    ovhit.on("pointerdown", (e) => { ovDrag = true; ovFrozen = ovRange(); try { ovhit.node().setPointerCapture(e.pointerId); } catch (_) {} ovGo(e, true); })
+      .on("pointermove", (e) => { if (ovDrag) ovGo(e, false); else ovHover(e); })
+      .on("pointerup pointercancel", () => { ovDrag = false; ovFrozen = null; dirty = true; })
+      .on("pointerleave", () => { if (!ovDrag) hbox.style.display = "none"; });
+    dateEl.addEventListener("change", () => { if (dateEl.value && ctx.gotoDate) ctx.gotoDate(dateEl.value); });
 
     function draw() {
       if (!dirty) return;
@@ -604,26 +745,27 @@ window.SvkTimeline = (function () {
       }
       drawStrip();
       drawTraces();
+      drawOverview();
       // axis
       const ax = d3.scaleUtc().domain(S.view.map(utc)).range([0, W]);
       const axis = d3.axisBottom(ax).ticks(Math.max(2, Math.floor(W / 120))).tickSizeOuter(0);
-      svg.select(".tl-axis").attr("transform", `translate(0,${H - AXIS_H})`).call(axis);
+      svg.select(".tl-axis").attr("transform", `translate(0,${HM - AXIS_H})`).call(axis);
       // the right edge: now (replay/live) or the end of the data (archive)
       const tn = ctx.now(), xe = x(tn);
-      svg.select(".tl-end").attr("x1", xe).attr("x2", xe).attr("y1", 0).attr("y2", H - AXIS_H).style("display", xe >= -1 && xe <= W + 1 ? null : "none");
-      svg.select(".tl-endtxt").attr("x", Math.min(W - 4, xe - 4)).attr("y", H - AXIS_H - 6).attr("text-anchor", "end")
+      svg.select(".tl-end").attr("x1", xe).attr("x2", xe).attr("y1", 0).attr("y2", HM - AXIS_H).style("display", xe >= -1 && xe <= W + 1 ? null : "none");
+      svg.select(".tl-endtxt").attr("x", Math.min(W - 4, xe - 4)).attr("y", HM - AXIS_H - 6).attr("text-anchor", "end")
         .text(S.mode === "archive" ? `end of the data · ${fmtDay(utc(tn))}` : `now · ${fmtT(utc(tn))}`).style("display", xe >= 0 && xe <= W + 1 ? null : "none");
       // gold = you: the cursor, and the playhead while playing
       const xc = x(S.cursor);
       svg.select(".tl-cur").style("display", xc >= -2 && xc <= W + 2 ? null : "none");
-      svg.select(".tl-curline").attr("x1", xc).attr("x2", xc).attr("y1", 0).attr("y2", H - AXIS_H);
+      svg.select(".tl-curline").attr("x1", xc).attr("x2", xc).attr("y1", 0).attr("y2", HM - AXIS_H);
       svg.select(".tl-head").attr("d", `M${xc - 6},0 L${xc + 6},0 L${xc},8 Z`).classed("playing", S.playing);
       // the engine's own playhead (/svk_playhead), when the Ground is playing: what you hear, where it is
       const ph = S.enginePlayhead, xp = ph != null ? x(ph) : NaN, showPh = Number.isFinite(xp) && xp >= 0 && xp <= W && S.playing;
       svg.select(".tl-ph").style("display", showPh ? null : "none");
       if (showPh) {
-        svg.select(".tl-phline").attr("x1", xp).attr("x2", xp).attr("y1", H - AXIS_H - 10).attr("y2", H - AXIS_H);
-        svg.select(".tl-phdot").attr("d", `M${xp},${H - AXIS_H - 14} l4,4 l-4,4 l-4,-4 Z`);
+        svg.select(".tl-phline").attr("x1", xp).attr("x2", xp).attr("y1", HM - AXIS_H - 10).attr("y2", HM - AXIS_H);
+        svg.select(".tl-phdot").attr("d", `M${xp},${HM - AXIS_H - 14} l4,4 l-4,4 l-4,-4 Z`);
       }
     }
 
@@ -641,7 +783,7 @@ window.SvkTimeline = (function () {
       }
       const rs = ctx.roomSpan && ctx.roomSpan();
       if (rs && t >= rs.t0 && t < rs.t1) lines.push(`<span class="dim">the band: ${rs.label}, the room you are in</span>`);
-      if (py > H - AXIS_H - STRIP_H - 2 && !lane) lines.push(`<span class="dim">${d3.utcFormat("%B %Y")(utc(t))}</span>`);
+      if (py > HM - AXIS_H - STRIP_H - 2 && !lane) lines.push(`<span class="dim">${d3.utcFormat("%B %Y")(utc(t))}</span>`);
       for (const r of (ctx.traces && ctx.traces()) || []) if (t >= r.t0 && t < r.t1 + (S.view[1] - S.view[0]) / 300) lines.push(`<span style="color:${r.color}">◎ traced</span> · ${r.label}`);
       hbox.innerHTML = lines.map((l) => `<div>${l}</div>`).join("");
       hbox.style.display = "block";
