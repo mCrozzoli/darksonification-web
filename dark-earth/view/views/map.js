@@ -8,8 +8,8 @@
 //   - v0.13: while the cursor is inside an eruption, its fissure (W1's centroid; approx = hollow, dashed, with its ring)
 //     and the fountains' heights at that moment from W1's series, a bar per fissure segment (dashed + "model" when simulated);
 //   - a brush selects events by place: the timeline dims the rest and the Swarm hears only the selection;
-//   - at the hours and minutes levels, a polarization arrow for MELH, in a compass inset (MELH itself is not placed:
-//     its position is pending, and the direction is in the sensor's frame, ambiguous by 180°).
+//   - at the hours and minutes levels, a polarization arrow for MELH, in a compass inset (MELH is placed approximately,
+//     ±2 km, since 0.13; the direction is in the sensor's frame, ambiguous by 180°).
 window.SvkMap = (function () {
   "use strict";
   const isNum = (v) => typeof v === "number" && Number.isFinite(v);

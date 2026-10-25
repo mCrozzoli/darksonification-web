@@ -166,6 +166,7 @@ window.DarkLegend = (function () {
   }
   const cooked2 = (v) => typeof v === "number" && isFinite(v);
 
+  const listed = () => { try { const E = api && api.manifest && window.SvkCook ? window.SvkCook.eruptionList(api.manifest()) : []; return E.length > 0 && E[0].from === "eruptions"; } catch (_) { return false; } };
   const SEE = () => [
     ["gold", "you: the cursor, the room you are in (the band), the ear you listen from"],
     ["faint grey", "not measured"],
@@ -174,7 +175,9 @@ window.DarkLegend = (function () {
     ["map", "the quakes on screen, fading with age"],
     ["▲ / △", "a station: filled = measured position, hollow and dashed = a placeholder (the dotted ring: its uncertainty)"],
     ["◆ + bars", "at an eruption: the fissure and its fountains' heights now, one bar per segment (dashed + model = simulated)"],
-    ["▼ ▿ ◇", "on the GNSS lane: an eruption, an intrusion, an eruption hidden in the GNSS"],
+    // as the timeline draws them: with W1's eruption list ▼ an eruption, ▿ an intrusion; without it the GNSS detection's own
+    // ▼ and ◇ (an eruption hidden in a straight-line stretch)
+    listed() ? ["▼ ▿", "on the GNSS lane: an eruption, an intrusion"] : ["▼ ◇", "on the GNSS lane: an eruption, an eruption hidden in the GNSS"],
     ["latent map", "one dot per recorded minute · colour = group · ring = unusual"],
   ];
 

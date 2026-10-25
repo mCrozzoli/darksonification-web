@@ -934,6 +934,8 @@ window.SvkSource = (function () {
       this.loaded = { kind: tree.kind, via: (tree.io && tree.io.via) || (tree.raw ? "raw" : null), raw: !!tree.raw, layout: tree.layout || null, label: tree.label, name: tree.name, built: tree.manifest.built || null, contract: tree.manifest.contract || null,
                       plain: tree.plain, public: tree.public, stations: (tree.manifest.stations || []).map((s) => s.id), handle: (tree.io && tree.io.handle) || tree.handle || null,
                       channels: tree.chans ? [...tree.chans.keys()] : null, skipped: tree.skipped || 0, rawBeside: tree.rawPart ? tree.rawPart.chans.size : 0, rates: tree.rates || null, tableFs: TABLE_FS.slice(),
+                      // a tile tree's own word on bands its stations' rates lack (W1's manifest.stations[].bands.note, 0.16)
+                      bandNotes: tree.raw ? [] : (tree.manifest.stations || []).filter((s) => s.bands && s.bands.note).map((s) => ({ sta: s.id.split(".")[1] || s.id, note: s.bands.note })),
                       check: tree.check ? { sizes: tree.check.sizes, warn: tree.check.warn, files: tree.check.indexed.size } : null };
     }
     _lHas(tier, source) { if (this.L.computes) return this.L.computes(tier, source); const T = this.L._m.tiles; return !!(T && T[tier] && T[tier][source] && T[tier][source].length); }
@@ -1057,14 +1059,16 @@ window.SvkSource = (function () {
       if (this._running && !(this._running.source === source && this._want.days.has(this._running.day))) this._running.cancel();
       this._q = (this._q || Promise.resolve()).then(async () => {
         const todo = days.filter((d) => !this._mem.has(`${source}|${d}`));
-        let k = 0;
+        let k = 0, shown = false;
         for (const d of todo) {
           if (this._gen !== gen && !(this._want.source === source && this._want.days.has(d))) continue;   // the view moved on
           k++;
           if (await this._fromStore(source, d)) continue;
-          await this._day(source, d, (f) => this.onProgress && this.onProgress({ source, day: d, frac: f, k, of: todo.length, note }));
+          await this._day(source, d, (f) => { shown = true; if (this.onProgress) this.onProgress({ source, day: d, frac: f, k, of: todo.length, note }); });
         }
-        if (this.onProgress) this.onProgress(null);
+        // "done" only when a day arrived (the view reloads to show it) or a progress line must go: the page answers it by
+        // reloading the window, which asks again, so a "done" with nothing new looped every 60 ms
+        if (this.onProgress && (shown || todo.some((d) => this._mem.has(`${source}|${d}`)))) this.onProgress(null);
       });
       return this._q;
     }
@@ -1076,7 +1080,12 @@ window.SvkSource = (function () {
       const run = wkFeatures({ station: source, roles: rolesFor(fl), files, from, to, keep: d, state, final }, onP);
       this._running = { source, day: d, cancel: run.cancel };
       let res;
-      try { res = await run; } catch (e) { this._running = null; if (/cancelled/.test(e.message)) return; console.info("[source] features not computed", source, new Date(d * 1000).toISOString().slice(0, 10), e.message); return; }
+      try { res = await run; } catch (e) {
+        this._running = null; if (/cancelled/.test(e.message)) return;
+        console.info("[source] features not computed", source, new Date(d * 1000).toISOString().slice(0, 10), e.message);
+        this._mem.set(`${source}|${d}`, { rows: {}, state: null, end: to, failed: e.message });   // not retried until a reload
+        return;
+      }
       this._running = null;
       const entry = { rows: res.rows, state: final ? null : res.state, end: to, exact: !!state || from <= start, stats: res.stats, ms: res.ms };
       this._mem.set(`${source}|${d}`, entry);

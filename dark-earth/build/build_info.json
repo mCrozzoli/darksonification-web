@@ -1,5 +1,5 @@
 {
-  "built": "2026-10-25 15:54:17",
+  "built": "2026-10-25 17:42:36",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "clearance": {
     "status": "cleared",
@@ -7,15 +7,15 @@
   },
   "name": "Dark Earth",
   "sources": {
-    "viz/app.js": "6ef7dde12a218a34",
+    "viz/app.js": "73c927eda8ecde20",
     "viz/cook.js": "f9b928dc7a14fe7b",
     "viz/index.html": "208df914b42c8320",
-    "viz/legend.js": "8f59b8da10066cfd",
-    "viz/source.js": "ec6cb71bc5bea10b",
+    "viz/legend.js": "4fffe161e5ed7b00",
+    "viz/source.js": "7a142799cd986625",
     "viz/stations.js": "6679b4736a82c41c",
     "viz/svk_messages.json": "3543ec94b18d48f5",
     "viz/views/latent.js": "18dbaad816ec6fb8",
-    "viz/views/map.js": "d43c5f19eb257a4f",
+    "viz/views/map.js": "f5bbaeebdf3d454e",
     "viz/views/timeline.js": "628d89ac17cdde91",
     "viz/geo/SOURCE.md": "56992082c4c13ddd",
     "viz/geo/reykjanes_coast.geojson": "b384b96f49ff2c82",
@@ -116,7 +116,7 @@
     "README.md": "ce0965b715c86f1a"
   },
   "data": {
-    "built": "2026-10-25 15:54:17",
+    "built": "2026-10-25 17:42:37",
     "bridge_sha": "bb868199de1b0d18",
     "schema_sha": "3543ec94b18d48f5",
     "contract": "0.14",
