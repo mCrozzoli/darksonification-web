@@ -1,6 +1,6 @@
 {
   "_what": "CONTRACT v0.11 \u00a75 + \u00a75.0 + \u00a75.1 as data: one table read by the page (cook.js: field order, validation, debug panel) and by the bridge (bridge.py: JSON <-> OSC). Field order == OSC arg order. W3 keeps this in step with lab/CONTRACT.md; it never changes the contract.",
-  "contract": "0.12",
+  "contract": "0.14",
   "page_to_engine": {
     "zoom": {
       "addr": "/svk_zoom",
@@ -198,13 +198,24 @@
         [
           "depth_abs",
           "f"
+        ],
+        [
+          "az",
+          "f"
+        ],
+        [
+          "dist_km",
+          "f"
         ]
       ],
       "nullable": [
         "depth_km",
         "fc_hz",
-        "depth_abs"
-      ]
+        "depth_abs",
+        "az",
+        "dist_km"
+      ],
+      "_what": "v0.14 (spatial listening): pan = sin(az); trailing az (rad, clockwise, RELATIVE TO THE LISTENER'S HEADING: 0 = in front, +pi/2 = right; the heading faces the activity, eased over ~3 s, or north, Miguel 2026-10-25 choice c) and dist_km (3-D, the hypocentre's depth included), both null = NaN when the quake or the listener has no position."
     },
     "ground": {
       "addr": "/svk_ground",
@@ -789,7 +800,68 @@
           "i"
         ]
       ],
-      "_what": "v0.11 \u00a79.3: when the play cursor crosses an eruption (0.5 s lookahead); size = |dU_SKSH| on its range, hidden 0.5; kind 0 magmatic, 1 hidden"
+      "tail": [
+        [
+          "fountain",
+          "f"
+        ],
+        [
+          "fountain_kind",
+          "i"
+        ],
+        [
+          "az",
+          "f"
+        ],
+        [
+          "dist_km",
+          "f"
+        ]
+      ],
+      "nullable": [
+        "fountain",
+        "az",
+        "dist_km"
+      ],
+      "_what": "v0.11 \u00a79.3: when the play cursor crosses an eruption (0.5 s lookahead); size = |dU_SKSH| on its range, hidden 0.5; kind 0 magmatic, 1 hidden. v0.13: the eruption list (events/eruptions.json) is the clock when it is there, the GNSS falls otherwise; two trailing args: fountain = the eruption's max fountain height (observed or simulated) on the fountains' range, 0-1 (null = NaN = no fountain data), fountain_kind 0 none, 1 observed, 2 simulated. SC accepts 3 or 5 args; the page always sends 5 v0.14: two more trailing args, az (relative to the listener's heading, as /svk_event) and dist_km from the listener to the eruption's place (fissure centroid; for an intrusion where it began) (null = NaN: a row without a fissure is unplaced). SC accepts 3, 5 or 7 args; the page sends 7"
+    },
+    "ground_space": {
+      "addr": "/svk_ground_space",
+      "args": [
+        [
+          "az",
+          "f"
+        ],
+        [
+          "dist_km",
+          "f"
+        ]
+      ],
+      "nullable": [
+        "az",
+        "dist_km"
+      ],
+      "max_hz": 15,
+      "_what": "v0.14: where the Ground is heard from: the recording station's az (rad, clockwise, relative to the listener's heading, as /svk_event) and dist_km from the listener; re-sent when the heading has turned 1 degree or more. Sent at boot and every (re)connect, when the listener moves, and when a station position changes (an edit or StationXML in the config dock). null = NaN: the station has no position (unplaced). The Ground keeps its polarization rotation, placed at this azimuth."
+    },
+    "listener": {
+      "addr": "/svk_listener",
+      "args": [
+        [
+          "lat",
+          "f"
+        ],
+        [
+          "lon",
+          "f"
+        ],
+        [
+          "label",
+          "s"
+        ]
+      ],
+      "max_hz": 15,
+      "_what": "v0.14: the listening point, for SC's readouts only (SC never places anything from lat/lon: the page cooks every position into az / dist_km). label = the station it sits on, or 'map point'. Sent with ground_space."
     },
     "mix": {
       "addr": "/svk_mix",

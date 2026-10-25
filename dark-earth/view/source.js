@@ -34,6 +34,61 @@ window.SvkSource = (function () {
     return r.arrayBuffer();
   }
 
+  // ------------------------------------------------------------------------------------------------ a spectrogram in the page
+  // W1 §15.1 (spec_files false): the same tile shape as W1's spectrogram files (CONTRACT §4.2: frames × bins, uint8, log-f
+  // bins 0.2–50 Hz, 10·log10 PSD in counts²/Hz, a Hann window of 10.24 s centred on each frame), at one frame per 2 s
+  // (half W1's rate: an hour costs ~1800 FFTs of 1024 points). Frames touching a gap are left at 0 and listed.
+  const SPEC_NFFT = 1024, SPEC_DT = 2, SPEC_BINS = 96, SPEC_FLO = 0.2, SPEC_FHI = 50;
+  function fft(re, im) {                                  // in place, radix 2
+    const n = re.length;
+    for (let i = 1, j = 0; i < n; i++) { let bit = n >> 1; for (; j & bit; bit >>= 1) j ^= bit; j ^= bit; if (i < j) { [re[i], re[j]] = [re[j], re[i]]; [im[i], im[j]] = [im[j], im[i]]; } }
+    for (let len = 2; len <= n; len <<= 1) {
+      const a = (-2 * Math.PI) / len, wr = Math.cos(a), wi = Math.sin(a);
+      for (let i = 0; i < n; i += len) {
+        let cr = 1, ci = 0;
+        for (let k = 0; k < len / 2; k++) {
+          const ur = re[i + k], ui = im[i + k], vr = re[i + k + len / 2] * cr - im[i + k + len / 2] * ci, vi = re[i + k + len / 2] * ci + im[i + k + len / 2] * cr;
+          re[i + k] = ur + vr; im[i + k] = ui + vi; re[i + k + len / 2] = ur - vr; im[i + k + len / 2] = ui - vi;
+          const t = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = t;
+        }
+      }
+    }
+  }
+  async function specFromWave(c, range) {
+    const fs = c.fs, x = c.x, nf = Math.floor(x.length / (fs * SPEC_DT)), N = SPEC_NFFT, half = N / 2;
+    const win = new Float64Array(N); let wss = 0;
+    for (let i = 0; i < N; i++) { win[i] = 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (N - 1)); wss += win[i] * win[i]; }
+    const edges = Array.from({ length: SPEC_BINS + 1 }, (_, k) => SPEC_FLO * (SPEC_FHI / SPEC_FLO) ** (k / SPEC_BINS));
+    const df = fs / N, db = new Float32Array(nf * SPEC_BINS), bad = [];
+    const re = new Float64Array(N), im = new Float64Array(N), psd = new Float64Array(half + 1);
+    for (let f = 0; f < nf; f++) {
+      if (f % 150 === 149) await new Promise((r) => setTimeout(r, 0));    // yield: an hour is ~1800 FFTs, never one long block
+      const ctr = Math.round((f + 0.5) * SPEC_DT * fs), s0 = ctr - half;
+      let ok = true, mean = 0;
+      for (let i = 0; i < N; i++) { const v = x[s0 + i]; if (!Number.isFinite(v)) { ok = false; break; } mean += v; }
+      if (!ok || s0 < 0 || s0 + N > x.length) { bad.push(f); db.fill(NaN, f * SPEC_BINS, (f + 1) * SPEC_BINS); continue; }
+      mean /= N;
+      for (let i = 0; i < N; i++) { re[i] = (x[s0 + i] - mean) * win[i]; im[i] = 0; }
+      fft(re, im);
+      for (let k = 0; k <= half; k++) psd[k] = ((re[k] * re[k] + im[k] * im[k]) / (fs * wss)) * (k > 0 && k < half ? 2 : 1);
+      for (let b = 0; b < SPEC_BINS; b++) {
+        const k0 = Math.ceil(edges[b] / df), k1 = Math.floor(edges[b + 1] / df);
+        let p = 0, n = 0;
+        for (let k = k0; k <= k1 && k <= half; k++) { p += psd[k]; n++; }
+        if (!n) { const fc = Math.sqrt(edges[b] * edges[b + 1]) / df, k = Math.min(half - 1, Math.floor(fc)), w = fc - k; p = psd[k] * (1 - w) + psd[k + 1] * w; n = 1; }
+        db[f * SPEC_BINS + b] = 10 * Math.log10(Math.max(1e-20, p / n));
+      }
+    }
+    if (range.lo == null) {                                  // the channel's range, fixed by its first hour
+      const v = Array.from(db).filter(Number.isFinite).sort((a, b) => a - b);
+      if (v.length) { range.lo = v[Math.floor(v.length * 0.02)]; range.hi = v[Math.min(v.length - 1, Math.floor(v.length * 0.998))]; }
+    }
+    const lo = range.lo ?? 0, hi = range.hi ?? 1, bytes = new Uint8Array(db.length);
+    for (let i = 0; i < db.length; i++) bytes[i] = Number.isFinite(db[i]) ? Math.max(0, Math.min(255, Math.round(((db[i] - lo) / Math.max(1e-9, hi - lo)) * 255))) : 0;
+    return { meta: { chan: c.chan, t0: c.t0 + SPEC_DT / 2, dt: SPEC_DT, n_frames: nf, f_lo: SPEC_FLO, f_hi: SPEC_FHI, n_bins: SPEC_BINS, log_f: true, db_lo: lo, db_hi: hi,
+                     win_s: N / fs, layout: "frames x bins, row-major, uint8", computed: "in the page, from the wave (spec_files false)", invalid_frames: bad }, bytes };
+  }
+
   // ------------------------------------------------------------------------------------------------ StaticSource
   class StaticSource {
     constructor(root, manifest) {
@@ -86,6 +141,25 @@ window.SvkSource = (function () {
       return (s && s.coverage) || [];
     }
     covered(source, t0, t1) { return this.coverage(source).some(([a, b]) => b > t0 && a < t1); }
+    // ----- the window rule (W1 §15.1, manifest.windows): the finest tiers (window_tiers: f10s, f1m) and the raw wave ship
+    // only around each timeline event; outside, they are ABSENT BY DESIGN (absent_means), never silence: read the finest
+    // full-record tier (f10m) there, or the researcher's folder or server (?data=…, O1). null = no window rule (all ships)
+    windows() { const w = this._m.windows; return w && Array.isArray(w.spans) ? w : null; }
+    inWindow(t0, t1) { const w = this.windows(); return !w || w.spans.some(([a, b]) => b > t0 && a < t1); }
+    // the parts of [t0, t1) outside every window span
+    outsideWindows(t0, t1) {
+      const w = this.windows(); if (!w) return [];
+      const out = []; let cur = t0;
+      for (const [a, b] of [...w.spans].sort((p, q) => p[0] - q[0])) { if (b <= cur || a >= t1) continue; if (a > cur) out.push([cur, a]); cur = Math.max(cur, b); }
+      if (cur < t1) out.push([cur, t1]);
+      return out;
+    }
+    // the finest full-record tier this station has tiles for (f10m before f1h before f1d), or null
+    baseTier(source) {
+      const w = this.windows(); if (!w) return null;
+      const tiers = (w.full_record_tiers || ["f10m", "f1h", "f1d"]).slice().sort((a, b) => (this._m.tiers[a] || {}).step - (this._m.tiers[b] || {}).step);
+      return tiers.find((tr) => this._m.tiers[tr] && this._tileExists(tr, source)) || null;
+    }
     _tileListed(tier, source, idx) {
       const T = this._m.tiles;                       // W1's index {tier: {source: [indices]}} wins when present
       if (T) return !!(T[tier] && T[tier][source] && T[tier][source].includes(idx));
@@ -119,7 +193,28 @@ window.SvkSource = (function () {
       const tr = this._m.tiers[tier];
       const out = { tier, source, step: tr ? tr.step : null, t: new Float64Array(0), cols: {} };
       if (!tr || !this._tileExists(tier, source)) return out;
-      return this._rows(out, tier, t0, t1, (k) => this._tileListed(tier, source, k), (k) => `tiles/${tier}/${source}/${k}`);
+      const r = await this._rows(out, tier, t0, t1, (k) => this._tileListed(tier, source, k), (k) => `tiles/${tier}/${source}/${k}`);
+      return this._lean && this._lean.tiers.has(tier) && source === this._lean.sta ? this._lean.keep(r) : r;
+    }
+    // a wave hour the manifest lists (the window rule: only inside the windows for a continuous station)
+    waveListed(chan, t) { return this._chunkListed(chan, Math.floor(t / HOUR) * HOUR); }
+    // dev only (?lean=1): W1's window rule applied to MELH's own day, to try the lean layout before any continuous station
+    // exists: f10s / f1m rows and the HHZ wave hours only inside manifest.windows.spans, no spectrogram files (computed here)
+    _leanFixture() {
+      const m = this._m, W = this.windows(), sta = (m.stations || []).find((st) => st.kind === "seismic");
+      if (!W || !sta) return;
+      const inW = (a, b) => W.spans.some(([p, q]) => q > a && p < b), raw = (W.raw && W.raw.channels) || ["HHZ"];
+      for (const [chan, v] of Object.entries(m.wave || {})) if (chan.startsWith(sta.id))
+        v.hours = raw.includes(chan.split(".")[3]) ? (v.hours || []).filter((h) => { const t = Date.parse(h.replace("/", "T") + ":00:00Z") / 1000; return inW(t, t + HOUR); }) : [];
+      for (const [chan, v] of Object.entries(m.spec || {})) if (chan.startsWith(sta.id)) v.hours = [];
+      W.raw = { ...(W.raw || {}), spec_files: false };
+      const tiers = new Set(W.window_tiers || ["f10s", "f1m"]);
+      this._lean = { sta: sta.id, tiers, keep: (r) => {
+        const idx = []; for (let i = 0; i < r.t.length; i++) if (inW(r.t[i], r.t[i] + (r.step || 1))) idx.push(i);
+        const cols = {}; for (const [k, a] of Object.entries(r.cols)) cols[k] = idx.map((i) => a[i]);
+        return { ...r, t: Float64Array.from(idx, (i) => r.t[i]), cols };
+      } };
+      m._fixture = (m._fixture ? m._fixture + " + " : "") + "lean (W1's window rule applied to MELH's day)";
     }
     // ----- body v2 (CONTRACT v0.11 §9): per-point tables viz/data/body/<kind>/<tier>/<tile>.json (same tiling as §4.2)
     // and room identities viz/data/body/identity/<kind>_<id>.json. Requests stay inside the manifest's body index when it
@@ -195,6 +290,35 @@ window.SvkSource = (function () {
       this._ev = { n, t: pick("t", Float64Array), mag: pick("mag", Float32Array), depth_km: pick("depth_km", Float32Array),
                    lat: pick("lat", Float32Array), lon: pick("lon", Float32Array), fc_hz: pick("fc_hz", Float32Array), id: pick("id") };
       return this._ev;
+    }
+    // ----- v0.13: the eruption timeline (events/eruptions.json) and its fountain series (events/fountains/<id>.json).
+    // The list is read only when the manifest declares it (manifest.eruptions = {file} or an inline row array), so a
+    // manifest without it asks for nothing. The rows land on the manifest as M._eruptions (cook.eruptionList reads them).
+    // ?fixture=<dir> (dev only): rows and station positions from viz/dev_mock/<dir>/, never viz/data.
+    async loadEruptions() {
+      const m = this._m, fx = new URLSearchParams(location.search).get("fixture"), dec = m.eruptions || m.events_eruptions || (m.events && m.events.eruptions);
+      const fxRoot = fx && /^[\w-]+$/.test(fx) ? `dev_mock/${fx}/` : null;
+      let rows = null;
+      if (fxRoot) {
+        rows = await getJSON(`${fxRoot}eruptions.json`).catch(() => null);
+        const st = await getJSON(`${fxRoot}stations.json`).catch(() => null);      // stand-in positions, to test the drawing
+        if (st) for (const s of m.stations || []) { const o = (st.stations || st).find((x) => x.id === s.id); if (o) Object.assign(s, o); }
+        m._fixture = fx;
+      } else if (Array.isArray(dec)) rows = dec;
+      else if (dec && dec.file) rows = await getJSON(`${this.dataRoot}${dec.file}`).catch((e) => { console.info("[source] eruptions absent", e.message); return null; });
+      m._eruptionsCmp = (rows && !Array.isArray(rows) && rows.comparison) || null;   // W1's own matched / missed / false_alarms
+      rows = rows && (rows.rows || rows.eruptions || rows.data || rows);
+      m._eruptions = Array.isArray(rows) ? rows : null;
+      return m._eruptions;
+    }
+    // one eruption's fountain series: only a file the manifest's fountains index names (ref = that entry, {id, file, …};
+    // cook.eruptionList hands it over as e.fnt), never a guessed path, so never a 404
+    fountains(ref) {
+      if (!ref || !ref.file) return Promise.resolve(null);
+      this._fnt = this._fnt || new Map();
+      const url = `${this.dataRoot}${ref.file}`;
+      if (!this._fnt.has(url)) this._fnt.set(url, getJSON(url).catch(() => null));
+      return this._fnt.get(url);
     }
     // events(t0, t1) → {i0, i1, ...columns} (index range into the sorted columns; nothing is copied)
     events(t0, t1) {
@@ -292,6 +416,20 @@ window.SvkSource = (function () {
       const sta = chan.split(".").slice(0, 3).join("."), s = this.station(sta);
       const cha = chan.split(".")[3];
       const hrs = this._hours("spec", chan);
+      // W1 §15.1: a continuous station ships no spectrogram files (windows.raw.spec_files false); the page computes them
+      // from the wave hours it has. MELH keeps its files
+      const W = this.windows(), compute = !!(W && W.raw && W.raw.spec_files === false && (!hrs || !hrs.length) && this.hasWave(chan));
+      if (compute) {
+        const out = [];
+        for (let h = Math.floor(t0 / HOUR) * HOUR; h < t1 && out.length <= 30; h += HOUR) {
+          if (!this._chunkListed(chan, h, "wave")) continue;
+          const key = `${chan}/${ymd(h)}/${hh(h)}#page`;
+          if (!this._spec.has(key)) this._spec.set(key, this._chunk(chan, h).then((c) => (c ? specFromWave(c, this._specRange(chan)) : null)).catch(() => null));
+          const v = await this._spec.get(key);
+          if (v) out.push(v);
+        }
+        return out;
+      }
       if (!hrs && (!s || (s.spec && !s.spec.includes(cha)))) return [];
       const out = [];
       for (let h = Math.floor(t0 / HOUR) * HOUR; h < t1 && out.length <= 30; h += HOUR) {
@@ -306,6 +444,14 @@ window.SvkSource = (function () {
         if (v) out.push(v);
       }
       return out;
+    }
+    // the dB range a computed spectrogram is scaled to, one per channel so hours match: the manifest's (ranges["spec:<chan>"])
+    // when it says, else fixed by the first hour computed (its p2 … p99.8)
+    _specRange(chan) {
+      const r = (this._m.ranges || {})[`spec:${chan}`];
+      if (r && isFinite(r.lo) && isFinite(r.hi)) return r;
+      this._specR = this._specR || {};
+      return this._specR[chan] || (this._specR[chan] = { lo: null, hi: null });
     }
     async latent(station) {
       const L = this._m.latent;
@@ -437,7 +583,9 @@ window.SvkSource = (function () {
     const m = await getJSON(`${root}manifest.json`);
     const mode = opts.mode || "archive";
     const src = mode === "live" && opts.url ? new LiveSource(root, m, opts.url) : new StaticSource(root, m);
+    if (new URLSearchParams(location.search).get("lean") === "1") src._leanFixture();
     await src.loadEvents().catch((e) => console.warn("[source] events not loaded", e));
+    await src.loadEruptions().catch((e) => console.warn("[source] eruptions not loaded", e));
     return src;
   }
 

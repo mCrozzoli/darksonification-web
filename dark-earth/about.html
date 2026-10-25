@@ -55,16 +55,20 @@ your first click or key press. Press <b>L</b> for the legend: hold a chip to hea
   <li><b>Earthquakes.</b> IMO earthquake catalogue (Svartsengi polygon), located + magnitude-estimated by IMO.</li>
   <li><b>GNSS.</b> daily N/E/U, IMO stations SKSH, SENG, THOB (files *_060423_092426_I.csv).</li>
   <li><b>Seismometer.</b> RK.MELH.10 HH* 100 Hz + LM* 1 Hz miniSEED, 2024-01-14 00:00-10:23 UTC, raw counts.</li>
+  <li><b>Eruption sites.</b> Landmark coordinates: <b>© OpenStreetMap contributors</b>, available under the <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">Open Database License (ODbL)</a>.</li>
+  <li><b>Lava fountains.</b> Observed fountain heights from Rhodes et al. (2026), <i>Bulletin of Volcanology</i> 88:89, <a href="https://doi.org/10.1007/s00445-026-02006-3" target="_blank" rel="noopener">doi:10.1007/s00445-026-02006-3</a> (supplement ESM2); the other eruptions' heights are simulated with Leif Karlstrom's model. Fissure positions are digitised from Rhodes et al. (2026), Fig. 3, or placed from IMO's reports.</li>
+  <li><b>Eruption dates and places.</b> From IMO's published reports (<a href="https://en.vedur.is/about-imo/news/" target="_blank" rel="noopener">en.vedur.is</a>).</li>
   <li><b>Coastline.</b> Natural Earth 1:10m land, public domain.</li>
 </ul>
-<p class="dim">What the data can and cannot say (export of 2026-10-20T21:41:01.340Z, contract 0.11.7):</p>
+<p class="dim">The full list, with every licence: <a href="CREDITS.txt" target="_blank">CREDITS.txt</a>.</p>
+<p class="dim">What the data can and cannot say (export of 2026-10-25T11:47:09.479Z, contract 0.13):</p>
 <ul class="dim">
-<li>station coordinates pending StationXML / FDSN station service (MELH, SKSH, SENG, THOB)</li>
+<li>MELH's position is a placeholder (pos_status approx, 2 km): no public service lists RK.MELH; SKSH, SENG, THOB from IMO's GNSS browser / site logs (measured)</li>
 <li>waveforms are raw counts (no instrument response yet)</li>
 <li>MELH covers 2024-01-14 00:00-10:23 UTC only; the station was overrun by lava</li>
 <li>GNSS straight-line (interpolated) days are flagged &lt;ST&gt;_interp; all three stations are interpolated across the 14 Jan 2024 eruption</li>
 <li>GNSS 1-2 day excursions that return are flagged &lt;ST&gt;_spike</li>
-<li>deflation events are detected by this project; Leif's eruption timeline will replace them</li>
+<li>the rooms and waits are bounded by IMO's eruption timeline (events/eruptions.json); deflation_events is W1's GNSS detection, kept for the comparison (gnss_match)</li>
 <li>fc_hz assumes a 3 MPa stress drop and treats ML as Mw</li>
 <li>eq_b uses one whole-catalogue Mc (max curvature)</li>
 </ul>
@@ -84,9 +88,10 @@ The seismometer's samples are sent to it from the page, block by block, as the d
       (unreleased). scsynth and sclang: GPL-3.0; the WebAssembly bindings: AGPL-3.0. Unmodified; the
       licence text is in <code>engine/LICENSE</code>.</li>
   <li><a href="https://d3js.org/" target="_blank" rel="noopener">D3</a> v7.9.0 (ISC licence).</li>
+  <li>Fonts of the paper look: Karla and Rubik (SIL Open Font License 1.1), served by Google Fonts.</li>
 </ul>
 
-<p class="dim">Built 2026-10-22 16:20:15. <a href="view/index.html">← back to Dark Earth</a></p>
+<p class="dim">Built 2026-10-25 13:37:01. <a href="view/index.html">← back to Dark Earth</a></p>
 </main>
 </body>
 </html>

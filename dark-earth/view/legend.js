@@ -106,7 +106,7 @@ window.DarkLegend = (function () {
               info: "How fast the ground is rising, measured over the last 60 days, relative to the fastest it ever rose. The tone fades as the inflow decays, a ringdown toward silence.",
               data: "inflow_rel = inflow_mm_d / its maximum; inflow_tau_d (info only)" + (dn && dn.derived.includes("inflow_mm_d") ? " (derived by the page until the pipeline's tile has them)" : "") },
             { key: "restrike", enc: "C", qty: 8, name: "an eruption", to: "strikes the mode again (T-C)", epistemic: "measurement",
-              range: dn && dn.nFalls ? `${dn.nFalls} eruptions in the record, the last ${dn.lastFall}` : "",
+              range: dn && dn.nFalls ? `${dn.nFalls} ${dn.nWord || "eruptions"} in the record, the last ${dn.lastFall}` : "",
               chips: [["strike it", 0]],
               info: "Each eruption strikes the deformation mode again, as a merger excites a black hole's ringdown: the tone restarts bright, then decays with the inflow. Hold the chip to hear one strike on the current cycle.",
               data: "the boundaries of cycle_period_d: magmatic and hidden_by_interpolation events" });
@@ -167,11 +167,14 @@ window.DarkLegend = (function () {
   const cooked2 = (v) => typeof v === "number" && isFinite(v);
 
   const SEE = () => [
-    ["gold", "you: the cursor, and the room you are in (the band)"],
+    ["gold", "you: the cursor, the room you are in (the band), the ear you listen from"],
     ["faint grey", "not measured"],
     ["dashed line", "a straight line in the GNSS file: not measured"],
     ["◎", "a trace"],
     ["map", "the quakes on screen, fading with age"],
+    ["▲ / △", "a station: filled = measured position, hollow and dashed = a placeholder (the dotted ring: its uncertainty)"],
+    ["◆ + bars", "at an eruption: the fissure and its fountains' heights now, one bar per segment (dashed + model = simulated)"],
+    ["▼ ▿ ◇", "on the GNSS lane: an eruption, an intrusion, an eruption hidden in the GNSS"],
     ["latent map", "one dot per recorded minute · colour = group · ring = unusual"],
   ];
 
@@ -248,7 +251,9 @@ window.DarkLegend = (function () {
     const cat = api.catalogue ? api.catalogue() : [];
     const go = cat.length ? cat.map((c, j) => `<button class="lchip lgo-chip" data-j="${j}">${esc(c.label)}<small>${esc(c.sub || "")}</small></button>`).join("")
                           : `<span class="lrange">nothing loaded yet</span>`;
+    const from = api.heardFrom ? api.heardFrom() : null;     // v0.14: where the placed sounds are heard from
     host.innerHTML = `<div class="dock-h"><h2>PERCEPTUAL LEGEND</h2><button class="dock-x" id="lgp-close" title="close the legend (L)">✕ close (L)</button></div>
+      ${api.heardFrom ? `<div class="lg-from">heard from: <b>${esc(from || "nowhere yet")}</b> <span>(move the ear on the map)</span></div>` : ""}
       <div class="lsec" data-sec="go">catalogue · real moments (click = go there)<span class="lchev">▾</span></div><div class="lbody"><div class="lgo">${go}</div></div>
       <div class="lsec" data-sec="hear">pick a moment, then hold a chip to hear the difference<span class="lchev">▾</span></div>
       <div class="lbody"><div class="lg-held" role="status" aria-live="polite"></div>${hear}</div>

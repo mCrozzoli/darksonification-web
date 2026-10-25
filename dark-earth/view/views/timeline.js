@@ -27,7 +27,7 @@ window.SvkTimeline = (function () {
     host.innerHTML = `<canvas class="tl-cv"></canvas><svg class="tl-ov"><g class="tl-labels"></g><g class="tl-axis"></g>
       <line class="tl-end"></line><text class="tl-endtxt"></text><g class="tl-cur"><line class="tl-curline"></line><path class="tl-head"></path></g>
       <g class="tl-ph"><line class="tl-phline"></line><path class="tl-phdot"></path></g><rect class="tl-hit"></rect><rect class="tl-ovhit"></rect></svg>
-      <input type="date" class="tl-date" title="go to a date (day, month, year) at the zoom you are at"><div class="hbox tl-hbox"></div>`;
+      <input type="date" class="tl-date" title="go to a date (day, month, year) at the zoom you are at"><div class="tl-detail"></div><div class="hbox tl-hbox"></div>`;
     const cv = host.querySelector(".tl-cv"), g = cv.getContext("2d");
     const svg = d3.select(host).select("svg"), hit = svg.select(".tl-hit"), hbox = host.querySelector(".tl-hbox");
     const AXIS_H = 22, PAD_T = 4, STRIP_H = 8, OV_H = 40, OV_X = 142;   // OV: the time-series stripe under the axis, OV_X its left edge
@@ -177,16 +177,37 @@ window.SvkTimeline = (function () {
         g.globalAlpha = alpha * 0.5; g.fillStyle = ctx.tok("--ds-raised"); g.fillRect(xa, lane.y + 12, xb - xa, lane.h - 12);
         g.globalAlpha = alpha;
       }
-      // deflation markers: ▼ magmatic · ◇ hidden by interpolation · × a spike (never a fall) · ? unknown
-      for (const e of S.M.deflation_events || []) {
-        const te = Date.parse(e.date_start + "T00:00:00Z") / 1000;
-        if (te < t0 || te > t1) continue;
-        const px = x(te + DAY / 2), spike = SPIKE.has(e.kind);
-        g.strokeStyle = ctx.tok("--ds-line"); g.setLineDash(e.kind === "magmatic" ? [] : [2, 3]); g.lineWidth = 1;
-        if (!spike) { g.beginPath(); g.moveTo(px, lane.y + 12); g.lineTo(px, lane.y + lane.h); g.stroke(); }
-        g.setLineDash([]);
-        g.fillStyle = ctx.tok("--ds-dim"); g.font = `10px ${ctx.tok("--ds-font-canvas")}`;
-        g.fillText(e.kind === "magmatic" ? "▼" : e.kind === "hidden_by_interpolation" ? "◇" : spike ? "×" : "?", px - 3, lane.y + 10);
+      // eruption marks. v0.13, with W1's eruption list: ▼ an eruption · ▿ an intrusion (dashed), at its onset; × a spike and
+      // ? a one-station step stay (they explain the line). The trace tab's comparison adds, faintly: ◌ dotted = a GNSS fall with no eruption in
+      // the list (detected, unconfirmed); ○ under a mark = an eruption the GNSS did not see (confirmed, undetected).
+      // Without the list: the GNSS detection's own marks, as before: ▼ magmatic · ◇ hidden by interpolation · × a spike
+      // (never a fall) · ? unknown
+      const mk = (px, glyph, dash, a) => {
+        g.globalAlpha = alpha * a; g.strokeStyle = ctx.tok("--ds-line"); g.setLineDash(dash || []); g.lineWidth = 1;
+        if (dash !== null) { g.beginPath(); g.moveTo(px, lane.y + 12); g.lineTo(px, lane.y + lane.h); g.stroke(); }
+        g.setLineDash([]); g.fillStyle = ctx.tok("--ds-dim"); g.font = `10px ${ctx.tok("--ds-font-canvas")}`; g.fillText(glyph, px - 3, lane.y + 10);
+        g.globalAlpha = alpha;
+      };
+      const EL = ctx.eruptions ? ctx.eruptions() : [];
+      if (EL.length && EL[0].from === "eruptions") {
+        for (const e of EL) if (e.onset >= t0 && e.onset <= t1) mk(x(e.onset), e.kind === "intrusion" ? "▿" : "▼", e.kind === "intrusion" ? [2, 3] : [], 1);
+        // the GNSS line's own notes stay: × a spike, ? a step at one station only (neither is an eruption); with the
+        // comparison on, a step that is also a false alarm is drawn once, as ◌
+        const X = ctx.mismatch && ctx.mismatch(), fa = new Set(X ? X.unconfirmed.map((u) => u.date) : []);
+        for (const e of S.M.deflation_events || []) { const sp = SPIKE.has(e.kind); if ((!sp && e.kind !== "unknown") || fa.has(e.date_start)) continue; const te = Date.parse(e.date_start + "T00:00:00Z") / 1000; if (te >= t0 && te <= t1) mk(x(te + DAY / 2), sp ? "×" : "?", null, 1); }
+        if (X) {
+          for (const u of X.unconfirmed) if (u.t >= t0 - DAY && u.t <= t1) mk(x(u.t + DAY / 2), "◌", [1, 3], 0.6);
+          g.strokeStyle = ctx.tok("--ds-dim"); g.lineWidth = 1; g.globalAlpha = alpha * 0.8;
+          for (const e of X.undetected) if (e.onset >= t0 && e.onset <= t1) { g.beginPath(); g.arc(x(e.onset), lane.y + 16, 3, 0, 7); g.stroke(); }
+          g.globalAlpha = alpha;
+        }
+      } else {
+        for (const e of S.M.deflation_events || []) {
+          const te = Date.parse(e.date_start + "T00:00:00Z") / 1000;
+          if (te < t0 || te > t1) continue;
+          const spike = SPIKE.has(e.kind);
+          mk(x(te + DAY / 2), e.kind === "magmatic" ? "▼" : e.kind === "hidden_by_interpolation" ? "◇" : spike ? "×" : "?", spike ? null : e.kind === "magmatic" ? [] : [2, 3], 1);
+        }
       }
       // threshold lines at each magmatic eruption's start level, in SKSH's colour, dashed
       g.strokeStyle = C.gnss.SKSH; g.lineWidth = 1; g.setLineDash([5, 4]); g.globalAlpha = alpha * 0.85;
@@ -355,30 +376,42 @@ window.SvkTimeline = (function () {
     function drawRibbons(lane, alpha) {
       const sta = ctx.seismic(); if (!sta) return;
       const none = hatchUncovered(sta.id, lane, alpha, ctx.noWaveText());
-      const R = D.melh[S.levelIdx <= 1 ? "f10s" : "f1m"] || D.melh.f1m;
-      if (none || !R || !R.t.length) return;
+      const R = D.melh[S.levelIdx <= 1 ? "f10s" : "f1m"] || D.melh.f1m, B = D.melh.base;
+      if (none || ((!R || !R.t.length) && !B)) return;
       const y = bandScale(lane); lane.y_ = y;
-      const C = ctx.col(), step = R.step;
       g.save();
+      if (R && R.t.length) bandRows(R, lane, y, alpha, null);
+      // the window rule (W1 §15.1): where the finer rows are absent by design, the base tier's (f10m), the same bands, coarser
+      if (B) {
+        const has = (t0, t1) => { if (!R || !R.t.length) return false; const i = d3.bisectLeft(R.t, t0); return i < R.t.length && R.t[i] < t1; };
+        // a base row stands unless the finer rows cover it end to end (no blank at a window's edge; a short overlap is fine)
+        const ds = (R && R.step) || 60;
+        bandRows(B, lane, y, alpha, (i) => !(has(B.t[i], B.t[i] + ds) && has(B.t[i] + B.step - ds, B.t[i] + B.step)));
+      }
+      g.restore();
+      axisLeft(lane, y, alpha, "");
+    }
+    // one table's four band ribbons (a faint fill under each line); keep(i) = false leaves a row out (a break in the line)
+    function bandRows(R, lane, y, alpha, keep) {
+      const C = ctx.col(), step = R.step;
       for (const b of SvkCook.BANDS) {
         const a = R.cols[`rsam_${b}`]; if (!a) continue;
+        const ok = (i) => isNum(a[i]) && a[i] > 0 && (!keep || keep(i));
         g.globalAlpha = alpha * 0.07; g.fillStyle = C.bands[b];
         let open = false; g.beginPath();
         const close = (xe) => { g.lineTo(xe, lane.y + lane.h); g.closePath(); g.fill(); g.beginPath(); open = false; };
         let lastX = 0;
         for (let i = 0; i < R.t.length; i++) {
-          const v = a[i], px = x(R.t[i] + step / 2);
-          if (!isNum(v) || v <= 0) { if (open) close(lastX); continue; }
+          const px = x(R.t[i] + step / 2);
+          if (!ok(i)) { if (open) close(lastX); continue; }
           if (!open) { g.moveTo(px, lane.y + lane.h); open = true; }
-          g.lineTo(px, y(v)); lastX = px;
+          g.lineTo(px, y(a[i])); lastX = px;
         }
         if (open) close(lastX);
         g.globalAlpha = alpha * 0.95; g.strokeStyle = C.bands[b]; g.lineWidth = 1.2; g.beginPath(); open = false;
-        for (let i = 0; i < R.t.length; i++) { const v = a[i], px = x(R.t[i] + step / 2); if (!isNum(v) || v <= 0) { open = false; continue; } if (!open) { g.moveTo(px, y(v)); open = true; } else g.lineTo(px, y(v)); }
+        for (let i = 0; i < R.t.length; i++) { const px = x(R.t[i] + step / 2); if (!ok(i)) { open = false; continue; } if (!open) { g.moveTo(px, y(a[i])); open = true; } else g.lineTo(px, y(a[i])); }
         g.stroke();
       }
-      g.restore();
-      axisLeft(lane, y, alpha, "");
     }
     // ----- tilt (mass position): f1m at day, f10s at hours, raw 1 Hz at minutes; each trace demeaned, scaled to the window
     function drawTilt(lane, alpha) {
@@ -392,9 +425,16 @@ window.SvkTimeline = (function () {
           series.push([k, pts]);
         }
       } else {
-        const R = D.melh[S.levelIdx <= 1 ? "f10s" : "f1m"];
-        if (!R || !R.t.length) return;
-        for (const k of ["n", "e"]) { const a = R.cols[`tilt_${k}`]; if (!a) continue; series.push([k, Array.from(R.t, (t, i) => [t + R.step / 2, a[i]])]); }
+        const R = D.melh[S.levelIdx <= 1 ? "f10s" : "f1m"], B = S.levelIdx === 2 ? D.melh.base : null;
+        if ((!R || !R.t.length) && !B) return;
+        // the window rule: the base tier's tilt where the minute rows are absent by design, one line through both
+        const has = (t0, t1) => { if (!R || !R.t.length) return false; const i = d3.bisectLeft(R.t, t0); return i < R.t.length && R.t[i] < t1; };
+        for (const k of ["n", "e"]) {
+          const a = R && R.cols[`tilt_${k}`], b = B && B.cols[`tilt_${k}`]; if (!a && !b) continue;
+          const pts = a ? Array.from(R.t, (t, i) => [t + R.step / 2, a[i]]) : [];
+          if (b) for (let i = 0; i < B.t.length; i++) if (!has(B.t[i], B.t[i] + B.step)) pts.push([B.t[i] + B.step / 2, b[i]]);
+          series.push([k, pts.sort((p, q) => p[0] - q[0])]);
+        }
       }
       g.save();
       series.forEach(([k, pts], j) => {
@@ -664,8 +704,8 @@ window.SvkTimeline = (function () {
       for (let j = 0; j < px; j++) if (bins[j] > 0) { g.fillStyle = ramp(0.25 + 0.75 * Math.log10(1 + bins[j]) / Math.log10(1 + top)); g.fillRect(OV_X + j, qY, 1, rowH); }
       // the eruptions
       g.globalAlpha = 0.8; g.fillStyle = ctx.tok("--ds-txt");
-      for (const e of S.M.deflation_events || []) { if (e.kind !== "magmatic" && e.kind !== "hidden_by_interpolation") continue;
-        const te = Date.parse(`${e.date_start}T12:00:00Z`) / 1000; if (te < a || te > b) continue; const xe = xo(te); g.fillRect(xe - 0.5, y0, 1.5, 26); }
+      for (const e of ctx.eruptions ? ctx.eruptions() : []) {          // v0.13: the eruption list's onsets (else the GNSS detection's days)
+        const te = e.from === "gnss" ? e.t + DAY / 2 : e.onset; if (te < a || te > b) continue; const xe = xo(te); g.fillRect(xe - 0.5, y0, 1.5, 26); }
       // the view you are in (gold = you), at least 5 px wide
       const vx0 = xo(S.view[0]), vx1 = xo(S.view[1]), vw = Math.max(5, vx1 - vx0), vxa = (vx0 + vx1) / 2 - vw / 2;
       g.globalAlpha = 0.12; g.fillStyle = ctx.tok("--ds-cur"); g.fillRect(vxa, y0 - 2, vw, 30);
@@ -746,6 +786,9 @@ window.SvkTimeline = (function () {
       drawStrip();
       drawTraces();
       drawOverview();
+      // the window rule's one quiet hint (W1 §15.1): the finest detail ships only around events; the why on hover
+      const dh = ctx.detailHint ? ctx.detailHint() : null, de = host.querySelector(".tl-detail");
+      de.style.display = dh ? "block" : "none"; if (dh) { de.textContent = dh.text; de.title = dh.title; }
       // axis
       const ax = d3.scaleUtc().domain(S.view.map(utc)).range([0, W]);
       const axis = d3.axisBottom(ax).ticks(Math.max(2, Math.floor(W / 120))).tickSizeOuter(0);

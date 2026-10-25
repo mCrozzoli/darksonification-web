@@ -1,6 +1,7 @@
 {
- "contract": "0.11.7",
- "built": "2026-10-20T21:41:01.340Z",
+ "contract": "0.13",
+ "public": true,
+ "built": "2026-10-25T11:47:09.479Z",
  "t0": 1685577600,
  "t_end": 1790294400.0,
  "n_days": 1212,
@@ -88,9 +89,9 @@
    "n_harmonics": 6,
    "shape_min_measured": 0.5,
    "tau_window_d": 365,
-   "inflow_max_mm_d": 7.45135,
-   "inflow_max_date": "2023-12-23",
-   "boundaries": "magmatic + hidden_by_interpolation"
+   "inflow_max_mm_d": 7.59683,
+   "inflow_max_date": "2023-12-22",
+   "boundaries": "the eruption timeline (events/eruptions.json, v0.13): every eruption and intrusion, by the UTC day of its onset; same-day events make one boundary"
   },
   "gnss_frame": "every GNSS level (L0, tiles, deflation_events, ranges) is mm relative to the first common day; the source file's value on that day is subtracted per station",
   "gnss_frame_offsets_src_mm": {
@@ -260,11 +261,14 @@
   {
    "id": "RK.MELH.10",
    "kind": "seismic",
+   "public": true,
    "label": "MELH, the seismometer near the vent: ground shaking and tilt on 14 Jan 2024, until lava overran it at 10:23 UTC",
-   "lat": null,
-   "lon": null,
+   "lat": 63.862087,
+   "lon": -22.404293,
+   "pos_status": "approx",
+   "pos_source": "placeholder: the 2020-21 8F.MELH 'Melholl' site (IRIS FDSN station service), assumed to be the same site; 0.8 km from the 14 Jan 2024 fissure that overran the station",
+   "pos_err_m": 2000.0,
    "pending": true,
-   "source": null,
    "channels": [
     "HHZ",
     "HHN",
@@ -308,18 +312,21 @@
    "fdsn_lookup": {
     "service": "https://service.iris.edu/fdsnws/station/1/query?sta=MELH&level=station",
     "found": "8F.MELH 'Melholl' 63.862087, -22.404293 (67.6 m), epochs 2020-06-22 to 2021-12-14",
-    "used": false,
-    "why": "a temporary 8F deployment that ended in 2021; RK.MELH.10 (2024) is not listed by IRIS, EIDA or GEOFON, so its position is pending StationXML from Leif (TASKS L1)"
+    "used": "as the approx placeholder only (v0.13: pos_status approx, pos_err_m 2000), never as measured",
+    "why": "a temporary 8F deployment that ended in 2021; RK.MELH.10 (2024) is not listed by IRIS, EIDA, GEOFON, ORFEUS or the EIDA federator, so its measured position waits for StationXML from Leif (TASKS L1)"
    }
   },
   {
    "id": "SKSH",
    "kind": "gnss",
+   "public": true,
    "label": "SKSH, GNSS station: daily ground position (the primary one, Leif's choice)",
-   "lat": null,
-   "lon": null,
-   "pending": true,
-   "source": null,
+   "lat": 63.868135,
+   "lon": -22.480364,
+   "pos_status": "measured",
+   "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js, 2026-08-25); IMO site log https://gnss-metadata.eu/v1/sitelog/exportlog?id=SKSH00ISL: 63.868139, -22.480367, 90.9 m ellipsoidal",
+   "pos_err_m": 1.0,
+   "pending": false,
    "primary": true,
    "first_day": "2023-06-04",
    "last_day": "2026-09-24",
@@ -330,11 +337,14 @@
   {
    "id": "SENG",
    "kind": "gnss",
+   "public": true,
    "label": "SENG, GNSS station: daily ground position",
-   "lat": null,
-   "lon": null,
-   "pending": true,
-   "source": null,
+   "lat": 63.88224,
+   "lon": -22.433715,
+   "pos_status": "measured",
+   "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js, 2026-08-25); IMO site log https://gnss-metadata.eu/v1/sitelog/exportlog?id=SENG00ISL: 63.882242, -22.433717, 95.9 m ellipsoidal",
+   "pos_err_m": 1.0,
+   "pending": false,
    "primary": false,
    "first_day": "2023-06-04",
    "last_day": "2026-09-24",
@@ -345,11 +355,14 @@
   {
    "id": "THOB",
    "kind": "gnss",
+   "public": true,
    "label": "THOB, GNSS station: daily ground position",
-   "lat": null,
-   "lon": null,
-   "pending": true,
-   "source": null,
+   "lat": 63.864119,
+   "lon": -22.439319,
+   "pos_status": "measured",
+   "pos_source": "IMO site log https://gnss-metadata.eu/v1/sitelog/exportlog?id=THOB00ISL (+635150.83 -0222621.55, 287.0 m ellipsoidal); IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js): 63.8641, -22.4393 (4 decimals)",
+   "pos_err_m": 1.0,
+   "pending": false,
    "primary": false,
    "first_day": "2023-06-17",
    "last_day": "2026-09-24",
@@ -629,7 +642,7 @@
    ]
   },
   "recharge_stale": {
-   "label": "reference eruption unknown (Jan/Feb 2024 hidden): recharge_frac, the wait and the height above the last start are null",
+   "label": "reference level unknown (the Jan/Feb 2024 eruptions and the 2 Mar 2024 intrusion are not levelled by SKSH): recharge_frac, the height above the last start and the reference level are null (the wait is dated by the timeline, v0.13)",
    "unit": "flag",
    "log": false,
    "epistemic": "inference",
@@ -640,51 +653,33 @@
    ]
   },
   "days_since_fall": {
-   "label": "days since the last fall of the ground (start of the last magmatic event)",
+   "label": "days since the last eruption or intrusion (the onset's UTC day, events/eruptions.json)",
    "unit": "days",
    "log": false,
    "epistemic": "inference",
-   "marks": [
-    "stale"
-   ],
-   "marked_by": {
-    "stale": "recharge_stale"
-   },
    "range": [
     0,
     435.0
    ]
   },
   "wait_rel": {
-   "label": "the wait so far, relative to the longest earlier interval between eruptions (1 = as long as the longest before; causal; the hidden Jan/Feb 2024 eruptions count)",
+   "label": "the wait so far, relative to the longest earlier interval between eruptions or intrusions (1 = as long as the longest before; causal; the timeline in events/eruptions.json)",
    "unit": "ratio",
    "log": false,
    "epistemic": "inference",
-   "marks": [
-    "stale"
-   ],
-   "marked_by": {
-    "stale": "recharge_stale"
-   },
    "range": [
     0,
-    3.32061
+    3.29545
    ]
   },
   "longest_wait_d": {
-   "label": "the longest earlier interval between eruptions, the denominator of wait_rel (magmatic + hidden eruptions; causal)",
+   "label": "the longest earlier interval between eruptions or intrusions, the denominator of wait_rel (the timeline; causal)",
    "unit": "days",
    "log": false,
    "epistemic": "inference",
-   "marks": [
-    "stale"
-   ],
-   "marked_by": {
-    "stale": "recharge_stale"
-   },
    "range": [
     38.0,
-    131.0
+    132.0
    ]
   },
   "above_last_start_mm": {
@@ -722,13 +717,13 @@
    ]
   },
   "cycle_period_d": {
-   "label": "length of the eruption cycle: the last completed interval between eruptions, or the days since the last one once that is longer (Jan/Feb 2024 included)",
+   "label": "length of the eruption cycle: the last completed interval between eruptions or intrusions, or the days since the last one once that is longer (the timeline)",
    "unit": "days",
    "log": true,
    "epistemic": "inference",
    "range": [
-    25.0,
-    424.9
+    14.0,
+    424.89
    ]
   },
   "inflow_mm_d": {
@@ -738,8 +733,8 @@
    "epistemic": "measurement",
    "model": "T-C (CONTRACT v0.9, FINDINGS F7)",
    "range": [
-    0.0346633,
-    7.04253
+    0.0344223,
+    7.13588
    ]
   },
   "inflow_rel": {
@@ -771,8 +766,8 @@
    "epistemic": "measurement",
    "model": "T-C (CONTRACT v0.9, FINDINGS F7)",
    "range": [
-    0.0534595,
-    1.16712
+    0.053486,
+    1.58132
    ]
   },
   "cyc_h3": {
@@ -782,8 +777,8 @@
    "epistemic": "measurement",
    "model": "T-C (CONTRACT v0.9, FINDINGS F7)",
    "range": [
-    0.0165203,
-    0.835601
+    0.0165243,
+    0.971053
    ]
   },
   "cyc_h4": {
@@ -793,8 +788,8 @@
    "epistemic": "measurement",
    "model": "T-C (CONTRACT v0.9, FINDINGS F7)",
    "range": [
-    0.0200468,
-    0.555127
+    0.020053,
+    0.614515
    ]
   },
   "cyc_h5": {
@@ -804,8 +799,8 @@
    "epistemic": "measurement",
    "model": "T-C (CONTRACT v0.9, FINDINGS F7)",
    "range": [
-    0.0305855,
-    0.522216
+    0.0306381,
+    1.218
    ]
   },
   "cyc_h6": {
@@ -815,8 +810,8 @@
    "epistemic": "measurement",
    "model": "T-C (CONTRACT v0.9, FINDINGS F7)",
    "range": [
-    0.00610495,
-    0.644458
+    0.0123756,
+    1.10008
    ]
   },
   "inflow_tau_d": {
@@ -826,8 +821,8 @@
    "epistemic": "inference",
    "model": "T-C (CONTRACT v0.9, FINDINGS F7)",
    "range": [
-    179.529,
-    1742.78
+    179.471,
+    1251.22
    ]
   },
   "phase": {
@@ -877,13 +872,33 @@
    ]
   },
   "phase_cycle": {
-   "label": "days since the last eruption / the longest earlier interval, unclipped (> 1 = later than any earlier eruption came)",
+   "label": "days since the last eruption or intrusion / the longest earlier interval, unclipped (> 1 = later than any earlier event came)",
    "unit": "ratio",
    "log": false,
    "epistemic": "inference",
    "range": [
-    0.00798134,
-    3.24351
+    0.00757576,
+    3.21886
+   ]
+  },
+  "fountain_max_m": {
+   "label": "highest lava fountain of the eruption, observed (Rhodes et al. 2026) or simulated (Leif's model)",
+   "unit": "m",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    55.072,
+    132.184
+   ]
+  },
+  "fountain_h_m": {
+   "label": "lava-fountain height of one fissure segment (events/fountains/<id>.json)",
+   "unit": "m",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    0.0,
+    89.8
    ]
   },
   "pressure": {
@@ -902,8 +917,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000243808,
-    4.14785
+    0.000245911,
+    4.24141
    ]
   },
   "g01": {
@@ -912,7 +927,7 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000228029,
+    0.000231596,
     5.04807
    ]
   },
@@ -922,7 +937,7 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000194635,
+    0.000201857,
     6.19261
    ]
   },
@@ -932,7 +947,7 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000155402,
+    0.000154936,
     8.40298
    ]
   },
@@ -942,7 +957,7 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000192649,
+    0.000199722,
     4.0941
    ]
   },
@@ -952,8 +967,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000140932,
-    4.09287
+    0.000149561,
+    4.11211
    ]
   },
   "g06": {
@@ -972,7 +987,7 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000324296,
+    0.000324301,
     6.92421
    ]
   },
@@ -983,7 +998,7 @@
    "epistemic": "measurement",
    "range": [
     0.00057326,
-    3.82377
+    3.80245
    ]
   },
   "g09": {
@@ -992,8 +1007,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000331213,
-    6.3027
+    0.000305202,
+    6.27818
    ]
   },
   "g10": {
@@ -1013,7 +1028,7 @@
    "epistemic": "measurement",
    "range": [
     0.000204385,
-    5.27842
+    5.27738
    ]
   },
   "g12": {
@@ -1022,8 +1037,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000152967,
-    4.79092
+    0.000152976,
+    4.79264
    ]
   },
   "g13": {
@@ -1033,7 +1048,7 @@
    "epistemic": "measurement",
    "range": [
     0.000150322,
-    5.25335
+    5.45417
    ]
   },
   "g14": {
@@ -1043,7 +1058,7 @@
    "epistemic": "measurement",
    "range": [
     0.000194796,
-    6.0378
+    6.03652
    ]
   },
   "g15": {
@@ -1053,7 +1068,7 @@
    "epistemic": "measurement",
    "range": [
     0.000225075,
-    6.72168
+    6.72109
    ]
   },
   "g16": {
@@ -1062,8 +1077,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    5.93887e-05,
-    4.62815
+    6.08765e-05,
+    5.11551
    ]
   },
   "g17": {
@@ -1072,8 +1087,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    6.84871e-05,
-    3.80239
+    7.64371e-05,
+    4.05628
    ]
   },
   "g18": {
@@ -1082,8 +1097,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    5.01458e-05,
-    6.07226
+    4.80855e-05,
+    6.80022
    ]
   },
   "g19": {
@@ -1092,8 +1107,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    8.48764e-05,
-    3.80677
+    8.42713e-05,
+    3.5237
    ]
   },
   "g20": {
@@ -1103,7 +1118,7 @@
    "epistemic": "measurement",
    "range": [
     0.000699091,
-    4.49629
+    4.47805
    ]
   },
   "g21": {
@@ -1113,7 +1128,7 @@
    "epistemic": "measurement",
    "range": [
     0.000945915,
-    5.24979
+    4.96409
    ]
   },
   "g22": {
@@ -1132,7 +1147,7 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    6.04939e-07,
+    2.73007e-07,
     7.04929
    ]
   },
@@ -1142,8 +1157,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000123331,
-    4.94382
+    0.000123447,
+    4.95204
    ]
   },
   "g25": {
@@ -1152,8 +1167,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000170064,
-    4.40742
+    0.000170155,
+    4.55299
    ]
   },
   "g26": {
@@ -1162,8 +1177,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000237774,
-    6.38631
+    0.000166201,
+    6.38234
    ]
   },
   "g27": {
@@ -1172,8 +1187,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000153857,
-    8.93134
+    0.000130367,
+    8.93478
    ]
   },
   "g28": {
@@ -1182,8 +1197,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    7.61468e-05,
-    3.8246
+    7.60573e-05,
+    3.82521
    ]
   },
   "g29": {
@@ -1192,8 +1207,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    5.00478e-05,
-    5.05276
+    4.99476e-05,
+    5.05365
    ]
   },
   "g30": {
@@ -1202,7 +1217,7 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    9.63332e-05,
+    9.6295e-05,
     2.97619
    ]
   },
@@ -1212,7 +1227,7 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    9.65861e-05,
+    9.64351e-05,
     3.09095
    ]
   },
@@ -1222,8 +1237,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.00031856,
-    2.97388
+    0.000320802,
+    3.04014
    ]
   },
   "g33": {
@@ -1232,7 +1247,7 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000665398,
+    0.00066534,
     3.171
    ]
   },
@@ -1242,7 +1257,7 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000478695,
+    0.000452484,
     4.2748
    ]
   },
@@ -1252,7 +1267,7 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    6.29117e-07,
+    1.47046e-07,
     5.93403
    ]
   },
@@ -1262,7 +1277,7 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.415233,
+    0.409527,
     4.59867
    ]
   },
@@ -2288,32 +2303,32 @@
    "source": "gnss"
   },
   "days_since_fall": {
-   "p01": 1.0,
-   "p50": 71.0,
-   "p99": 425.15,
+   "p01": 0.49,
+   "p50": 66.0,
+   "p99": 424.51,
    "min": 0.0,
    "max": 435.0,
-   "n": 986,
+   "n": 1050,
    "tier": "f1d",
    "source": "gnss"
   },
   "wait_rel": {
-   "p01": 0.011354,
-   "p50": 0.812532,
-   "p99": 3.24832,
+   "p01": 0.00757576,
+   "p50": 0.751471,
+   "p99": 3.21886,
    "min": 0.0,
-   "max": 3.32061,
-   "n": 948,
+   "max": 3.29545,
+   "n": 1012,
    "tier": "f1d",
    "source": "gnss"
   },
   "longest_wait_d": {
    "p01": 38.0,
-   "p50": 131.0,
-   "p99": 131.0,
+   "p50": 132.0,
+   "p99": 132.0,
    "min": 38.0,
-   "max": 131.0,
-   "n": 948,
+   "max": 132.0,
+   "n": 1012,
    "tier": "f1d",
    "source": "gnss"
   },
@@ -2338,32 +2353,32 @@
    "source": "gnss"
   },
   "cycle_period_d": {
-   "p01": 25.0,
+   "p01": 14.0,
    "p50": 106.0,
-   "p99": 424.9,
-   "min": 25.0,
+   "p99": 424.89,
+   "min": 14.0,
    "max": 435.0,
-   "n": 1011,
+   "n": 1012,
    "tier": "f1d",
    "source": "gnss"
   },
   "inflow_mm_d": {
-   "p01": 0.0346633,
-   "p50": 2.18645,
-   "p99": 7.04253,
+   "p01": 0.0344223,
+   "p50": 2.06964,
+   "p99": 7.13588,
    "min": -0.0632462,
-   "max": 7.45135,
-   "n": 910,
+   "max": 7.59683,
+   "n": 887,
    "tier": "f1d",
    "source": "gnss"
   },
   "inflow_rel": {
-   "p01": 0.00465195,
-   "p50": 0.29343,
-   "p99": 0.945136,
+   "p01": 0.00453114,
+   "p50": 0.272434,
+   "p99": 0.939323,
    "min": 0.0,
    "max": 1.0,
-   "n": 910,
+   "n": 887,
    "tier": "f1d",
    "source": "gnss"
   },
@@ -2373,67 +2388,67 @@
    "p99": 1.0,
    "min": 1.0,
    "max": 1.0,
-   "n": 989,
+   "n": 992,
    "tier": "f1d",
    "source": "gnss"
   },
   "cyc_h2": {
-   "p01": 0.0534595,
+   "p01": 0.053486,
    "p50": 0.336327,
-   "p99": 1.16712,
+   "p99": 1.58132,
    "min": 0.0258746,
-   "max": 1.16712,
-   "n": 989,
+   "max": 1.58132,
+   "n": 992,
    "tier": "f1d",
    "source": "gnss"
   },
   "cyc_h3": {
-   "p01": 0.0165203,
-   "p50": 0.187458,
-   "p99": 0.835601,
+   "p01": 0.0165243,
+   "p50": 0.185353,
+   "p99": 0.971053,
    "min": 0.00693667,
-   "max": 1.09404,
-   "n": 989,
+   "max": 1.30116,
+   "n": 992,
    "tier": "f1d",
    "source": "gnss"
   },
   "cyc_h4": {
-   "p01": 0.0200468,
-   "p50": 0.144921,
-   "p99": 0.555127,
+   "p01": 0.020053,
+   "p50": 0.142435,
+   "p99": 0.614515,
    "min": 0.00315833,
    "max": 1.00532,
-   "n": 989,
+   "n": 992,
    "tier": "f1d",
    "source": "gnss"
   },
   "cyc_h5": {
-   "p01": 0.0305855,
-   "p50": 0.159176,
-   "p99": 0.522216,
+   "p01": 0.0306381,
+   "p50": 0.161359,
+   "p99": 1.218,
    "min": 0.0124803,
-   "max": 0.811163,
-   "n": 989,
+   "max": 1.218,
+   "n": 992,
    "tier": "f1d",
    "source": "gnss"
   },
   "cyc_h6": {
-   "p01": 0.00610495,
-   "p50": 0.0887177,
-   "p99": 0.644458,
+   "p01": 0.0123756,
+   "p50": 0.0875635,
+   "p99": 1.10008,
    "min": 0.00217409,
-   "max": 0.74826,
-   "n": 989,
+   "max": 1.10008,
+   "n": 992,
    "tier": "f1d",
    "source": "gnss"
   },
   "inflow_tau_d": {
-   "p01": 179.529,
-   "p50": 483.989,
-   "p99": 1742.78,
+   "p01": 179.471,
+   "p50": 457.726,
+   "p99": 1251.22,
    "min": 178.425,
-   "max": 1860.2,
-   "n": 731,
+   "max": 1276.12,
+   "n": 707,
    "tier": "f1d",
    "source": "gnss"
   },
@@ -2468,8 +2483,8 @@
    "source": "eq"
   },
   "theta": {
-   "p01": 0.0118557,
-   "p50": 0.604957,
+   "p01": 0.011183,
+   "p50": 0.580014,
    "p99": 1.0,
    "min": 0.0,
    "max": 1.0,
@@ -2478,12 +2493,12 @@
    "source": "body_sequence"
   },
   "phase_cycle": {
-   "p01": 0.00798134,
-   "p50": 0.767123,
-   "p99": 3.24351,
+   "p01": 0.00757576,
+   "p50": 0.751471,
+   "p99": 3.21886,
    "min": 0.0,
-   "max": 3.32061,
-   "n": 1011,
+   "max": 3.29545,
+   "n": 1012,
    "tier": "f1d",
    "source": "body_sequence"
   },
@@ -2498,68 +2513,68 @@
    "source": "body_sequence"
   },
   "g00": {
-   "p01": 0.000243808,
-   "p50": 0.299059,
-   "p99": 4.14785,
-   "min": 4.97541e-07,
+   "p01": 0.000245911,
+   "p50": 0.299938,
+   "p99": 4.24141,
+   "min": 4.68471e-07,
    "max": 8.693,
    "n": 1205,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g01": {
-   "p01": 0.000228029,
-   "p50": 0.367704,
+   "p01": 0.000231596,
+   "p50": 0.369061,
    "p99": 5.04807,
-   "min": 5.23037e-07,
-   "max": 9.51979,
+   "min": 5.05296e-07,
+   "max": 9.56248,
    "n": 1205,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g02": {
-   "p01": 0.000194635,
-   "p50": 0.375762,
+   "p01": 0.000201857,
+   "p50": 0.373901,
    "p99": 6.19261,
-   "min": 5.44812e-07,
+   "min": 5.37108e-07,
    "max": 11.9971,
    "n": 1205,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g03": {
-   "p01": 0.000155402,
-   "p50": 0.355147,
+   "p01": 0.000154936,
+   "p50": 0.349134,
    "p99": 8.40298,
-   "min": 5.69832e-07,
+   "min": 5.74046e-07,
    "max": 16.2794,
    "n": 1205,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g04": {
-   "p01": 0.000192649,
-   "p50": 0.291987,
+   "p01": 0.000199722,
+   "p50": 0.301555,
    "p99": 4.0941,
    "min": 2.38156e-06,
-   "max": 7.06237,
+   "max": 6.94895,
    "n": 1205,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g05": {
-   "p01": 0.000140932,
-   "p50": 0.233315,
-   "p99": 4.09287,
+   "p01": 0.000149561,
+   "p50": 0.241438,
+   "p99": 4.11211,
    "min": 1.62067e-06,
-   "max": 8.2195,
+   "max": 7.90688,
    "n": 1205,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g06": {
    "p01": 0.000263583,
-   "p50": 0.329081,
+   "p50": 0.329033,
    "p99": 5.92192,
    "min": 4.73689e-06,
    "max": 13.4605,
@@ -2568,8 +2583,8 @@
    "source": "body_sequence"
   },
   "g07": {
-   "p01": 0.000324296,
-   "p50": 0.336128,
+   "p01": 0.000324301,
+   "p50": 0.327319,
    "p99": 6.92421,
    "min": 5.89683e-06,
    "max": 16.7567,
@@ -2579,8 +2594,8 @@
   },
   "g08": {
    "p01": 0.00057326,
-   "p50": 0.846875,
-   "p99": 3.82377,
+   "p50": 0.846426,
+   "p99": 3.80245,
    "min": 3.395e-05,
    "max": 6.87022,
    "n": 1205,
@@ -2588,18 +2603,18 @@
    "source": "body_sequence"
   },
   "g09": {
-   "p01": 0.000331213,
-   "p50": 0.334741,
-   "p99": 6.3027,
+   "p01": 0.000305202,
+   "p50": 0.341132,
+   "p99": 6.27818,
    "min": 2.53626e-05,
-   "max": 8.05931,
+   "max": 7.86842,
    "n": 1205,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g10": {
    "p01": 0.00032878,
-   "p50": 0.94924,
+   "p50": 0.938741,
    "p99": 4.35778,
    "min": 3.395e-05,
    "max": 6.87022,
@@ -2609,8 +2624,8 @@
   },
   "g11": {
    "p01": 0.000204385,
-   "p50": 0.843594,
-   "p99": 5.27842,
+   "p50": 0.83067,
+   "p99": 5.27738,
    "min": 3.395e-05,
    "max": 7.66391,
    "n": 1205,
@@ -2618,9 +2633,9 @@
    "source": "body_sequence"
   },
   "g12": {
-   "p01": 0.000152967,
-   "p50": 0.652804,
-   "p99": 4.79092,
+   "p01": 0.000152976,
+   "p50": 0.654235,
+   "p99": 4.79264,
    "min": 0.0,
    "max": 12.9485,
    "n": 1205,
@@ -2629,8 +2644,8 @@
   },
   "g13": {
    "p01": 0.000150322,
-   "p50": 0.559967,
-   "p99": 5.25335,
+   "p50": 0.582943,
+   "p99": 5.45417,
    "min": 0.0,
    "max": 12.9485,
    "n": 1205,
@@ -2639,8 +2654,8 @@
   },
   "g14": {
    "p01": 0.000194796,
-   "p50": 0.735014,
-   "p99": 6.0378,
+   "p50": 0.735781,
+   "p99": 6.03652,
    "min": 0.0,
    "max": 12.9485,
    "n": 1205,
@@ -2649,8 +2664,8 @@
   },
   "g15": {
    "p01": 0.000225075,
-   "p50": 0.712393,
-   "p99": 6.72168,
+   "p50": 0.701964,
+   "p99": 6.72109,
    "min": 0.0,
    "max": 12.9485,
    "n": 1205,
@@ -2658,9 +2673,9 @@
    "source": "body_sequence"
   },
   "g16": {
-   "p01": 5.93887e-05,
-   "p50": 0.0821078,
-   "p99": 4.62815,
+   "p01": 6.08765e-05,
+   "p50": 0.0828658,
+   "p99": 5.11551,
    "min": 2.67529e-06,
    "max": 7.13228,
    "n": 1205,
@@ -2668,9 +2683,9 @@
    "source": "body_sequence"
   },
   "g17": {
-   "p01": 6.84871e-05,
-   "p50": 0.0906551,
-   "p99": 3.80239,
+   "p01": 7.64371e-05,
+   "p50": 0.0908187,
+   "p99": 4.05628,
    "min": 3.71424e-06,
    "max": 7.13228,
    "n": 1205,
@@ -2678,20 +2693,20 @@
    "source": "body_sequence"
   },
   "g18": {
-   "p01": 5.01458e-05,
-   "p50": 0.0691407,
-   "p99": 6.07226,
+   "p01": 4.80855e-05,
+   "p50": 0.0712536,
+   "p99": 6.80022,
    "min": 1.68874e-06,
-   "max": 8.66491,
+   "max": 9.48006,
    "n": 1205,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g19": {
-   "p01": 8.48764e-05,
-   "p50": 0.110785,
-   "p99": 3.80677,
-   "min": 6.8687e-06,
+   "p01": 8.42713e-05,
+   "p50": 0.110592,
+   "p99": 3.5237,
+   "min": 5.98416e-06,
    "max": 7.13228,
    "n": 1205,
    "tier": "f1d",
@@ -2699,9 +2714,9 @@
   },
   "g20": {
    "p01": 0.000699091,
-   "p50": 0.901155,
-   "p99": 4.49629,
-   "min": 4.48034e-06,
+   "p50": 0.903,
+   "p99": 4.47805,
+   "min": 4.52535e-06,
    "max": 12.0738,
    "n": 1205,
    "tier": "f1d",
@@ -2709,9 +2724,9 @@
   },
   "g21": {
    "p01": 0.000945915,
-   "p50": 1.01285,
-   "p99": 5.24979,
-   "min": 6.94577e-06,
+   "p50": 1.00443,
+   "p99": 4.96409,
+   "min": 6.94329e-06,
    "max": 12.0738,
    "n": 1205,
    "tier": "f1d",
@@ -2719,17 +2734,17 @@
   },
   "g22": {
    "p01": 0.00114742,
-   "p50": 0.98054,
+   "p50": 0.944073,
    "p99": 5.56346,
-   "min": 8.7881e-06,
+   "min": 8.74373e-06,
    "max": 12.0738,
    "n": 1205,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g23": {
-   "p01": 6.04939e-07,
-   "p50": 1.03767,
+   "p01": 2.73007e-07,
+   "p50": 0.964807,
    "p99": 7.04929,
    "min": 0.0,
    "max": 12.0738,
@@ -2738,98 +2753,98 @@
    "source": "body_sequence"
   },
   "g24": {
-   "p01": 0.000123331,
-   "p50": 0.503911,
-   "p99": 4.94382,
-   "min": 1.95169e-07,
+   "p01": 0.000123447,
+   "p50": 0.507358,
+   "p99": 4.95204,
+   "min": 1.93841e-07,
    "max": 11.4947,
    "n": 1192,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g25": {
-   "p01": 0.000170064,
-   "p50": 0.577634,
-   "p99": 4.40742,
-   "min": 2.69975e-07,
+   "p01": 0.000170155,
+   "p50": 0.580697,
+   "p99": 4.55299,
+   "min": 2.68868e-07,
    "max": 11.4947,
    "n": 1192,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g26": {
-   "p01": 0.000237774,
-   "p50": 0.55931,
-   "p99": 6.38631,
-   "min": 4.96552e-07,
+   "p01": 0.000166201,
+   "p50": 0.557305,
+   "p99": 6.38234,
+   "min": 4.96521e-07,
    "max": 11.4947,
    "n": 1192,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g27": {
-   "p01": 0.000153857,
-   "p50": 0.558032,
-   "p99": 8.93134,
-   "min": 7.15475e-07,
+   "p01": 0.000130367,
+   "p50": 0.521667,
+   "p99": 8.93478,
+   "min": 7.16787e-07,
    "max": 14.4023,
    "n": 1192,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g28": {
-   "p01": 7.61468e-05,
-   "p50": 0.151392,
-   "p99": 3.8246,
-   "min": 4.6044e-07,
-   "max": 5.23426,
+   "p01": 7.60573e-05,
+   "p50": 0.156452,
+   "p99": 3.82521,
+   "min": 4.5593e-07,
+   "max": 5.24223,
    "n": 1192,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g29": {
-   "p01": 5.00478e-05,
-   "p50": 0.118821,
-   "p99": 5.05276,
+   "p01": 4.99476e-05,
+   "p50": 0.121487,
+   "p99": 5.05365,
    "min": 4.59803e-07,
-   "max": 7.06509,
+   "max": 7.0759,
    "n": 1192,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g30": {
-   "p01": 9.63332e-05,
-   "p50": 0.177636,
+   "p01": 9.6295e-05,
+   "p50": 0.179324,
    "p99": 2.97619,
-   "min": 3.78416e-07,
-   "max": 3.86789,
+   "min": 3.78895e-07,
+   "max": 3.87375,
    "n": 1192,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g31": {
-   "p01": 9.65861e-05,
-   "p50": 0.194876,
+   "p01": 9.64351e-05,
+   "p50": 0.191846,
    "p99": 3.09095,
-   "min": 2.15625e-07,
+   "min": 2.24291e-07,
    "max": 6.31899,
    "n": 1192,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g32": {
-   "p01": 0.00031856,
-   "p50": 0.639101,
-   "p99": 2.97388,
+   "p01": 0.000320802,
+   "p50": 0.646914,
+   "p99": 3.04014,
    "min": 9.3715e-07,
-   "max": 5.37786,
+   "max": 5.30607,
    "n": 1192,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g33": {
-   "p01": 0.000665398,
-   "p50": 0.70931,
+   "p01": 0.00066534,
+   "p50": 0.700991,
    "p99": 3.171,
    "min": 2.0171e-06,
    "max": 5.7659,
@@ -2838,8 +2853,8 @@
    "source": "body_sequence"
   },
   "g34": {
-   "p01": 0.000478695,
-   "p50": 0.672311,
+   "p01": 0.000452484,
+   "p50": 0.660304,
    "p99": 4.2748,
    "min": 2.64256e-06,
    "max": 8.32916,
@@ -2848,8 +2863,8 @@
    "source": "body_sequence"
   },
   "g35": {
-   "p01": 6.29117e-07,
-   "p50": 0.690114,
+   "p01": 1.47046e-07,
+   "p50": 0.673737,
    "p99": 5.93403,
    "min": 0.0,
    "max": 11.5621,
@@ -2858,8 +2873,8 @@
    "source": "body_sequence"
   },
   "pin": {
-   "p01": 0.415233,
-   "p50": 1.30645,
+   "p01": 0.409527,
+   "p50": 1.27723,
    "p99": 4.59867,
    "min": 0.204897,
    "max": 5.09233,
@@ -2869,11 +2884,11 @@
   },
   "bow_db": {
    "p01": -30.0,
-   "p50": -10.6499,
-   "p99": -0.490121,
+   "p50": -11.2948,
+   "p99": -0.543746,
    "min": -30.0,
    "max": 0.0,
-   "n": 910,
+   "n": 887,
    "tier": "f1d",
    "source": "body_sequence"
   },
@@ -2886,6 +2901,26 @@
    "n": 1205,
    "tier": "f1d",
    "source": "body_sequence"
+  },
+  "fountain_max_m": {
+   "p01": 55.072,
+   "p50": 100.0,
+   "p99": 132.184,
+   "min": 55.0,
+   "max": 132.7,
+   "n": 7,
+   "tier": "events",
+   "source": "eruptions"
+  },
+  "fountain_h_m": {
+   "p01": 0.0,
+   "p50": 0.0,
+   "p99": 89.8,
+   "min": 0.0,
+   "max": 132.7,
+   "n": 54980,
+   "tier": "events",
+   "source": "eruptions"
   }
  },
  "ranges_by_tier": {
@@ -4303,28 +4338,28 @@
      "n": 986
     },
     "days_since_fall": {
-     "p01": 1.0,
-     "p50": 71.0,
-     "p99": 425.15,
+     "p01": 0.49,
+     "p50": 66.0,
+     "p99": 424.51,
      "min": 0.0,
      "max": 435.0,
-     "n": 986
+     "n": 1050
     },
     "wait_rel": {
-     "p01": 0.011354,
-     "p50": 0.812532,
-     "p99": 3.24832,
+     "p01": 0.00757576,
+     "p50": 0.751471,
+     "p99": 3.21886,
      "min": 0.0,
-     "max": 3.32061,
-     "n": 948
+     "max": 3.29545,
+     "n": 1012
     },
     "longest_wait_d": {
      "p01": 38.0,
-     "p50": 131.0,
-     "p99": 131.0,
+     "p50": 132.0,
+     "p99": 132.0,
      "min": 38.0,
-     "max": 131.0,
-     "n": 948
+     "max": 132.0,
+     "n": 1012
     },
     "above_last_start_mm": {
      "p01": -330.988,
@@ -4343,28 +4378,28 @@
      "n": 986
     },
     "cycle_period_d": {
-     "p01": 25.0,
+     "p01": 14.0,
      "p50": 106.0,
-     "p99": 424.9,
-     "min": 25.0,
+     "p99": 424.89,
+     "min": 14.0,
      "max": 435.0,
-     "n": 1011
+     "n": 1012
     },
     "inflow_mm_d": {
-     "p01": 0.0346633,
-     "p50": 2.18645,
-     "p99": 7.04253,
+     "p01": 0.0344223,
+     "p50": 2.06964,
+     "p99": 7.13588,
      "min": -0.0632462,
-     "max": 7.45135,
-     "n": 910
+     "max": 7.59683,
+     "n": 887
     },
     "inflow_rel": {
-     "p01": 0.00465195,
-     "p50": 0.29343,
-     "p99": 0.945136,
+     "p01": 0.00453114,
+     "p50": 0.272434,
+     "p99": 0.939323,
      "min": 0.0,
      "max": 1.0,
-     "n": 910
+     "n": 887
     },
     "cyc_h1": {
      "p01": 1.0,
@@ -4372,73 +4407,73 @@
      "p99": 1.0,
      "min": 1.0,
      "max": 1.0,
-     "n": 989
+     "n": 992
     },
     "cyc_h2": {
-     "p01": 0.0534595,
+     "p01": 0.053486,
      "p50": 0.336327,
-     "p99": 1.16712,
+     "p99": 1.58132,
      "min": 0.0258746,
-     "max": 1.16712,
-     "n": 989
+     "max": 1.58132,
+     "n": 992
     },
     "cyc_h3": {
-     "p01": 0.0165203,
-     "p50": 0.187458,
-     "p99": 0.835601,
+     "p01": 0.0165243,
+     "p50": 0.185353,
+     "p99": 0.971053,
      "min": 0.00693667,
-     "max": 1.09404,
-     "n": 989
+     "max": 1.30116,
+     "n": 992
     },
     "cyc_h4": {
-     "p01": 0.0200468,
-     "p50": 0.144921,
-     "p99": 0.555127,
+     "p01": 0.020053,
+     "p50": 0.142435,
+     "p99": 0.614515,
      "min": 0.00315833,
      "max": 1.00532,
-     "n": 989
+     "n": 992
     },
     "cyc_h5": {
-     "p01": 0.0305855,
-     "p50": 0.159176,
-     "p99": 0.522216,
+     "p01": 0.0306381,
+     "p50": 0.161359,
+     "p99": 1.218,
      "min": 0.0124803,
-     "max": 0.811163,
-     "n": 989
+     "max": 1.218,
+     "n": 992
     },
     "cyc_h6": {
-     "p01": 0.00610495,
-     "p50": 0.0887177,
-     "p99": 0.644458,
+     "p01": 0.0123756,
+     "p50": 0.0875635,
+     "p99": 1.10008,
      "min": 0.00217409,
-     "max": 0.74826,
-     "n": 989
+     "max": 1.10008,
+     "n": 992
     },
     "inflow_tau_d": {
-     "p01": 179.529,
-     "p50": 483.989,
-     "p99": 1742.78,
+     "p01": 179.471,
+     "p50": 457.726,
+     "p99": 1251.22,
      "min": 178.425,
-     "max": 1860.2,
-     "n": 731
+     "max": 1276.12,
+     "n": 707
     }
    },
    "body_sequence": {
     "theta": {
-     "p01": 0.0118557,
-     "p50": 0.604957,
+     "p01": 0.011183,
+     "p50": 0.580014,
      "p99": 1.0,
      "min": 0.0,
      "max": 1.0,
      "n": 1212
     },
     "phase_cycle": {
-     "p01": 0.00798134,
-     "p50": 0.767123,
-     "p99": 3.24351,
+     "p01": 0.00757576,
+     "p50": 0.751471,
+     "p99": 3.21886,
      "min": 0.0,
-     "max": 3.32061,
-     "n": 1011
+     "max": 3.29545,
+     "n": 1012
     },
     "pressure": {
      "p01": 0.16098,
@@ -4449,64 +4484,64 @@
      "n": 1209
     },
     "g00": {
-     "p01": 0.000243808,
-     "p50": 0.299059,
-     "p99": 4.14785,
-     "min": 4.97541e-07,
+     "p01": 0.000245911,
+     "p50": 0.299938,
+     "p99": 4.24141,
+     "min": 4.68471e-07,
      "max": 8.693,
      "n": 1205
     },
     "g01": {
-     "p01": 0.000228029,
-     "p50": 0.367704,
+     "p01": 0.000231596,
+     "p50": 0.369061,
      "p99": 5.04807,
-     "min": 5.23037e-07,
-     "max": 9.51979,
+     "min": 5.05296e-07,
+     "max": 9.56248,
      "n": 1205
     },
     "g02": {
-     "p01": 0.000194635,
-     "p50": 0.375762,
+     "p01": 0.000201857,
+     "p50": 0.373901,
      "p99": 6.19261,
-     "min": 5.44812e-07,
+     "min": 5.37108e-07,
      "max": 11.9971,
      "n": 1205
     },
     "g03": {
-     "p01": 0.000155402,
-     "p50": 0.355147,
+     "p01": 0.000154936,
+     "p50": 0.349134,
      "p99": 8.40298,
-     "min": 5.69832e-07,
+     "min": 5.74046e-07,
      "max": 16.2794,
      "n": 1205
     },
     "g04": {
-     "p01": 0.000192649,
-     "p50": 0.291987,
+     "p01": 0.000199722,
+     "p50": 0.301555,
      "p99": 4.0941,
      "min": 2.38156e-06,
-     "max": 7.06237,
+     "max": 6.94895,
      "n": 1205
     },
     "g05": {
-     "p01": 0.000140932,
-     "p50": 0.233315,
-     "p99": 4.09287,
+     "p01": 0.000149561,
+     "p50": 0.241438,
+     "p99": 4.11211,
      "min": 1.62067e-06,
-     "max": 8.2195,
+     "max": 7.90688,
      "n": 1205
     },
     "g06": {
      "p01": 0.000263583,
-     "p50": 0.329081,
+     "p50": 0.329033,
      "p99": 5.92192,
      "min": 4.73689e-06,
      "max": 13.4605,
      "n": 1205
     },
     "g07": {
-     "p01": 0.000324296,
-     "p50": 0.336128,
+     "p01": 0.000324301,
+     "p50": 0.327319,
      "p99": 6.92421,
      "min": 5.89683e-06,
      "max": 16.7567,
@@ -4514,23 +4549,23 @@
     },
     "g08": {
      "p01": 0.00057326,
-     "p50": 0.846875,
-     "p99": 3.82377,
+     "p50": 0.846426,
+     "p99": 3.80245,
      "min": 3.395e-05,
      "max": 6.87022,
      "n": 1205
     },
     "g09": {
-     "p01": 0.000331213,
-     "p50": 0.334741,
-     "p99": 6.3027,
+     "p01": 0.000305202,
+     "p50": 0.341132,
+     "p99": 6.27818,
      "min": 2.53626e-05,
-     "max": 8.05931,
+     "max": 7.86842,
      "n": 1205
     },
     "g10": {
      "p01": 0.00032878,
-     "p50": 0.94924,
+     "p50": 0.938741,
      "p99": 4.35778,
      "min": 3.395e-05,
      "max": 6.87022,
@@ -4538,207 +4573,207 @@
     },
     "g11": {
      "p01": 0.000204385,
-     "p50": 0.843594,
-     "p99": 5.27842,
+     "p50": 0.83067,
+     "p99": 5.27738,
      "min": 3.395e-05,
      "max": 7.66391,
      "n": 1205
     },
     "g12": {
-     "p01": 0.000152967,
-     "p50": 0.652804,
-     "p99": 4.79092,
+     "p01": 0.000152976,
+     "p50": 0.654235,
+     "p99": 4.79264,
      "min": 0.0,
      "max": 12.9485,
      "n": 1205
     },
     "g13": {
      "p01": 0.000150322,
-     "p50": 0.559967,
-     "p99": 5.25335,
+     "p50": 0.582943,
+     "p99": 5.45417,
      "min": 0.0,
      "max": 12.9485,
      "n": 1205
     },
     "g14": {
      "p01": 0.000194796,
-     "p50": 0.735014,
-     "p99": 6.0378,
+     "p50": 0.735781,
+     "p99": 6.03652,
      "min": 0.0,
      "max": 12.9485,
      "n": 1205
     },
     "g15": {
      "p01": 0.000225075,
-     "p50": 0.712393,
-     "p99": 6.72168,
+     "p50": 0.701964,
+     "p99": 6.72109,
      "min": 0.0,
      "max": 12.9485,
      "n": 1205
     },
     "g16": {
-     "p01": 5.93887e-05,
-     "p50": 0.0821078,
-     "p99": 4.62815,
+     "p01": 6.08765e-05,
+     "p50": 0.0828658,
+     "p99": 5.11551,
      "min": 2.67529e-06,
      "max": 7.13228,
      "n": 1205
     },
     "g17": {
-     "p01": 6.84871e-05,
-     "p50": 0.0906551,
-     "p99": 3.80239,
+     "p01": 7.64371e-05,
+     "p50": 0.0908187,
+     "p99": 4.05628,
      "min": 3.71424e-06,
      "max": 7.13228,
      "n": 1205
     },
     "g18": {
-     "p01": 5.01458e-05,
-     "p50": 0.0691407,
-     "p99": 6.07226,
+     "p01": 4.80855e-05,
+     "p50": 0.0712536,
+     "p99": 6.80022,
      "min": 1.68874e-06,
-     "max": 8.66491,
+     "max": 9.48006,
      "n": 1205
     },
     "g19": {
-     "p01": 8.48764e-05,
-     "p50": 0.110785,
-     "p99": 3.80677,
-     "min": 6.8687e-06,
+     "p01": 8.42713e-05,
+     "p50": 0.110592,
+     "p99": 3.5237,
+     "min": 5.98416e-06,
      "max": 7.13228,
      "n": 1205
     },
     "g20": {
      "p01": 0.000699091,
-     "p50": 0.901155,
-     "p99": 4.49629,
-     "min": 4.48034e-06,
+     "p50": 0.903,
+     "p99": 4.47805,
+     "min": 4.52535e-06,
      "max": 12.0738,
      "n": 1205
     },
     "g21": {
      "p01": 0.000945915,
-     "p50": 1.01285,
-     "p99": 5.24979,
-     "min": 6.94577e-06,
+     "p50": 1.00443,
+     "p99": 4.96409,
+     "min": 6.94329e-06,
      "max": 12.0738,
      "n": 1205
     },
     "g22": {
      "p01": 0.00114742,
-     "p50": 0.98054,
+     "p50": 0.944073,
      "p99": 5.56346,
-     "min": 8.7881e-06,
+     "min": 8.74373e-06,
      "max": 12.0738,
      "n": 1205
     },
     "g23": {
-     "p01": 6.04939e-07,
-     "p50": 1.03767,
+     "p01": 2.73007e-07,
+     "p50": 0.964807,
      "p99": 7.04929,
      "min": 0.0,
      "max": 12.0738,
      "n": 1205
     },
     "g24": {
-     "p01": 0.000123331,
-     "p50": 0.503911,
-     "p99": 4.94382,
-     "min": 1.95169e-07,
+     "p01": 0.000123447,
+     "p50": 0.507358,
+     "p99": 4.95204,
+     "min": 1.93841e-07,
      "max": 11.4947,
      "n": 1192
     },
     "g25": {
-     "p01": 0.000170064,
-     "p50": 0.577634,
-     "p99": 4.40742,
-     "min": 2.69975e-07,
+     "p01": 0.000170155,
+     "p50": 0.580697,
+     "p99": 4.55299,
+     "min": 2.68868e-07,
      "max": 11.4947,
      "n": 1192
     },
     "g26": {
-     "p01": 0.000237774,
-     "p50": 0.55931,
-     "p99": 6.38631,
-     "min": 4.96552e-07,
+     "p01": 0.000166201,
+     "p50": 0.557305,
+     "p99": 6.38234,
+     "min": 4.96521e-07,
      "max": 11.4947,
      "n": 1192
     },
     "g27": {
-     "p01": 0.000153857,
-     "p50": 0.558032,
-     "p99": 8.93134,
-     "min": 7.15475e-07,
+     "p01": 0.000130367,
+     "p50": 0.521667,
+     "p99": 8.93478,
+     "min": 7.16787e-07,
      "max": 14.4023,
      "n": 1192
     },
     "g28": {
-     "p01": 7.61468e-05,
-     "p50": 0.151392,
-     "p99": 3.8246,
-     "min": 4.6044e-07,
-     "max": 5.23426,
+     "p01": 7.60573e-05,
+     "p50": 0.156452,
+     "p99": 3.82521,
+     "min": 4.5593e-07,
+     "max": 5.24223,
      "n": 1192
     },
     "g29": {
-     "p01": 5.00478e-05,
-     "p50": 0.118821,
-     "p99": 5.05276,
+     "p01": 4.99476e-05,
+     "p50": 0.121487,
+     "p99": 5.05365,
      "min": 4.59803e-07,
-     "max": 7.06509,
+     "max": 7.0759,
      "n": 1192
     },
     "g30": {
-     "p01": 9.63332e-05,
-     "p50": 0.177636,
+     "p01": 9.6295e-05,
+     "p50": 0.179324,
      "p99": 2.97619,
-     "min": 3.78416e-07,
-     "max": 3.86789,
+     "min": 3.78895e-07,
+     "max": 3.87375,
      "n": 1192
     },
     "g31": {
-     "p01": 9.65861e-05,
-     "p50": 0.194876,
+     "p01": 9.64351e-05,
+     "p50": 0.191846,
      "p99": 3.09095,
-     "min": 2.15625e-07,
+     "min": 2.24291e-07,
      "max": 6.31899,
      "n": 1192
     },
     "g32": {
-     "p01": 0.00031856,
-     "p50": 0.639101,
-     "p99": 2.97388,
+     "p01": 0.000320802,
+     "p50": 0.646914,
+     "p99": 3.04014,
      "min": 9.3715e-07,
-     "max": 5.37786,
+     "max": 5.30607,
      "n": 1192
     },
     "g33": {
-     "p01": 0.000665398,
-     "p50": 0.70931,
+     "p01": 0.00066534,
+     "p50": 0.700991,
      "p99": 3.171,
      "min": 2.0171e-06,
      "max": 5.7659,
      "n": 1192
     },
     "g34": {
-     "p01": 0.000478695,
-     "p50": 0.672311,
+     "p01": 0.000452484,
+     "p50": 0.660304,
      "p99": 4.2748,
      "min": 2.64256e-06,
      "max": 8.32916,
      "n": 1192
     },
     "g35": {
-     "p01": 6.29117e-07,
-     "p50": 0.690114,
+     "p01": 1.47046e-07,
+     "p50": 0.673737,
      "p99": 5.93403,
      "min": 0.0,
      "max": 11.5621,
      "n": 1192
     },
     "pin": {
-     "p01": 0.415233,
-     "p50": 1.30645,
+     "p01": 0.409527,
+     "p50": 1.27723,
      "p99": 4.59867,
      "min": 0.204897,
      "max": 5.09233,
@@ -4746,11 +4781,11 @@
     },
     "bow_db": {
      "p01": -30.0,
-     "p50": -10.6499,
-     "p99": -0.490121,
+     "p50": -11.2948,
+     "p99": -0.543746,
      "min": -30.0,
      "max": 0.0,
-     "n": 910
+     "n": 887
     },
     "dust_hz": {
      "p01": 0.500499,
@@ -4763,340 +4798,340 @@
    },
    "body_cycle": {
     "theta": {
-     "p01": 0.0093028,
-     "p50": 0.736842,
+     "p01": 0.00757576,
+     "p50": 0.716932,
      "p99": 1.0,
      "min": 0.0,
      "max": 1.0,
-     "n": 1049
+     "n": 1050
     },
     "phase_cycle": {
-     "p01": 0.00798134,
-     "p50": 0.767123,
-     "p99": 3.24351,
+     "p01": 0.00757576,
+     "p50": 0.751471,
+     "p99": 3.21886,
      "min": 0.0,
-     "max": 3.32061,
-     "n": 1011
+     "max": 3.29545,
+     "n": 1012
     },
     "pressure": {
-     "p01": 0.00554837,
-     "p50": 0.652071,
-     "p99": 0.998279,
+     "p01": 0.00257408,
+     "p50": 0.633949,
+     "p99": 0.998878,
      "min": 0.0,
      "max": 1.0,
-     "n": 1049
+     "n": 1050
     },
     "g00": {
-     "p01": 0.000264098,
-     "p50": 0.262554,
-     "p99": 9.50391,
+     "p01": 0.000264938,
+     "p50": 0.268484,
+     "p99": 9.10495,
      "min": 2.27606e-06,
-     "max": 17.4962,
-     "n": 1049
+     "max": 22.602,
+     "n": 1050
     },
     "g01": {
-     "p01": 0.000604416,
-     "p50": 0.563031,
-     "p99": 5.26991,
-     "min": 4.28971e-06,
-     "max": 10.3196,
-     "n": 1049
+     "p01": 0.000609387,
+     "p50": 0.574655,
+     "p99": 5.48195,
+     "min": 4.13274e-06,
+     "max": 10.4392,
+     "n": 1050
     },
     "g02": {
-     "p01": 0.000382272,
-     "p50": 0.640254,
-     "p99": 8.18685,
-     "min": 4.79575e-06,
-     "max": 23.9764,
-     "n": 1049
+     "p01": 0.000353983,
+     "p50": 0.625838,
+     "p99": 8.09679,
+     "min": 4.88128e-06,
+     "max": 24.2543,
+     "n": 1050
     },
     "g03": {
-     "p01": 1.57484e-08,
-     "p50": 0.602468,
-     "p99": 13.8258,
+     "p01": 3.33167e-08,
+     "p50": 0.537644,
+     "p99": 13.8135,
      "min": 0.0,
-     "max": 41.2783,
-     "n": 1049
+     "max": 41.7568,
+     "n": 1050
     },
     "g04": {
-     "p01": 7.70328e-05,
-     "p50": 0.220102,
-     "p99": 7.28917,
+     "p01": 8.08291e-05,
+     "p50": 0.233706,
+     "p99": 7.65197,
      "min": 6.98586e-07,
-     "max": 12.9628,
-     "n": 1049
+     "max": 12.585,
+     "n": 1050
     },
     "g05": {
-     "p01": 0.000183018,
-     "p50": 0.443972,
-     "p99": 4.58875,
+     "p01": 0.000206193,
+     "p50": 0.450964,
+     "p99": 4.51797,
      "min": 2.79435e-06,
-     "max": 8.45815,
-     "n": 1049
+     "max": 8.3195,
+     "n": 1050
     },
     "g06": {
-     "p01": 0.000336478,
-     "p50": 0.479231,
-     "p99": 6.72815,
+     "p01": 0.000336365,
+     "p50": 0.469715,
+     "p99": 6.74827,
      "min": 6.49236e-06,
      "max": 14.413,
-     "n": 1049
+     "n": 1050
     },
     "g07": {
-     "p01": 5.73611e-07,
-     "p50": 0.478762,
-     "p99": 11.5833,
+     "p01": 2.49473e-07,
+     "p50": 0.444283,
+     "p99": 11.618,
      "min": 0.0,
      "max": 24.8138,
-     "n": 1049
+     "n": 1050
     },
     "g08": {
-     "p01": 0.00015758,
-     "p50": 0.215273,
-     "p99": 9.03467,
+     "p01": 0.000157864,
+     "p50": 0.225011,
+     "p99": 8.58989,
      "min": 1.33622e-05,
-     "max": 20.6086,
-     "n": 1049
+     "max": 20.6871,
+     "n": 1050
     },
     "g09": {
-     "p01": 0.00063032,
-     "p50": 0.514172,
-     "p99": 4.64911,
+     "p01": 0.000631455,
+     "p50": 0.514287,
+     "p99": 4.48203,
      "min": 5.34487e-05,
-     "max": 9.16113,
-     "n": 1049
+     "max": 9.19602,
+     "n": 1050
     },
     "g10": {
-     "p01": 0.00131338,
-     "p50": 0.5715,
-     "p99": 3.54797,
+     "p01": 0.00130315,
+     "p50": 0.572245,
+     "p99": 3.54129,
      "min": 0.000124182,
-     "max": 5.62718,
-     "n": 1049
+     "max": 5.62089,
+     "n": 1050
     },
     "g11": {
-     "p01": 6.44953e-07,
-     "p50": 0.569394,
-     "p99": 5.19018,
+     "p01": 4.18834e-07,
+     "p50": 0.549899,
+     "p99": 5.16917,
      "min": 0.0,
      "max": 8.01932,
-     "n": 1049
+     "n": 1050
     },
     "g12": {
-     "p01": 7.4115e-05,
-     "p50": 0.229174,
-     "p99": 7.51733,
+     "p01": 7.47329e-05,
+     "p50": 0.237022,
+     "p99": 7.2371,
      "min": 0.0,
-     "max": 15.9831,
-     "n": 1049
+     "max": 16.0457,
+     "n": 1050
     },
     "g13": {
-     "p01": 0.00021282,
-     "p50": 0.558907,
-     "p99": 4.35496,
+     "p01": 0.000214494,
+     "p50": 0.569744,
+     "p99": 4.20199,
      "min": 0.0,
-     "max": 7.17066,
-     "n": 1049
+     "max": 7.19769,
+     "n": 1050
     },
     "g14": {
-     "p01": 0.00038015,
-     "p50": 0.641965,
-     "p99": 4.65133,
+     "p01": 0.00038101,
+     "p50": 0.631475,
+     "p99": 4.6416,
      "min": 0.0,
      "max": 7.9171,
-     "n": 1049
+     "n": 1050
     },
     "g15": {
-     "p01": 2.81464e-07,
-     "p50": 0.561597,
-     "p99": 7.12353,
+     "p01": 7.83502e-08,
+     "p50": 0.530473,
+     "p99": 7.12037,
      "min": 0.0,
      "max": 13.6302,
-     "n": 1049
+     "n": 1050
     },
     "g16": {
-     "p01": 3.37598e-05,
-     "p50": 0.0631803,
-     "p99": 13.0855,
-     "min": 6.87191e-07,
-     "max": 27.5103,
-     "n": 1049
+     "p01": 3.74473e-05,
+     "p50": 0.0632363,
+     "p99": 13.7189,
+     "min": 1.67351e-06,
+     "max": 27.5537,
+     "n": 1050
     },
     "g17": {
-     "p01": 7.99636e-05,
-     "p50": 0.127101,
-     "p99": 5.83729,
-     "min": 2.67529e-06,
-     "max": 12.2344,
-     "n": 1049
+     "p01": 7.88995e-05,
+     "p50": 0.12649,
+     "p99": 6.12485,
+     "min": 4.33915e-06,
+     "max": 12.2534,
+     "n": 1050
     },
     "g18": {
-     "p01": 0.000126269,
-     "p50": 0.166589,
-     "p99": 3.93128,
-     "min": 1.75782e-06,
+     "p01": 0.000119792,
+     "p50": 0.166597,
+     "p99": 4.01198,
+     "min": 1.93406e-06,
      "max": 9.88517,
-     "n": 1049
+     "n": 1050
     },
     "g19": {
-     "p01": 7.04781e-07,
-     "p50": 0.117469,
-     "p99": 6.48817,
+     "p01": 4.84771e-07,
+     "p50": 0.11526,
+     "p99": 6.48594,
      "min": 0.0,
      "max": 17.0185,
-     "n": 1049
+     "n": 1050
     },
     "g20": {
-     "p01": 0.0001233,
-     "p50": 0.244754,
-     "p99": 9.29104,
-     "min": 1.71964e-06,
-     "max": 13.0649,
-     "n": 1049
+     "p01": 0.000124083,
+     "p50": 0.255128,
+     "p99": 8.66313,
+     "min": 1.77021e-06,
+     "max": 14.3622,
+     "n": 1050
     },
     "g21": {
-     "p01": 0.000312508,
-     "p50": 0.547221,
-     "p99": 4.98624,
-     "min": 3.20149e-06,
-     "max": 7.78236,
-     "n": 1049
+     "p01": 0.000312614,
+     "p50": 0.551135,
+     "p99": 4.78716,
+     "min": 3.23471e-06,
+     "max": 7.81058,
+     "n": 1050
     },
     "g22": {
-     "p01": 0.000682347,
-     "p50": 0.641714,
-     "p99": 4.4503,
-     "min": 5.24587e-06,
-     "max": 7.78236,
-     "n": 1049
+     "p01": 0.000681836,
+     "p50": 0.633068,
+     "p99": 4.37945,
+     "min": 5.24082e-06,
+     "max": 7.81058,
+     "n": 1050
     },
     "g23": {
-     "p01": 5.53151e-07,
-     "p50": 0.651465,
-     "p99": 6.63141,
+     "p01": 2.89438e-07,
+     "p50": 0.631163,
+     "p99": 6.39938,
      "min": 0.0,
-     "max": 9.8856,
-     "n": 1049
+     "max": 9.825,
+     "n": 1050
     },
     "g24": {
-     "p01": 6.18797e-05,
-     "p50": 0.1928,
-     "p99": 7.76941,
-     "min": 3.25401e-08,
-     "max": 10.5196,
-     "n": 1049
+     "p01": 6.27685e-05,
+     "p50": 0.202012,
+     "p99": 7.43197,
+     "min": 3.15099e-08,
+     "max": 10.5597,
+     "n": 1050
     },
     "g25": {
-     "p01": 0.000138668,
-     "p50": 0.48173,
-     "p99": 3.64642,
-     "min": 1.2743e-07,
-     "max": 4.67627,
-     "n": 1049
+     "p01": 0.00013043,
+     "p50": 0.492488,
+     "p99": 3.42645,
+     "min": 1.25354e-07,
+     "max": 4.69408,
+     "n": 1050
     },
     "g26": {
-     "p01": 0.0001913,
-     "p50": 0.508614,
-     "p99": 5.47443,
-     "min": 2.93903e-07,
+     "p01": 0.000171785,
+     "p50": 0.481175,
+     "p99": 5.46886,
+     "min": 2.907e-07,
      "max": 9.67791,
-     "n": 1049
+     "n": 1050
     },
     "g27": {
-     "p01": 4.4312e-07,
-     "p50": 0.443572,
-     "p99": 9.38995,
+     "p01": 3.66155e-07,
+     "p50": 0.414754,
+     "p99": 9.38669,
      "min": 0.0,
      "max": 16.6617,
-     "n": 1049
+     "n": 1050
     },
     "g28": {
-     "p01": 3.90113e-05,
-     "p50": 0.100452,
-     "p99": 9.59095,
-     "min": 4.21803e-07,
-     "max": 19.7883,
-     "n": 1049
+     "p01": 3.95591e-05,
+     "p50": 0.104589,
+     "p99": 9.52813,
+     "min": 4.32985e-07,
+     "max": 19.7461,
+     "n": 1050
     },
     "g29": {
-     "p01": 9.71215e-05,
-     "p50": 0.230825,
-     "p99": 4.2681,
-     "min": 7.3092e-07,
-     "max": 8.80024,
-     "n": 1049
+     "p01": 9.75962e-05,
+     "p50": 0.234386,
+     "p99": 4.2977,
+     "min": 7.38223e-07,
+     "max": 8.78131,
+     "n": 1050
     },
     "g30": {
-     "p01": 7.71283e-05,
-     "p50": 0.279998,
-     "p99": 4.43904,
-     "min": 3.22882e-07,
+     "p01": 7.77832e-05,
+     "p50": 0.285535,
+     "p99": 4.43777,
+     "min": 3.45441e-07,
      "max": 9.76861,
-     "n": 1049
+     "n": 1050
     },
     "g31": {
-     "p01": 4.6494e-07,
-     "p50": 0.237012,
-     "p99": 7.64236,
+     "p01": 2.27552e-07,
+     "p50": 0.218296,
+     "p99": 7.64016,
      "min": 0.0,
      "max": 16.8179,
-     "n": 1049
+     "n": 1050
     },
     "g32": {
-     "p01": 8.00182e-05,
-     "p50": 0.213682,
-     "p99": 8.03672,
+     "p01": 8.33954e-05,
+     "p50": 0.219252,
+     "p99": 7.73013,
      "min": 2.08781e-07,
-     "max": 19.0778,
-     "n": 1049
+     "max": 19.1505,
+     "n": 1050
     },
     "g33": {
-     "p01": 0.00019902,
-     "p50": 0.495124,
-     "p99": 3.60942,
+     "p01": 0.000255227,
+     "p50": 0.499767,
+     "p99": 3.49746,
      "min": 8.35122e-07,
-     "max": 8.48064,
-     "n": 1049
+     "max": 8.51294,
+     "n": 1050
     },
     "g34": {
-     "p01": 0.000402147,
-     "p50": 0.573276,
-     "p99": 3.50246,
+     "p01": 0.000381303,
+     "p50": 0.562744,
+     "p99": 3.50053,
      "min": 1.94031e-06,
      "max": 6.674,
-     "n": 1049
+     "n": 1050
     },
     "g35": {
-     "p01": 7.98425e-07,
-     "p50": 0.584744,
-     "p99": 5.58945,
+     "p01": 9.19772e-08,
+     "p50": 0.564145,
+     "p99": 5.5951,
      "min": 0.0,
      "max": 11.4901,
-     "n": 1049
+     "n": 1050
     },
     "pin": {
-     "p01": 0.157218,
-     "p50": 1.58712,
-     "p99": 23.8456,
-     "min": 0.086412,
+     "p01": 0.158147,
+     "p50": 1.56361,
+     "p99": 23.834,
+     "min": 0.0995813,
      "max": 31.6228,
-     "n": 1049
+     "n": 1050
     },
     "bow_db": {
-     "p01": -23.99,
-     "p50": -9.83682,
-     "p99": -0.464061,
-     "min": -24.3675,
+     "p01": -24.1782,
+     "p50": -10.4026,
+     "p99": -0.498377,
+     "min": -24.5355,
      "max": 0.0,
-     "n": 855
+     "n": 832
     },
     "dust_hz": {
-     "p01": 0.547132,
-     "p50": 2.18632,
+     "p01": 0.547286,
+     "p50": 2.1873,
      "p99": 5.0,
      "min": 0.5,
      "max": 5.0,
-     "n": 1049
+     "n": 1050
     }
    }
   },
@@ -5125,6 +5160,24 @@
      "min": 0.808446,
      "max": 1853.66,
      "n": 34102
+    }
+   },
+   "eruptions": {
+    "fountain_max_m": {
+     "p01": 55.072,
+     "p50": 100.0,
+     "p99": 132.184,
+     "min": 55.0,
+     "max": 132.7,
+     "n": 7
+    },
+    "fountain_h_m": {
+     "p01": 0.0,
+     "p50": 0.0,
+     "p99": 89.8,
+     "min": 0.0,
+     "max": 132.7,
+     "n": 54980
     }
    }
   }
@@ -5690,6 +5743,155 @@
    "n_anomalies": 13
   }
  },
+ "windows": {
+  "from": "timeline",
+  "hours_before": 2,
+  "hours_after": 1,
+  "extra_spans": [],
+  "rule": "around every timeline event's onset (events/eruptions.json): hours_before .. hours_after (or whole UTC days: days_before .. days_after), plus extra_spans; merged",
+  "spans": [
+   [
+    1699621200.0,
+    1699632000.0
+   ],
+   [
+    1702930620.0,
+    1702941420.0
+   ],
+   [
+    1705211820.0,
+    1705222620.0
+   ],
+   [
+    1707364920.0,
+    1707375720.0
+   ],
+   [
+    1709388000.0,
+    1709398800.0
+   ],
+   [
+    1710613380.0,
+    1710624180.0
+   ],
+   [
+    1716979560.0,
+    1716990360.0
+   ],
+   [
+    1724354760.0,
+    1724365560.0
+   ],
+   [
+    1732137240.0,
+    1732148040.0
+   ],
+   [
+    1743481800.0,
+    1743492600.0
+   ],
+   [
+    1743493500.0,
+    1743504300.0
+   ],
+   [
+    1752630840.0,
+    1752641640.0
+   ]
+  ],
+  "n_spans": 12,
+  "hours": 36.0,
+  "full_record_tiers": [
+   "f10m",
+   "f1h",
+   "f1d"
+  ],
+  "window_tiers": [
+   "f10s",
+   "f1m"
+  ],
+  "absent_means": "outside the windows a window tier is absent by design: read the finest full-record tier (or the O1 source); it is not silence",
+  "raw": {
+   "channels": [
+    "HHZ"
+   ],
+   "stations": "nearest",
+   "spec_files": false,
+   "by_station": {},
+   "note": "a continuous station's wave hours inside its windows; no spectrogram files when spec_files is false (the page computes them from the wave). MELH keeps its whole day"
+  },
+  "o1": "everything else (f1m and f10s for the whole record, every channel, spectrogram files) comes through the O1 source: a folder or a server holding the same tree",
+  "note": "desktop and web read this same tree"
+ },
+ "eruptions": {
+  "file": "events/eruptions.json",
+  "n": 12,
+  "n_eruptions": 9,
+  "n_intrusions": 3,
+  "fountains": {
+   "e2023-12-18": "events/fountains/e2023-12-18.json",
+   "e2024-01-14": "events/fountains/e2024-01-14.json",
+   "e2024-03-16": "events/fountains/e2024-03-16.json",
+   "e2024-08-22": "events/fountains/e2024-08-22.json",
+   "e2024-11-20": "events/fountains/e2024-11-20.json",
+   "e2025-04-01": "events/fountains/e2025-04-01.json",
+   "e2025-07-16": "events/fountains/e2025-07-16.json"
+  },
+  "boundary_rule": "each boundary row's onset UTC day (boundary_day) bounds the rooms and the waits; same-day events share one",
+  "intrusion_boundaries": "all",
+  "intrusion_min_fall_mm": 0.0
+ },
+ "fountains": [
+  {
+   "id": "e2023-12-18",
+   "kind": "observed",
+   "file": "events/fountains/e2023-12-18.json",
+   "onset_utc": "2023-12-18T22:17:00Z",
+   "max_m": 93.3
+  },
+  {
+   "id": "e2024-01-14",
+   "kind": "observed",
+   "file": "events/fountains/e2024-01-14.json",
+   "onset_utc": "2024-01-14T07:57:00Z",
+   "max_m": 56.2
+  },
+  {
+   "id": "e2024-03-16",
+   "kind": "observed",
+   "file": "events/fountains/e2024-03-16.json",
+   "onset_utc": "2024-03-16T20:23:00Z",
+   "max_m": 124.1
+  },
+  {
+   "id": "e2024-08-22",
+   "kind": "observed",
+   "file": "events/fountains/e2024-08-22.json",
+   "onset_utc": "2024-08-22T21:26:00Z",
+   "max_m": 132.7
+  },
+  {
+   "id": "e2024-11-20",
+   "kind": "simulated",
+   "file": "events/fountains/e2024-11-20.json",
+   "onset_utc": "2024-11-20T23:14:00Z",
+   "max_m": 120.0
+  },
+  {
+   "id": "e2025-04-01",
+   "kind": "simulated",
+   "file": "events/fountains/e2025-04-01.json",
+   "onset_utc": "2025-04-01T09:45:00Z",
+   "max_m": 55.0
+  },
+  {
+   "id": "e2025-07-16",
+   "kind": "simulated",
+   "file": "events/fountains/e2025-07-16.json",
+   "onset_utc": "2025-07-16T03:54:00Z",
+   "max_m": 100.0
+  }
+ ],
  "body": {
   "identity": [
    {
@@ -5702,7 +5904,7 @@
     "label": null,
     "comb_render_hz": 85.3971,
     "room_gain": 1.0,
-    "bow_neutral_db": -10.65,
+    "bow_neutral_db": -11.295,
     "bow_neutral_source": "room median over its measured days",
     "period_d": null,
     "open": null,
@@ -5737,13 +5939,13 @@
     "kind": "cycle",
     "id": 0,
     "file": "body/identity/cycle_0.json",
-    "t0": 1699660800.0,
-    "t1": 1702944000.0,
-    "comb_hz": 227.2266,
+    "t0": 1699574400.0,
+    "t1": 1702857600.0,
+    "comb_hz": 225.85,
     "label": null,
-    "comb_render_hz": 113.6133,
-    "room_gain": 2.066391,
-    "bow_neutral_db": -0.488,
+    "comb_render_hz": 112.925,
+    "room_gain": 2.254064,
+    "bow_neutral_db": -0.514,
     "bow_neutral_source": "room median over its measured days",
     "period_d": 38,
     "open": false,
@@ -5762,7 +5964,7 @@
       "freq_hz": 163.5206,
       "period_d": 38.0,
       "f_src_hz": 3.0458089668615986e-07,
-      "amp": 0.990632
+      "amp": 0.957439
      },
      {
       "sensor": "SKSH_e",
@@ -5770,7 +5972,7 @@
       "freq_hz": 163.5206,
       "period_d": 38.0,
       "f_src_hz": 3.0458089668615986e-07,
-      "amp": 0.944545
+      "amp": 0.943191
      }
     ]
    },
@@ -5778,39 +5980,39 @@
     "kind": "cycle",
     "id": 1,
     "file": "body/identity/cycle_1.json",
-    "t0": 1702944000.0,
+    "t0": 1702857600.0,
     "t1": 1705190400.0,
-    "comb_hz": 279.263,
+    "comb_hz": 268.9199,
     "label": null,
-    "comb_render_hz": 139.6315,
-    "room_gain": 3.296501,
-    "bow_neutral_db": -0.121,
+    "comb_render_hz": 134.4599,
+    "room_gain": 3.220512,
+    "bow_neutral_db": -0.181,
     "bow_neutral_source": "room median over its measured days",
-    "period_d": 26,
+    "period_d": 27,
     "open": false,
     "top3": [
      {
       "sensor": "THOB_e",
       "harm": 1,
-      "freq_hz": 238.9917,
-      "period_d": 26.0,
-      "f_src_hz": 4.4515669515669514e-07,
+      "freq_hz": 230.1401,
+      "period_d": 27.0,
+      "f_src_hz": 4.2866941015089163e-07,
       "amp": 1.0
      },
      {
       "sensor": "SENG_e",
       "harm": 1,
-      "freq_hz": 238.9917,
-      "period_d": 26.0,
-      "f_src_hz": 4.4515669515669514e-07,
+      "freq_hz": 230.1401,
+      "period_d": 27.0,
+      "f_src_hz": 4.2866941015089163e-07,
       "amp": 0.749412
      },
      {
       "sensor": "THOB_n",
       "harm": 1,
-      "freq_hz": 238.9917,
-      "period_d": 26.0,
-      "f_src_hz": 4.4515669515669514e-07,
+      "freq_hz": 230.1401,
+      "period_d": 27.0,
+      "f_src_hz": 4.2866941015089163e-07,
       "amp": 0.652063
      }
     ]
@@ -5824,8 +6026,8 @@
     "comb_hz": 482.6392,
     "label": null,
     "comb_render_hz": 120.6598,
-    "room_gain": 2.201383,
-    "bow_neutral_db": -10.65,
+    "room_gain": 2.201384,
+    "bow_neutral_db": -11.295,
     "bow_neutral_source": "sequence_0 fallback (no measured inflow day)",
     "period_d": 25,
     "open": false,
@@ -5861,39 +6063,39 @@
     "id": 3,
     "file": "body/identity/cycle_3.json",
     "t0": 1707350400.0,
-    "t1": 1710633600.0,
-    "comb_hz": 277.5301,
+    "t1": 1709337600.0,
+    "comb_hz": 622.0651,
     "label": null,
-    "comb_render_hz": 138.7651,
-    "room_gain": 1.892297,
-    "bow_neutral_db": -10.65,
+    "comb_render_hz": 77.7581,
+    "room_gain": 2.959321,
+    "bow_neutral_db": -11.295,
     "bow_neutral_source": "sequence_0 fallback (no measured inflow day)",
-    "period_d": 38,
+    "period_d": 23,
     "open": false,
     "top3": [
      {
-      "sensor": "SENG_e",
-      "harm": 1,
-      "freq_hz": 163.5206,
-      "period_d": 38.0,
-      "f_src_hz": 3.0458089668615986e-07,
+      "sensor": "SKSH_u",
+      "harm": 2,
+      "freq_hz": 540.329,
+      "period_d": 11.5,
+      "f_src_hz": 1.006441223832528e-06,
       "amp": 1.0
      },
      {
-      "sensor": "SKSH_u",
-      "harm": 1,
-      "freq_hz": 163.5206,
-      "period_d": 38.0,
-      "f_src_hz": 3.0458089668615986e-07,
-      "amp": 0.814737
+      "sensor": "THOB_u",
+      "harm": 4,
+      "freq_hz": 1080.658,
+      "period_d": 5.75,
+      "f_src_hz": 2.012882447665056e-06,
+      "amp": 0.862554
      },
      {
-      "sensor": "THOB_u",
+      "sensor": "SENG_u",
       "harm": 1,
-      "freq_hz": 163.5206,
-      "period_d": 38.0,
-      "f_src_hz": 3.0458089668615986e-07,
-      "amp": 0.705906
+      "freq_hz": 270.1645,
+      "period_d": 23.0,
+      "f_src_hz": 5.03220611916264e-07,
+      "amp": 0.790746
      }
     ]
    },
@@ -5901,40 +6103,40 @@
     "kind": "cycle",
     "id": 4,
     "file": "body/identity/cycle_4.json",
-    "t0": 1710633600.0,
-    "t1": 1716940800.0,
-    "comb_hz": 129.447,
+    "t0": 1709337600.0,
+    "t1": 1710547200.0,
+    "comb_hz": 980.0466,
     "label": null,
-    "comb_render_hz": 129.447,
-    "room_gain": 2.006179,
-    "bow_neutral_db": -5.2,
-    "bow_neutral_source": "room median over its measured days",
-    "period_d": 73,
+    "comb_render_hz": 122.5058,
+    "room_gain": 3.78645,
+    "bow_neutral_db": -11.295,
+    "bow_neutral_source": "sequence_0 fallback (no measured inflow day)",
+    "period_d": 14,
     "open": false,
     "top3": [
      {
-      "sensor": "SENG_u",
+      "sensor": "SENG_e",
       "harm": 1,
-      "freq_hz": 85.1203,
-      "period_d": 73.0,
-      "f_src_hz": 1.5854895991882294e-07,
+      "freq_hz": 443.8417,
+      "period_d": 14.0,
+      "f_src_hz": 8.267195767195768e-07,
       "amp": 1.0
-     },
-     {
-      "sensor": "THOB_u",
-      "harm": 1,
-      "freq_hz": 85.1203,
-      "period_d": 73.0,
-      "f_src_hz": 1.5854895991882294e-07,
-      "amp": 0.982395
      },
      {
       "sensor": "SKSH_u",
       "harm": 1,
-      "freq_hz": 85.1203,
-      "period_d": 73.0,
-      "f_src_hz": 1.5854895991882294e-07,
-      "amp": 0.958627
+      "freq_hz": 443.8417,
+      "period_d": 14.0,
+      "f_src_hz": 8.267195767195768e-07,
+      "amp": 0.912224
+     },
+     {
+      "sensor": "SENG_e",
+      "harm": 2,
+      "freq_hz": 887.6834,
+      "period_d": 7.0,
+      "f_src_hz": 1.6534391534391535e-06,
+      "amp": 0.8427
      }
     ]
    },
@@ -5942,40 +6144,40 @@
     "kind": "cycle",
     "id": 5,
     "file": "body/identity/cycle_5.json",
-    "t0": 1716940800.0,
-    "t1": 1724371200.0,
-    "comb_hz": 135.4778,
+    "t0": 1710547200.0,
+    "t1": 1716940800.0,
+    "comb_hz": 127.6978,
     "label": null,
-    "comb_render_hz": 135.4778,
-    "room_gain": 0.586989,
-    "bow_neutral_db": -4.697,
+    "comb_render_hz": 127.6978,
+    "room_gain": 1.998157,
+    "bow_neutral_db": -5.311,
     "bow_neutral_source": "room median over its measured days",
-    "period_d": 86,
+    "period_d": 74,
     "open": false,
     "top3": [
      {
-      "sensor": "THOB_u",
-      "harm": 2,
-      "freq_hz": 144.5066,
-      "period_d": 43.0,
-      "f_src_hz": 2.6916451335055985e-07,
+      "sensor": "SENG_u",
+      "harm": 1,
+      "freq_hz": 83.9701,
+      "period_d": 74.0,
+      "f_src_hz": 1.564064064064064e-07,
       "amp": 1.0
      },
      {
-      "sensor": "SENG_u",
-      "harm": 2,
-      "freq_hz": 144.5066,
-      "period_d": 43.0,
-      "f_src_hz": 2.6916451335055985e-07,
-      "amp": 0.969998
+      "sensor": "THOB_u",
+      "harm": 1,
+      "freq_hz": 83.9701,
+      "period_d": 74.0,
+      "f_src_hz": 1.564064064064064e-07,
+      "amp": 0.982395
      },
      {
       "sensor": "SKSH_u",
-      "harm": 2,
-      "freq_hz": 144.5066,
-      "period_d": 43.0,
-      "f_src_hz": 2.6916451335055985e-07,
-      "amp": 0.956047
+      "harm": 1,
+      "freq_hz": 83.9701,
+      "period_d": 74.0,
+      "f_src_hz": 1.564064064064064e-07,
+      "amp": 0.958627
      }
     ]
    },
@@ -5983,13 +6185,54 @@
     "kind": "cycle",
     "id": 6,
     "file": "body/identity/cycle_6.json",
-    "t0": 1724371200.0,
-    "t1": 1732147200.0,
-    "comb_hz": 138.9191,
+    "t0": 1716940800.0,
+    "t1": 1724284800.0,
+    "comb_hz": 136.504,
     "label": null,
-    "comb_render_hz": 138.9191,
-    "room_gain": 0.762574,
-    "bow_neutral_db": -5.33,
+    "comb_render_hz": 136.504,
+    "room_gain": 0.63731,
+    "bow_neutral_db": -4.834,
+    "bow_neutral_source": "room median over its measured days",
+    "period_d": 85,
+    "open": false,
+    "top3": [
+     {
+      "sensor": "THOB_u",
+      "harm": 2,
+      "freq_hz": 146.2067,
+      "period_d": 42.5,
+      "f_src_hz": 2.7233115468409584e-07,
+      "amp": 1.0
+     },
+     {
+      "sensor": "SENG_u",
+      "harm": 2,
+      "freq_hz": 146.2067,
+      "period_d": 42.5,
+      "f_src_hz": 2.7233115468409584e-07,
+      "amp": 0.953746
+     },
+     {
+      "sensor": "SKSH_u",
+      "harm": 2,
+      "freq_hz": 146.2067,
+      "period_d": 42.5,
+      "f_src_hz": 2.7233115468409584e-07,
+      "amp": 0.950877
+     }
+    ]
+   },
+   {
+    "kind": "cycle",
+    "id": 7,
+    "file": "body/identity/cycle_7.json",
+    "t0": 1724284800.0,
+    "t1": 1732060800.0,
+    "comb_hz": 143.5775,
+    "label": null,
+    "comb_render_hz": 143.5775,
+    "room_gain": 0.667444,
+    "bow_neutral_db": -5.467,
     "bow_neutral_source": "room median over its measured days",
     "period_d": 90,
     "open": false,
@@ -6003,61 +6246,20 @@
       "amp": 1.0
      },
      {
-      "sensor": "SKSH_u",
-      "harm": 1,
-      "freq_hz": 69.042,
-      "period_d": 90.0,
-      "f_src_hz": 1.286008230452675e-07,
-      "amp": 0.88858
-     },
-     {
-      "sensor": "SENG_u",
-      "harm": 1,
-      "freq_hz": 69.042,
-      "period_d": 90.0,
-      "f_src_hz": 1.286008230452675e-07,
-      "amp": 0.824063
-     }
-    ]
-   },
-   {
-    "kind": "cycle",
-    "id": 7,
-    "file": "body/identity/cycle_7.json",
-    "t0": 1732147200.0,
-    "t1": 1743465600.0,
-    "comb_hz": 53.3587,
-    "label": null,
-    "comb_render_hz": 53.3587,
-    "room_gain": 0.647877,
-    "bow_neutral_db": -7.556,
-    "bow_neutral_source": "room median over its measured days",
-    "period_d": 131,
-    "open": false,
-    "top3": [
-     {
-      "sensor": "SKSH_u",
-      "harm": 1,
-      "freq_hz": 47.4335,
-      "period_d": 131.0,
-      "f_src_hz": 8.835171048911508e-08,
-      "amp": 1.0
-     },
-     {
       "sensor": "THOB_u",
-      "harm": 1,
-      "freq_hz": 47.4335,
-      "period_d": 131.0,
-      "f_src_hz": 8.835171048911508e-08,
-      "amp": 0.938406
+      "harm": 3,
+      "freq_hz": 207.1261,
+      "period_d": 30.0,
+      "f_src_hz": 3.8580246913580245e-07,
+      "amp": 0.910361
      },
      {
-      "sensor": "SENG_u",
+      "sensor": "SKSH_u",
       "harm": 1,
-      "freq_hz": 47.4335,
-      "period_d": 131.0,
-      "f_src_hz": 8.835171048911508e-08,
-      "amp": 0.891241
+      "freq_hz": 69.042,
+      "period_d": 90.0,
+      "f_src_hz": 1.286008230452675e-07,
+      "amp": 0.888893
      }
     ]
    },
@@ -6065,13 +6267,54 @@
     "kind": "cycle",
     "id": 8,
     "file": "body/identity/cycle_8.json",
+    "t0": 1732060800.0,
+    "t1": 1743465600.0,
+    "comb_hz": 52.9544,
+    "label": null,
+    "comb_render_hz": 52.9544,
+    "room_gain": 0.647445,
+    "bow_neutral_db": -7.658,
+    "bow_neutral_source": "room median over its measured days",
+    "period_d": 132,
+    "open": false,
+    "top3": [
+     {
+      "sensor": "SKSH_u",
+      "harm": 1,
+      "freq_hz": 47.0741,
+      "period_d": 132.0,
+      "f_src_hz": 8.768237934904601e-08,
+      "amp": 1.0
+     },
+     {
+      "sensor": "THOB_u",
+      "harm": 1,
+      "freq_hz": 47.0741,
+      "period_d": 132.0,
+      "f_src_hz": 8.768237934904601e-08,
+      "amp": 0.938406
+     },
+     {
+      "sensor": "SENG_u",
+      "harm": 1,
+      "freq_hz": 47.0741,
+      "period_d": 132.0,
+      "f_src_hz": 8.768237934904601e-08,
+      "amp": 0.891241
+     }
+    ]
+   },
+   {
+    "kind": "cycle",
+    "id": 9,
+    "file": "body/identity/cycle_9.json",
     "t0": 1743465600.0,
     "t1": 1752624000.0,
     "comb_hz": 89.7252,
     "label": null,
     "comb_render_hz": 89.7252,
-    "room_gain": 3.127073,
-    "bow_neutral_db": -9.684,
+    "room_gain": 3.127074,
+    "bow_neutral_db": -9.852,
     "bow_neutral_source": "room median over its measured days",
     "period_d": 106,
     "open": false,
@@ -6104,15 +6347,15 @@
    },
    {
     "kind": "cycle",
-    "id": 9,
-    "file": "body/identity/cycle_9.json",
+    "id": 10,
+    "file": "body/identity/cycle_10.json",
     "t0": 1752624000.0,
     "t1": null,
     "comb_hz": 17.6313,
     "label": null,
     "comb_render_hz": 35.2626,
     "room_gain": 2.284666,
-    "bow_neutral_db": -19.102,
+    "bow_neutral_db": -19.27,
     "bow_neutral_source": "room median over its measured days",
     "period_d": 435,
     "open": true,
@@ -6152,7 +6395,7 @@
     "comb_hz": 2233.3538,
     "label": "quiet",
     "comb_render_hz": 139.5846,
-    "room_gain": 5.640146,
+    "room_gain": 5.640147,
     "bow_neutral_db": 0.0,
     "bow_neutral_source": "regime: no inflow bow (0 dB)",
     "period_d": null,
@@ -6193,7 +6436,7 @@
     "comb_hz": 3150.0547,
     "label": "swarm",
     "comb_render_hz": 98.4392,
-    "room_gain": 5.343663,
+    "room_gain": 5.343664,
     "bow_neutral_db": 0.0,
     "bow_neutral_source": "regime: no inflow bow (0 dB)",
     "period_d": null,
@@ -6385,6 +6628,7 @@
    "cycle_7.json",
    "cycle_8.json",
    "cycle_9.json",
+   "cycle_10.json",
    "regime_0.json",
    "regime_1.json",
    "regime_2.json"
@@ -6397,7 +6641,7 @@
    "engine_applies": {
     "detune": "freq_hz x (1 + detune)",
     "overtone_damping": "ring_s x 0.85^(harm - 1)",
-    "comb_fold": "comb_hz by whole octaves into [35.0, 140.0] Hz (= comb_render_hz)",
+    "comb_fold": "comb_hz by whole octaves into [33.0, 150.0] Hz (= comb_render_hz)",
     "note": "the pin and rest gains are priced on exactly this render"
    },
    "ring": "0.8 + 6 * amp (amp: room max = 1), no overtone damping",
@@ -6440,12 +6684,12 @@
   "waveforms": "RK.MELH.10 HH* 100 Hz + LM* 1 Hz miniSEED, 2024-01-14 00:00-10:23 UTC, raw counts"
  },
  "flags": [
-  "station coordinates pending StationXML / FDSN station service (MELH, SKSH, SENG, THOB)",
+  "MELH's position is a placeholder (pos_status approx, 2 km): no public service lists RK.MELH; SKSH, SENG, THOB from IMO's GNSS browser / site logs (measured)",
   "waveforms are raw counts (no instrument response yet)",
   "MELH covers 2024-01-14 00:00-10:23 UTC only; the station was overrun by lava",
   "GNSS straight-line (interpolated) days are flagged <ST>_interp; all three stations are interpolated across the 14 Jan 2024 eruption",
   "GNSS 1-2 day excursions that return are flagged <ST>_spike",
-  "deflation events are W1's detection; Leif's eruption timeline will replace them (TASKS L2)",
+  "the rooms and waits are bounded by IMO's eruption timeline (events/eruptions.json); deflation_events is W1's GNSS detection, kept for the comparison (gnss_match)",
   "fc_hz assumes a 3 MPa stress drop and treats ML as Mw",
   "eq_b uses one whole-catalogue Mc (max curvature)"
  ]

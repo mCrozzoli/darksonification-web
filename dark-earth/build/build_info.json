@@ -1,5 +1,5 @@
 {
-  "built": "2026-10-22 16:20:15",
+  "built": "2026-10-25 13:37:01",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "clearance": {
     "status": "cleared",
@@ -7,26 +7,27 @@
   },
   "name": "Dark Earth",
   "sources": {
-    "viz/app.js": "99c9b6761f96970d",
-    "viz/cook.js": "29bff4e52604ec4c",
+    "viz/app.js": "1ac1255d0c97412a",
+    "viz/cook.js": "f9b928dc7a14fe7b",
+    "viz/index.html": "0e94656cbc9124d0",
+    "viz/legend.js": "347c8005e338e3b9",
+    "viz/source.js": "440bd59feff6341d",
+    "viz/stations.js": "f1a90418f16a2152",
+    "viz/svk_messages.json": "3543ec94b18d48f5",
+    "viz/views/latent.js": "18dbaad816ec6fb8",
+    "viz/views/map.js": "d43c5f19eb257a4f",
+    "viz/views/timeline.js": "628d89ac17cdde91",
+    "viz/geo/SOURCE.md": "56992082c4c13ddd",
+    "viz/geo/reykjanes_coast.geojson": "b384b96f49ff2c82",
     "viz/darkstyle/KIT.json": "9d472947fb97a66c",
     "viz/darkstyle/darkstyle.css": "a2c1507972554138",
     "viz/darkstyle/darkstyle.js": "a5a154247a75ed38",
-    "viz/geo/SOURCE.md": "56992082c4c13ddd",
-    "viz/geo/reykjanes_coast.geojson": "b384b96f49ff2c82",
-    "viz/index.html": "807045d7d5913bd2",
-    "viz/legend.js": "b0a3ecfdc70b4003",
-    "viz/source.js": "f4e4060423d91cc5",
-    "viz/svk_messages.json": "a3a17ec1f363bc69",
     "viz/vendor/d3.v7.min.js": "f2094bbf6141b359",
-    "viz/views/latent.js": "18dbaad816ec6fb8",
-    "viz/views/map.js": "d11ebef2324f0d6d",
-    "viz/views/timeline.js": "800637885bab1aaa",
     "sc/dark_svartsengi_boot.scd": "c80719c8905c61af",
-    "sc/svk_synthdefs.scd": "6279ba6bb4ff6f21",
-    "sc/parse_dark_svartsengi.scd": "9b38a49cf4da6a1c",
-    "sc/svk_cook.scd": "ed72e187e9deed2a",
-    "build/about.template.html": "f533f14123899e34"
+    "sc/svk_synthdefs.scd": "211efbbbe64e02c8",
+    "sc/parse_dark_svartsengi.scd": "b181f21edfd7c875",
+    "sc/svk_cook.scd": "483f0364f6144a57",
+    "build/about.template.html": "484018a993777e0a"
   },
   "patches": [
     {
@@ -85,6 +86,7 @@
     "sc/parse_dark_svartsengi.scd",
     "index.html",
     "about.html",
+    "CREDITS.txt",
     "build/build_info.json"
   ],
   "hand_written": [
@@ -103,18 +105,34 @@
     "osc.js": "d1e7c6b2ce4b28db",
     "coi-sw.js": "0f0bd6af19f47770",
     "sc/web_boot.scd": "b4d6471195b639e3",
-    "README.md": "611ada04d42a08ad"
+    "README.md": "8bb57d47356c8e2b"
   },
   "data": {
-    "built": "2026-10-22 16:20:15",
+    "built": "2026-10-25 13:37:01",
     "bridge_sha": "bb868199de1b0d18",
-    "schema_sha": "a3a17ec1f363bc69",
-    "contract": "0.12",
-    "contract_warning": "manifest contract 0.11.7 ≠ svk_messages.json contract 0.12: the data and the message table are from different contract versions",
+    "schema_sha": "3543ec94b18d48f5",
+    "contract": "0.14",
+    "contract_warning": "manifest contract 0.13 ≠ svk_messages.json contract 0.14: the data and the message table are from different contract versions",
+    "publication_gate": {
+      "public_seismic_coverage": {
+        "RK.MELH.10": [
+          [
+            1705190400.0,
+            1705227790.0
+          ]
+        ]
+      },
+      "checked": {
+        "json": 163,
+        "tiles": 26,
+        "wave_hours": 132,
+        "rows": 8177
+      }
+    },
     "manifest": {
-      "sha": "6a996b1e441a50a2",
-      "contract": "0.11.7",
-      "built": "2026-10-20T21:41:01.340Z",
+      "sha": "e6b0f1cf9f766fab",
+      "contract": "0.13",
+      "built": "2026-10-25T11:47:09.479Z",
       "t0": 1685577600,
       "t_end": 1790294400.0,
       "wave_peak": {
@@ -127,18 +145,18 @@
     },
     "data": {
       "copied": 0,
-      "kept": 220,
+      "kept": 229,
       "removed": 0,
-      "digest": "27bfc5a4115f2ca9",
-      "files": 220,
-      "bytes": 40343044
+      "digest": "18e4e0f6756e7de3",
+      "files": 229,
+      "bytes": 40875815
     },
     "bridge_data_roots": [
       "data/",
       "dev_mock/data/"
     ],
     "relay_vectors": {
-      "page_to_engine": 81,
+      "page_to_engine": 86,
       "engine_to_page": 10,
       "setn": 2
     },
@@ -146,9 +164,19 @@
       "bridge import: no side effects",
       "wave peaks + listed hours present",
       "no lava / effusion names",
+      "publication flags: manifest + stations public, no public:false / NOT_FOR_PUBLICATION.txt / local*; waveform content inside public coverage",
       "view/data digest == viz/data digest"
     ]
   },
+  "viz_left_out": [
+    ".gitignore",
+    ".viz_ports.json",
+    "bridge.py",
+    "dark_svartsengi_viz.command",
+    "data",
+    "dev_mock",
+    "tools"
+  ],
   "sc_files": [
     "web_boot.scd",
     "svk_synthdefs.scd",
@@ -211,6 +239,7 @@
       "Phasor",
       "PinkNoise",
       "RLPF",
+      "RandID",
       "Ringz",
       "SampleRate",
       "Saw",
@@ -235,8 +264,15 @@
     "sclang.data": "697d847b716b6e36"
   },
   "relay_check": {
-    "checked": 93,
+    "checked": 98,
     "failed": 0,
-    "contract": "0.12"
-  }
+    "contract": "0.14"
+  },
+  "publication_markers": "no NOT_FOR_PUBLICATION.txt in the build",
+  "page_refs": 12,
+  "credits_from_data": [
+    "OpenStreetMap",
+    "Rhodes et al",
+    "vedur\\.is"
+  ]
 }

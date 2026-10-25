@@ -1,0 +1,28 @@
+Dark Earth - credits and licences
+========================================
+
+Design: Miguel Angel Crozzoli. Implemented with Claude AI agents. Built with DarkSonification
+  (https://github.com/Intelligent-Instruments-Lab/darksonification).
+
+DATA
+Icelandic Meteorological Office (IMO, Veðurstofa Íslands): the earthquake catalogue, the GNSS stations SKSH, SENG and
+  THOB, and the MELH seismometer. Compiled and shared by Leif Karlstrom (Department of Earth Sciences, University
+  of Oregon; Volcano Listening Project), with whom this design is made.
+  Catalogue: IMO earthquake catalogue (Svartsengi polygon), located + magnitude-estimated by IMO
+  GNSS: daily N/E/U, IMO stations SKSH, SENG, THOB (files *_060423_092426_I.csv)
+  Seismometer: RK.MELH.10 HH* 100 Hz + LM* 1 Hz miniSEED, 2024-01-14 00:00-10:23 UTC, raw counts
+Eruption sites: landmark coordinates © OpenStreetMap contributors, available under the Open Database License (ODbL),
+  https://www.openstreetmap.org/copyright
+Lava fountains: observed fountain heights from Rhodes et al. (2026), Bulletin of Volcanology 88:89,
+  doi:10.1007/s00445-026-02006-3 (supplement ESM2); the other eruptions' heights simulated with Leif Karlstrom's model.
+  Fissure positions digitised from Rhodes et al. (2026), Fig. 3, or placed from IMO's reports.
+Eruption dates and places: IMO's published reports, https://en.vedur.is/about-imo/news/
+Coastline: Natural Earth 1:10m land, public domain (https://www.naturalearthdata.com).
+
+SOFTWARE
+SuperCollider, WebAssembly build of the development branch at commit 5d47207bb313684e81ebe729a5f714f50761c6c7 (unreleased):
+  scsynth and sclang GPL-3.0; the WebAssembly bindings AGPL-3.0. Unmodified; licence text in engine/LICENSE.
+  https://github.com/supercollider/supercollider
+D3 v7.9.0, ISC licence (https://d3js.org).
+Fonts of the paper look: Karla and Rubik, SIL Open Font License 1.1, served by Google Fonts.
+
