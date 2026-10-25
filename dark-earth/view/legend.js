@@ -254,6 +254,7 @@ window.DarkLegend = (function () {
     const from = api.heardFrom ? api.heardFrom() : null;     // v0.14: where the placed sounds are heard from
     host.innerHTML = `<div class="dock-h"><h2>PERCEPTUAL LEGEND</h2><button class="dock-x" id="lgp-close" title="close the legend (L)">✕ close (L)</button></div>
       ${api.heardFrom ? `<div class="lg-from">heard from: <b>${esc(from || "nowhere yet")}</b> <span>(move the ear on the map)</span></div>` : ""}
+      ${api.dataSource ? `<div class="lg-from">data: <b>${esc(api.dataSource())}</b>${api.dataSource() === "published" ? "" : " <span>over the published</span>"}</div>` : ""}
       <div class="lsec" data-sec="go">catalogue · real moments (click = go there)<span class="lchev">▾</span></div><div class="lbody"><div class="lgo">${go}</div></div>
       <div class="lsec" data-sec="hear">pick a moment, then hold a chip to hear the difference<span class="lchev">▾</span></div>
       <div class="lbody"><div class="lg-held" role="status" aria-live="polite"></div>${hear}</div>

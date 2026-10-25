@@ -45,7 +45,14 @@
       }
     },
   };
+  // The page boots (app.js, through a build patch) only when this document will NOT be reloaded for isolation: on the
+  // first visit to a header-less host (GitHub Pages) the service worker reloads the page once, and a page that had
+  // already begun fetching would see those fetches aborted (WebKit logs them as access-control errors, and the page's
+  // own "could not start" banner can flash). If the service worker never takes over, the page boots anyway (display only).
+  let bootable;
+  const whenBootable = new Promise((r) => { bootable = r; });
   window.__darkWeb = {
+    whenBootable: () => whenBootable,
     socket() {
       sock.claimed = true;
       if (sock.openPending) { const h = sock.openPending; sock.openPending = false; setTimeout(() => sock.open(h), 0); }   // after the caller set its handlers
@@ -61,19 +68,21 @@
   let reloading = false;
   async function isolate() {
     if (self.crossOriginIsolated || !("serviceWorker" in navigator)) { try { sessionStorage.removeItem(COI_KEY); } catch (_) {} return; }
-    await navigator.serviceWorker.register(new URL("coi-sw.js", BASE).href);
     let tried = null; try { tried = sessionStorage.getItem(COI_KEY); } catch (_) {}
+    try { await navigator.serviceWorker.register(new URL("coi-sw.js", BASE).href); } catch (_) { return; }   // no worker: display only
     if (!tried) {                                    // first visit: reload once under the service worker
       try { sessionStorage.setItem(COI_KEY, "1"); } catch (_) {}
-      await navigator.serviceWorker.ready;
+      const ready = await Promise.race([navigator.serviceWorker.ready.then(() => true), new Promise((r) => setTimeout(() => r(false), 8000))]);
+      if (!ready) return;                            // the worker never activated: boot without isolation
       reloading = true;
       location.reload();
     }
   }
   async function start() {
-    if (new URLSearchParams(location.search).get("engine") === "off") return;   // the page's silent mode: no engine at all
-    await isolate();
-    if (reloading) return;
+    if (new URLSearchParams(location.search).get("engine") === "off") { bootable(); return; }   // the page's silent mode: no engine at all
+    try { await isolate(); } catch (_) {}
+    if (reloading) return;                           // this document goes away: the page never boots in it
+    bootable();
     if (!self.crossOriginIsolated) {
       unavailable = true;
       sock.deliver({ type: "status", status: "engine-unavailable" });   // the page repaints its engine chip
@@ -85,5 +94,5 @@
     darkEngine.attachPage(sock, window);
     darkEngine.preload().catch(() => {});             // compile the class library now; sound starts at the first gesture
   }
-  start().catch((e) => console.error("[web] engine could not load", e));
+  start().catch((e) => { bootable(); console.error("[web] engine could not load", e); });
 })();

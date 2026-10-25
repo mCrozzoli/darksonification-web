@@ -1,5 +1,5 @@
 {
-  "built": "2026-10-25 13:37:01",
+  "built": "2026-10-25 14:08:47",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "clearance": {
     "status": "cleared",
@@ -7,11 +7,11 @@
   },
   "name": "Dark Earth",
   "sources": {
-    "viz/app.js": "1ac1255d0c97412a",
+    "viz/app.js": "1a7a6b2517898572",
     "viz/cook.js": "f9b928dc7a14fe7b",
-    "viz/index.html": "0e94656cbc9124d0",
-    "viz/legend.js": "347c8005e338e3b9",
-    "viz/source.js": "440bd59feff6341d",
+    "viz/index.html": "b124ceb54fafa793",
+    "viz/legend.js": "8f59b8da10066cfd",
+    "viz/source.js": "2eb39be78a03bdbb",
     "viz/stations.js": "f1a90418f16a2152",
     "viz/svk_messages.json": "3543ec94b18d48f5",
     "viz/views/latent.js": "18dbaad816ec6fb8",
@@ -53,6 +53,10 @@
     {
       "file": "viz/app.js",
       "why": "the engine: with no bridge (SVK_CONFIG.noBridge) the desktop page would fall back to NullTransport; in the web build it opens BridgeTransport over the in-tab socket (?engine=off still means silent)"
+    },
+    {
+      "file": "viz/app.js",
+      "why": "the page boots only when this document will not be reloaded for isolation (web_page.js whenBootable): on a first visit to a header-less host the service worker reloads the page once, and fetches already begun would be aborted (WebKit logs them as errors, and the page's own 'could not start' banner can flash)"
     },
     {
       "file": "viz/app.js",
@@ -99,16 +103,16 @@
     "README.md"
   ],
   "hand_written_sha": {
-    "web_page.js": "e5643c4a2772241a",
+    "web_page.js": "48ee7c341de23fa1",
     "engine.js": "a6b1a756a96028c5",
     "relay.js": "15158ec825ae001c",
     "osc.js": "d1e7c6b2ce4b28db",
     "coi-sw.js": "0f0bd6af19f47770",
     "sc/web_boot.scd": "b4d6471195b639e3",
-    "README.md": "8bb57d47356c8e2b"
+    "README.md": "ce0965b715c86f1a"
   },
   "data": {
-    "built": "2026-10-25 13:37:01",
+    "built": "2026-10-25 14:08:47",
     "bridge_sha": "bb868199de1b0d18",
     "schema_sha": "3543ec94b18d48f5",
     "contract": "0.14",
@@ -130,9 +134,9 @@
       }
     },
     "manifest": {
-      "sha": "e6b0f1cf9f766fab",
+      "sha": "cb95096be8e91d26",
       "contract": "0.13",
-      "built": "2026-10-25T11:47:09.479Z",
+      "built": "2026-10-25T12:51:46.227Z",
       "t0": 1685577600,
       "t_end": 1790294400.0,
       "wave_peak": {
@@ -147,7 +151,7 @@
       "copied": 0,
       "kept": 229,
       "removed": 0,
-      "digest": "18e4e0f6756e7de3",
+      "digest": "d57885fa225dbc36",
       "files": 229,
       "bytes": 40875815
     },
