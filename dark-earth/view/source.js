@@ -18,6 +18,7 @@ window.SvkSource = (function () {
   "use strict";
   const HOUR = 3600, DAY = 86400;
 
+  const isNum = (v) => typeof v === "number" && Number.isFinite(v);
   const pad2 = (n) => String(n).padStart(2, "0");
   function ymd(t) { const d = new Date(t * 1000); return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}`; }
   function hh(t) { return pad2(new Date(t * 1000).getUTCHours()); }
@@ -60,10 +61,11 @@ window.SvkSource = (function () {
     const file = async (rel) => { const parts = (prefix + rel).split("/").filter(Boolean), name = parts.pop(); return (await (await dirOf(parts)).getFileHandle(name)).getFile(); };
     return { kind: "folder", via: "handle", label, handle: root, file, json: async (rel) => JSON.parse(await (await file(rel)).text()), bytes: async (rel) => (await file(rel)).arrayBuffer(), has: null };
   }
-  // ----- W1's portable tree (CONTRACT 0.15; W1 note §16.1, pipeline/tree_check.py): the loader mirrors the checker's
+  // ----- W1's portable tree (CONTRACT 0.15, and 0.16 for a tiles-only tree naming a raw miniSEED folder; W1 note §16.1,
+  // pipeline/tree_check.py): the loader mirrors the checker's
   // steps 1–5. The index digests are checked with SubtleCrypto; the sizes where the folder can tell them cheaply; every
   // file's sha256 only on request (verifyTree). A tree marked public: false is the researcher's own: it never leaves the page
-  const TREE_VERSIONS = ["0.15"];
+  const TREE_VERSIONS = ["0.15", "0.16"];                    // tree_check's KNOWN_VERSIONS
   const ROOT_KEYS = ["schema", "schema_version", "made", "pipeline", "public", "manifest", "t0", "t_end", "stations", "export", "index", "dirs", "n_files", "bytes", "tree_sha256"];
   const isNet = (e) => e instanceof TypeError || /Failed to fetch|NetworkError|Load failed/i.test(String(e && e.message));
   async function sha256Hex(x) {
@@ -77,6 +79,12 @@ window.SvkSource = (function () {
     if (doc.schema !== "darkearth_tree") throw new Error(`darkearth_tree.json says schema "${doc.schema}", not a Dark Earth tree`);
     if (!TREE_VERSIONS.includes(String(doc.schema_version))) throw new Error(`a tree of schema version ${doc.schema_version}: this page reads ${TREE_VERSIONS.join(", ")}`);
     if (miss.length) throw new Error(`darkearth_tree.json has no ${miss.join(", ")}`);
+    if (("kind" in doc && doc.kind !== doc.schema) || ("contract" in doc && String(doc.contract) !== String(doc.schema_version))) throw new Error("darkearth_tree.json's kind / contract disagree with its schema / schema_version");
+    //    a raw miniSEED folder beside the tiles (not indexed) is a 0.16 tree's, a relative folder inside the tree
+    if (doc.raw && doc.raw.dir) {
+      if (String(doc.schema_version) === "0.15") throw new Error("this tree names a raw folder but says version 0.15: a raw folder needs a 0.16 tree (pipeline.tree_tiles_only --raw-dir writes one)");
+      if (/^\//.test(doc.raw.dir) || String(doc.raw.dir).split("/").includes("..")) throw new Error(`its raw folder "${doc.raw.dir}" must be a relative folder inside the tree`);
+    }
     // 2. every directory's index, its digest, n and bytes; the tree's digest
     const indexed = new Map(), warn = [];
     const ds = Object.keys(doc.dirs || {}).sort(byCode);
@@ -104,11 +112,12 @@ window.SvkSource = (function () {
       sizes = pick.length === all.length ? `all ${all.length} files` : `${pick.length} of ${all.length} files, spread through the tree`;
     }
     // 3. nothing outside the index (a folder only; the system's own .DS_Store and other dotfiles are not the tree's)
+    const rawDir = doc.raw && doc.raw.dir ? String(doc.raw.dir).replace(/\/+$/, "") + "/" : null;   // checked in step 1
     if (listAll) {
-      const extra = listAll().filter((rel) => !indexed.has(rel) && !/(^|\/)(darkearth_tree\.json|_files\.json)$/.test(rel) && !/(^|\/)\./.test(rel));
+      const extra = listAll().filter((rel) => !indexed.has(rel) && !/(^|\/)(darkearth_tree\.json|_files\.json)$/.test(rel) && !/(^|\/)\./.test(rel) && !(rawDir && rel.startsWith(rawDir)));
       if (extra.length) warn.push(`${extra.length} file${extra.length === 1 ? "" : "s"} outside the tree's index, left alone (${extra.slice(0, 2).join(", ")}${extra.length > 2 ? ", …" : ""})`);
     }
-    return { indexed, warn, sizes };
+    return { indexed, warn, sizes, rawDir };
   }
   // steps 4–5: the manifest against the root, and everything it names in the index
   function checkTreeManifest(doc, m, indexed) {
@@ -134,7 +143,7 @@ window.SvkSource = (function () {
   // a tree: W1's portable tree (darkearth_tree.json, checked as tree_check does) or a plain viz/data copy (a manifest.json
   // and nothing else: shown as "a plain tile tree", unchecked). → {io, manifest, doc, label, kind, check} or throws a
   // sentence a person can act on
-  async function treeFrom(rawIo, label, kind, { plainOnly = false, sizeOf = null, listAll = null } = {}) {
+  async function treeFrom(rawIo, label, kind, { plainOnly = false, sizeOf = null, listAll = null, rawEntries = null } = {}) {
     let doc = null;
     if (!plainOnly) try { doc = await rawIo.json("darkearth_tree.json"); } catch (e) { if (isNet(e)) throw e; doc = null; }
     let manifest, check = null;
@@ -148,7 +157,14 @@ window.SvkSource = (function () {
       catch (e) { if (isNet(e)) throw e; throw new Error("this is not a Dark Earth tree: no darkearth_tree.json and no manifest.json at its top"); }
       const bad = checkManifest(manifest); if (bad) throw new Error(`not a tree the page can read: ${bad}`);
     }
-    return { io: rawIo, manifest, doc, label: (doc && doc.title) || label, name: label, kind, plain: !doc, check, public: doc ? !!doc.public : !!manifest.public };
+    // 0.16: a tiles-only tree may keep its raw miniSEED in a folder beside the tiles (doc.raw.dir, not indexed): the page
+    // reads it as a raw source for the waveforms (and the spectrograms computed from them)
+    let rawPart = null;
+    if (check && check.rawDir) {
+      if (!rawEntries) check.warn.push(`its raw miniSEED (${check.rawDir}) is read from a folder, not from a server`);
+      else { const ents = await rawEntries(check.rawDir); if (ents.length) { try { rawPart = await rawFrom(ents, `${label}/${check.rawDir}`, kind); } catch (e) { check.warn.push(`its raw folder ${check.rawDir}: ${e.message}`); } } }
+    }
+    return { io: rawIo, manifest, doc, label: (doc && doc.title) || label, name: label, kind, plain: !doc, check, public: doc ? !!doc.public : !!manifest.public, rawPart };
   }
   // every file's sha256 against the index (on request: a big tree takes a while). onStep(done, total)
   async function verifyTree(tree, onStep) {
@@ -166,12 +182,13 @@ window.SvkSource = (function () {
     const entries = Array.from(fileList, (f) => ({ rel: f.webkitRelativePath || f.relPath || f.name, file: f }));
     if (!entries.length) throw new Error("the folder is empty");
     const tops = entries.filter((e) => /(^|\/)(darkearth_tree|manifest)\.json$/.test(e.rel)).map((e) => e.rel.replace(/[^/]*$/, ""));
-    if (!tops.length) throw new Error("this is not a Dark Earth tree: no darkearth_tree.json or manifest.json in the folder");
+    if (!tops.length) return rawFrom(entries, entries[0].rel.includes("/") ? entries[0].rel.split("/")[0] : "your folder", "folder");   // no tree: raw miniSEED?
     const top = tops.sort((a, b) => a.split("/").length - b.split("/").length || a.length - b.length)[0];
     const name = (top.split("/").filter(Boolean).pop()) || entries[0].rel.split("/")[0] || "your folder";
     const io = fileListReader(entries, top, name);
     const map = new Map(entries.filter((e) => e.rel.startsWith(top)).map((e) => [e.rel.slice(top.length), e.file]));
-    return treeFrom(io, name, "folder", { sizeOf: async (rel) => (map.has(rel) ? map.get(rel).size : null), listAll: () => [...map.keys()] });
+    return treeFrom(io, name, "folder", { sizeOf: async (rel) => (map.has(rel) ? map.get(rel).size : null), listAll: () => [...map.keys()],
+                                          rawEntries: async (dir) => [...map].filter(([rel]) => rel.startsWith(dir) && !/(^|\/)\./.test(rel)).map(([rel, file]) => ({ rel, file })) });
   }
   // a directory handle (showDirectoryPicker): the tree at its top, or in the one subfolder that holds it
   async function treeFromHandle(handle) {
@@ -181,8 +198,24 @@ window.SvkSource = (function () {
       for await (const [n, h] of handle.entries()) if (h.kind === "directory" && ((await has(h, "darkearth_tree.json")) || (await has(h, "manifest.json")))) { prefix = n + "/"; break; }
     }
     const name = (prefix ? prefix.slice(0, -1) : handle.name) || "your folder";
+    if (!prefix && !(await has(handle, "darkearth_tree.json")) && !(await has(handle, "manifest.json"))) {
+      // no tree at its top or one folder down: raw miniSEED? Every file, walked (dotfiles left out)
+      const entries = [], walk = async (d, path) => {
+        for await (const [n, h] of d.entries()) {
+          if (n.startsWith(".") || entries.length > 50000) continue;
+          if (h.kind === "directory") await walk(h, path + n + "/"); else entries.push({ rel: path + n, file: await h.getFile() });
+        }
+      };
+      await walk(handle, "");
+      return rawFrom(entries, handle.name || "your folder", "folder");
+    }
     const io = dirHandleReader(handle, prefix, name);
-    return treeFrom(io, name, "folder", { sizeOf: async (rel) => { try { return (await io.file(rel)).size; } catch (_) { return null; } } });
+    const rawEntries = async (dir) => {
+      let d = handle; for (const p of (prefix + dir).split("/").filter(Boolean)) { try { d = await d.getDirectoryHandle(p); } catch (_) { return []; } }
+      const out = [], walk = async (h, path) => { for await (const [n, x] of h.entries()) { if (n.startsWith(".") || out.length > 50000) continue; if (x.kind === "directory") await walk(x, path + n + "/"); else out.push({ rel: dir + path + n, file: await x.getFile() }); } };
+      await walk(d, ""); return out;
+    };
+    return treeFrom(io, name, "folder", { sizeOf: async (rel) => { try { return (await io.file(rel)).size; } catch (_) { return null; } }, rawEntries });
   }
   // a URL to the same tree served as static files (the researcher's own server). It needs CORS (Access-Control-Allow-
   // Origin for this page); a blocked or unreachable server is one plain sentence
@@ -217,7 +250,12 @@ window.SvkSource = (function () {
     for (const s of L.stations || []) {
       const p = byId.get(s.id);
       if (!p) { M.stations.push({ ...s, _from: "loaded" }); continue; }
-      Object.assign(p, s, { coverage: unionSpans([...(p.coverage || []), ...(s.coverage || [])]), _from: "loaded" });
+      // the loaded fields win where they have a value (a raw folder knows no positions: the published ones stay); a
+      // position comes as one set (lat, lon, elev, status, source, error, pending), so no published ± is left on it
+      const POS = ["lat", "lon", "elev", "pos_status", "pos_source", "pos_err_m", "pending"];
+      for (const [k, v] of Object.entries(s)) if (v != null && k !== "coverage" && !POS.includes(k)) p[k] = v;
+      if (isNum(s.lat) && isNum(s.lon)) for (const k of POS) p[k] = s[k] ?? null;
+      p.coverage = unionSpans([...(p.coverage || []), ...(s.coverage || [])]); p._from = "loaded";
     }
     M.tiers = { ...(L.tiers || {}), ...(P.tiers || {}) };
     M.tiles = M.tiles || {};
@@ -236,8 +274,93 @@ window.SvkSource = (function () {
     M._loaded = { label, built: L.built || null, contract: L.contract || null };
     return M;
   }
+  // ----- O1 step 3: raw miniSEED (CONTRACT 0.16). A folder of SDS, year or loose files: every file opened by its first
+  // header (not its name) and its last; channels and stations from the headers. The manifest it gets is a seismic
+  // station's: coverage from the files' spans, the wave hours they overlap, no tiles yet (the feature engine comes with
+  // W1's spec), no positions (StationXML or an FDSN station service gives them)
+  async function rawFrom(entries, label, kind) {
+    if (!window.SvkMseed) throw new Error("the miniSEED reader is not loaded");
+    const files = entries.map((e) => { try { e.file.relPath = e.rel; } catch (_) {} return e.file; });
+    const S = await window.SvkMseed.scanFiles(files);
+    if (!S.files.length) throw new Error("this is not a Dark Earth tree, and there is no miniSEED in it either (no darkearth_tree.json, no manifest.json, no SEED records)");
+    const chans = new Map();
+    for (const m of S.files) { m.spanS = await m.span(); if (!chans.has(m.nslc)) chans.set(m.nslc, []); chans.get(m.nslc).push(m); }
+    const byStation = new Map();
+    for (const [chan, fl] of chans) {
+      const sid = chan.split(".").slice(0, 3).join("."), cha = chan.split(".")[3];
+      if (!byStation.has(sid)) byStation.set(sid, { chans: [], spans: [] });
+      const st = byStation.get(sid); st.chans.push(cha); st.spans.push(...fl.map((m) => m.spanS));
+    }
+    let t0 = Infinity, t1 = -Infinity;
+    for (const fl of chans.values()) for (const m of fl) { t0 = Math.min(t0, m.spanS[0]); t1 = Math.max(t1, m.spanS[1]); }
+    const hoursOf = (fl) => { const hs = new Set(); for (const m of fl) for (let h = Math.floor(m.spanS[0] / HOUR) * HOUR; h < m.spanS[1]; h += HOUR) hs.add(`${ymd(h)}/${hh(h)}`); return [...hs].sort(); };
+    const manifest = {
+      contract: "0.16", kind: "raw_mseed", public: false, built: null, t0: Math.floor(t0 / DAY) * DAY, t_end: t1, tiers: {}, tiles: {}, spec: {},
+      stations: [...byStation].map(([id, st]) => ({ id, kind: "seismic", channels: st.chans.sort((a, b) => (a[0] !== "H") - (b[0] !== "H") || "ZNE".indexOf(a.slice(-1)) - "ZNE".indexOf(b.slice(-1))),
+                                                   coverage: unionSpans(st.spans), label: `${id.split(".")[1] || id}: raw miniSEED` })),
+      wave: Object.fromEntries([...chans].map(([c, fl]) => [c, { fs: fl[0].fs, hours: hoursOf(fl) }])),
+    };
+    await filterTables();
+    return { raw: true, kind, label, name: label, manifest, chans, layout: S.layout, skipped: S.skipped, public: false, plain: false, check: null, io: null, doc: null, rates: rateNotes(manifest, chans) };
+  }
+  // the worker that decodes (mseed/worker.js), one per page, its requests by id; a stale request can be cancelled
+  let WK = null, wkId = 0;
+  const wkWait = new Map();
+  function worker() {
+    if (WK) return WK;
+    WK = new Worker("mseed/worker.js");
+    WK.onmessage = (e) => {
+      const m = e.data, p = wkWait.get(m.id); if (!p) return;
+      if (m.progress != null && !m.rows && !m.error) { if (p.onProgress) p.onProgress(m.progress); return; }
+      wkWait.delete(m.id); m.error ? p.reject(new Error(m.error)) : p.resolve(m);
+    };
+    WK.onerror = (e) => { for (const [, p] of wkWait) p.reject(new Error(`the miniSEED worker failed: ${e.message || "?"}`)); wkWait.clear(); };
+    return WK;
+  }
+  // the feature engine over [from, to) (worker op "features"); onProgress(0..1); .cancel() stops it between pushes
+  // W1's multi-rate table (mseed/filters.json, a copy of pipeline/tests/golden/filters.json: one table per rate, each
+  // holding only the bands that fit below 0.9 × Nyquist). Fetched once; it sets the rates the engine computes
+  let FILTER_TABLES = null, RATE_NOTE = {};
+  async function filterTables() {
+    if (!FILTER_TABLES) FILTER_TABLES = fetch("mseed/filters.json").then((r) => (r.ok ? r.json() : null)).catch(() => null).then((t) => {
+      if (!t || !t.rates) return [];
+      TABLE_FS = Object.values(t.rates).map((r) => +r.fs).sort((a, b) => a - b);
+      RATE_NOTE = Object.fromEntries(Object.values(t.rates).filter((r) => r.missing && Object.keys(r.missing).length).map((r) => [+r.fs, Object.values(r.missing).sort((x, y) => x[0] - y[0] || x[1] - y[1]).map(([lo, hi]) => `${lo}–${hi}`)]));
+      return [t];
+    });
+    return FILTER_TABLES;
+  }
+  // a raw source's stations by the rate of their vertical channel: the ones the engine cannot compute (no table), and
+  // the ones it computes without some bands (their features null), for the data-source line
+  function rateNotes(manifest, chans) {
+    const out = { none: [], partial: [] };
+    for (const st of manifest.stations || []) {
+      const fl = {}; for (const [c, l] of chans) if (c.startsWith(st.id + ".")) fl[c.split(".")[3]] = l;
+      const z = rolesFor(fl).Z; if (!z) continue;
+      const fs = +fl[z][0].fs, sta = st.id.split(".")[1] || st.id;
+      if (!TABLE_FS.includes(fs)) out.none.push({ sta, fs }); else if (RATE_NOTE[fs]) out.partial.push({ sta, fs, bands: RATE_NOTE[fs] });
+    }
+    return out;
+  }
+  async function wkFeatures(msg, onProgress) {
+    const filters = await filterTables(), id = ++wkId, w = worker();
+    const pr = new Promise((resolve, reject) => wkWait.set(id, { resolve, reject, onProgress }));
+    w.postMessage({ id, op: "features", filters, ...msg });
+    pr.cancel = () => w.postMessage({ op: "cancel", target: id });
+    return pr;
+  }
+  function wkRead(files, t0, t1) {
+    const id = ++wkId, w = worker();
+    const pr = new Promise((resolve, reject) => wkWait.set(id, { resolve, reject }));
+    w.postMessage({ id, op: "read", files: files.map((m) => m.blob), t0, t1 });
+    pr.cancel = () => w.postMessage({ op: "cancel", target: id });
+    return pr;
+  }
   async function openMerged(published, tree) {
-    const L = new StaticSource(tree.kind === "url" ? tree.io.base : "", tree.manifest, tree.io);   // the tree on its own grid
+    const L = tree.fdsn ? new FdsnSource(tree.manifest, tree.chans, tree.fdsn)                       // an FDSN service, an hour per request
+      : tree.raw ? new RawSource(tree.manifest, tree.chans)                                           // raw miniSEED, read by the worker
+      : tree.rawPart ? new TreeRawSource(tree, new RawSource(tree.rawPart.manifest, tree.rawPart.chans))   // tiles + raw beside them
+      : new StaticSource(tree.kind === "url" ? tree.io.base : "", tree.manifest, tree.io);            // a tree, on its own grid
     const src = new MergedSource(published, L, tree);
     await src.loadEvents().catch((e) => console.warn("[source] events not loaded", e));
     await src.loadEruptions().catch((e) => console.warn("[source] eruptions not loaded", e));
@@ -300,6 +423,7 @@ window.SvkSource = (function () {
       fft(re, im);
       for (let k = 0; k <= half; k++) psd[k] = ((re[k] * re[k] + im[k] * im[k]) / (fs * wss)) * (k > 0 && k < half ? 2 : 1);
       for (let b = 0; b < SPEC_BINS; b++) {
+        if (edges[b] >= fs / 2) { db[f * SPEC_BINS + b] = NaN; continue; }   // above Nyquist (a station below 100 Hz): empty
         const k0 = Math.ceil(edges[b] / df), k1 = Math.floor(edges[b + 1] / df);
         let p = 0, n = 0;
         for (let k = k0; k <= k1 && k <= half; k++) { p += psd[k]; n++; }
@@ -807,15 +931,17 @@ window.SvkSource = (function () {
     constructor(P, L, tree) {
       super(P.dataRoot, mergeManifests(P.manifest(), L.manifest(), tree.label), P.io);
       this.P = P; this.L = L; this.tree = tree; this._lean = null;
-      this.loaded = { kind: tree.kind, via: tree.io.via || null, label: tree.label, name: tree.name, built: tree.manifest.built || null, contract: tree.manifest.contract || null,
-                      plain: tree.plain, public: tree.public, stations: (tree.manifest.stations || []).map((s) => s.id), handle: tree.io.handle || null,
+      this.loaded = { kind: tree.kind, via: (tree.io && tree.io.via) || (tree.raw ? "raw" : null), raw: !!tree.raw, layout: tree.layout || null, label: tree.label, name: tree.name, built: tree.manifest.built || null, contract: tree.manifest.contract || null,
+                      plain: tree.plain, public: tree.public, stations: (tree.manifest.stations || []).map((s) => s.id), handle: (tree.io && tree.io.handle) || tree.handle || null,
+                      channels: tree.chans ? [...tree.chans.keys()] : null, skipped: tree.skipped || 0, rawBeside: tree.rawPart ? tree.rawPart.chans.size : 0, rates: tree.rates || null, tableFs: TABLE_FS.slice(),
                       check: tree.check ? { sizes: tree.check.sizes, warn: tree.check.warn, files: tree.check.indexed.size } : null };
     }
-    _lHas(tier, source) { const T = this.L._m.tiles; return !!(T && T[tier] && T[tier][source] && T[tier][source].length); }
+    _lHas(tier, source) { if (this.L.computes) return this.L.computes(tier, source); const T = this.L._m.tiles; return !!(T && T[tier] && T[tier][source] && T[tier][source].length); }
     async tiles(tier, source, t0, t1) {
       const [p, l] = await Promise.all([this.P.tiles(tier, source, t0, t1), this._lHas(tier, source) ? this.L.tiles(tier, source, t0, t1) : null]);
       if (!l || !l.t.length) return p;
       if (!p.t.length) return l;
+      const computed = !!l.computed;                           // computed in this browser from raw data (O1 step 3)
       // a published row stays only where the loaded tree has no row within half a step of it
       const step = l.step || p.step || 1, keepP = [];
       for (let i = 0; i < p.t.length; i++) { const j = lowerBound(l.t, p.t[i] - step / 2); if (!(j < l.t.length && Math.abs(l.t[j] - p.t[i]) < step / 2)) keepP.push(i); }
@@ -823,7 +949,7 @@ window.SvkSource = (function () {
       const rows = [...Array.from(l.t, (t, i) => [t, 0, i]), ...keepP.map((i) => [p.t[i], 1, i])].sort((a, b) => a[0] - b[0]);
       const names = [...new Set([...Object.keys(l.cols), ...Object.keys(p.cols)])], cols = {};
       for (const c of names) cols[c] = rows.map(([, w, i]) => { const a = (w ? p : l).cols[c]; return a ? a[i] : null; });
-      return { tier, source, step, t: Float64Array.from(rows, (r) => r[0]), cols };
+      return { tier, source, step, t: Float64Array.from(rows, (r) => r[0]), cols, computed };
     }
     // the raw hours: the loaded tree's where it lists the hour, else the published
     _chunkListed(chan, t, kind = "wave") { return this.L._chunkListed(chan, t, kind) || this.P._chunkListed(chan, t, kind); }
@@ -850,6 +976,236 @@ window.SvkSource = (function () {
     waveNorm(chan) { return ((this.P._m.wave || {})[chan] || (this.P._m.ranges || {})[`wave:${chan}`] ? this.P : this.L).waveNorm(chan); }
   }
 
+  // the engine's tiers, the rates it has filter tables for, how much a fresh day warms up before it, how many days one
+  // request computes at most (a wide view gets the days nearest its middle; zooming in computes the rest)
+  const STEP = { f10s: 10, f1m: 60, f10m: 600, f1h: 3600, f1d: 86400 }, WARM_S = 600, MAX_DAYS = 10;
+  let TABLE_FS = [];                                         // set by filterTables() from mseed/filters.json (20–250 Hz in 0.16)
+  const ENGINE_V = "0.16";                                   // in the cache key: a day computed by an older port is computed again
+  // a station's channel codes → the engine's roles (Z/N/E: the H?? channels first, else any broadband / short-period
+  // seismometer; tZ/tN/tE: LM? mass position)
+  function rolesFor(fl) {
+    const codes = Object.keys(fl), pick = (re) => codes.find((c) => re.test(c));
+    const r = { Z: pick(/^HHZ$/) || pick(/^[EHBS][HN]Z$/), N: pick(/^HHN$/) || pick(/^[EHBS][HN][N1]$/), E: pick(/^HHE$/) || pick(/^[EHBS][HN][E2]$/),
+                tZ: pick(/^LMZ$/), tN: pick(/^LMN$/), tE: pick(/^LME$/) };
+    return Object.fromEntries(Object.entries(r).filter(([, v]) => v));
+  }
+  // the computed days, per viewer (IndexedDB "svk_o1_feat"); every call wrapped: a private window just recomputes
+  const featStore = (() => {
+    const open = () => new Promise((res) => { try { const rq = indexedDB.open("svk_o1_feat", 1); rq.onupgradeneeded = () => { try { rq.result.createObjectStore("d"); } catch (_) {} }; rq.onsuccess = () => res(rq.result); rq.onerror = () => res(null); } catch (_) { res(null); } });
+    let db = null;
+    const tx = async (mode, fn) => { try { db = db || (await open()); if (!db) return null; return await new Promise((res) => { const t = db.transaction("d", mode), r = fn(t.objectStore("d")); t.oncomplete = () => res(r && "result" in r ? r.result : true); t.onerror = () => res(null); t.onabort = () => res(null); }); } catch (_) { return null; } };
+    return { get: (k) => tx("readonly", (st) => st.get(k)), put: (k, v) => tx("readwrite", (st) => st.put(v, k)), clear: () => tx("readwrite", (st) => st.clear()) };
+  })();
+
+  // ------------------------------------------------------------------------------------------------ RawSource (O1 step 3)
+  // raw miniSEED as a source: an hour of a channel is decoded by the worker when the view asks for it (never the whole
+  // archive), laid on the hour's own grid (gaps NaN, listed) with the same 1-s min/max pyramid as a published wave hour.
+  // So the waveforms, the Ground and the page's spectrograms work from raw data; the feature tiles come with the engine
+  class RawSource extends StaticSource {
+    constructor(manifest, chans) {
+      super("", manifest, { kind: "raw", json: () => Promise.reject(new Error("a raw folder has no tile files")), bytes: () => Promise.reject(new Error("a raw folder has no tile files")), has: null });
+      this.kind = "static"; this.chans = chans; this._peak = {}; this._mem = new Map(); this.onProgress = null;
+    }
+    _filesAt(chan, h) { return (this.chans.get(chan) || []).filter((m) => m.spanS[1] > h && m.spanS[0] < h + HOUR); }
+    _chunkListed(chan, t, kind = "wave") { return kind === "wave" && this._filesAt(chan, Math.floor(t / HOUR) * HOUR).length > 0; }
+    hasWave(chan) { return this.chans.has(chan); }
+    // ----- the feature tiles, computed in the worker by the ported engine (O1 step 3), a UTC day at a time, as the view
+    // asks: a day continues from the previous day's state when that is known (exact), else it starts 10 min early and
+    // drops those warm-up rows. Kept per viewer (memory + IndexedDB), cancelled when the view moves on, its progress
+    // reported in a few words (onProgress)
+    _stationFiles(source) {
+      const out = {};
+      for (const [chan, fl] of this.chans) if (chan.startsWith(source + ".")) (out[chan.split(".")[3]] = out[chan.split(".")[3]] || []).push(...fl);
+      return out;
+    }
+    computes(tier, source) {
+      if (!STEP[tier]) return false;
+      const fl = this._stationFiles(source), z = fl.HHZ || fl[Object.keys(fl).find((c) => /Z$/.test(c) && c[0] !== "L")];
+      return !!z && TABLE_FS.includes(+z[0].fs);
+    }
+    async tiles(tier, source, t0, t1) {
+      const empty = { tier, source, step: STEP[tier] || null, t: new Float64Array(0), cols: {} };
+      if (!this.computes(tier, source)) return empty;
+      const st = (this._m.stations || []).find((s) => s.id === source), cov = (st && st.coverage) || [];
+      if (!cov.length) return empty;
+      const a = Math.max(t0, cov[0][0]), b = Math.min(t1, cov[cov.length - 1][1]);
+      if (!(b > a)) return empty;
+      let days = []; for (let d = Math.floor(a / DAY) * DAY; d < b; d += DAY) if (cov.some(([p, q]) => q > d && p < d + DAY)) days.push(d);
+      const capped = days.length > MAX_DAYS;
+      if (capped) { const mid = (a + b) / 2; days = days.sort((x, y) => Math.abs(x - mid) - Math.abs(y - mid)).slice(0, MAX_DAYS).sort((x, y) => x - y); }
+      await this._ensure(source, days, capped ? `${MAX_DAYS} of the ${Math.ceil((b - a) / DAY)} days in view` : null);
+      const rows = [];
+      for (const d of days) { const e = this._mem.get(`${source}|${d}`); if (e) for (const r of e.rows[tier] || []) if (r.t >= t0 && r.t < t1) rows.push(r); }
+      rows.sort((x, y) => x.t - y.t);
+      const cols = {}, names = rows.length ? Object.keys(rows[0]).filter((k) => k !== "t") : [];
+      for (const c of names) cols[c] = rows.map((r) => (r[c] == null ? null : r[c]));
+      return { tier, source, step: STEP[tier], t: Float64Array.from(rows, (r) => r.t), cols, computed: true };
+    }
+    // the raw data of [from, to) per channel: the files that hold it (a folder); an FDSN source fetches it (below)
+    async _dayFiles(source, fl, from, to) {
+      const files = {};
+      for (const [cha, ms] of Object.entries(fl)) { const hit = ms.filter((m) => m.spanS[1] > from && m.spanS[0] < to).map((m) => m.blob); if (hit.length) files[cha] = hit; }
+      return files;
+    }
+    _sig(source) {
+      const fl = Object.values(this._stationFiles(source)).flat();
+      return `engine ${ENGINE_V}|` + (this.fdsn ? this.fdsn.base + "|" : "") + fl.map((m) => (m.blob ? `${m.name}:${m.blob.size}:${m.blob.lastModified || 0}` : `${m.spanS.join("-")}:${m.fs}`)).sort().join("|");
+    }
+    async _ensure(source, days, note) {
+      this._want = { source, days: new Set(days) };
+      const gen = (this._gen = (this._gen || 0) + 1);
+      if (this._running && !(this._running.source === source && this._want.days.has(this._running.day))) this._running.cancel();
+      this._q = (this._q || Promise.resolve()).then(async () => {
+        const todo = days.filter((d) => !this._mem.has(`${source}|${d}`));
+        let k = 0;
+        for (const d of todo) {
+          if (this._gen !== gen && !(this._want.source === source && this._want.days.has(d))) continue;   // the view moved on
+          k++;
+          if (await this._fromStore(source, d)) continue;
+          await this._day(source, d, (f) => this.onProgress && this.onProgress({ source, day: d, frac: f, k, of: todo.length, note }));
+        }
+        if (this.onProgress) this.onProgress(null);
+      });
+      return this._q;
+    }
+    async _day(source, d, onP) {
+      const st = (this._m.stations || []).find((s) => s.id === source), start = st.coverage[0][0], end = st.coverage[st.coverage.length - 1][1];
+      const prev = this._mem.get(`${source}|${d - DAY}`), state = prev && prev.state && prev.end === d ? prev.state : null;
+      const from = state ? d : Math.max(start, d - WARM_S), to = Math.min(d + DAY, end + 1), final = to >= end;
+      const fl = this._stationFiles(source), files = await this._dayFiles(source, fl, from, to);
+      const run = wkFeatures({ station: source, roles: rolesFor(fl), files, from, to, keep: d, state, final }, onP);
+      this._running = { source, day: d, cancel: run.cancel };
+      let res;
+      try { res = await run; } catch (e) { this._running = null; if (/cancelled/.test(e.message)) return; console.info("[source] features not computed", source, new Date(d * 1000).toISOString().slice(0, 10), e.message); return; }
+      this._running = null;
+      const entry = { rows: res.rows, state: final ? null : res.state, end: to, exact: !!state || from <= start, stats: res.stats, ms: res.ms };
+      this._mem.set(`${source}|${d}`, entry);
+      featStore.put(`${this._sig(source)}|${source}|${d}`, entry);
+    }
+    async _fromStore(source, d) {
+      const e = await featStore.get(`${this._sig(source)}|${source}|${d}`);
+      if (e && e.rows) { this._mem.set(`${source}|${d}`, e); return true; }
+      return false;
+    }
+    _chunk(chan, t) {
+      const h = Math.floor(t / HOUR) * HOUR, key = `${chan}/${ymd(h)}/${hh(h)}`;
+      if (!this._wave.has(key)) {
+        const files = this._filesAt(chan, h);
+        if (!files.length) { this._wave.set(key, Promise.resolve(null)); return this._wave.get(key); }
+        this._wave.set(key, wkRead(files, h, h + HOUR).then(({ segs }) => this._hour(chan, h, segs, files[0].fs))
+          .catch((e) => { console.info("[source] raw hour not read", key, e.message); return null; }));
+      }
+      return this._wave.get(key);
+    }
+    // decoded segments → an hour on its own grid: NaN in the gaps (listed), the 1-s min/max pyramid, the peak so far
+    _hour(chan, h, segs, fsFallback) {
+      const fs = segs.length ? segs[0].fs : fsFallback, n = Math.round(HOUR * fs), x = new Float32Array(n).fill(NaN);
+      let peak = 0;
+      for (const sg of segs) {
+        if (sg.fs !== fs) continue;
+        const i0 = Math.round((sg.t0 - h) * fs);
+        for (let i = 0; i < sg.data.length; i++) { const k = i0 + i; if (k < 0 || k >= n) continue; const v = sg.data[i]; x[k] = v; const a = Math.abs(v); if (a > peak) peak = a; }
+      }
+      const gaps = []; let g0 = -1;
+      for (let i = 0; i <= n; i++) { const nan = i < n && x[i] !== x[i]; if (nan && g0 < 0) g0 = i; else if (!nan && g0 >= 0) { gaps.push([g0, i]); g0 = -1; } }
+      const B = Math.max(1, Math.round(fs)), nb = Math.ceil(n / B), mn = new Float32Array(nb), mx = new Float32Array(nb);
+      for (let k = 0; k < nb; k++) { let lo = Infinity, hi = -Infinity; for (let i = k * B, e = Math.min(n, i + B); i < e; i++) { const v = x[i]; if (v < lo) lo = v; if (v > hi) hi = v; } mn[k] = lo === Infinity ? NaN : lo; mx[k] = hi === -Infinity ? NaN : hi; }
+      this._peak[chan] = Math.max(this._peak[chan] || 0, peak);
+      return { chan, t0: h, fs, n, scale: peak, gaps, units: "counts", from: this.fdsn ? "FDSN dataselect" : "raw miniSEED", x, block: B, mn, mx };
+    }
+    async waveNorm(chan) { return { norm: Math.max(1, this._peak[chan] || 0), how: "the peak of the raw hours read so far" }; }
+    async loadEvents() { this._ev = null; return null; }
+    async loadEruptions() { this._m._eruptions = null; return null; }
+    latent() { return Promise.resolve(null); }
+  }
+
+  // ------------------------------------------------------------------------------------------------ TreeRawSource (0.16)
+  // a tiles-only tree with its raw miniSEED beside it: the tiles from the tree (on its own grid), a raw hour from the raw
+  // folder unless the tree itself lists that hour. The manifest's wave index includes the raw hours
+  class TreeRawSource extends StaticSource {
+    constructor(tree, raw) {
+      const m = { ...tree.manifest, wave: { ...(tree.manifest.wave || {}) } };
+      for (const [c, v] of Object.entries(raw._m.wave || {})) m.wave[c] = { ...(m.wave[c] || {}), fs: v.fs, hours: [...new Set([...((m.wave[c] || {}).hours || []), ...v.hours])].sort() };
+      super("", m, tree.io);
+      this.raw = raw; this._treeWave = tree.manifest.wave || {};
+    }
+    _treeListed(chan, t) { const hrs = (this._treeWave[chan] || {}).hours; return !!hrs && hrs.includes(`${ymd(t)}/${hh(t)}`); }
+    _chunkListed(chan, t, kind = "wave") { const h = Math.floor(t / HOUR) * HOUR; return kind === "wave" ? this._treeListed(chan, h) || this.raw._chunkListed(chan, h) : super._chunkListed(chan, t, kind); }
+    hasWave(chan) { return !!(this._treeWave[chan] || {}).hours || this.raw.hasWave(chan); }
+    _chunk(chan, t) { const h = Math.floor(t / HOUR) * HOUR; return this._treeListed(chan, h) ? super._chunk(chan, t) : this.raw._chunk(chan, t); }
+    async waveNorm(chan) { return (this._m.ranges || {})[`wave:${chan}`] ? super.waveNorm(chan) : this.raw.waveNorm(chan); }
+  }
+
+  // ------------------------------------------------------------------------------------------------ FdsnSource (O1 step 3)
+  // an FDSN web service (the researcher's own, or a public one that allows this page: CORS): the station service gives the
+  // channels, their epochs and measured positions (StationXML, read with the page's own parser); dataselect gives an hour
+  // of miniSEED when the view asks for it, decoded by the same worker. No data for an hour (204 / 404) is no data
+  class FdsnSource extends RawSource {
+    constructor(manifest, chans, fd) { super(manifest, chans); this.fdsn = fd; }
+    async _dayFiles(source, fl, from, to) {
+      const files = {}, iso = (x) => new Date(x * 1000).toISOString().slice(0, 19), [net, sta, loc] = source.split(".");
+      await Promise.all(Object.entries(fl).map(async ([cha, ms]) => {
+        if (!ms.some((m) => m.spanS[1] > from && m.spanS[0] < to)) return;
+        const r = await fetch(`${this.fdsn.base}fdsnws/dataselect/1/query?net=${net}&sta=${sta}&loc=${loc || "--"}&cha=${cha}&starttime=${iso(from)}&endtime=${iso(to)}&nodata=404`, { cache: "no-store" });
+        if (r.ok && r.status !== 204) { const b = await r.blob(); if (b.size) files[cha] = [b]; }
+      }));
+      return files;
+    }
+    _chunkListed(chan, t, kind = "wave") {
+      if (kind !== "wave") return false;
+      const c = this.chans.get(chan), h = Math.floor(t / HOUR) * HOUR;
+      return !!c && c.some((m) => m.spanS[1] > h && m.spanS[0] < h + HOUR);
+    }
+    _chunk(chan, t) {
+      const h = Math.floor(t / HOUR) * HOUR, key = `${chan}/${ymd(h)}/${hh(h)}`;
+      if (!this._wave.has(key)) {
+        if (!this._chunkListed(chan, h)) { this._wave.set(key, Promise.resolve(null)); return this._wave.get(key); }
+        const [net, sta, loc, cha] = chan.split("."), iso = (x) => new Date(x * 1000).toISOString().slice(0, 19);
+        const q = `${this.fdsn.base}fdsnws/dataselect/1/query?net=${net}&sta=${sta}&loc=${loc || "--"}&cha=${cha}&starttime=${iso(h)}&endtime=${iso(h + HOUR)}&nodata=404`;
+        this._wave.set(key, fetch(q, { cache: "no-store" }).then(async (r) => {
+          if (r.status === 204 || r.status === 404) return null;
+          if (!r.ok) throw new Error(`dataselect ${r.status}`);
+          const blob = await r.blob(); if (!blob.size) return null;
+          const { segs } = await wkRead([{ blob }], h, h + HOUR);
+          return this._hour(chan, h, segs.filter((sg) => sg.nslc === chan || !sg.nslc), this.chans.get(chan)[0].fs);
+        }).catch((e) => { console.info("[source] FDSN hour not read", key, e.message); return null; }));
+      }
+      return this._wave.get(key);
+    }
+  }
+  // the station service: channels (with their epochs and rates) and positions, for one NET.STA (LOC and CHA optional:
+  // "NET.STA", "NET.STA.LOC", "NET.STA.LOC.CHA"; CHA may hold wildcards). → a source-shaped description
+  async function fdsnFrom(url, code, published) {
+    let base = String(url || "").trim();
+    if (!/^https?:\/\//i.test(base)) throw new Error("an FDSN service address starts with https://");
+    if (location.protocol === "https:" && /^http:\/\//i.test(base) && !/^http:\/\/(localhost|127\.0\.0\.1)(:|\/)/i.test(base)) throw new Error("this page is https, so it cannot read an http:// service (mixed content)");
+    base = base.replace(/fdsnws\/.*$/, ""); if (!base.endsWith("/")) base += "/";
+    const parts = String(code || "").trim().split("."), [net, sta, loc = "*", cha = "HH?,LM?"] = parts;
+    if (!net || !sta) throw new Error("give the station as NETWORK.STATION, e.g. RK.MELH (optionally .LOCATION.CHANNELS)");
+    const M = published.manifest(), iso = (x) => new Date(x * 1000).toISOString().slice(0, 19);
+    const q = `${base}fdsnws/station/1/query?net=${net}&sta=${sta}&loc=${loc}&cha=${cha}&level=channel&format=xml&starttime=${iso(M.t0)}&endtime=${iso(M.t_end)}&nodata=404`;
+    let text;
+    try { const r = await fetch(q, { cache: "no-store" }); if (r.status === 204 || r.status === 404) throw new Error(`the station service knows no ${code} in the record's years`); if (!r.ok) throw new Error(`the station service answered ${r.status}`); text = await r.text(); }
+    catch (e) { if (isNet(e)) throw new Error(`could not reach ${base}fdsnws/station/1/: the service is unreachable, or it does not let this page read it (CORS). It needs the header Access-Control-Allow-Origin: ${location.origin} (or *)`); throw e; }
+    if (!window.SvkStations) throw new Error("the StationXML reader is not loaded");
+    const list = window.SvkStations.parseStationXML(text);                         // the page's own StationXML parser
+    const chans = new Map(), stations = new Map(), host = base.replace(/^https?:\/\//, "").replace(/\/$/, "");
+    for (const e of list) for (const c of e.chans) {
+      const id = `${e.net}.${e.sta}.${c.loc}`, nslc = `${id}.${c.code}`, a = c.start ? Date.parse(c.start) / 1000 : M.t0, b = c.end ? Date.parse(c.end) / 1000 : M.t_end;
+      if (!chans.has(nslc)) chans.set(nslc, []);
+      chans.get(nslc).push({ spanS: [Math.max(a, M.t0), Math.min(b, M.t_end)], fs: c.fs || 100 });
+      if (!stations.has(id)) stations.set(id, { id, kind: "seismic", channels: [], coverage: [], lat: isNum(c.lat) ? c.lat : e.lat, lon: isNum(c.lon) ? c.lon : e.lon, elev: isNum(c.elev) ? c.elev : e.elev,
+                                               pos_status: "measured", pos_source: `FDSN station service (${host})`, pos_err_m: e.err_m, pending: false, label: `${e.sta}: FDSN (${host})` });
+      const st = stations.get(id); if (!st.channels.includes(c.code)) st.channels.push(c.code); st.coverage.push([Math.max(a, M.t0), Math.min(b, M.t_end)]);
+    }
+    if (!chans.size) throw new Error(`the station service lists no channels for ${code}`);
+    for (const st of stations.values()) st.coverage = unionSpans(st.coverage);
+    const manifest = { contract: "0.16", kind: "fdsn", public: false, built: null, t0: M.t0, t_end: M.t_end, tiers: {}, tiles: {}, spec: {}, stations: [...stations.values()],
+                       wave: Object.fromEntries([...chans].map(([c, l]) => [c, { fs: l[0].fs, hours: [] }])) };
+    await filterTables();
+    return { raw: true, fdsn: { base, host }, kind: "url", label: `FDSN ${host}`, name: `FDSN ${host} · ${code}`, manifest, chans, stationXml: text, layout: "FDSN", skipped: 0, public: false, plain: false, check: null, io: null, doc: null, rates: rateNotes(manifest, chans) };
+  }
+
   // ------------------------------------------------------------------------------------------------ open()
   // root: explicit opts.root → ?data= → window.SVK_CONFIG.dataRoot → the bridge's list of roots that exist → data/
   async function pickRoot(opts) {
@@ -871,6 +1227,6 @@ window.SvkSource = (function () {
     return src;
   }
 
-  return { open, StaticSource, LiveSource, MergedSource, treeFromFiles, treeFromHandle, treeFromUrl, openMerged, verifyTree, mergeManifests, checkManifest, handleStore,
+  return { open, StaticSource, LiveSource, MergedSource, RawSource, FdsnSource, rawFrom, fdsnFrom, treeFromFiles, treeFromHandle, treeFromUrl, openMerged, verifyTree, mergeManifests, checkManifest, handleStore,
            util: { ymd, hh, lowerBound, DAY, HOUR } };
 })();

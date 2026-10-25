@@ -36,7 +36,7 @@ window.SvkStations = (function () {
         const la = num(sta, "Latitude"), lo = num(sta, "Longitude"), el = num(sta, "Elevation");
         const site = kids(sta, "Site")[0], siteName = site ? (kids(site, "Name")[0] || site).textContent.trim() : "";
         const chans = kids(sta, "Channel").map((ch) => ({ code: ch.getAttribute("code") || "", loc: ch.getAttribute("locationCode") || "",
-          lat: num(ch, "Latitude").v, lon: num(ch, "Longitude").v, elev: num(ch, "Elevation").v, depth: num(ch, "Depth").v,
+          lat: num(ch, "Latitude").v, lon: num(ch, "Longitude").v, elev: num(ch, "Elevation").v, depth: num(ch, "Depth").v, fs: num(ch, "SampleRate").v,
           start: ch.getAttribute("startDate"), end: ch.getAttribute("endDate") }));
         const errDeg = Math.max(la.err || 0, lo.err || 0);
         out.push({ net: nc, sta: sta.getAttribute("code") || "", lat: la.v, lon: lo.v, elev: el.v, err_m: errDeg > 0 ? Math.round(errDeg * M_PER_DEG) : null,

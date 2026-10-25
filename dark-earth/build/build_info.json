@@ -1,5 +1,5 @@
 {
-  "built": "2026-10-25 14:08:47",
+  "built": "2026-10-25 15:54:17",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "clearance": {
     "status": "cleared",
@@ -7,12 +7,12 @@
   },
   "name": "Dark Earth",
   "sources": {
-    "viz/app.js": "1a7a6b2517898572",
+    "viz/app.js": "6ef7dde12a218a34",
     "viz/cook.js": "f9b928dc7a14fe7b",
-    "viz/index.html": "b124ceb54fafa793",
+    "viz/index.html": "208df914b42c8320",
     "viz/legend.js": "8f59b8da10066cfd",
-    "viz/source.js": "2eb39be78a03bdbb",
-    "viz/stations.js": "f1a90418f16a2152",
+    "viz/source.js": "ec6cb71bc5bea10b",
+    "viz/stations.js": "6679b4736a82c41c",
     "viz/svk_messages.json": "3543ec94b18d48f5",
     "viz/views/latent.js": "18dbaad816ec6fb8",
     "viz/views/map.js": "d43c5f19eb257a4f",
@@ -23,6 +23,10 @@
     "viz/darkstyle/darkstyle.css": "a2c1507972554138",
     "viz/darkstyle/darkstyle.js": "a5a154247a75ed38",
     "viz/vendor/d3.v7.min.js": "f2094bbf6141b359",
+    "viz/mseed/engine.js": "c299dfa68dabf28b",
+    "viz/mseed/filters.json": "b9d69aef69820177",
+    "viz/mseed/mseed.js": "c69705700c1c709d",
+    "viz/mseed/worker.js": "1021ae29d641b083",
     "sc/dark_svartsengi_boot.scd": "c80719c8905c61af",
     "sc/svk_synthdefs.scd": "211efbbbe64e02c8",
     "sc/parse_dark_svartsengi.scd": "b181f21edfd7c875",
@@ -112,7 +116,7 @@
     "README.md": "ce0965b715c86f1a"
   },
   "data": {
-    "built": "2026-10-25 14:08:47",
+    "built": "2026-10-25 15:54:17",
     "bridge_sha": "bb868199de1b0d18",
     "schema_sha": "3543ec94b18d48f5",
     "contract": "0.14",
@@ -134,9 +138,9 @@
       }
     },
     "manifest": {
-      "sha": "cb95096be8e91d26",
+      "sha": "8b3aea9453fbb508",
       "contract": "0.13",
-      "built": "2026-10-25T12:51:46.227Z",
+      "built": "2026-10-25T14:36:34.267Z",
       "t0": 1685577600,
       "t_end": 1790294400.0,
       "wave_peak": {
@@ -151,9 +155,9 @@
       "copied": 0,
       "kept": 229,
       "removed": 0,
-      "digest": "d57885fa225dbc36",
+      "digest": "56c72c03ef8e7fe3",
       "files": 229,
-      "bytes": 40875815
+      "bytes": 40876247
     },
     "bridge_data_roots": [
       "data/",
@@ -273,7 +277,7 @@
     "contract": "0.14"
   },
   "publication_markers": "no NOT_FOR_PUBLICATION.txt in the build",
-  "page_refs": 12,
+  "page_refs": 18,
   "credits_from_data": [
     "OpenStreetMap",
     "Rhodes et al",
