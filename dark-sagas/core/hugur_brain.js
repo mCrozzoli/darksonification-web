@@ -494,7 +494,7 @@ export class HugurBrain {
         lemmas = new Set(this.braid);
       } else {
         lemmas = new Set([String(this.lemma[this.sel])]);
-        for (const k of this.tracked) if (k >= 0 && k < this.n) lemmas.add(String(this.lemma[k]));
+        for (const k of this.tracked) if (k >= 0 && k < this.n && !this.saga_off.has(this.saga[k])) lemmas.add(String(this.lemma[k]));   // a trace in a hidden saga adds no word (brain.py)
       }
       let traj = [];
       for (let k = 0; k < this.n; k++) if (lemmas.has(this.lemma[k])) traj.push(k);   // narrative order: index == site_id
