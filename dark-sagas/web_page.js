@@ -49,17 +49,23 @@
 
   // The gzip-aware, memoised loader (ocean's web_bridge.js pattern). These files ship only as .gz (build_web.py GZIP);
   // everything else is a plain fetch. One promise per path: the page and the brain get the same object.
+  // The data waits until this document is BOOTABLE, i.e. it will not be reloaded for isolation (dark_svartsengi's
+  // whenBootable, Dark Earth build 2026-10-25): on a first visit to a header-less host (GitHub Pages) coi-sw.js
+  // reloads the page once, and a fetch already under way is aborted by that reload (WebKit logs it as "… due to
+  // access control checks"). Every page fetch goes through json() / bytes() here, so gating them is the whole fix.
+  let bootable;
+  const whenBootable = new Promise((r) => { bootable = r; });
   const GZIPPED = /(^|\/)(sites|tokens|bin|[^/]+\.(tokens|sentences))\.json$/;
   const memo = new Map();
   function json(path) {
     const key = String(path);
     if (!memo.has(key)) {
-      const p = GZIPPED.test(key)
+      const p = whenBootable.then(() => GZIPPED.test(key)
         ? fetch(key + ".gz").then((r) => {
             if (!r.ok) throw new Error(`${key}.gz: HTTP ${r.status}`);
             return new Response(r.body.pipeThrough(new DecompressionStream("gzip"))).json();
           })
-        : fetch(key).then((r) => { if (!r.ok) throw new Error(`${key}: HTTP ${r.status}`); return r.json(); });
+        : fetch(key).then((r) => { if (!r.ok) throw new Error(`${key}: HTTP ${r.status}`); return r.json(); }));
       memo.set(key, p);
       p.then(() => settle(key), (e) => settle(key, e));
     }
@@ -86,7 +92,7 @@
   function bytes(path) {
     const key = String(path);
     if (!bytesMemo.has(key)) {
-      const p = fetch(key).then((r) => { if (!r.ok) throw new Error(`${key}: HTTP ${r.status}`); return r.arrayBuffer(); });
+      const p = whenBootable.then(() => fetch(key)).then((r) => { if (!r.ok) throw new Error(`${key}: HTTP ${r.status}`); return r.arrayBuffer(); });
       p.catch(() => bytesMemo.delete(key));
       bytesMemo.set(key, p);
     }
@@ -186,6 +192,7 @@
   const engineReady = new Promise((res) => { resolveEngine = res; });
   window.__darkWeb = {
     socket() { return sock; },
+    whenBootable: () => whenBootable,
     json,
     bytes,
     pageData,
@@ -196,18 +203,21 @@
 
   let reloading = false;
   async function isolate() {
-    if (self.crossOriginIsolated || !("serviceWorker" in navigator)) { sessionStorage.removeItem("darkHugurCoi"); return; }
-    await navigator.serviceWorker.register("./coi-sw.js");
-    if (!sessionStorage.getItem("darkHugurCoi")) {       // first visit: reload once under the service worker
-      sessionStorage.setItem("darkHugurCoi", "1");
-      await navigator.serviceWorker.ready;
+    if (self.crossOriginIsolated || !("serviceWorker" in navigator)) { try { sessionStorage.removeItem("darkHugurCoi"); } catch (_) {} return; }
+    let tried = null; try { tried = sessionStorage.getItem("darkHugurCoi"); } catch (_) {}
+    try { await navigator.serviceWorker.register("./coi-sw.js"); } catch (_) { return; }   // no worker: the page boots silent
+    if (!tried) {                                        // first visit: reload once under the service worker
+      try { sessionStorage.setItem("darkHugurCoi", "1"); } catch (_) {}
+      const ready = await Promise.race([navigator.serviceWorker.ready.then(() => true), new Promise((r) => setTimeout(() => r(false), 8000))]);
+      if (!ready) return;                                // the worker never activated: boot without isolation
       reloading = true;
       location.reload();
     }
   }
   async function start() {
-    await isolate();
-    if (reloading) return;
+    try { await isolate(); } catch (_) {}
+    if (reloading) return;                               // this document goes away: its data is never fetched
+    bootable();
     if (!self.crossOriginIsolated) {
       sock.setChip("this browser did not allow SharedArrayBuffer · the page is silent", false);
       resolveEngine(null);
@@ -222,7 +232,7 @@
     darkEngine.preload().catch(() => {});             // compile the class library now; sound starts at the first gesture
   }
   function onReady() {
-    start().catch((e) => { console.error(e); resolveEngine(null); sock.setChip("sound did not start · reload the page to try again", false); });
+    start().catch((e) => { bootable(); console.error(e); resolveEngine(null); sock.setChip("sound did not start · reload the page to try again", false); });
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", onReady); else onReady();
 })();

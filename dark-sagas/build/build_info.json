@@ -1,5 +1,5 @@
 {
-  "built": "2026-10-27 11:56:40",
+  "built": "2026-10-27 12:04:18",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "sources": {
     "viz/data/meta.json": "7a52c8955291e6f9",
@@ -180,7 +180,7 @@
   },
   "source_pins": {
     "viz/index.html": {
-      "pinned": "09c197b8307ac954",
+      "pinned": "b58f153b663b2c74",
       "current": "b58f153b663b2c74"
     },
     "sc/hugur_synths.scd": {
@@ -198,16 +198,6 @@
     "sc/hugur_cook.scd": {
       "pinned": "fa89d196c2098a8b",
       "current": "fa89d196c2098a8b"
-    }
-  },
-  "source_accepted": {
-    "note": "source accepted",
-    "when": "2026-10-27 11:56:40",
-    "pins": {
-      "viz/index.html": {
-        "was": "09c197b8307ac954",
-        "now": "b58f153b663b2c74"
-      }
     }
   },
   "abs_path_scan": {
@@ -812,7 +802,7 @@
     }
   },
   "data": {
-    "built": "2026-10-27 11:56:41",
+    "built": "2026-10-27 12:04:18",
     "files": {
       "sites.json.gz": {
         "raw": 399199,
