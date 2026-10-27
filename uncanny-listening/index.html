@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Uncanny Listening</title>
+<meta name="description" content="Human and algorithmic listening side by side: a researcher's own song folders analysed in the browser, nothing uploaded.">
+<link rel="stylesheet" href="darkstyle/darkstyle.css">
+<script src="darkstyle/darkstyle.js"></script>
+<script src="vendor/d3.v7.min.js"></script>
+<link rel="stylesheet" href="app/app.css">
+</head>
+<body>
+<header id="top">
+  <span class="brand" data-i18n="title">Uncanny Listening</span>
+  <span class="k tagline" data-i18n="tagline"></span>
+  <span class="grow"></span>
+  <span id="nowplaying" class="k"></span>
+  <button class="btn sm" id="open2" data-i18n="add"></button>
+  <span class="seg" title="language / idioma"><button class="btn sm" data-lang="en">EN</button><button class="btn sm" data-lang="es">ES</button></span>
+  <span id="looks"></span>
+  <button class="btn sm" id="livebtn" data-i18n="live" aria-expanded="false"></button>
+  <a class="btn sm" href="about.html" data-i18n="about"></a>
+</header>
+<main id="app">
+  <aside id="side">
+    <div id="info"><div class="k" data-i18n="info_none"></div></div>
+    <nav id="tabs">
+      <button class="tab" data-tab="data" data-i18n="tab_data"></button>
+      <button class="tab" data-tab="view" data-i18n="tab_view"></button>
+      <button class="tab" data-tab="model" data-i18n="tab_model"></button>
+      <button class="tab" data-tab="sound" data-i18n="tab_sound"></button>
+    </nav>
+    <section class="pane" data-pane="data">
+      <h4 data-i18n="classes"></h4>
+      <div id="classes"></div>
+      <p class="k" id="need2" data-i18n="need2" hidden></p>
+      <h4 data-i18n="formats"></h4>
+      <div class="seg wide" id="formats"><button class="btn sm" data-f="preset"></button><button class="btn sm" data-f="all"></button></div>
+      <div class="row"><button class="btn" id="analyse" data-i18n="analyse"></button><button class="btn" id="cancel" data-i18n="cancel" hidden></button></div>
+      <div id="est" class="k"></div>
+      <div id="bar"><i></i></div>
+      <div id="status" class="k"></div>
+      <div id="result"></div>
+      <div id="errors" class="k"></div>
+      <div id="edits" hidden></div>
+      <h4 data-i18n="outputs"></h4>
+      <div class="outs">
+        <button class="btn sm" id="o_save" data-i18n="o_save"></button><button class="btn sm" id="o_open" data-i18n="o_open"></button><button class="btn sm" id="o_link" data-i18n="o_link"></button>
+        <button class="btn sm" id="o_csv" data-i18n="o_csv"></button><button class="btn sm" id="o_svg" data-i18n="o_svg"></button><button class="btn sm" id="o_png" data-i18n="o_png"></button>
+        <button class="btn sm" id="o_note" data-i18n="o_note"></button>
+      </div>
+      <div id="linknote" class="k small"></div>
+    </section>
+    <section class="pane" data-pane="view">
+      <h4 data-i18n="maps"></h4>
+      <div class="seg wide" id="mapset"><button class="btn sm" data-m="mean" data-i18n="maps_mean"></button><button class="btn sm" data-m="std" data-i18n="maps_std"></button></div>
+      <h4 data-i18n="colour"></h4>
+      <div class="seg wide" id="colourby"><button class="btn sm" data-c="class" data-i18n="c_class"></button><button class="btn sm" data-c="km" data-i18n="c_km"></button><button class="btn sm" data-c="model" data-i18n="c_model"></button><button class="btn sm" data-c="agree" data-i18n="c_agree"></button></div>
+      <div class="seg wide"><button class="btn sm" id="bound"></button></div>
+      <h4 data-i18n="selection"></h4>
+      <div id="selinfo" class="k"></div>
+      <div class="row"><button class="btn sm" id="selclear" data-i18n="clear"></button></div>
+      <h4 data-i18n="trace"></h4>
+      <div class="k" data-i18n="trace_how"></div>
+      <ol id="tracelist"></ol>
+      <div class="row"><button class="btn sm" id="traceclear" data-i18n="clear"></button></div>
+    </section>
+    <section class="pane" data-pane="model">
+      <h4 data-i18n="knobs"></h4>
+      <p class="k small" data-i18n="knobs_how"></p>
+      <div id="knobs"></div>
+      <div id="modelout"></div>
+    </section>
+    <section class="pane" data-pane="sound">
+      <h4 data-i18n="volume"></h4>
+      <input type="range" id="vol" min="0" max="1" step="0.01" value="0.8">
+      <p class="k" data-i18n="sound_note"></p>
+    </section>
+    <button id="sidetab" title="hide / show the panel (i)">‹</button>
+  </aside>
+  <section id="work">
+    <div id="empty" class="empty">
+      <h1 data-i18n="empty_h"></h1>
+      <p data-i18n="empty_p"></p>
+      <button class="btn big" id="open" data-i18n="open"></button>
+    </div>
+    <nav id="views" hidden><button class="btn sm" data-v="maps" data-i18n="v_maps"></button><button class="btn sm" data-v="timeline" data-i18n="v_timeline"></button><button class="btn sm" data-v="compare" data-i18n="v_compare"></button>
+      <span class="grow"></span><span id="viewopts"></span></nav>
+    <div id="legend" hidden></div>
+    <div id="maps"></div>
+    <div id="timeline" hidden></div>
+    <div id="compare" hidden></div>
+    <div id="tip" hidden></div>
+  </section>
+  <aside id="live" hidden>
+    <div class="row"><h4 data-i18n="live_h"></h4><span class="grow"></span><button class="btn sm" id="liveclose">×</button></div>
+    <p class="k small" data-i18n="live_what"></p>
+    <div class="row"><span id="livelight" class="light"></span><span id="livestate"></span></div>
+    <div class="seg wide"><button class="btn sm" id="liveon"></button></div>
+    <div class="kv2"><span class="k" data-i18n="live_port"></span><input id="liveport" type="number" min="1024" max="65535" value="9002">
+      <span class="k" data-i18n="live_rate"></span><input id="liverate" type="number" min="1" max="60" value="20"></div>
+    <div class="seg wide"><button class="btn sm" id="livefollow"></button></div>
+    <div id="liveinfo" class="k small"></div>
+    <p class="k small" data-i18n="live_how"></p>
+  </aside>
+</main>
+<footer id="dock">
+  <button id="dockbtn" class="k" data-i18n="config"></button>
+  <div id="dockbody" hidden></div>
+</footer>
+<input type="file" id="pick" webkitdirectory multiple hidden>
+<input type="file" id="linkpick" webkitdirectory multiple hidden>
+<dialog id="notebox"><div class="row"><b data-i18n="o_note"></b><span class="grow"></span><span class="seg"><button class="btn sm" data-nl="en">EN</button><button class="btn sm" data-nl="es">ES</button></span></div>
+  <textarea id="notetext" readonly></textarea>
+  <div class="row"><button class="btn sm" id="notecopy" data-i18n="copy"></button><button class="btn sm" id="notedl" data-i18n="o_note_dl"></button><span class="grow"></span><button class="btn sm" id="noteclose" data-i18n="close"></button></div></dialog>
+<script type="module" src="app/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+Uncanny Listening - credits and licences
+========================================
+
+Research: Ana Marjalizo, BA; PhD student in Aesthetic and Electronic Music and lecturer in training, Faculty of
+  Information and Audiovisual Media, University of Barcelona (UB), Barcelona, Spain. Her research question, her
+  classes of songs, her descriptors (dinámica, armonía, timbre, complejidad estructural) and her method (k-means
+  aligned to her labels) are what this tool is built around.
+Design: Miguel Angel Crozzoli. Implemented with Claude AI agents. Built with DarkSonification
+  (https://github.com/Intelligent-Instruments-Lab/darksonification, Apache-2.0, © Miguel Angel Crozzoli and
+  Intelligent Instrument Lab).
+
+DATA
+None is published. The page holds no audio and no data: each researcher opens her own folders, analysed in the
+  browser; nothing is uploaded. The tests read the researcher's corpus in place on the developer's machine.
+
+METHODS PORTED TO JAVASCRIPT (no library shipped; each tested against the original, see TESTS in the repository)
+DarkLibrosa (DarkSonification), summary mode, as it computed the researcher's features in January 2026.
+librosa 0.11 (ISC; McFee et al., "librosa: Audio and Music Signal Analysis in Python", SciPy 2015): STFT, mel
+  filterbank (Slaney), power_to_db, MFCC (DCT-II), chroma_stft with estimate_tuning / piptrack, spectral centroid,
+  bandwidth, rolloff, flatness, contrast (Jiang et al. 2002), onset strength (spectral flux), onset_detect
+  (peak picking after Böck et al. 2012), feature.tempo (tempogram autocorrelation with a log-normal prior; Ellis
+  2007), zero-crossing rate, rms.
+Resampling to the libsoxr "HQ" specification (libsoxr, LGPL-2.1; used as a specification only): a Kaiser-windowed sinc.
+FLAC decoding after the FLAC format specification (Xiph.Org; RFC 9639): our own decoder.
+scikit-learn 1.7 (BSD-3-Clause): MinMaxScaler, PCA (svd_flip sign rule), KMeans (k-means++, Arthur & Vassilvitskii
+  2007; Lloyd 1982), KernelDensity, LogisticRegression (L2, fitted by L-BFGS: Liu & Nocedal 1989), adjusted Rand
+  index (Hubert & Arabie 1985).
+numpy (BSD-3-Clause): the legacy RandomState stream, Mersenne Twister MT19937 (Matsumoto & Nishimura 1998), so the
+  clustering draws the same numbers as the desktop.
+DarkSonification's align_labels: flip for two labels; Hungarian assignment otherwise (Kuhn 1955; Munkres 1957).
+Effect sizes: Cohen's d (pooled SD); η² for more classes. Boundary field: Nadaraya–Watson kernel regression
+  (Nadaraya 1964; Watson 1964).
+
+FROM DARK MUSIC CORPUS (Miguel Angel Crozzoli; its web engine, copied with credit, MIT)
+core/mir.js, core/cqt.js (the librosa ports above), core/engine.js (agglomerative / Ward 1963, Gaussian mixture,
+  spectral clustering, HDBSCAN (Campello et al. 2013)), core/keys.js, core/clap.js, core/tokenizer.js, the page's
+  decoder for WAV / AIFF (libsndfile-exact) and the Live link: the DMC Hub WebSocket contract (WS_CONTRACT v0.1)
+  and its Max for Live devices (Cycling '74 / Ableton).
+
+SOFTWARE IN THE PAGE
+D3 v7.9.0, ISC licence (https://d3js.org).
+umap-js (PAIR, Google; MIT) with ml-matrix and ml-levenberg-marquardt (MIT): bundled with the engine copied from
+  Dark Music Corpus.
+The Dark Sonification style kit (darkstyle; project's own). Fonts of the paper look: Karla and Rubik, SIL Open Font
+  License 1.1, served by Google Fonts.
+
+HOSTING
+GitHub Pages.
