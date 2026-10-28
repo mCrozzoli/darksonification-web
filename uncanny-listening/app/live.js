@@ -6,6 +6,9 @@
 // What this page sends (one schema block, "uncanny"): her descriptors for the 10 s segment (or the song) being played, the
 // song's place on the PCA map, her label, k-means, the model's class and probability, agreement, nearness to the boundary.
 // Browsers: Chrome asks once for local network access; Firefox links; Safari cannot link (mixed content) and says so.
+// For the Live template (lab/LIVE_TEMPLATE.md, 2026-10-27): events go in a queue of their own, so a marker is never lost when
+// a newer step replaces a pending one; a step may be a row only (no clip: the playhead entering the next segment of a song
+// Live is already playing); the clip's gain carries the level matching of minimal pairs.
 const IS_SAFARI = /^((?!chrome|chromium|crios|fxios|edg|opr|android).)*safari/i.test(navigator.userAgent);
 const now = () => performance.now() / 1000;
 const BLOCK = "uncanny", VERSION = "web-0.1";
@@ -14,7 +17,7 @@ export class Link {
   constructor(onStatus) {
     this.onStatus = onStatus; this.enabled = false; this.host = "127.0.0.1"; this.port = 9002; this.rate = 20; this.follow = false;
     this.ws = null; this.wsState = IS_SAFARI ? "safari" : "off"; this.lastAck = 0; this.hub = null; this.sent = []; this.pending = null;
-    this.lastHello = 0; this.lastFull = 0; this.lastPred = null; this.schema = null; this.setId = "uncanny";
+    this.lastHello = 0; this.lastFull = 0; this.lastPred = null; this.schema = null; this.setId = "uncanny"; this.events = [];
     setInterval(() => this.pump(), 50); setInterval(() => this.onStatus(this.status()), 1000);
   }
   get connected() { return this.lastAck > 0 && now() - this.lastAck < 12; }
@@ -22,7 +25,7 @@ export class Link {
     if (port != null && +port !== this.port) { this.port = +port; this.close(); this.lastAck = 0; if (this.enabled) this.open(); }
     if (rate != null) this.rate = Math.max(0.5, Math.min(60, +rate));
     if (follow != null) this.follow = !!follow;
-    if (enabled != null) { this.enabled = !!enabled; if (this.enabled) { this.lastHello = 0; this.open(); } else this.close(); }
+    if (enabled != null) { this.enabled = !!enabled; if (this.enabled) { this.lastHello = 0; this.open(); } else { this.close(); this.events = []; this.pending = null; } }
     this.onStatus(this.status());
   }
   open() {
@@ -60,16 +63,21 @@ export class Link {
     }
     this.lastHello = this.lastFull = now();
   }
-  // one navigation step: {clipId, values: {key: value}, path, t0, t1, cluster, pan, pred}; the last one wins at the row rate
+  // one navigation step: {clipId, values: {key: value}, path (none: a row only), t0, t1, gain, cluster, pan, pred};
+  // the last one wins at the row rate
   nav(step) { if (this.enabled) this.pending = step; }
+  // an engine event (/dmc/event type key value clip_id), sent after the next row; never dropped (up to 64 queued)
+  event(type, key, value, clipId) { if (this.enabled && this.events.length < 64) this.events.push([String(type), String(key), +value, String(clipId)]); }
   flush() {
-    if (!this.enabled || !this.pending || !this.schema) return;
+    if (!this.enabled || !this.schema) return;
+    if (!this.pending) { while (this.events.length) this._send("/dmc/event", this.events.shift()); return; }
     const s = this.pending; this.pending = null;
     const args = [BLOCK, String(s.clipId)];
     for (const k of this.schema.keys) { const v = s.values[k[0]]; args.push(k[0], k[1] === "symbol" ? Math.round(v ?? 0) : +(v ?? 0)); }
     this._send("/dmc/row", args);
     if (s.pred != null && s.pred !== this.lastPred) { this._send("/dmc/event", ["cluster_enter", `${BLOCK}.model`, s.pred, String(s.clipId)]); this.lastPred = s.pred; }
-    if (s.path) this._send("/dmc/clip", [String(s.clipId), s.path, +s.t0, +s.t1, 0.8, s.cluster | 0, +s.pan]);
+    while (this.events.length) this._send("/dmc/event", this.events.shift());
+    if (s.path) this._send("/dmc/clip", [String(s.clipId), s.path, +s.t0, +s.t1, +(s.gain ?? 0.8), s.cluster | 0, +s.pan]);
   }
   pump() {
     const t = now();

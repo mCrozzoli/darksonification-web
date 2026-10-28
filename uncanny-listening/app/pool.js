@@ -17,7 +17,7 @@ export function analyseSongs(songs, { cfg = {}, workers = Math.max(1, Math.min(8
       const m = ev.data, s = p.busy;
       if (m.type === "progress") { onProgress({ song: s.song, done: m.done, total: m.total, finished: done, n: songs.length }); return; }
       inFlight -= s.n; p.busy = null;
-      if (m.type === "done") { done++; onSong(s.song, { duration: m.duration, sr_native: m.sr_native, l0: m.l0, l1: m.l1, ms: m.ms }); }
+      if (m.type === "done") { done++; onSong(s.song, { duration: m.duration, sr_native: m.sr_native, peak: m.peak, l0: m.l0, l1: m.l1, ms: m.ms }); }
       else { failed++; onSong(s.song, { error: m.error }); }
       onProgress({ finished: done + failed, n: songs.length });
       pump();

@@ -1,12 +1,14 @@
 // Uncanny Listening — playback of her own files (decoded by the browser from the File in memory; nothing leaves the page).
-// play(song, {t0, t1}) plays the song from t0, and stops at t1 when given (a 10 s segment). One sound at a time.
-// ?mute=1 mutes the element (for silent checks on Miguel's machine).
+// play(song, {t0, t1, gain, meta}) plays the song from t0, and stops at t1 when given (a 10 s segment). One sound at a time.
+// gain (≤ 1) scales the volume for this play (level matching); meta is handed to onPlay (the Live link reads it).
+// ?mute=1 mutes the element (for silent checks on Miguel's machine); setQuiet(true) silences it while Live plays.
 import { decodeFlac, flacHeader } from "../core/flac.js";
 const listeners = [];
 const el = new Audio(); el.preload = "auto";
-let cur = null, url = null, stopAt = null, vol = 0.8;
-try { if (new URLSearchParams(location.search).get("mute") === "1") el.muted = true; } catch (_) {}
-el.volume = vol;
+let cur = null, url = null, stopAt = null, vol = 0.8, gain = 1, urlMute = false, userMute = false, quiet = false;
+try { if (new URLSearchParams(location.search).get("mute") === "1") urlMute = true; } catch (_) {}
+const applyMute = () => { el.muted = urlMute || userMute || quiet; };
+applyMute(); el.volume = vol;
 const emit = () => listeners.forEach((f) => { try { f(state()); } catch (e) { console.error(e); } });
 export const state = () => ({ song: cur, t: el.currentTime, playing: !el.paused && !el.ended, t0: cur ? cur._t0 : 0, t1: stopAt });
 export const onChange = (f) => listeners.push(f);
@@ -15,7 +17,7 @@ el.addEventListener("pause", emit); el.addEventListener("ended", emit); el.addEv
 let missing = null, onPlayCb = null;
 export const onPlay = (f) => { onPlayCb = f; };
 export const onMissing = (f) => { missing = f; };
-export async function play(song, { t0 = 0, t1 = null, keepWalk = false } = {}) {
+export async function play(song, { t0 = 0, t1 = null, keepWalk = false, gain: g = 1, meta = {} } = {}) {
   if (song && !song.file) { missing && missing(song); return; }
   if (!song) return;
   if (!keepWalk) endWalk();
@@ -29,8 +31,8 @@ export async function play(song, { t0 = 0, t1 = null, keepWalk = false } = {}) {
     }
     if (!ok) { console.warn("cannot play", song.name); return; }
   }
-  song._t0 = t0; stopAt = t1; el.currentTime = t0;
-  if (onPlayCb) try { onPlayCb(song, t0, t1 ?? song.duration); } catch (e) { console.error(e); }
+  song._t0 = t0; stopAt = t1; el.currentTime = t0; gain = Math.max(0, Math.min(1, +g || 0)); el.volume = vol * gain;
+  if (onPlayCb) try { onPlayCb(song, t0, t1 ?? song.duration, meta, gain); } catch (e) { console.error(e); }
   try { await el.play(); } catch (e) { console.warn("play", e); }
   emit();
 }
@@ -47,12 +49,15 @@ function wavMono({ y, sampleRate }) {                             // 16-bit mono
 }
 export function stop() { endWalk(); el.pause(); stopAt = null; emit(); }
 export function toggle() { if (!cur) return; if (el.paused) el.play().catch(() => {}); else el.pause(); }
-export function setVolume(v) { vol = v; el.volume = v; }
+export function setVolume(v) { vol = v; el.volume = v * gain; }
 export const isMuted = () => el.muted;
-export function setMuted(m) { el.muted = m; emit(); }
+export function setMuted(m) { userMute = !!m; applyMute(); emit(); }
+export function setQuiet(q) { quiet = !!q; applyMute(); emit(); }
+export const isQuiet = () => quiet;
 
 function endWalk() { if (walkTok % 2 === 1) walkTok++; }
-// A walk: play [{song, t0, t1, label?}] one after the other (10 s each, typically). Any other play or stop ends it.
+// A walk: play [{song, t0, t1, gain?, meta?, gap? (ms before the next, default 250)}] one after the other (10 s each,
+// typically). Any other play or stop ends it.
 let walkTok = 0;
 export function walk(items, onStep = () => {}) {
   if (walkTok % 2 === 0) walkTok++; else walkTok += 2; const my = walkTok; let i = 0;
@@ -60,8 +65,8 @@ export function walk(items, onStep = () => {}) {
     if (my !== walkTok) return;
     if (i >= items.length) { endWalk(); onStep(null); emit(); return; }
     const it = items[i++]; onStep(it, i - 1);
-    await play(it.song, { t0: it.t0, t1: it.t1, keepWalk: true });
-    const done = () => { if (my !== walkTok) return el.removeEventListener("pause", done); if (el.paused && !el.seeking) { el.removeEventListener("pause", done); setTimeout(next, 250); } };
+    await play(it.song, { t0: it.t0, t1: it.t1, keepWalk: true, gain: it.gain ?? 1, meta: it.meta || {} });
+    const done = () => { if (my !== walkTok) return el.removeEventListener("pause", done); if (el.paused && !el.seeking) { el.removeEventListener("pause", done); setTimeout(next, it.gap ?? 250); } };
     el.addEventListener("pause", done);
   };
   next();

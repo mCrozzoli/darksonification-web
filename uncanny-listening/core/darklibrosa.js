@@ -194,7 +194,7 @@ export function windows(len, sr, size, overlap = 0) {
   return out;
 }
 
-// One file. yNat: the mono native-rate signal (Float32Array, consumed); returns {duration, l0: row, l1: [rows]}.
+// One file. yNat: the mono native-rate signal (Float32Array, consumed); returns {duration, sr_native, peak, l0: row, l1: [rows]}.
 // The rhythm values use the onset envelope of the whole file, as the separate rhythm pass did (on the signal before the
 // peak normalisation: the envelope is the same, since the dB mel spectrogram only shifts with gain).
 export function analyseFile(yNat, srNat, cfg = ANA_PRESET, onProgress = null) {
@@ -210,5 +210,5 @@ export function analyseFile(yNat, srNat, cfg = ANA_PRESET, onProgress = null) {
   Object.assign(l0, rhythm);
   const W = windows(n, sr, cfg.window_s, cfg.overlap), l1 = [];
   W.forEach(([a, b], i) => { l1.push(Object.assign({ window_start: a / sr, window_end: b / sr }, summarize(extract(y, a, b - a)), rhythm)); if (onProgress) onProgress(i + 1, W.length); });
-  return { duration, sr_native: srNat, l0, l1 };
+  return { duration, sr_native: srNat, peak, l0, l1 };   // peak: of the mono mix before normalising (the page's level matching)
 }
