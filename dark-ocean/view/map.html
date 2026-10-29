@@ -614,7 +614,7 @@ d3.json("daily/manifest.json?_="+Date.now())
   //   otherwise plain drag stays the neighbourhood/navigation sweep. d3.zoom drives zt for both.
   //   2026-10-06 (Miguel: "maybe zoom in and out in these views is for the axis resolution?"): the SCATTER views zoom
   //   too, but their zoom re-scales the AXES (szt → computePositions → X/Y rescaled): ticks follow, cells outside the
-  //   visible range are pinned to its edges and counted. Every axis starts on the full range of the record. Double-
+  //   visible range leave the frame and are counted (outView). Every axis starts on the full range of the record. Double-
   //   click resets a scatter view's zoom. The map keeps its picture zoom (zt).
   zoomBehavior=d3.zoom().scaleExtent([1,40])
     .filter(e=> combo && !trackMode &&
@@ -946,7 +946,9 @@ function draw(){
         if(TRACE_TOOL==="lasso"){ ctx.setLineDash([4/zt.k,4/zt.k]); ctx.beginPath(); ctx.moveTo(z[0],z[1]); ctx.lineTo(a[0],a[1]); ctx.stroke(); ctx.setLineDash([]); } } }
   }
   drawSlopeStrip();
-  if(DENSITY_ON && scatterAxes && scatterAxes.kind==="ts") drawDensityInset(T);
+  // the inset only when the meeting point is out of the view (zoomed into the salty core); at the full range the line
+  //   and the point are in the diagram itself (Miguel 10-29: "should also be drawn in the main T–S diagram")
+  if(DENSITY_ON && scatterAxes && scatterAxes.kind==="ts" && !meetInView()) drawDensityInset(T);
 }
 // ══ DENSITY IN THE T–S VIEW (2026-10-05, Björn's second test: "lines of constant density" and "the temperature of
 //    maximum density … where it hits the freezing point"). Seawater density at the surface by the UNESCO 1981 equation
@@ -981,6 +983,31 @@ function drawIsopycnals(X, Y, k, T){
     if(major){ const e=pts[pts.length-1]; ctx.globalAlpha=0.7; ctx.textAlign="right"; ctx.textBaseline="bottom";
       ctx.fillText(`σ ${sg.toFixed(0)}`, e[0]-4/k, e[1]-3/k); }
   }
+  ctx.restore();
+}
+// THE MAXIMUM-DENSITY LINE IN THE DIAGRAM (2026-10-29): since the T–S view starts on the whole record (salinity 16.5),
+//   the line and its meeting point with freezing (24.6, −1.34 °C) fall inside it. Drawn where it is in view, above
+//   freezing solid, below it (water that would freeze first) dashed; the meeting point ringed and labelled.
+const MEET_S=24.62;
+function meetInView(){ if(!scatterAxes) return false; const [s0,s1]=scatterAxes.X.domain(), y=scatterAxes.Y.domain(), t=tFreeze(MEET_S);
+  return MEET_S>=Math.min(s0,s1) && MEET_S<=Math.max(s0,s1) && t>=Math.min(...y) && t<=Math.max(...y); }
+function drawMaxDensity(X, Y, k, T){
+  const [s0,s1]=X.domain(), [ya,yb]=Y.domain(), t0=Math.min(ya,yb), t1=Math.max(ya,yb);
+  const seg=(a,b,dash)=>{ ctx.setLineDash(dash); ctx.beginPath(); let on=false;
+    for(let j=0;j<=80;j++){ const S=a+(b-a)*j/80, t=tMaxDensity(S); if(t<t0||t>t1){ on=false; continue; }
+      if(on) ctx.lineTo(X(S),Y(t)); else { ctx.moveTo(X(S),Y(t)); on=true; } } ctx.stroke(); ctx.setLineDash([]); };
+  ctx.save(); ctx.strokeStyle=T.txt; ctx.globalAlpha=0.75; ctx.lineWidth=1.6/k;
+  const lo=Math.min(s0,s1), hi=Math.max(s0,s1);
+  if(lo<MEET_S) seg(lo, Math.min(hi,MEET_S), []);
+  if(hi>MEET_S) seg(Math.max(lo,MEET_S), hi, [3/k,4/k]);
+  ctx.globalAlpha=1;
+  if(meetInView()){ const x=X(MEET_S), y=Y(tFreeze(MEET_S));
+    ctx.fillStyle=T.ring; ctx.beginPath(); ctx.arc(x,y,4.5/k,0,2*Math.PI); ctx.fill();
+    ctx.fillStyle=T.txt; ctx.font=`${13/k}px ${T.fontCanvas}`; ctx.textAlign="left"; ctx.textBaseline="bottom";   // right of the point: the time wheel docks bottom-left
+    ctx.fillText(`max density meets freezing · ${MEET_S.toFixed(1)}, ${tFreeze(MEET_S).toFixed(1).replace("-","−")} °C`, x+8/k, y-8/k); }
+  const Sl=Math.max(lo, Math.min(hi, lo+(Math.min(hi,MEET_S)-lo)*0.6)), tl=tMaxDensity(Sl);   // the line's name, on its fresh part
+  if(tl>=t0 && tl<=t1 && Sl<MEET_S){ ctx.fillStyle=T.txt; ctx.font=`${13/k}px ${T.fontCanvas}`; ctx.textAlign="left"; ctx.textBaseline="bottom";
+    ctx.fillText("max density", X(Sl)+6/k, Y(tl)-4/k); }
   ctx.restore();
 }
 function drawDensityInset(T){                            // salinity 0–36: where water is densest, against freezing
@@ -1029,7 +1056,7 @@ function drawScatterAxes(){
     // the fresh end is where the clipped Arctic coast piles up (the web session saw the label cover it, 10-02)
     ctx.fillStyle=T.dim; ctx.font=`${13/k}px ${T.fontCanvas}`; ctx.textAlign="right"; ctx.textBaseline="bottom";
     ctx.fillText("freezing", X(s1)-6/k, Y(Tf(s1))-4/k);
-    if(DENSITY_ON) drawIsopycnals(X, Y, k, T);
+    if(DENSITY_ON){ drawIsopycnals(X, Y, k, T); drawMaxDensity(X, Y, k, T); }
   }
   // A2 (Björn: "larger numbers … the fonts bigger"): numbers 16 px and names 20 px (were 10 and 12)
   const ticksFor=(S,fr)=>{ if(fr==="phyto"){ const P=SCALES&&SCALES.units&&SCALES.units.phyto, hi=P?P.log1p_range[1]:1.99;
