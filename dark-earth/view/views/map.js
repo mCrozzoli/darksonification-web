@@ -7,6 +7,8 @@
 //     LISTED, never placed. ctx.stations() = the published positions with the config dock's page-local edits on top;
 //   - v0.13: while the cursor is inside an eruption, its fissure (W1's centroid; approx = hollow, dashed, with its ring)
 //     and the fountains' heights at that moment from W1's series, a bar per fissure segment (dashed + "model" when simulated);
+//   - v0.17 (DESIGN §6.2): at the cycle and sequence levels, the wider GNSS network (23 IMO stations, map only) as a field of
+//     thin arrows: how each station moves at the cursor's day (its trailing 7-day velocity), faint until pointed at;
 //   - a brush selects events by place: the timeline dims the rest and the Swarm hears only the selection;
 //   - at the hours and minutes levels, a polarization arrow for MELH, in a compass inset (MELH is placed approximately,
 //     ±2 km, since 0.13; the direction is in the sensor's frame, ambiguous by 180°).
@@ -39,7 +41,7 @@ window.SvkMap = (function () {
       ctx.setSelection(box);
     });
     const bg = svg.select(".map-brush").call(brush);
-    bg.select(".overlay").on("pointermove.hover", (e) => hover(e)).on("pointerleave.hover", () => (hbox.style.display = "none"));
+    bg.select(".overlay").on("pointermove.hover", (e) => hover(e)).on("pointerleave.hover", () => { hbox.style.display = "none"; if (fieldHot) { fieldHot = null; dirty = true; } });
 
     function fit() {
       if (!geo) return;
@@ -199,6 +201,81 @@ window.SvkMap = (function () {
       eruHit.push({ x: p[0], y: p[1], lines: out }, ...(n || top ? [{ x: p[0], y: y0 - Math.max(6, top / 2), lines: out }] : []));
     }
 
+    // ----- the wider GNSS network (CONTRACT 0.17 proposal: manifest.gnss_field + tiles/f1d/gnss_imo; DESIGN §6.2). Map only:
+    // the body and the sound stay on SKSH, SENG and THOB. Each station: an arrow from its place, how it moves at the cursor's
+    // day (the trailing 7-day velocity, mm/day, IMO's plate frame: east → right, north ↑), FIELD_PX px per mm/day up to
+    // FIELD_MAX (beyond it a short bar across the tip; the hover has the number); the dot filled while it rises, a ring while
+    // it sinks, faster than FIELD_U mm/day (about twice a week's GNSS noise in height), else a small point. Calm
+    // (re_wilding): thin and faint, a slow (noisy) arrow fainter still; the one pointed at drawn full. A gap (fewer than 5
+    // measured days in the week): the point alone. LISF has a place but no series: a point, no arrow
+    const DAY = 86400, FIELD_PX = 7, FIELD_MAX = 42, FIELD_U = 2.5, FIELD_KEY = 5;
+    let fieldHit = [], fieldHot = null;
+    function fieldW() { return (S.w[3] || 0) + (S.w[4] || 0); }
+    function fieldAt() {
+      const F = ctx.gnssField ? ctx.gnssField() : null; if (!F) return null;
+      const { T, meta } = F, i = Math.floor((S.cursor - T.t[0]) / DAY), at = (id, c) => (i >= 0 && i < T.t.length ? (T.cols[`${id}_${c}`] || [])[i] : null);
+      const rows = (meta.stations || []).map((s) => ({ s, series: true, day: i >= 0 && i < T.t.length ? T.t[i] : null,
+        v: { n: at(s.id, "n_vel"), e: at(s.id, "e_vel"), u: at(s.id, "u_vel"), dn: at(s.id, "n_mm"), de: at(s.id, "e_mm"), du: at(s.id, "u_mm") } }));
+      for (const s of meta.positions_only || []) rows.push({ s, series: false, day: null, v: null });
+      return { rows, meta };
+    }
+    function drawField() {
+      fieldHit = [];
+      const w = Math.min(1, fieldW()), F = w > 0.02 ? fieldAt() : null;
+      if (!F) return;
+      const ink = ctx.tok("--ds-txt");
+      g.save(); g.strokeStyle = ink; g.fillStyle = ink; g.lineCap = "round"; g.lineJoin = "round";
+      for (const r of F.rows) {
+        const q = proj([r.s.lon, r.s.lat]); if (!q || !isNum(q[0])) continue;
+        const hot = fieldHot === r.s.id, a0 = w * (hot ? 1 : 0.5), v = r.v, has = v && isNum(v.n) && isNum(v.e);
+        if (has) {
+          const sp = Math.hypot(v.n, v.e), L = Math.min(FIELD_MAX, sp * FIELD_PX);
+          if (L >= 1.5) {
+            const ux = v.e / sp, uy = -v.n / sp, x1 = q[0] + ux * L, y1 = q[1] + uy * L, hl = Math.min(4, L * 0.45), hw = hl * 0.55;
+            g.globalAlpha = a0 * (hot ? 1 : Math.min(1, 0.3 + sp / 3)); g.lineWidth = hot ? 1.4 : 0.9;
+            g.beginPath(); g.moveTo(q[0], q[1]); g.lineTo(x1, y1); g.stroke();
+            g.beginPath(); g.moveTo(x1, y1); g.lineTo(x1 - ux * hl - uy * hw, y1 - uy * hl + ux * hw); g.lineTo(x1 - ux * hl + uy * hw, y1 - uy * hl - ux * hw); g.closePath(); g.fill();
+            if (sp * FIELD_PX > FIELD_MAX) { g.beginPath(); g.moveTo(x1 - uy * 3.5, y1 + ux * 3.5); g.lineTo(x1 + uy * 3.5, y1 - ux * 3.5); g.stroke(); }
+          }
+        }
+        const up = has && isNum(v.u) ? v.u : null;
+        g.globalAlpha = a0 * 0.9; g.lineWidth = 0.9; g.beginPath();
+        if (up != null && up >= FIELD_U) { g.arc(q[0], q[1], 2.3, 0, 7); g.fill(); }
+        else if (up != null && up <= -FIELD_U) { g.arc(q[0], q[1], 2.3, 0, 7); g.stroke(); }
+        else { g.globalAlpha *= has ? 0.8 : 0.5; g.arc(q[0], q[1], r.series ? 1.3 : 1.6, 0, 7); g.fill(); }
+        fieldHit.push({ x: q[0], y: q[1], r });
+      }
+      // the key, above the 10 km bar: an arrow of FIELD_KEY mm/day
+      const kx = 14, ky = H - 52, kl = FIELD_KEY * FIELD_PX;
+      g.globalAlpha = w * 0.7; g.lineWidth = 0.9; g.beginPath(); g.moveTo(kx, ky); g.lineTo(kx + kl, ky); g.stroke();
+      g.beginPath(); g.moveTo(kx + kl, ky); g.lineTo(kx + kl - 4, ky - 2.2); g.lineTo(kx + kl - 4, ky + 2.2); g.closePath(); g.fill();
+      g.font = `9px ${ctx.tok("--ds-font-canvas")}`; g.fillText(`${FIELD_KEY} mm/day · GNSS`, kx + kl + 5, ky + 3);
+      g.restore();
+    }
+    const COMPASS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+    function fieldLines(r) {
+      const s = r.s, F = ctx.gnssField().meta, out = [`<b>${esc(s.id)}</b> · GNSS (IMO) · on the map only`];
+      if (!r.series) out.push("a place, no time series");
+      else {
+        const v = r.v, day = r.day != null ? new Date(r.day * 1000).toISOString().slice(0, 10) : null;
+        if (!v || !isNum(v.n) || !isNum(v.e)) out.push(`no measurement this week${day ? ` (to ${day})` : ""}: fewer than 5 days with an IMO solution`);
+        else {
+          const sp = Math.hypot(v.n, v.e), az = ((Math.atan2(v.e, v.n) * 180) / Math.PI + 360) % 360;
+          out.push(`moving ${sp.toFixed(1)} mm/day toward ${Math.round(az)}° (${COMPASS[Math.round(az / 45) % 8]})${sp < 1 ? ' <span class="dim">· within a week\'s GNSS noise</span>' : ""}`);
+          if (isNum(v.u)) out.push(`${v.u >= 0 ? "rising" : "sinking"} ${Math.abs(v.u).toFixed(1)} mm/day${Math.abs(v.u) < FIELD_U ? ' <span class="dim">· within the noise</span>' : ""}`);
+          out.push(`<span class="dim">the 7 days to ${day}, IMO's plate frame</span>`);
+        }
+        const sg = (x) => { const r = Math.round(x); return `${r >= 0 ? "+" : "−"}${Math.abs(r)}`; };
+        if (v && isNum(v.dn) && isNum(v.de) && isNum(v.du)) out.push(`since ${esc(s.ref_day || "the start")}: N ${sg(v.dn)} · E ${sg(v.de)} · U ${sg(v.du)} mm`);
+      }
+      // one short credit line (the full source strings on its hover): IMO's series; the position from IMO's GNSS browser,
+      // or, for a place known only from the private file, its own words (rounded, not the exact place)
+      const pos = /map\.js|GNSS browser/i.test(s.pos_source || "") ? "position: IMO GNSS browser"
+        : /not public/i.test(s.pos_source || "") ? `position rounded${isNum(s.pos_err_m) ? `, ± ${Math.round(s.pos_err_m)} m` : ""} (the exact place is not public)` : `position: ${clause(s.pos_source || "unknown")}`;
+      out.push(`<span class="dim" title="${esc([F.credit, s.pos_source].filter(Boolean).join(" · "))}">${r.series ? "IMO GNSS time series (via Leif Karlstrom) · " : ""}${esc(pos)}</span>`);
+      return out;
+    }
+
     // epicentres of the window, fading with age (relative to the cursor)
     function draw() {
       if (!dirty) return; dirty = false;
@@ -228,6 +305,7 @@ window.SvkMap = (function () {
         for (let k = T.i0; k < T.i1 && k < T.i0 + 400; k++) { const q = proj([T.lon[k], T.lat[k]]); if (q && isNum(q[0])) { g.beginPath(); g.arc(q[0], q[1], 4.5, 0, 7); g.stroke(); } }
       }
       g.globalAlpha = 1;
+      drawField();
       drawEruption(C);
       drawPol();
       const n = sel ? countSel(E, sel) : null;
@@ -263,6 +341,9 @@ window.SvkMap = (function () {
       const near = (x, y) => (x - px) ** 2 + (y - py) ** 2 < 100;
       let lines = (eruHit.find((h) => near(h.x, h.y)) || {}).lines || null;
       if (!lines) { const st = stations().find((s) => { if (!s.placed) return false; const q = proj([s.lon, s.lat]); return q && near(q[0], q[1]); }); if (st) lines = stationLines(st); }
+      const fh = !lines && fieldW() > 0.3 ? fieldHit.find((h) => (h.x - px) ** 2 + (h.y - py) ** 2 < 64) : null;
+      if ((fh ? fh.r.s.id : null) !== fieldHot) { fieldHot = fh ? fh.r.s.id : null; dirty = true; }
+      if (fh) lines = fieldLines(fh.r);
       if (!lines) {
         const [t0, t1] = S.view, E = ctx.src.events(t0, t1);
         let best = -1, bd = 64;

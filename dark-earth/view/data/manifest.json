@@ -1,10 +1,10 @@
 {
  "contract": "0.13",
  "public": true,
- "built": "2026-10-25T14:36:34.267Z",
+ "built": "2026-11-01T14:17:10.621Z",
  "t0": 1685577600,
- "t_end": 1790294400.0,
- "n_days": 1212,
+ "t_end": 1790812800.0,
+ "n_days": 1218,
  "mode_default": "archive",
  "constants": {
   "TRANSPOSE": 250,
@@ -89,7 +89,7 @@
    "n_harmonics": 6,
    "shape_min_measured": 0.5,
    "tau_window_d": 365,
-   "inflow_max_mm_d": 7.59683,
+   "inflow_max_mm_d": 7.60851,
    "inflow_max_date": "2023-12-22",
    "boundaries": "the eruption timeline (events/eruptions.json, v0.13): every eruption and intrusion, by the UTC day of its onset; same-day events make one boundary"
   },
@@ -249,6 +249,9 @@
    ],
    "gnss": [
     0
+   ],
+   "gnss_imo": [
+    0
    ]
   }
  },
@@ -365,10 +368,10 @@
    "pending": false,
    "primary": true,
    "first_day": "2023-06-04",
-   "last_day": "2026-09-24",
-   "n_days": 1209,
+   "last_day": "2026-09-30",
+   "n_days": 1215,
    "n_interp": 158,
-   "n_spike": 8
+   "n_spike": 12
   },
   {
    "id": "SENG",
@@ -383,28 +386,28 @@
    "pending": false,
    "primary": false,
    "first_day": "2023-06-04",
-   "last_day": "2026-09-24",
-   "n_days": 1209,
+   "last_day": "2026-09-30",
+   "n_days": 1215,
    "n_interp": 53,
-   "n_spike": 6
+   "n_spike": 10
   },
   {
    "id": "THOB",
    "kind": "gnss",
    "public": true,
    "label": "THOB, GNSS station: daily ground position",
-   "lat": 63.864119,
-   "lon": -22.439319,
+   "lat": 63.8641,
+   "lon": -22.4393,
    "pos_status": "measured",
-   "pos_source": "IMO site log https://gnss-metadata.eu/v1/sitelog/exportlog?id=THOB00ISL (+635150.83 -0222621.55, 287.0 m ellipsoidal); IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js): 63.8641, -22.4393 (4 decimals)",
-   "pos_err_m": 1.0,
+   "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js, 2026-08-25), 4 decimals as published; the IMO site log https://gnss-metadata.eu/v1/sitelog/exportlog?id=THOB00ISL agrees within 2 m",
+   "pos_err_m": 6.0,
    "pending": false,
    "primary": false,
    "first_day": "2023-06-17",
-   "last_day": "2026-09-24",
-   "n_days": 1196,
+   "last_day": "2026-09-30",
+   "n_days": 1202,
    "n_interp": 34,
-   "n_spike": 8
+   "n_spike": 11
   }
  ],
  "columns": {
@@ -667,7 +670,7 @@
    ]
   },
   "recharge_interp": {
-   "label": "the recharge level is read from straight-line GNSS, not a measurement",
+   "label": "SKSH has no IMO solution that day (a gap): recharge_frac is null here",
    "unit": "flag",
    "log": false,
    "epistemic": "measurement",
@@ -695,7 +698,7 @@
    "epistemic": "inference",
    "range": [
     0,
-    435.0
+    441.0
    ]
   },
   "wait_rel": {
@@ -705,7 +708,7 @@
    "epistemic": "inference",
    "range": [
     0,
-    3.29545
+    3.34091
    ]
   },
   "longest_wait_d": {
@@ -732,8 +735,8 @@
     "stale": "recharge_stale"
    },
    "range": [
-    -330.988,
-    197.333
+    -330.925,
+    198.919
    ]
   },
   "ref_u_mm": {
@@ -759,18 +762,18 @@
    "epistemic": "inference",
    "range": [
     14.0,
-    424.89
+    430.83
    ]
   },
   "inflow_mm_d": {
-   "label": "uplift rate: slope of a 60-day line through SKSH (falls and straight-line days left out)",
+   "label": "uplift rate: slope of a 60-day line through SKSH (falls and days without a solution left out)",
    "unit": "mm/day",
    "log": false,
    "epistemic": "measurement",
    "model": "T-C (CONTRACT v0.9, FINDINGS F7)",
    "range": [
-    0.0344223,
-    7.13588
+    0.034458,
+    7.14083
    ]
   },
   "inflow_rel": {
@@ -802,7 +805,7 @@
    "epistemic": "measurement",
    "model": "T-C (CONTRACT v0.9, FINDINGS F7)",
    "range": [
-    0.053486,
+    0.0535392,
     1.58132
    ]
   },
@@ -813,7 +816,7 @@
    "epistemic": "measurement",
    "model": "T-C (CONTRACT v0.9, FINDINGS F7)",
    "range": [
-    0.0165243,
+    0.0191202,
     0.971053
    ]
   },
@@ -824,7 +827,7 @@
    "epistemic": "measurement",
    "model": "T-C (CONTRACT v0.9, FINDINGS F7)",
    "range": [
-    0.020053,
+    0.0200653,
     0.614515
    ]
   },
@@ -835,7 +838,7 @@
    "epistemic": "measurement",
    "model": "T-C (CONTRACT v0.9, FINDINGS F7)",
    "range": [
-    0.0306381,
+    0.0307433,
     1.218
    ]
   },
@@ -846,7 +849,7 @@
    "epistemic": "measurement",
    "model": "T-C (CONTRACT v0.9, FINDINGS F7)",
    "range": [
-    0.0123756,
+    0.0158956,
     1.10008
    ]
   },
@@ -857,7 +860,7 @@
    "epistemic": "inference",
    "model": "T-C (CONTRACT v0.9, FINDINGS F7)",
    "range": [
-    179.471,
+    180.849,
     1251.22
    ]
   },
@@ -914,7 +917,7 @@
    "epistemic": "inference",
    "range": [
     0.00757576,
-    3.21886
+    3.26386
    ]
   },
   "fountain_max_m": {
@@ -953,8 +956,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000245911,
-    4.24141
+    0.00027271,
+    4.24255
    ]
   },
   "g01": {
@@ -963,8 +966,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000231596,
-    5.04807
+    0.000234481,
+    5.17036
    ]
   },
   "g02": {
@@ -973,8 +976,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000201857,
-    6.19261
+    0.000205495,
+    6.32157
    ]
   },
   "g03": {
@@ -983,8 +986,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000154936,
-    8.40298
+    0.000157341,
+    8.57797
    ]
   },
   "g04": {
@@ -993,8 +996,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000199722,
-    4.0941
+    0.000214888,
+    3.77223
    ]
   },
   "g05": {
@@ -1003,8 +1006,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000149561,
-    4.11211
+    0.000164259,
+    4.21197
    ]
   },
   "g06": {
@@ -1013,8 +1016,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000263583,
-    5.92192
+    0.000289849,
+    4.20372
    ]
   },
   "g07": {
@@ -1023,8 +1026,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000324301,
-    6.92421
+    0.000349473,
+    4.76252
    ]
   },
   "g08": {
@@ -1033,8 +1036,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.00057326,
-    3.80245
+    0.000567384,
+    3.76067
    ]
   },
   "g09": {
@@ -1043,8 +1046,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000305202,
-    6.27818
+    0.000303319,
+    6.20423
    ]
   },
   "g10": {
@@ -1053,8 +1056,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.00032878,
-    4.35778
+    0.000319688,
+    4.31136
    ]
   },
   "g11": {
@@ -1063,8 +1066,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000204385,
-    5.27738
+    0.000198589,
+    5.2211
    ]
   },
   "g12": {
@@ -1073,8 +1076,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000152976,
-    4.79264
+    0.000242909,
+    4.73632
    ]
   },
   "g13": {
@@ -1083,8 +1086,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000150322,
-    5.45417
+    0.0001765,
+    5.37402
    ]
   },
   "g14": {
@@ -1093,8 +1096,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000194796,
-    6.03652
+    0.000261414,
+    5.90382
    ]
   },
   "g15": {
@@ -1103,8 +1106,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000225075,
-    6.72109
+    0.000267464,
+    6.63669
    ]
   },
   "g16": {
@@ -1113,8 +1116,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    6.08765e-05,
-    5.11551
+    5.8967e-05,
+    5.01065
    ]
   },
   "g17": {
@@ -1123,8 +1126,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    7.64371e-05,
-    4.05628
+    6.99756e-05,
+    3.85409
    ]
   },
   "g18": {
@@ -1133,8 +1136,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    4.80855e-05,
-    6.80022
+    4.94756e-05,
+    6.74701
    ]
   },
   "g19": {
@@ -1143,8 +1146,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    8.42713e-05,
-    3.5237
+    8.81037e-05,
+    2.68318
    ]
   },
   "g20": {
@@ -1153,8 +1156,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000699091,
-    4.47805
+    0.000966268,
+    4.41662
    ]
   },
   "g21": {
@@ -1163,8 +1166,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000945915,
-    4.96409
+    0.00106923,
+    4.8862
    ]
   },
   "g22": {
@@ -1173,8 +1176,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.00114742,
-    5.56346
+    0.00126343,
+    5.60096
    ]
   },
   "g23": {
@@ -1183,8 +1186,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    2.73007e-07,
-    7.04929
+    2.68179e-07,
+    7.12231
    ]
   },
   "g24": {
@@ -1193,8 +1196,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000123447,
-    4.95204
+    0.000299896,
+    4.89934
    ]
   },
   "g25": {
@@ -1203,8 +1206,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000170155,
-    4.55299
+    0.000272854,
+    4.50562
    ]
   },
   "g26": {
@@ -1213,8 +1216,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000166201,
-    6.38234
+    0.000164688,
+    6.60834
    ]
   },
   "g27": {
@@ -1223,8 +1226,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000130367,
-    8.93478
+    0.000129503,
+    8.99879
    ]
   },
   "g28": {
@@ -1233,8 +1236,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    7.60573e-05,
-    3.82521
+    7.31296e-05,
+    3.84364
    ]
   },
   "g29": {
@@ -1243,8 +1246,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    4.99476e-05,
-    5.05365
+    4.6806e-05,
+    5.10165
    ]
   },
   "g30": {
@@ -1253,8 +1256,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    9.6295e-05,
-    2.97619
+    8.63995e-05,
+    2.97496
    ]
   },
   "g31": {
@@ -1263,8 +1266,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    9.64351e-05,
-    3.09095
+    7.88488e-05,
+    2.96158
    ]
   },
   "g32": {
@@ -1273,8 +1276,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000320802,
-    3.04014
+    0.000449677,
+    2.99639
    ]
   },
   "g33": {
@@ -1283,8 +1286,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.00066534,
-    3.171
+    0.000674849,
+    3.26447
    ]
   },
   "g34": {
@@ -1293,8 +1296,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000452484,
-    4.2748
+    0.000442993,
+    4.21992
    ]
   },
   "g35": {
@@ -1303,8 +1306,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    1.47046e-07,
-    5.93403
+    1.52213e-07,
+    5.85785
    ]
   },
   "pin": {
@@ -1313,8 +1316,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.409527,
-    4.59867
+    0.414373,
+    4.45842
    ]
   },
   "bow_db": {
@@ -1338,7 +1341,7 @@
    ]
   },
   "gap": {
-   "label": "0 measured, 1 no data, 2 interpolated (the GNSS status of the row's sensors)",
+   "label": "0 measured, 1 no data, 2 a GNSS gap (no IMO solution: the sound reads the straight line across it, veiled) (the GNSS status of the row's sensors)",
    "unit": "code",
    "log": false,
    "epistemic": "measurement",
@@ -1401,8 +1404,8 @@
     "spike": "SKSH_spike"
    },
    "range": [
-    -177.081,
-    660.178
+    -176.511,
+    660.72
    ]
   },
   "SKSH_u_ds": {
@@ -1417,8 +1420,8 @@
     "interpolated": "SKSH_interp"
    },
    "range": [
-    -177.081,
-    660.178
+    -176.511,
+    660.72
    ]
   },
   "SKSH_n_mm": {
@@ -1435,8 +1438,8 @@
     "spike": "SKSH_spike"
    },
    "range": [
-    1.4692,
-    822.502
+    1.4836,
+    822.479
    ]
   },
   "SKSH_e_mm": {
@@ -1453,18 +1456,18 @@
     "spike": "SKSH_spike"
    },
    "range": [
-    -1656.76,
-    1.9128
+    -1657.61,
+    1.9074
    ]
   },
   "SKSH_u_rate": {
-   "label": "SKSH uplift rate, mean of the last 3 days (null on and just after straight-line days)",
+   "label": "SKSH uplift rate, mean of the last 3 days (null on and just after days without a solution)",
    "unit": "mm/day",
    "log": false,
    "epistemic": "measurement",
    "range": [
-    -78.5321,
-    11.5215
+    -78.3829,
+    11.5111
    ]
   },
   "SKSH_n_vel": {
@@ -1480,8 +1483,8 @@
    },
    "signed": true,
    "range": [
-    -1.25929,
-    13.1036
+    -1.14129,
+    12.7619
    ]
   },
   "SKSH_e_vel": {
@@ -1497,8 +1500,8 @@
    },
    "signed": true,
    "range": [
-    -15.6126,
-    5.98087
+    -15.2245,
+    4.80246
    ]
   },
   "SKSH_u_vel": {
@@ -1514,12 +1517,12 @@
    },
    "signed": true,
    "range": [
-    -49.8824,
-    10.0531
+    -49.8142,
+    10.0331
    ]
   },
   "SKSH_interp": {
-   "label": "SKSH value is a straight-line fill in the source file, not a measurement",
+   "label": "SKSH has no IMO solution that day (a gap in IMO's plate series): its values are null here; the sound reads the straight line across the gap (veiled)",
    "unit": "flag",
    "log": false,
    "epistemic": "measurement",
@@ -1527,6 +1530,36 @@
    "range": [
     false,
     true
+   ]
+  },
+  "SKSH_n_sig": {
+   "label": "SKSH north position uncertainty that day (IMO's 1 sigma)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    1.67,
+    4.4796
+   ]
+  },
+  "SKSH_e_sig": {
+   "label": "SKSH east position uncertainty that day (IMO's 1 sigma)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    1.41,
+    4.1772
+   ]
+  },
+  "SKSH_u_sig": {
+   "label": "SKSH up position uncertainty that day (IMO's 1 sigma)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    6.5568,
+    14.0164
    ]
   },
   "SKSH_spike": {
@@ -1554,8 +1587,8 @@
     "spike": "SENG_spike"
    },
    "range": [
-    -73.238,
-    1041.77
+    -72.869,
+    1043.09
    ]
   },
   "SENG_u_ds": {
@@ -1570,8 +1603,8 @@
     "interpolated": "SENG_interp"
    },
    "range": [
-    -73.238,
-    1041.77
+    -72.869,
+    1043.09
    ]
   },
   "SENG_n_mm": {
@@ -1588,8 +1621,8 @@
     "spike": "SENG_spike"
    },
    "range": [
-    1.6416,
-    1171.39
+    1.6578,
+    1171.58
    ]
   },
   "SENG_e_mm": {
@@ -1606,18 +1639,18 @@
     "spike": "SENG_spike"
    },
    "range": [
-    -2356.1,
-    -0.825
+    -2356.08,
+    -0.8325
    ]
   },
   "SENG_u_rate": {
-   "label": "SENG uplift rate, mean of the last 3 days (null on and just after straight-line days)",
+   "label": "SENG uplift rate, mean of the last 3 days (null on and just after days without a solution)",
    "unit": "mm/day",
    "log": false,
    "epistemic": "measurement",
    "range": [
-    -55.3238,
-    12.3722
+    -54.6474,
+    12.3206
    ]
   },
   "SENG_n_vel": {
@@ -1633,8 +1666,8 @@
    },
    "signed": true,
    "range": [
-    -8.79306,
-    11.6404
+    -8.75693,
+    11.6116
    ]
   },
   "SENG_e_vel": {
@@ -1650,8 +1683,8 @@
    },
    "signed": true,
    "range": [
-    -44.9055,
-    1.81207
+    -44.8982,
+    1.65613
    ]
   },
   "SENG_u_vel": {
@@ -1667,12 +1700,12 @@
    },
    "signed": true,
    "range": [
-    -41.3601,
-    9.94307
+    -41.3292,
+    9.63268
    ]
   },
   "SENG_interp": {
-   "label": "SENG value is a straight-line fill in the source file, not a measurement",
+   "label": "SENG has no IMO solution that day (a gap in IMO's plate series): its values are null here; the sound reads the straight line across the gap (veiled)",
    "unit": "flag",
    "log": false,
    "epistemic": "measurement",
@@ -1680,6 +1713,36 @@
    "range": [
     false,
     true
+   ]
+  },
+  "SENG_n_sig": {
+   "label": "SENG north position uncertainty that day (IMO's 1 sigma)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    1.34,
+    5.4312
+   ]
+  },
+  "SENG_e_sig": {
+   "label": "SENG east position uncertainty that day (IMO's 1 sigma)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    1.13,
+    5.4553
+   ]
+  },
+  "SENG_u_sig": {
+   "label": "SENG up position uncertainty that day (IMO's 1 sigma)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    5.2461,
+    13.4458
    ]
   },
   "SENG_spike": {
@@ -1707,8 +1770,8 @@
     "spike": "THOB_spike"
    },
    "range": [
-    -826.798,
-    71.486
+    -826.215,
+    73.1325
    ]
   },
   "THOB_u_ds": {
@@ -1723,8 +1786,8 @@
     "interpolated": "THOB_interp"
    },
    "range": [
-    -826.798,
-    71.486
+    -826.215,
+    73.1325
    ]
   },
   "THOB_n_mm": {
@@ -1741,8 +1804,8 @@
     "spike": "THOB_spike"
    },
    "range": [
-    -4.57,
-    561.59
+    -4.4616,
+    561.465
    ]
   },
   "THOB_e_mm": {
@@ -1759,18 +1822,18 @@
     "spike": "THOB_spike"
    },
    "range": [
-    -1918.08,
-    6.284
+    -1918.03,
+    6.269
    ]
   },
   "THOB_u_rate": {
-   "label": "THOB uplift rate, mean of the last 3 days (null on and just after straight-line days)",
+   "label": "THOB uplift rate, mean of the last 3 days (null on and just after days without a solution)",
    "unit": "mm/day",
    "log": false,
    "epistemic": "measurement",
    "range": [
-    -63.64,
-    8.80133
+    -63.211,
+    8.79953
    ]
   },
   "THOB_n_vel": {
@@ -1786,8 +1849,8 @@
    },
    "signed": true,
    "range": [
-    -2.21126,
-    12.9538
+    -2.17938,
+    12.9283
    ]
   },
   "THOB_e_vel": {
@@ -1803,8 +1866,8 @@
    },
    "signed": true,
    "range": [
-    -42.2657,
-    2.40532
+    -42.0988,
+    2.17817
    ]
   },
   "THOB_u_vel": {
@@ -1820,12 +1883,12 @@
    },
    "signed": true,
    "range": [
-    -49.1617,
-    7.72449
+    -48.7934,
+    7.7213
    ]
   },
   "THOB_interp": {
-   "label": "THOB value is a straight-line fill in the source file, not a measurement",
+   "label": "THOB has no IMO solution that day (a gap in IMO's plate series): its values are null here; the sound reads the straight line across the gap (veiled)",
    "unit": "flag",
    "log": false,
    "epistemic": "measurement",
@@ -1833,6 +1896,36 @@
    "range": [
     false,
     true
+   ]
+  },
+  "THOB_n_sig": {
+   "label": "THOB north position uncertainty that day (IMO's 1 sigma)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    1.6867,
+    5.6297
+   ]
+  },
+  "THOB_e_sig": {
+   "label": "THOB east position uncertainty that day (IMO's 1 sigma)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    1.46,
+    3.8832
+   ]
+  },
+  "THOB_u_sig": {
+   "label": "THOB up position uncertainty that day (IMO's 1 sigma)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    7.11,
+    13.2364
    ]
   },
   "THOB_spike": {
@@ -1844,6 +1937,1455 @@
    "range": [
     false,
     true
+   ]
+  },
+  "ELDC_n_mm": {
+   "label": "ELDC north displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "ELDC_n_vel": {
+   "label": "ELDC moving north, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "ELDC_e_mm": {
+   "label": "ELDC east displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "ELDC_e_vel": {
+   "label": "ELDC moving east, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "ELDC_u_mm": {
+   "label": "ELDC up displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "ELDC_u_vel": {
+   "label": "ELDC moving up, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "FAGD_n_mm": {
+   "label": "FAGD north displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "FAGD_n_vel": {
+   "label": "FAGD moving north, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "FAGD_e_mm": {
+   "label": "FAGD east displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "FAGD_e_vel": {
+   "label": "FAGD moving east, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "FAGD_u_mm": {
+   "label": "FAGD up displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "FAGD_u_vel": {
+   "label": "FAGD moving up, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "FEFC_n_mm": {
+   "label": "FEFC north displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "FEFC_n_vel": {
+   "label": "FEFC moving north, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "FEFC_e_mm": {
+   "label": "FEFC east displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "FEFC_e_vel": {
+   "label": "FEFC moving east, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "FEFC_u_mm": {
+   "label": "FEFC up displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "FEFC_u_vel": {
+   "label": "FEFC moving up, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "GEVK_n_mm": {
+   "label": "GEVK north displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "GEVK_n_vel": {
+   "label": "GEVK moving north, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "GEVK_e_mm": {
+   "label": "GEVK east displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "GEVK_e_vel": {
+   "label": "GEVK moving east, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "GEVK_u_mm": {
+   "label": "GEVK up displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "GEVK_u_vel": {
+   "label": "GEVK moving up, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "GONH_n_mm": {
+   "label": "GONH north displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "GONH_n_vel": {
+   "label": "GONH moving north, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "GONH_e_mm": {
+   "label": "GONH east displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "GONH_e_vel": {
+   "label": "GONH moving east, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "GONH_u_mm": {
+   "label": "GONH up displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "GONH_u_vel": {
+   "label": "GONH moving up, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "HAFC_n_mm": {
+   "label": "HAFC north displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "HAFC_n_vel": {
+   "label": "HAFC moving north, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "HAFC_e_mm": {
+   "label": "HAFC east displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "HAFC_e_vel": {
+   "label": "HAFC moving east, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "HAFC_u_mm": {
+   "label": "HAFC up displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "HAFC_u_vel": {
+   "label": "HAFC moving up, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "HRAG_n_mm": {
+   "label": "HRAG north displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "HRAG_n_vel": {
+   "label": "HRAG moving north, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "HRAG_e_mm": {
+   "label": "HRAG east displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "HRAG_e_vel": {
+   "label": "HRAG moving east, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "HRAG_u_mm": {
+   "label": "HRAG up displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "HRAG_u_vel": {
+   "label": "HRAG moving up, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "HS02_n_mm": {
+   "label": "HS02 north displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "HS02_n_vel": {
+   "label": "HS02 moving north, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "HS02_e_mm": {
+   "label": "HS02 east displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "HS02_e_vel": {
+   "label": "HS02 moving east, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "HS02_u_mm": {
+   "label": "HS02 up displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "HS02_u_vel": {
+   "label": "HS02 moving up, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "HVAS_n_mm": {
+   "label": "HVAS north displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "HVAS_n_vel": {
+   "label": "HVAS moving north, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "HVAS_e_mm": {
+   "label": "HVAS east displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "HVAS_e_vel": {
+   "label": "HVAS moving east, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "HVAS_u_mm": {
+   "label": "HVAS up displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "HVAS_u_vel": {
+   "label": "HVAS moving up, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "KAST_n_mm": {
+   "label": "KAST north displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "KAST_n_vel": {
+   "label": "KAST moving north, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "KAST_e_mm": {
+   "label": "KAST east displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "KAST_e_vel": {
+   "label": "KAST moving east, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "KAST_u_mm": {
+   "label": "KAST up displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "KAST_u_vel": {
+   "label": "KAST moving up, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "KEIC_n_mm": {
+   "label": "KEIC north displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "KEIC_n_vel": {
+   "label": "KEIC moving north, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "KEIC_e_mm": {
+   "label": "KEIC east displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "KEIC_e_vel": {
+   "label": "KEIC moving east, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "KEIC_u_mm": {
+   "label": "KEIC up displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "KEIC_u_vel": {
+   "label": "KEIC moving up, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "KRIV_n_mm": {
+   "label": "KRIV north displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "KRIV_n_vel": {
+   "label": "KRIV moving north, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "KRIV_e_mm": {
+   "label": "KRIV east displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "KRIV_e_vel": {
+   "label": "KRIV moving east, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "KRIV_u_mm": {
+   "label": "KRIV up displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "KRIV_u_vel": {
+   "label": "KRIV moving up, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "LISK_n_mm": {
+   "label": "LISK north displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "LISK_n_vel": {
+   "label": "LISK moving north, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "LISK_e_mm": {
+   "label": "LISK east displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "LISK_e_vel": {
+   "label": "LISK moving east, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "LISK_u_mm": {
+   "label": "LISK up displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "LISK_u_vel": {
+   "label": "LISK moving up, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "MOHA_n_mm": {
+   "label": "MOHA north displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "MOHA_n_vel": {
+   "label": "MOHA moving north, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "MOHA_e_mm": {
+   "label": "MOHA east displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "MOHA_e_vel": {
+   "label": "MOHA moving east, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "MOHA_u_mm": {
+   "label": "MOHA up displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "MOHA_u_vel": {
+   "label": "MOHA moving up, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "NAMC_n_mm": {
+   "label": "NAMC north displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "NAMC_n_vel": {
+   "label": "NAMC moving north, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "NAMC_e_mm": {
+   "label": "NAMC east displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "NAMC_e_vel": {
+   "label": "NAMC moving east, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "NAMC_u_mm": {
+   "label": "NAMC up displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "NAMC_u_vel": {
+   "label": "NAMC moving up, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "NBIO_n_mm": {
+   "label": "NBIO north displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "NBIO_n_vel": {
+   "label": "NBIO moving north, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "NBIO_e_mm": {
+   "label": "NBIO east displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "NBIO_e_vel": {
+   "label": "NBIO moving east, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "NBIO_u_mm": {
+   "label": "NBIO up displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "NBIO_u_vel": {
+   "label": "NBIO moving up, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "NYLA_n_mm": {
+   "label": "NYLA north displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "NYLA_n_vel": {
+   "label": "NYLA moving north, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "NYLA_e_mm": {
+   "label": "NYLA east displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "NYLA_e_vel": {
+   "label": "NYLA moving east, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "NYLA_u_mm": {
+   "label": "NYLA up displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "NYLA_u_vel": {
+   "label": "NYLA moving up, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "ODDF_n_mm": {
+   "label": "ODDF north displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "ODDF_n_vel": {
+   "label": "ODDF moving north, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "ODDF_e_mm": {
+   "label": "ODDF east displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "ODDF_e_vel": {
+   "label": "ODDF moving east, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "ODDF_u_mm": {
+   "label": "ODDF up displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "ODDF_u_vel": {
+   "label": "ODDF moving up, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "ORFC_n_mm": {
+   "label": "ORFC north displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "ORFC_n_vel": {
+   "label": "ORFC moving north, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "ORFC_e_mm": {
+   "label": "ORFC east displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "ORFC_e_vel": {
+   "label": "ORFC moving east, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "ORFC_u_mm": {
+   "label": "ORFC up displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "ORFC_u_vel": {
+   "label": "ORFC moving up, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "RVIT_n_mm": {
+   "label": "RVIT north displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "RVIT_n_vel": {
+   "label": "RVIT moving north, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "RVIT_e_mm": {
+   "label": "RVIT east displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "RVIT_e_vel": {
+   "label": "RVIT moving east, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "RVIT_u_mm": {
+   "label": "RVIT up displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "RVIT_u_vel": {
+   "label": "RVIT moving up, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "SUDV_n_mm": {
+   "label": "SUDV north displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "SUDV_n_vel": {
+   "label": "SUDV moving north, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "SUDV_e_mm": {
+   "label": "SUDV east displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "SUDV_e_vel": {
+   "label": "SUDV moving east, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "SUDV_u_mm": {
+   "label": "SUDV up displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "SUDV_u_vel": {
+   "label": "SUDV moving up, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "SYRF_n_mm": {
+   "label": "SYRF north displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "SYRF_n_vel": {
+   "label": "SYRF moving north, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "SYRF_e_mm": {
+   "label": "SYRF east displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "SYRF_e_vel": {
+   "label": "SYRF moving east, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "SYRF_u_mm": {
+   "label": "SYRF up displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "SYRF_u_vel": {
+   "label": "SYRF moving up, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "VMOS_n_mm": {
+   "label": "VMOS north displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "VMOS_n_vel": {
+   "label": "VMOS moving north, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "VMOS_e_mm": {
+   "label": "VMOS east displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "VMOS_e_vel": {
+   "label": "VMOS moving east, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
+   ]
+  },
+  "VMOS_u_mm": {
+   "label": "VMOS up displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    null,
+    null
+   ]
+  },
+  "VMOS_u_vel": {
+   "label": "VMOS moving up, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "signed": true,
+   "range": [
+    null,
+    null
    ]
   }
  },
@@ -2089,272 +3631,362 @@
    "source": "eq"
   },
   "SKSH_u_mm": {
-   "p01": -177.081,
-   "p50": 277.95,
-   "p99": 660.178,
+   "p01": -176.511,
+   "p50": 279.78,
+   "p99": 660.72,
    "min": -339.41,
-   "max": 668.97,
-   "n": 1209,
+   "max": 667.94,
+   "n": 1215,
    "tier": "f1d",
    "source": "gnss"
   },
   "SKSH_u_ds": {
-   "p01": -177.081,
-   "p50": 277.95,
-   "p99": 660.178,
+   "p01": -176.511,
+   "p50": 279.78,
+   "p99": 660.72,
    "min": -339.41,
-   "max": 668.97,
-   "n": 1209,
+   "max": 667.94,
+   "n": 1215,
    "tier": "f1d",
    "source": "gnss"
   },
   "SKSH_n_mm": {
-   "p01": 1.4692,
-   "p50": 692.46,
-   "p99": 822.502,
+   "p01": 1.4836,
+   "p50": 692.52,
+   "p99": 822.479,
    "min": -3.96,
-   "max": 831.04,
-   "n": 1209,
+   "max": 825.81,
+   "n": 1215,
    "tier": "f1d",
    "source": "gnss"
   },
   "SKSH_e_mm": {
-   "p01": -1656.76,
-   "p50": -1383.33,
-   "p99": 1.9128,
-   "min": -1661.82,
+   "p01": -1657.61,
+   "p50": -1383.48,
+   "p99": 1.9074,
+   "min": -1662.71,
    "max": 4.12,
-   "n": 1209,
+   "n": 1215,
    "tier": "f1d",
    "source": "gnss"
   },
   "SKSH_u_rate": {
-   "p01": -78.5321,
-   "p50": 2.005,
-   "p99": 11.5215,
+   "p01": -78.3829,
+   "p50": 1.97833,
+   "p99": 11.5111,
    "min": -146.063,
    "max": 17.43,
-   "n": 1004,
+   "n": 1010,
    "tier": "f1d",
    "source": "gnss"
   },
   "SKSH_n_vel": {
-   "p01": -1.25929,
-   "p50": 0.0378571,
-   "p99": 13.1036,
-   "min": -2.09536,
+   "p01": -1.14129,
+   "p50": 0.0382143,
+   "p99": 12.7619,
+   "min": -1.76786,
    "max": 93.6989,
-   "n": 1205,
+   "n": 1211,
    "tier": "f1d",
    "source": "gnss"
   },
   "SKSH_e_vel": {
-   "p01": -15.6126,
-   "p50": -0.4125,
-   "p99": 5.98087,
+   "p01": -15.2245,
+   "p50": -0.407143,
+   "p99": 4.80246,
    "min": -123.516,
-   "max": 15.0321,
-   "n": 1205,
+   "max": 12.7393,
+   "n": 1211,
    "tier": "f1d",
    "source": "gnss"
   },
   "SKSH_u_vel": {
-   "p01": -49.8824,
-   "p50": 1.56607,
-   "p99": 10.0531,
+   "p01": -49.8142,
+   "p50": 1.54857,
+   "p99": 10.0331,
    "min": -90.5429,
    "max": 15.9571,
-   "n": 1205,
+   "n": 1211,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "SKSH_n_sig": {
+   "p01": 1.67,
+   "p50": 1.96,
+   "p99": 4.4796,
+   "min": 1.38,
+   "max": 58.84,
+   "n": 1057,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "SKSH_e_sig": {
+   "p01": 1.41,
+   "p50": 1.64,
+   "p99": 4.1772,
+   "min": 1.18,
+   "max": 91.81,
+   "n": 1057,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "SKSH_u_sig": {
+   "p01": 6.5568,
+   "p50": 7.76,
+   "p99": 14.0164,
+   "min": 5.35,
+   "max": 91.31,
+   "n": 1057,
    "tier": "f1d",
    "source": "gnss"
   },
   "SENG_u_mm": {
-   "p01": -73.238,
-   "p50": 630.3,
-   "p99": 1041.77,
+   "p01": -72.869,
+   "p50": 631.58,
+   "p99": 1043.09,
    "min": -255.66,
-   "max": 1051.16,
-   "n": 1209,
+   "max": 1049.37,
+   "n": 1215,
    "tier": "f1d",
    "source": "gnss"
   },
   "SENG_u_ds": {
-   "p01": -73.238,
-   "p50": 630.3,
-   "p99": 1041.77,
+   "p01": -72.869,
+   "p50": 631.58,
+   "p99": 1043.09,
    "min": -255.66,
-   "max": 1051.16,
-   "n": 1209,
+   "max": 1049.37,
+   "n": 1215,
    "tier": "f1d",
    "source": "gnss"
   },
   "SENG_n_mm": {
-   "p01": 1.6416,
-   "p50": 940.65,
-   "p99": 1171.39,
+   "p01": 1.6578,
+   "p50": 941.82,
+   "p99": 1171.58,
    "min": -9.26,
    "max": 1174.57,
-   "n": 1209,
+   "n": 1215,
    "tier": "f1d",
    "source": "gnss"
   },
   "SENG_e_mm": {
-   "p01": -2356.1,
-   "p50": -2070.69,
-   "p99": -0.825,
+   "p01": -2356.08,
+   "p50": -2070.97,
+   "p99": -0.8325,
    "min": -2363.12,
    "max": 1.46,
-   "n": 1209,
+   "n": 1215,
    "tier": "f1d",
    "source": "gnss"
   },
   "SENG_u_rate": {
-   "p01": -55.3238,
-   "p50": 1.83833,
-   "p99": 12.3722,
+   "p01": -54.6474,
+   "p50": 1.82,
+   "p99": 12.3206,
    "min": -114.503,
    "max": 18.05,
-   "n": 1124,
+   "n": 1130,
    "tier": "f1d",
    "source": "gnss"
   },
   "SENG_n_vel": {
-   "p01": -8.79306,
-   "p50": 0.549643,
-   "p99": 11.6404,
+   "p01": -8.75693,
+   "p50": 0.545714,
+   "p99": 11.6116,
    "min": -15.925,
    "max": 30.0336,
-   "n": 1205,
+   "n": 1211,
    "tier": "f1d",
    "source": "gnss"
   },
   "SENG_e_vel": {
-   "p01": -44.9055,
-   "p50": 0.125714,
-   "p99": 1.81207,
+   "p01": -44.8982,
+   "p50": 0.125,
+   "p99": 1.65613,
    "min": -180.314,
-   "max": 15.1943,
-   "n": 1205,
+   "max": 2.55214,
+   "n": 1211,
    "tier": "f1d",
    "source": "gnss"
   },
   "SENG_u_vel": {
-   "p01": -41.3601,
-   "p50": 1.65,
-   "p99": 9.94307,
+   "p01": -41.3292,
+   "p50": 1.63821,
+   "p99": 9.63268,
    "min": -70.8732,
    "max": 17.5211,
-   "n": 1205,
+   "n": 1211,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "SENG_n_sig": {
+   "p01": 1.34,
+   "p50": 1.71,
+   "p99": 5.4312,
+   "min": 1.27,
+   "max": 20.5,
+   "n": 1162,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "SENG_e_sig": {
+   "p01": 1.13,
+   "p50": 1.46,
+   "p99": 5.4553,
+   "min": 1.09,
+   "max": 57.51,
+   "n": 1162,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "SENG_u_sig": {
+   "p01": 5.2461,
+   "p50": 6.705,
+   "p99": 13.4458,
+   "min": 4.9,
+   "max": 52.6,
+   "n": 1162,
    "tier": "f1d",
    "source": "gnss"
   },
   "THOB_u_mm": {
-   "p01": -826.798,
-   "p50": -178.73,
-   "p99": 71.486,
+   "p01": -826.215,
+   "p50": -176.97,
+   "p99": 73.1325,
    "min": -897.41,
    "max": 91.49,
-   "n": 1196,
+   "n": 1202,
    "tier": "f1d",
    "source": "gnss"
   },
   "THOB_u_ds": {
-   "p01": -826.798,
-   "p50": -178.73,
-   "p99": 71.486,
+   "p01": -826.215,
+   "p50": -176.97,
+   "p99": 73.1325,
    "min": -897.41,
    "max": 91.49,
-   "n": 1196,
+   "n": 1202,
    "tier": "f1d",
    "source": "gnss"
   },
   "THOB_n_mm": {
-   "p01": -4.57,
-   "p50": 439.615,
-   "p99": 561.59,
+   "p01": -4.4616,
+   "p50": 440.017,
+   "p99": 561.465,
    "min": -24.73,
    "max": 591.47,
-   "n": 1196,
+   "n": 1202,
    "tier": "f1d",
    "source": "gnss"
   },
   "THOB_e_mm": {
-   "p01": -1918.08,
-   "p50": -1631.24,
-   "p99": 6.284,
+   "p01": -1918.03,
+   "p50": -1632.45,
+   "p99": 6.269,
    "min": -1947.88,
    "max": 23.75,
-   "n": 1196,
+   "n": 1202,
    "tier": "f1d",
    "source": "gnss"
   },
   "THOB_u_rate": {
-   "p01": -63.64,
-   "p50": 1.76,
-   "p99": 8.80133,
+   "p01": -63.211,
+   "p50": 1.75333,
+   "p99": 8.79953,
    "min": -321.143,
    "max": 10.55,
-   "n": 1141,
+   "n": 1147,
    "tier": "f1d",
    "source": "gnss"
   },
   "THOB_n_vel": {
-   "p01": -2.21126,
-   "p50": -0.356964,
-   "p99": 12.9538,
+   "p01": -2.17938,
+   "p50": -0.362143,
+   "p99": 12.9283,
    "min": -4.6575,
    "max": 47.0307,
-   "n": 1192,
+   "n": 1198,
    "tier": "f1d",
    "source": "gnss"
   },
   "THOB_e_vel": {
-   "p01": -42.2657,
-   "p50": 0.382143,
-   "p99": 2.40532,
+   "p01": -42.0988,
+   "p50": 0.393929,
+   "p99": 2.17817,
    "min": -127.328,
-   "max": 15.4218,
-   "n": 1192,
+   "max": 4.08536,
+   "n": 1198,
    "tier": "f1d",
    "source": "gnss"
   },
   "THOB_u_vel": {
-   "p01": -49.1617,
-   "p50": 1.60089,
-   "p99": 7.72449,
+   "p01": -48.7934,
+   "p50": 1.57571,
+   "p99": 7.7213,
    "min": -208.366,
    "max": 8.475,
-   "n": 1192,
+   "n": 1198,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "THOB_n_sig": {
+   "p01": 1.6867,
+   "p50": 1.93,
+   "p99": 5.6297,
+   "min": 1.59,
+   "max": 10.65,
+   "n": 1168,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "THOB_e_sig": {
+   "p01": 1.46,
+   "p50": 1.65,
+   "p99": 3.8832,
+   "min": 1.42,
+   "max": 15.34,
+   "n": 1168,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "THOB_u_sig": {
+   "p01": 7.11,
+   "p50": 7.9,
+   "p99": 13.2364,
+   "min": 6.85,
+   "max": 41.3,
+   "n": 1168,
    "tier": "f1d",
    "source": "gnss"
   },
   "recharge_frac": {
    "p01": 0.0,
-   "p50": 0.894132,
-   "p99": 1.89969,
+   "p50": 0.899997,
+   "p99": 1.89914,
    "min": -0.0197288,
    "max": 2.18995,
-   "n": 986,
+   "n": 992,
    "tier": "f1d",
    "source": "gnss"
   },
   "days_since_fall": {
-   "p01": 0.49,
+   "p01": 0.55,
    "p50": 66.0,
-   "p99": 424.51,
+   "p99": 430.45,
    "min": 0.0,
-   "max": 435.0,
-   "n": 1050,
+   "max": 441.0,
+   "n": 1056,
    "tier": "f1d",
    "source": "gnss"
   },
   "wait_rel": {
    "p01": 0.00757576,
-   "p50": 0.751471,
-   "p99": 3.21886,
+   "p50": 0.757166,
+   "p99": 3.26386,
    "min": 0.0,
-   "max": 3.29545,
-   "n": 1012,
+   "max": 3.34091,
+   "n": 1018,
    "tier": "f1d",
    "source": "gnss"
   },
@@ -2364,17 +3996,17 @@
    "p99": 132.0,
    "min": 38.0,
    "max": 132.0,
-   "n": 1012,
+   "n": 1018,
    "tier": "f1d",
    "source": "gnss"
   },
   "above_last_start_mm": {
-   "p01": -330.988,
-   "p50": -26.235,
-   "p99": 197.333,
+   "p01": -330.925,
+   "p50": -24.6033,
+   "p99": 198.919,
    "min": -414.52,
-   "max": 205.88,
-   "n": 986,
+   "max": 204.85,
+   "n": 992,
    "tier": "f1d",
    "source": "gnss"
   },
@@ -2384,37 +4016,37 @@
    "p99": 463.09,
    "min": -18.52,
    "max": 463.09,
-   "n": 986,
+   "n": 992,
    "tier": "f1d",
    "source": "gnss"
   },
   "cycle_period_d": {
    "p01": 14.0,
    "p50": 106.0,
-   "p99": 424.89,
+   "p99": 430.83,
    "min": 14.0,
-   "max": 435.0,
-   "n": 1012,
+   "max": 441.0,
+   "n": 1018,
    "tier": "f1d",
    "source": "gnss"
   },
   "inflow_mm_d": {
-   "p01": 0.0344223,
-   "p50": 2.06964,
-   "p99": 7.13588,
+   "p01": 0.034458,
+   "p50": 2.05805,
+   "p99": 7.14083,
    "min": -0.0632462,
-   "max": 7.59683,
-   "n": 887,
+   "max": 7.60851,
+   "n": 893,
    "tier": "f1d",
    "source": "gnss"
   },
   "inflow_rel": {
-   "p01": 0.00453114,
-   "p50": 0.272434,
-   "p99": 0.939323,
+   "p01": 0.00452887,
+   "p50": 0.270493,
+   "p99": 0.938532,
    "min": 0.0,
    "max": 1.0,
-   "n": 887,
+   "n": 893,
    "tier": "f1d",
    "source": "gnss"
   },
@@ -2424,67 +4056,67 @@
    "p99": 1.0,
    "min": 1.0,
    "max": 1.0,
-   "n": 992,
+   "n": 998,
    "tier": "f1d",
    "source": "gnss"
   },
   "cyc_h2": {
-   "p01": 0.053486,
+   "p01": 0.0535392,
    "p50": 0.336327,
    "p99": 1.58132,
    "min": 0.0258746,
    "max": 1.58132,
-   "n": 992,
+   "n": 998,
    "tier": "f1d",
    "source": "gnss"
   },
   "cyc_h3": {
-   "p01": 0.0165243,
-   "p50": 0.185353,
+   "p01": 0.0191202,
+   "p50": 0.190433,
    "p99": 0.971053,
-   "min": 0.00693667,
+   "min": 0.0125063,
    "max": 1.30116,
-   "n": 992,
+   "n": 998,
    "tier": "f1d",
    "source": "gnss"
   },
   "cyc_h4": {
-   "p01": 0.020053,
-   "p50": 0.142435,
+   "p01": 0.0200653,
+   "p50": 0.140613,
    "p99": 0.614515,
    "min": 0.00315833,
    "max": 1.00532,
-   "n": 992,
+   "n": 998,
    "tier": "f1d",
    "source": "gnss"
   },
   "cyc_h5": {
-   "p01": 0.0306381,
-   "p50": 0.161359,
+   "p01": 0.0307433,
+   "p50": 0.157676,
    "p99": 1.218,
-   "min": 0.0124803,
+   "min": 0.0065714,
    "max": 1.218,
-   "n": 992,
+   "n": 998,
    "tier": "f1d",
    "source": "gnss"
   },
   "cyc_h6": {
-   "p01": 0.0123756,
-   "p50": 0.0875635,
+   "p01": 0.0158956,
+   "p50": 0.0872284,
    "p99": 1.10008,
    "min": 0.00217409,
    "max": 1.10008,
-   "n": 992,
+   "n": 998,
    "tier": "f1d",
    "source": "gnss"
   },
   "inflow_tau_d": {
-   "p01": 179.471,
-   "p50": 457.726,
+   "p01": 180.849,
+   "p50": 454.332,
    "p99": 1251.22,
-   "min": 178.425,
+   "min": 179.982,
    "max": 1276.12,
-   "n": 707,
+   "n": 713,
    "tier": "f1d",
    "source": "gnss"
   },
@@ -2519,422 +4151,422 @@
    "source": "eq"
   },
   "theta": {
-   "p01": 0.011183,
-   "p50": 0.580014,
+   "p01": 0.0112222,
+   "p50": 0.585784,
    "p99": 1.0,
    "min": 0.0,
    "max": 1.0,
-   "n": 1212,
+   "n": 1218,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "phase_cycle": {
    "p01": 0.00757576,
-   "p50": 0.751471,
-   "p99": 3.21886,
+   "p50": 0.757166,
+   "p99": 3.26386,
    "min": 0.0,
-   "max": 3.29545,
-   "n": 1012,
+   "max": 3.34091,
+   "n": 1018,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "pressure": {
-   "p01": 0.16098,
-   "p50": 0.61223,
-   "p99": 0.991281,
+   "p01": 0.16171,
+   "p50": 0.614672,
+   "p99": 0.992832,
    "min": 0.0,
    "max": 1.0,
-   "n": 1209,
+   "n": 1215,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g00": {
-   "p01": 0.000245911,
-   "p50": 0.299938,
-   "p99": 4.24141,
-   "min": 4.68471e-07,
-   "max": 8.693,
-   "n": 1205,
+   "p01": 0.00027271,
+   "p50": 0.301382,
+   "p99": 4.24255,
+   "min": 4.73039e-07,
+   "max": 8.6899,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g01": {
-   "p01": 0.000231596,
-   "p50": 0.369061,
-   "p99": 5.04807,
-   "min": 5.05296e-07,
-   "max": 9.56248,
-   "n": 1205,
+   "p01": 0.000234481,
+   "p50": 0.37631,
+   "p99": 5.17036,
+   "min": 5.10223e-07,
+   "max": 9.55908,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g02": {
-   "p01": 0.000201857,
-   "p50": 0.373901,
-   "p99": 6.19261,
-   "min": 5.37108e-07,
-   "max": 11.9971,
-   "n": 1205,
+   "p01": 0.000205495,
+   "p50": 0.380609,
+   "p99": 6.32157,
+   "min": 5.42346e-07,
+   "max": 11.9929,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g03": {
-   "p01": 0.000154936,
-   "p50": 0.349134,
-   "p99": 8.40298,
-   "min": 5.74046e-07,
-   "max": 16.2794,
-   "n": 1205,
+   "p01": 0.000157341,
+   "p50": 0.364623,
+   "p99": 8.57797,
+   "min": 5.79644e-07,
+   "max": 16.2736,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g04": {
-   "p01": 0.000199722,
-   "p50": 0.301555,
-   "p99": 4.0941,
-   "min": 2.38156e-06,
-   "max": 6.94895,
-   "n": 1205,
+   "p01": 0.000214888,
+   "p50": 0.303792,
+   "p99": 3.77223,
+   "min": 2.55357e-06,
+   "max": 7.15792,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g05": {
-   "p01": 0.000149561,
-   "p50": 0.241438,
-   "p99": 4.11211,
-   "min": 1.62067e-06,
-   "max": 7.90688,
-   "n": 1205,
+   "p01": 0.000164259,
+   "p50": 0.246814,
+   "p99": 4.21197,
+   "min": 1.73772e-06,
+   "max": 8.14465,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g06": {
-   "p01": 0.000263583,
-   "p50": 0.329033,
-   "p99": 5.92192,
-   "min": 4.73689e-06,
-   "max": 13.4605,
-   "n": 1205,
+   "p01": 0.000289849,
+   "p50": 0.339639,
+   "p99": 4.20372,
+   "min": 5.07901e-06,
+   "max": 10.0421,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g07": {
-   "p01": 0.000324301,
-   "p50": 0.327319,
-   "p99": 6.92421,
-   "min": 5.89683e-06,
-   "max": 16.7567,
-   "n": 1205,
+   "p01": 0.000349473,
+   "p50": 0.338771,
+   "p99": 4.76252,
+   "min": 6.32274e-06,
+   "max": 12.5012,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g08": {
-   "p01": 0.00057326,
-   "p50": 0.846426,
-   "p99": 3.80245,
-   "min": 3.395e-05,
-   "max": 6.87022,
-   "n": 1205,
+   "p01": 0.000567384,
+   "p50": 0.840936,
+   "p99": 3.76067,
+   "min": 3.36004e-05,
+   "max": 6.79903,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g09": {
-   "p01": 0.000305202,
-   "p50": 0.341132,
-   "p99": 6.27818,
-   "min": 2.53626e-05,
-   "max": 7.86842,
-   "n": 1205,
+   "p01": 0.000303319,
+   "p50": 0.338417,
+   "p99": 6.20423,
+   "min": 2.5141e-05,
+   "max": 7.78688,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g10": {
-   "p01": 0.00032878,
-   "p50": 0.938741,
-   "p99": 4.35778,
-   "min": 3.395e-05,
-   "max": 6.87022,
-   "n": 1205,
+   "p01": 0.000319688,
+   "p50": 0.938894,
+   "p99": 4.31136,
+   "min": 3.36004e-05,
+   "max": 6.79903,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g11": {
-   "p01": 0.000204385,
-   "p50": 0.83067,
-   "p99": 5.27738,
-   "min": 3.395e-05,
-   "max": 7.66391,
-   "n": 1205,
+   "p01": 0.000198589,
+   "p50": 0.844824,
+   "p99": 5.2211,
+   "min": 3.36004e-05,
+   "max": 7.59525,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g12": {
-   "p01": 0.000152976,
-   "p50": 0.654235,
-   "p99": 4.79264,
+   "p01": 0.000242909,
+   "p50": 0.659406,
+   "p99": 4.73632,
    "min": 0.0,
-   "max": 12.9485,
-   "n": 1205,
+   "max": 12.8026,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g13": {
-   "p01": 0.000150322,
-   "p50": 0.582943,
-   "p99": 5.45417,
+   "p01": 0.0001765,
+   "p50": 0.583499,
+   "p99": 5.37402,
    "min": 0.0,
-   "max": 12.9485,
-   "n": 1205,
+   "max": 12.8026,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g14": {
-   "p01": 0.000194796,
-   "p50": 0.735781,
-   "p99": 6.03652,
+   "p01": 0.000261414,
+   "p50": 0.752431,
+   "p99": 5.90382,
    "min": 0.0,
-   "max": 12.9485,
-   "n": 1205,
+   "max": 12.8026,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g15": {
-   "p01": 0.000225075,
-   "p50": 0.701964,
-   "p99": 6.72109,
+   "p01": 0.000267464,
+   "p50": 0.731306,
+   "p99": 6.63669,
    "min": 0.0,
-   "max": 12.9485,
-   "n": 1205,
+   "max": 12.8026,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g16": {
-   "p01": 6.08765e-05,
-   "p50": 0.0828658,
-   "p99": 5.11551,
-   "min": 2.67529e-06,
-   "max": 7.13228,
-   "n": 1205,
+   "p01": 5.8967e-05,
+   "p50": 0.0862115,
+   "p99": 5.01065,
+   "min": 2.79529e-06,
+   "max": 7.15955,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g17": {
-   "p01": 7.64371e-05,
-   "p50": 0.0908187,
-   "p99": 4.05628,
-   "min": 3.71424e-06,
-   "max": 7.13228,
-   "n": 1205,
+   "p01": 6.99756e-05,
+   "p50": 0.0940003,
+   "p99": 3.85409,
+   "min": 3.88084e-06,
+   "max": 5.3103,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g18": {
-   "p01": 4.80855e-05,
-   "p50": 0.0712536,
-   "p99": 6.80022,
-   "min": 1.68874e-06,
-   "max": 9.48006,
-   "n": 1205,
+   "p01": 4.94756e-05,
+   "p50": 0.0719985,
+   "p99": 6.74701,
+   "min": 1.76449e-06,
+   "max": 9.63317,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g19": {
-   "p01": 8.42713e-05,
-   "p50": 0.110592,
-   "p99": 3.5237,
-   "min": 5.98416e-06,
-   "max": 7.13228,
-   "n": 1205,
+   "p01": 8.81037e-05,
+   "p50": 0.115396,
+   "p99": 2.68318,
+   "min": 6.24372e-06,
+   "max": 4.83834,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g20": {
-   "p01": 0.000699091,
-   "p50": 0.903,
-   "p99": 4.47805,
-   "min": 4.52535e-06,
-   "max": 12.0738,
-   "n": 1205,
+   "p01": 0.000966268,
+   "p50": 0.892906,
+   "p99": 4.41662,
+   "min": 4.46607e-06,
+   "max": 11.9318,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g21": {
-   "p01": 0.000945915,
-   "p50": 1.00443,
-   "p99": 4.96409,
-   "min": 6.94329e-06,
-   "max": 12.0738,
-   "n": 1205,
+   "p01": 0.00106923,
+   "p50": 1.02688,
+   "p99": 4.8862,
+   "min": 6.85235e-06,
+   "max": 11.9318,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g22": {
-   "p01": 0.00114742,
-   "p50": 0.944073,
-   "p99": 5.56346,
-   "min": 8.74373e-06,
-   "max": 12.0738,
-   "n": 1205,
+   "p01": 0.00126343,
+   "p50": 0.968606,
+   "p99": 5.60096,
+   "min": 8.6292e-06,
+   "max": 11.9318,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g23": {
-   "p01": 2.73007e-07,
-   "p50": 0.964807,
-   "p99": 7.04929,
+   "p01": 2.68179e-07,
+   "p50": 0.998582,
+   "p99": 7.12231,
    "min": 0.0,
-   "max": 12.0738,
-   "n": 1205,
+   "max": 11.9318,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g24": {
-   "p01": 0.000123447,
-   "p50": 0.507358,
-   "p99": 4.95204,
-   "min": 1.93841e-07,
-   "max": 11.4947,
-   "n": 1192,
+   "p01": 0.000299896,
+   "p50": 0.518366,
+   "p99": 4.89934,
+   "min": 1.9208e-07,
+   "max": 11.3749,
+   "n": 1198,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g25": {
-   "p01": 0.000170155,
-   "p50": 0.580697,
-   "p99": 4.55299,
-   "min": 2.68868e-07,
-   "max": 11.4947,
-   "n": 1192,
+   "p01": 0.000272854,
+   "p50": 0.580636,
+   "p99": 4.50562,
+   "min": 2.66424e-07,
+   "max": 11.3749,
+   "n": 1198,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g26": {
-   "p01": 0.000166201,
-   "p50": 0.557305,
-   "p99": 6.38234,
-   "min": 4.96521e-07,
-   "max": 11.4947,
-   "n": 1192,
+   "p01": 0.000164688,
+   "p50": 0.560527,
+   "p99": 6.60834,
+   "min": 4.92009e-07,
+   "max": 11.3749,
+   "n": 1198,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g27": {
-   "p01": 0.000130367,
-   "p50": 0.521667,
-   "p99": 8.93478,
-   "min": 7.16787e-07,
-   "max": 14.4023,
-   "n": 1192,
+   "p01": 0.000129503,
+   "p50": 0.548238,
+   "p99": 8.99879,
+   "min": 7.10273e-07,
+   "max": 14.2521,
+   "n": 1198,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g28": {
-   "p01": 7.60573e-05,
-   "p50": 0.156452,
-   "p99": 3.82521,
-   "min": 4.5593e-07,
-   "max": 5.24223,
-   "n": 1192,
+   "p01": 7.31296e-05,
+   "p50": 0.159181,
+   "p99": 3.84364,
+   "min": 4.70787e-07,
+   "max": 5.27182,
+   "n": 1198,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g29": {
-   "p01": 4.99476e-05,
-   "p50": 0.121487,
-   "p99": 5.05365,
-   "min": 4.59803e-07,
-   "max": 7.0759,
-   "n": 1192,
+   "p01": 4.6806e-05,
+   "p50": 0.124078,
+   "p99": 5.10165,
+   "min": 4.7546e-07,
+   "max": 7.11584,
+   "n": 1198,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g30": {
-   "p01": 9.6295e-05,
-   "p50": 0.179324,
-   "p99": 2.97619,
-   "min": 3.78895e-07,
-   "max": 3.87375,
-   "n": 1192,
+   "p01": 8.63995e-05,
+   "p50": 0.18396,
+   "p99": 2.97496,
+   "min": 3.91242e-07,
+   "max": 3.89562,
+   "n": 1198,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g31": {
-   "p01": 9.64351e-05,
-   "p50": 0.191846,
-   "p99": 3.09095,
-   "min": 2.24291e-07,
-   "max": 6.31899,
-   "n": 1192,
+   "p01": 7.88488e-05,
+   "p50": 0.193762,
+   "p99": 2.96158,
+   "min": 2.316e-07,
+   "max": 4.50734,
+   "n": 1198,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g32": {
-   "p01": 0.000320802,
-   "p50": 0.646914,
-   "p99": 3.04014,
-   "min": 9.3715e-07,
-   "max": 5.30607,
-   "n": 1192,
+   "p01": 0.000449677,
+   "p50": 0.635475,
+   "p99": 2.99639,
+   "min": 9.24458e-07,
+   "max": 5.24248,
+   "n": 1198,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g33": {
-   "p01": 0.00066534,
-   "p50": 0.700991,
-   "p99": 3.171,
-   "min": 2.0171e-06,
-   "max": 5.7659,
-   "n": 1192,
+   "p01": 0.000674849,
+   "p50": 0.706014,
+   "p99": 3.26447,
+   "min": 1.98978e-06,
+   "max": 5.6955,
+   "n": 1198,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g34": {
-   "p01": 0.000452484,
-   "p50": 0.660304,
-   "p99": 4.2748,
-   "min": 2.64256e-06,
-   "max": 8.32916,
-   "n": 1192,
+   "p01": 0.000442993,
+   "p50": 0.676134,
+   "p99": 4.21992,
+   "min": 2.58052e-06,
+   "max": 8.22748,
+   "n": 1198,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g35": {
-   "p01": 1.47046e-07,
-   "p50": 0.673737,
-   "p99": 5.93403,
+   "p01": 1.52213e-07,
+   "p50": 0.70528,
+   "p99": 5.85785,
    "min": 0.0,
-   "max": 11.5621,
-   "n": 1192,
+   "max": 11.4209,
+   "n": 1198,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "pin": {
-   "p01": 0.409527,
-   "p50": 1.27723,
-   "p99": 4.59867,
-   "min": 0.204897,
-   "max": 5.09233,
-   "n": 1205,
+   "p01": 0.414373,
+   "p50": 1.29866,
+   "p99": 4.45842,
+   "min": 0.207087,
+   "max": 5.11122,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "bow_db": {
    "p01": -30.0,
-   "p50": -11.2948,
-   "p99": -0.543746,
+   "p50": -11.3569,
+   "p99": -0.551046,
    "min": -30.0,
    "max": 0.0,
-   "n": 887,
+   "n": 893,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "dust_hz": {
-   "p01": 0.500499,
-   "p50": 2.0848,
-   "p99": 4.99843,
+   "p01": 0.500828,
+   "p50": 2.03141,
+   "p99": 4.99629,
    "min": 0.5,
    "max": 5.0,
-   "n": 1205,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
@@ -4174,220 +5806,292 @@
    },
    "gnss": {
     "SKSH_u_mm": {
-     "p01": -177.081,
-     "p50": 277.95,
-     "p99": 660.178,
+     "p01": -176.511,
+     "p50": 279.78,
+     "p99": 660.72,
      "min": -339.41,
-     "max": 668.97,
-     "n": 1209
+     "max": 667.94,
+     "n": 1215
     },
     "SKSH_u_ds": {
-     "p01": -177.081,
-     "p50": 277.95,
-     "p99": 660.178,
+     "p01": -176.511,
+     "p50": 279.78,
+     "p99": 660.72,
      "min": -339.41,
-     "max": 668.97,
-     "n": 1209
+     "max": 667.94,
+     "n": 1215
     },
     "SKSH_n_mm": {
-     "p01": 1.4692,
-     "p50": 692.46,
-     "p99": 822.502,
+     "p01": 1.4836,
+     "p50": 692.52,
+     "p99": 822.479,
      "min": -3.96,
-     "max": 831.04,
-     "n": 1209
+     "max": 825.81,
+     "n": 1215
     },
     "SKSH_e_mm": {
-     "p01": -1656.76,
-     "p50": -1383.33,
-     "p99": 1.9128,
-     "min": -1661.82,
+     "p01": -1657.61,
+     "p50": -1383.48,
+     "p99": 1.9074,
+     "min": -1662.71,
      "max": 4.12,
-     "n": 1209
+     "n": 1215
     },
     "SKSH_u_rate": {
-     "p01": -78.5321,
-     "p50": 2.005,
-     "p99": 11.5215,
+     "p01": -78.3829,
+     "p50": 1.97833,
+     "p99": 11.5111,
      "min": -146.063,
      "max": 17.43,
-     "n": 1004
+     "n": 1010
     },
     "SKSH_n_vel": {
-     "p01": -1.25929,
-     "p50": 0.0378571,
-     "p99": 13.1036,
-     "min": -2.09536,
+     "p01": -1.14129,
+     "p50": 0.0382143,
+     "p99": 12.7619,
+     "min": -1.76786,
      "max": 93.6989,
-     "n": 1205
+     "n": 1211
     },
     "SKSH_e_vel": {
-     "p01": -15.6126,
-     "p50": -0.4125,
-     "p99": 5.98087,
+     "p01": -15.2245,
+     "p50": -0.407143,
+     "p99": 4.80246,
      "min": -123.516,
-     "max": 15.0321,
-     "n": 1205
+     "max": 12.7393,
+     "n": 1211
     },
     "SKSH_u_vel": {
-     "p01": -49.8824,
-     "p50": 1.56607,
-     "p99": 10.0531,
+     "p01": -49.8142,
+     "p50": 1.54857,
+     "p99": 10.0331,
      "min": -90.5429,
      "max": 15.9571,
-     "n": 1205
+     "n": 1211
+    },
+    "SKSH_n_sig": {
+     "p01": 1.67,
+     "p50": 1.96,
+     "p99": 4.4796,
+     "min": 1.38,
+     "max": 58.84,
+     "n": 1057
+    },
+    "SKSH_e_sig": {
+     "p01": 1.41,
+     "p50": 1.64,
+     "p99": 4.1772,
+     "min": 1.18,
+     "max": 91.81,
+     "n": 1057
+    },
+    "SKSH_u_sig": {
+     "p01": 6.5568,
+     "p50": 7.76,
+     "p99": 14.0164,
+     "min": 5.35,
+     "max": 91.31,
+     "n": 1057
     },
     "SENG_u_mm": {
-     "p01": -73.238,
-     "p50": 630.3,
-     "p99": 1041.77,
+     "p01": -72.869,
+     "p50": 631.58,
+     "p99": 1043.09,
      "min": -255.66,
-     "max": 1051.16,
-     "n": 1209
+     "max": 1049.37,
+     "n": 1215
     },
     "SENG_u_ds": {
-     "p01": -73.238,
-     "p50": 630.3,
-     "p99": 1041.77,
+     "p01": -72.869,
+     "p50": 631.58,
+     "p99": 1043.09,
      "min": -255.66,
-     "max": 1051.16,
-     "n": 1209
+     "max": 1049.37,
+     "n": 1215
     },
     "SENG_n_mm": {
-     "p01": 1.6416,
-     "p50": 940.65,
-     "p99": 1171.39,
+     "p01": 1.6578,
+     "p50": 941.82,
+     "p99": 1171.58,
      "min": -9.26,
      "max": 1174.57,
-     "n": 1209
+     "n": 1215
     },
     "SENG_e_mm": {
-     "p01": -2356.1,
-     "p50": -2070.69,
-     "p99": -0.825,
+     "p01": -2356.08,
+     "p50": -2070.97,
+     "p99": -0.8325,
      "min": -2363.12,
      "max": 1.46,
-     "n": 1209
+     "n": 1215
     },
     "SENG_u_rate": {
-     "p01": -55.3238,
-     "p50": 1.83833,
-     "p99": 12.3722,
+     "p01": -54.6474,
+     "p50": 1.82,
+     "p99": 12.3206,
      "min": -114.503,
      "max": 18.05,
-     "n": 1124
+     "n": 1130
     },
     "SENG_n_vel": {
-     "p01": -8.79306,
-     "p50": 0.549643,
-     "p99": 11.6404,
+     "p01": -8.75693,
+     "p50": 0.545714,
+     "p99": 11.6116,
      "min": -15.925,
      "max": 30.0336,
-     "n": 1205
+     "n": 1211
     },
     "SENG_e_vel": {
-     "p01": -44.9055,
-     "p50": 0.125714,
-     "p99": 1.81207,
+     "p01": -44.8982,
+     "p50": 0.125,
+     "p99": 1.65613,
      "min": -180.314,
-     "max": 15.1943,
-     "n": 1205
+     "max": 2.55214,
+     "n": 1211
     },
     "SENG_u_vel": {
-     "p01": -41.3601,
-     "p50": 1.65,
-     "p99": 9.94307,
+     "p01": -41.3292,
+     "p50": 1.63821,
+     "p99": 9.63268,
      "min": -70.8732,
      "max": 17.5211,
-     "n": 1205
+     "n": 1211
+    },
+    "SENG_n_sig": {
+     "p01": 1.34,
+     "p50": 1.71,
+     "p99": 5.4312,
+     "min": 1.27,
+     "max": 20.5,
+     "n": 1162
+    },
+    "SENG_e_sig": {
+     "p01": 1.13,
+     "p50": 1.46,
+     "p99": 5.4553,
+     "min": 1.09,
+     "max": 57.51,
+     "n": 1162
+    },
+    "SENG_u_sig": {
+     "p01": 5.2461,
+     "p50": 6.705,
+     "p99": 13.4458,
+     "min": 4.9,
+     "max": 52.6,
+     "n": 1162
     },
     "THOB_u_mm": {
-     "p01": -826.798,
-     "p50": -178.73,
-     "p99": 71.486,
+     "p01": -826.215,
+     "p50": -176.97,
+     "p99": 73.1325,
      "min": -897.41,
      "max": 91.49,
-     "n": 1196
+     "n": 1202
     },
     "THOB_u_ds": {
-     "p01": -826.798,
-     "p50": -178.73,
-     "p99": 71.486,
+     "p01": -826.215,
+     "p50": -176.97,
+     "p99": 73.1325,
      "min": -897.41,
      "max": 91.49,
-     "n": 1196
+     "n": 1202
     },
     "THOB_n_mm": {
-     "p01": -4.57,
-     "p50": 439.615,
-     "p99": 561.59,
+     "p01": -4.4616,
+     "p50": 440.017,
+     "p99": 561.465,
      "min": -24.73,
      "max": 591.47,
-     "n": 1196
+     "n": 1202
     },
     "THOB_e_mm": {
-     "p01": -1918.08,
-     "p50": -1631.24,
-     "p99": 6.284,
+     "p01": -1918.03,
+     "p50": -1632.45,
+     "p99": 6.269,
      "min": -1947.88,
      "max": 23.75,
-     "n": 1196
+     "n": 1202
     },
     "THOB_u_rate": {
-     "p01": -63.64,
-     "p50": 1.76,
-     "p99": 8.80133,
+     "p01": -63.211,
+     "p50": 1.75333,
+     "p99": 8.79953,
      "min": -321.143,
      "max": 10.55,
-     "n": 1141
+     "n": 1147
     },
     "THOB_n_vel": {
-     "p01": -2.21126,
-     "p50": -0.356964,
-     "p99": 12.9538,
+     "p01": -2.17938,
+     "p50": -0.362143,
+     "p99": 12.9283,
      "min": -4.6575,
      "max": 47.0307,
-     "n": 1192
+     "n": 1198
     },
     "THOB_e_vel": {
-     "p01": -42.2657,
-     "p50": 0.382143,
-     "p99": 2.40532,
+     "p01": -42.0988,
+     "p50": 0.393929,
+     "p99": 2.17817,
      "min": -127.328,
-     "max": 15.4218,
-     "n": 1192
+     "max": 4.08536,
+     "n": 1198
     },
     "THOB_u_vel": {
-     "p01": -49.1617,
-     "p50": 1.60089,
-     "p99": 7.72449,
+     "p01": -48.7934,
+     "p50": 1.57571,
+     "p99": 7.7213,
      "min": -208.366,
      "max": 8.475,
-     "n": 1192
+     "n": 1198
+    },
+    "THOB_n_sig": {
+     "p01": 1.6867,
+     "p50": 1.93,
+     "p99": 5.6297,
+     "min": 1.59,
+     "max": 10.65,
+     "n": 1168
+    },
+    "THOB_e_sig": {
+     "p01": 1.46,
+     "p50": 1.65,
+     "p99": 3.8832,
+     "min": 1.42,
+     "max": 15.34,
+     "n": 1168
+    },
+    "THOB_u_sig": {
+     "p01": 7.11,
+     "p50": 7.9,
+     "p99": 13.2364,
+     "min": 6.85,
+     "max": 41.3,
+     "n": 1168
     },
     "recharge_frac": {
      "p01": 0.0,
-     "p50": 0.894132,
-     "p99": 1.89969,
+     "p50": 0.899997,
+     "p99": 1.89914,
      "min": -0.0197288,
      "max": 2.18995,
-     "n": 986
+     "n": 992
     },
     "days_since_fall": {
-     "p01": 0.49,
+     "p01": 0.55,
      "p50": 66.0,
-     "p99": 424.51,
+     "p99": 430.45,
      "min": 0.0,
-     "max": 435.0,
-     "n": 1050
+     "max": 441.0,
+     "n": 1056
     },
     "wait_rel": {
      "p01": 0.00757576,
-     "p50": 0.751471,
-     "p99": 3.21886,
+     "p50": 0.757166,
+     "p99": 3.26386,
      "min": 0.0,
-     "max": 3.29545,
-     "n": 1012
+     "max": 3.34091,
+     "n": 1018
     },
     "longest_wait_d": {
      "p01": 38.0,
@@ -4395,15 +6099,15 @@
      "p99": 132.0,
      "min": 38.0,
      "max": 132.0,
-     "n": 1012
+     "n": 1018
     },
     "above_last_start_mm": {
-     "p01": -330.988,
-     "p50": -26.235,
-     "p99": 197.333,
+     "p01": -330.925,
+     "p50": -24.6033,
+     "p99": 198.919,
      "min": -414.52,
-     "max": 205.88,
-     "n": 986
+     "max": 204.85,
+     "n": 992
     },
     "ref_u_mm": {
      "p01": -18.52,
@@ -4411,31 +6115,31 @@
      "p99": 463.09,
      "min": -18.52,
      "max": 463.09,
-     "n": 986
+     "n": 992
     },
     "cycle_period_d": {
      "p01": 14.0,
      "p50": 106.0,
-     "p99": 424.89,
+     "p99": 430.83,
      "min": 14.0,
-     "max": 435.0,
-     "n": 1012
+     "max": 441.0,
+     "n": 1018
     },
     "inflow_mm_d": {
-     "p01": 0.0344223,
-     "p50": 2.06964,
-     "p99": 7.13588,
+     "p01": 0.034458,
+     "p50": 2.05805,
+     "p99": 7.14083,
      "min": -0.0632462,
-     "max": 7.59683,
-     "n": 887
+     "max": 7.60851,
+     "n": 893
     },
     "inflow_rel": {
-     "p01": 0.00453114,
-     "p50": 0.272434,
-     "p99": 0.939323,
+     "p01": 0.00452887,
+     "p50": 0.270493,
+     "p99": 0.938532,
      "min": 0.0,
      "max": 1.0,
-     "n": 887
+     "n": 893
     },
     "cyc_h1": {
      "p01": 1.0,
@@ -4443,731 +6147,731 @@
      "p99": 1.0,
      "min": 1.0,
      "max": 1.0,
-     "n": 992
+     "n": 998
     },
     "cyc_h2": {
-     "p01": 0.053486,
+     "p01": 0.0535392,
      "p50": 0.336327,
      "p99": 1.58132,
      "min": 0.0258746,
      "max": 1.58132,
-     "n": 992
+     "n": 998
     },
     "cyc_h3": {
-     "p01": 0.0165243,
-     "p50": 0.185353,
+     "p01": 0.0191202,
+     "p50": 0.190433,
      "p99": 0.971053,
-     "min": 0.00693667,
+     "min": 0.0125063,
      "max": 1.30116,
-     "n": 992
+     "n": 998
     },
     "cyc_h4": {
-     "p01": 0.020053,
-     "p50": 0.142435,
+     "p01": 0.0200653,
+     "p50": 0.140613,
      "p99": 0.614515,
      "min": 0.00315833,
      "max": 1.00532,
-     "n": 992
+     "n": 998
     },
     "cyc_h5": {
-     "p01": 0.0306381,
-     "p50": 0.161359,
+     "p01": 0.0307433,
+     "p50": 0.157676,
      "p99": 1.218,
-     "min": 0.0124803,
+     "min": 0.0065714,
      "max": 1.218,
-     "n": 992
+     "n": 998
     },
     "cyc_h6": {
-     "p01": 0.0123756,
-     "p50": 0.0875635,
+     "p01": 0.0158956,
+     "p50": 0.0872284,
      "p99": 1.10008,
      "min": 0.00217409,
      "max": 1.10008,
-     "n": 992
+     "n": 998
     },
     "inflow_tau_d": {
-     "p01": 179.471,
-     "p50": 457.726,
+     "p01": 180.849,
+     "p50": 454.332,
      "p99": 1251.22,
-     "min": 178.425,
+     "min": 179.982,
      "max": 1276.12,
-     "n": 707
+     "n": 713
     }
    },
    "body_sequence": {
     "theta": {
-     "p01": 0.011183,
-     "p50": 0.580014,
+     "p01": 0.0112222,
+     "p50": 0.585784,
      "p99": 1.0,
      "min": 0.0,
      "max": 1.0,
-     "n": 1212
+     "n": 1218
     },
     "phase_cycle": {
      "p01": 0.00757576,
-     "p50": 0.751471,
-     "p99": 3.21886,
+     "p50": 0.757166,
+     "p99": 3.26386,
      "min": 0.0,
-     "max": 3.29545,
-     "n": 1012
+     "max": 3.34091,
+     "n": 1018
     },
     "pressure": {
-     "p01": 0.16098,
-     "p50": 0.61223,
-     "p99": 0.991281,
+     "p01": 0.16171,
+     "p50": 0.614672,
+     "p99": 0.992832,
      "min": 0.0,
      "max": 1.0,
-     "n": 1209
+     "n": 1215
     },
     "g00": {
-     "p01": 0.000245911,
-     "p50": 0.299938,
-     "p99": 4.24141,
-     "min": 4.68471e-07,
-     "max": 8.693,
-     "n": 1205
+     "p01": 0.00027271,
+     "p50": 0.301382,
+     "p99": 4.24255,
+     "min": 4.73039e-07,
+     "max": 8.6899,
+     "n": 1211
     },
     "g01": {
-     "p01": 0.000231596,
-     "p50": 0.369061,
-     "p99": 5.04807,
-     "min": 5.05296e-07,
-     "max": 9.56248,
-     "n": 1205
+     "p01": 0.000234481,
+     "p50": 0.37631,
+     "p99": 5.17036,
+     "min": 5.10223e-07,
+     "max": 9.55908,
+     "n": 1211
     },
     "g02": {
-     "p01": 0.000201857,
-     "p50": 0.373901,
-     "p99": 6.19261,
-     "min": 5.37108e-07,
-     "max": 11.9971,
-     "n": 1205
+     "p01": 0.000205495,
+     "p50": 0.380609,
+     "p99": 6.32157,
+     "min": 5.42346e-07,
+     "max": 11.9929,
+     "n": 1211
     },
     "g03": {
-     "p01": 0.000154936,
-     "p50": 0.349134,
-     "p99": 8.40298,
-     "min": 5.74046e-07,
-     "max": 16.2794,
-     "n": 1205
+     "p01": 0.000157341,
+     "p50": 0.364623,
+     "p99": 8.57797,
+     "min": 5.79644e-07,
+     "max": 16.2736,
+     "n": 1211
     },
     "g04": {
-     "p01": 0.000199722,
-     "p50": 0.301555,
-     "p99": 4.0941,
-     "min": 2.38156e-06,
-     "max": 6.94895,
-     "n": 1205
+     "p01": 0.000214888,
+     "p50": 0.303792,
+     "p99": 3.77223,
+     "min": 2.55357e-06,
+     "max": 7.15792,
+     "n": 1211
     },
     "g05": {
-     "p01": 0.000149561,
-     "p50": 0.241438,
-     "p99": 4.11211,
-     "min": 1.62067e-06,
-     "max": 7.90688,
-     "n": 1205
+     "p01": 0.000164259,
+     "p50": 0.246814,
+     "p99": 4.21197,
+     "min": 1.73772e-06,
+     "max": 8.14465,
+     "n": 1211
     },
     "g06": {
-     "p01": 0.000263583,
-     "p50": 0.329033,
-     "p99": 5.92192,
-     "min": 4.73689e-06,
-     "max": 13.4605,
-     "n": 1205
+     "p01": 0.000289849,
+     "p50": 0.339639,
+     "p99": 4.20372,
+     "min": 5.07901e-06,
+     "max": 10.0421,
+     "n": 1211
     },
     "g07": {
-     "p01": 0.000324301,
-     "p50": 0.327319,
-     "p99": 6.92421,
-     "min": 5.89683e-06,
-     "max": 16.7567,
-     "n": 1205
+     "p01": 0.000349473,
+     "p50": 0.338771,
+     "p99": 4.76252,
+     "min": 6.32274e-06,
+     "max": 12.5012,
+     "n": 1211
     },
     "g08": {
-     "p01": 0.00057326,
-     "p50": 0.846426,
-     "p99": 3.80245,
-     "min": 3.395e-05,
-     "max": 6.87022,
-     "n": 1205
+     "p01": 0.000567384,
+     "p50": 0.840936,
+     "p99": 3.76067,
+     "min": 3.36004e-05,
+     "max": 6.79903,
+     "n": 1211
     },
     "g09": {
-     "p01": 0.000305202,
-     "p50": 0.341132,
-     "p99": 6.27818,
-     "min": 2.53626e-05,
-     "max": 7.86842,
-     "n": 1205
+     "p01": 0.000303319,
+     "p50": 0.338417,
+     "p99": 6.20423,
+     "min": 2.5141e-05,
+     "max": 7.78688,
+     "n": 1211
     },
     "g10": {
-     "p01": 0.00032878,
-     "p50": 0.938741,
-     "p99": 4.35778,
-     "min": 3.395e-05,
-     "max": 6.87022,
-     "n": 1205
+     "p01": 0.000319688,
+     "p50": 0.938894,
+     "p99": 4.31136,
+     "min": 3.36004e-05,
+     "max": 6.79903,
+     "n": 1211
     },
     "g11": {
-     "p01": 0.000204385,
-     "p50": 0.83067,
-     "p99": 5.27738,
-     "min": 3.395e-05,
-     "max": 7.66391,
-     "n": 1205
+     "p01": 0.000198589,
+     "p50": 0.844824,
+     "p99": 5.2211,
+     "min": 3.36004e-05,
+     "max": 7.59525,
+     "n": 1211
     },
     "g12": {
-     "p01": 0.000152976,
-     "p50": 0.654235,
-     "p99": 4.79264,
+     "p01": 0.000242909,
+     "p50": 0.659406,
+     "p99": 4.73632,
      "min": 0.0,
-     "max": 12.9485,
-     "n": 1205
+     "max": 12.8026,
+     "n": 1211
     },
     "g13": {
-     "p01": 0.000150322,
-     "p50": 0.582943,
-     "p99": 5.45417,
+     "p01": 0.0001765,
+     "p50": 0.583499,
+     "p99": 5.37402,
      "min": 0.0,
-     "max": 12.9485,
-     "n": 1205
+     "max": 12.8026,
+     "n": 1211
     },
     "g14": {
-     "p01": 0.000194796,
-     "p50": 0.735781,
-     "p99": 6.03652,
+     "p01": 0.000261414,
+     "p50": 0.752431,
+     "p99": 5.90382,
      "min": 0.0,
-     "max": 12.9485,
-     "n": 1205
+     "max": 12.8026,
+     "n": 1211
     },
     "g15": {
-     "p01": 0.000225075,
-     "p50": 0.701964,
-     "p99": 6.72109,
+     "p01": 0.000267464,
+     "p50": 0.731306,
+     "p99": 6.63669,
      "min": 0.0,
-     "max": 12.9485,
-     "n": 1205
+     "max": 12.8026,
+     "n": 1211
     },
     "g16": {
-     "p01": 6.08765e-05,
-     "p50": 0.0828658,
-     "p99": 5.11551,
-     "min": 2.67529e-06,
-     "max": 7.13228,
-     "n": 1205
+     "p01": 5.8967e-05,
+     "p50": 0.0862115,
+     "p99": 5.01065,
+     "min": 2.79529e-06,
+     "max": 7.15955,
+     "n": 1211
     },
     "g17": {
-     "p01": 7.64371e-05,
-     "p50": 0.0908187,
-     "p99": 4.05628,
-     "min": 3.71424e-06,
-     "max": 7.13228,
-     "n": 1205
+     "p01": 6.99756e-05,
+     "p50": 0.0940003,
+     "p99": 3.85409,
+     "min": 3.88084e-06,
+     "max": 5.3103,
+     "n": 1211
     },
     "g18": {
-     "p01": 4.80855e-05,
-     "p50": 0.0712536,
-     "p99": 6.80022,
-     "min": 1.68874e-06,
-     "max": 9.48006,
-     "n": 1205
+     "p01": 4.94756e-05,
+     "p50": 0.0719985,
+     "p99": 6.74701,
+     "min": 1.76449e-06,
+     "max": 9.63317,
+     "n": 1211
     },
     "g19": {
-     "p01": 8.42713e-05,
-     "p50": 0.110592,
-     "p99": 3.5237,
-     "min": 5.98416e-06,
-     "max": 7.13228,
-     "n": 1205
+     "p01": 8.81037e-05,
+     "p50": 0.115396,
+     "p99": 2.68318,
+     "min": 6.24372e-06,
+     "max": 4.83834,
+     "n": 1211
     },
     "g20": {
-     "p01": 0.000699091,
-     "p50": 0.903,
-     "p99": 4.47805,
-     "min": 4.52535e-06,
-     "max": 12.0738,
-     "n": 1205
+     "p01": 0.000966268,
+     "p50": 0.892906,
+     "p99": 4.41662,
+     "min": 4.46607e-06,
+     "max": 11.9318,
+     "n": 1211
     },
     "g21": {
-     "p01": 0.000945915,
-     "p50": 1.00443,
-     "p99": 4.96409,
-     "min": 6.94329e-06,
-     "max": 12.0738,
-     "n": 1205
+     "p01": 0.00106923,
+     "p50": 1.02688,
+     "p99": 4.8862,
+     "min": 6.85235e-06,
+     "max": 11.9318,
+     "n": 1211
     },
     "g22": {
-     "p01": 0.00114742,
-     "p50": 0.944073,
-     "p99": 5.56346,
-     "min": 8.74373e-06,
-     "max": 12.0738,
-     "n": 1205
+     "p01": 0.00126343,
+     "p50": 0.968606,
+     "p99": 5.60096,
+     "min": 8.6292e-06,
+     "max": 11.9318,
+     "n": 1211
     },
     "g23": {
-     "p01": 2.73007e-07,
-     "p50": 0.964807,
-     "p99": 7.04929,
+     "p01": 2.68179e-07,
+     "p50": 0.998582,
+     "p99": 7.12231,
      "min": 0.0,
-     "max": 12.0738,
-     "n": 1205
+     "max": 11.9318,
+     "n": 1211
     },
     "g24": {
-     "p01": 0.000123447,
-     "p50": 0.507358,
-     "p99": 4.95204,
-     "min": 1.93841e-07,
-     "max": 11.4947,
-     "n": 1192
+     "p01": 0.000299896,
+     "p50": 0.518366,
+     "p99": 4.89934,
+     "min": 1.9208e-07,
+     "max": 11.3749,
+     "n": 1198
     },
     "g25": {
-     "p01": 0.000170155,
-     "p50": 0.580697,
-     "p99": 4.55299,
-     "min": 2.68868e-07,
-     "max": 11.4947,
-     "n": 1192
+     "p01": 0.000272854,
+     "p50": 0.580636,
+     "p99": 4.50562,
+     "min": 2.66424e-07,
+     "max": 11.3749,
+     "n": 1198
     },
     "g26": {
-     "p01": 0.000166201,
-     "p50": 0.557305,
-     "p99": 6.38234,
-     "min": 4.96521e-07,
-     "max": 11.4947,
-     "n": 1192
+     "p01": 0.000164688,
+     "p50": 0.560527,
+     "p99": 6.60834,
+     "min": 4.92009e-07,
+     "max": 11.3749,
+     "n": 1198
     },
     "g27": {
-     "p01": 0.000130367,
-     "p50": 0.521667,
-     "p99": 8.93478,
-     "min": 7.16787e-07,
-     "max": 14.4023,
-     "n": 1192
+     "p01": 0.000129503,
+     "p50": 0.548238,
+     "p99": 8.99879,
+     "min": 7.10273e-07,
+     "max": 14.2521,
+     "n": 1198
     },
     "g28": {
-     "p01": 7.60573e-05,
-     "p50": 0.156452,
-     "p99": 3.82521,
-     "min": 4.5593e-07,
-     "max": 5.24223,
-     "n": 1192
+     "p01": 7.31296e-05,
+     "p50": 0.159181,
+     "p99": 3.84364,
+     "min": 4.70787e-07,
+     "max": 5.27182,
+     "n": 1198
     },
     "g29": {
-     "p01": 4.99476e-05,
-     "p50": 0.121487,
-     "p99": 5.05365,
-     "min": 4.59803e-07,
-     "max": 7.0759,
-     "n": 1192
+     "p01": 4.6806e-05,
+     "p50": 0.124078,
+     "p99": 5.10165,
+     "min": 4.7546e-07,
+     "max": 7.11584,
+     "n": 1198
     },
     "g30": {
-     "p01": 9.6295e-05,
-     "p50": 0.179324,
-     "p99": 2.97619,
-     "min": 3.78895e-07,
-     "max": 3.87375,
-     "n": 1192
+     "p01": 8.63995e-05,
+     "p50": 0.18396,
+     "p99": 2.97496,
+     "min": 3.91242e-07,
+     "max": 3.89562,
+     "n": 1198
     },
     "g31": {
-     "p01": 9.64351e-05,
-     "p50": 0.191846,
-     "p99": 3.09095,
-     "min": 2.24291e-07,
-     "max": 6.31899,
-     "n": 1192
+     "p01": 7.88488e-05,
+     "p50": 0.193762,
+     "p99": 2.96158,
+     "min": 2.316e-07,
+     "max": 4.50734,
+     "n": 1198
     },
     "g32": {
-     "p01": 0.000320802,
-     "p50": 0.646914,
-     "p99": 3.04014,
-     "min": 9.3715e-07,
-     "max": 5.30607,
-     "n": 1192
+     "p01": 0.000449677,
+     "p50": 0.635475,
+     "p99": 2.99639,
+     "min": 9.24458e-07,
+     "max": 5.24248,
+     "n": 1198
     },
     "g33": {
-     "p01": 0.00066534,
-     "p50": 0.700991,
-     "p99": 3.171,
-     "min": 2.0171e-06,
-     "max": 5.7659,
-     "n": 1192
+     "p01": 0.000674849,
+     "p50": 0.706014,
+     "p99": 3.26447,
+     "min": 1.98978e-06,
+     "max": 5.6955,
+     "n": 1198
     },
     "g34": {
-     "p01": 0.000452484,
-     "p50": 0.660304,
-     "p99": 4.2748,
-     "min": 2.64256e-06,
-     "max": 8.32916,
-     "n": 1192
+     "p01": 0.000442993,
+     "p50": 0.676134,
+     "p99": 4.21992,
+     "min": 2.58052e-06,
+     "max": 8.22748,
+     "n": 1198
     },
     "g35": {
-     "p01": 1.47046e-07,
-     "p50": 0.673737,
-     "p99": 5.93403,
+     "p01": 1.52213e-07,
+     "p50": 0.70528,
+     "p99": 5.85785,
      "min": 0.0,
-     "max": 11.5621,
-     "n": 1192
+     "max": 11.4209,
+     "n": 1198
     },
     "pin": {
-     "p01": 0.409527,
-     "p50": 1.27723,
-     "p99": 4.59867,
-     "min": 0.204897,
-     "max": 5.09233,
-     "n": 1205
+     "p01": 0.414373,
+     "p50": 1.29866,
+     "p99": 4.45842,
+     "min": 0.207087,
+     "max": 5.11122,
+     "n": 1211
     },
     "bow_db": {
      "p01": -30.0,
-     "p50": -11.2948,
-     "p99": -0.543746,
+     "p50": -11.3569,
+     "p99": -0.551046,
      "min": -30.0,
      "max": 0.0,
-     "n": 887
+     "n": 893
     },
     "dust_hz": {
-     "p01": 0.500499,
-     "p50": 2.0848,
-     "p99": 4.99843,
+     "p01": 0.500828,
+     "p50": 2.03141,
+     "p99": 4.99629,
      "min": 0.5,
      "max": 5.0,
-     "n": 1205
+     "n": 1211
     }
    },
    "body_cycle": {
     "theta": {
      "p01": 0.00757576,
-     "p50": 0.716932,
+     "p50": 0.72096,
      "p99": 1.0,
      "min": 0.0,
      "max": 1.0,
-     "n": 1050
+     "n": 1056
     },
     "phase_cycle": {
      "p01": 0.00757576,
-     "p50": 0.751471,
-     "p99": 3.21886,
+     "p50": 0.757166,
+     "p99": 3.26386,
      "min": 0.0,
-     "max": 3.29545,
-     "n": 1012
+     "max": 3.34091,
+     "n": 1018
     },
     "pressure": {
-     "p01": 0.00257408,
-     "p50": 0.633949,
-     "p99": 0.998878,
+     "p01": 0.00288927,
+     "p50": 0.640527,
+     "p99": 0.999412,
      "min": 0.0,
      "max": 1.0,
-     "n": 1050
+     "n": 1056
     },
     "g00": {
-     "p01": 0.000264938,
-     "p50": 0.268484,
-     "p99": 9.10495,
-     "min": 2.27606e-06,
+     "p01": 0.00033314,
+     "p50": 0.255738,
+     "p99": 9.09317,
+     "min": 1.55835e-06,
      "max": 22.602,
-     "n": 1050
+     "n": 1056
     },
     "g01": {
-     "p01": 0.000609387,
-     "p50": 0.574655,
-     "p99": 5.48195,
+     "p01": 0.000663055,
+     "p50": 0.533012,
+     "p99": 5.33895,
      "min": 4.13274e-06,
      "max": 10.4392,
-     "n": 1050
+     "n": 1056
     },
     "g02": {
-     "p01": 0.000353983,
-     "p50": 0.625838,
-     "p99": 8.09679,
+     "p01": 0.000354121,
+     "p50": 0.609905,
+     "p99": 8.26977,
      "min": 4.88128e-06,
      "max": 24.2543,
-     "n": 1050
+     "n": 1056
     },
     "g03": {
-     "p01": 3.33167e-08,
-     "p50": 0.537644,
-     "p99": 13.8135,
+     "p01": 3.47877e-08,
+     "p50": 0.536235,
+     "p99": 13.8435,
      "min": 0.0,
      "max": 41.7568,
-     "n": 1050
+     "n": 1056
     },
     "g04": {
-     "p01": 8.08291e-05,
-     "p50": 0.233706,
-     "p99": 7.65197,
-     "min": 6.98586e-07,
+     "p01": 0.000139134,
+     "p50": 0.273508,
+     "p99": 7.98644,
+     "min": 1.36491e-06,
      "max": 12.585,
-     "n": 1050
+     "n": 1056
     },
     "g05": {
-     "p01": 0.000206193,
-     "p50": 0.450964,
-     "p99": 4.51797,
-     "min": 2.79435e-06,
+     "p01": 0.000361493,
+     "p50": 0.551856,
+     "p99": 4.50893,
+     "min": 5.45962e-06,
      "max": 8.3195,
-     "n": 1050
+     "n": 1056
     },
     "g06": {
-     "p01": 0.000336365,
-     "p50": 0.469715,
-     "p99": 6.74827,
-     "min": 6.49236e-06,
-     "max": 14.413,
-     "n": 1050
+     "p01": 0.000655626,
+     "p50": 0.585167,
+     "p99": 5.32166,
+     "min": 1.26848e-05,
+     "max": 13.9121,
+     "n": 1056
     },
     "g07": {
-     "p01": 2.49473e-07,
-     "p50": 0.444283,
-     "p99": 11.618,
+     "p01": 2.88653e-07,
+     "p50": 0.561502,
+     "p99": 8.81002,
      "min": 0.0,
-     "max": 24.8138,
-     "n": 1050
+     "max": 23.9513,
+     "n": 1056
     },
     "g08": {
-     "p01": 0.000157864,
-     "p50": 0.225011,
-     "p99": 8.58989,
-     "min": 1.33622e-05,
-     "max": 20.6871,
-     "n": 1050
+     "p01": 0.000132723,
+     "p50": 0.208425,
+     "p99": 8.30672,
+     "min": 8.51231e-06,
+     "max": 15.8464,
+     "n": 1056
     },
     "g09": {
-     "p01": 0.000631455,
-     "p50": 0.514287,
-     "p99": 4.48203,
-     "min": 5.34487e-05,
-     "max": 9.19602,
-     "n": 1050
+     "p01": 0.000530893,
+     "p50": 0.492895,
+     "p99": 4.41458,
+     "min": 3.40492e-05,
+     "max": 7.04418,
+     "n": 1056
     },
     "g10": {
-     "p01": 0.00130315,
-     "p50": 0.572245,
-     "p99": 3.54129,
-     "min": 0.000124182,
-     "max": 5.62089,
-     "n": 1050
+     "p01": 0.00111314,
+     "p50": 0.542464,
+     "p99": 3.6278,
+     "min": 7.91096e-05,
+     "max": 5.56649,
+     "n": 1056
     },
     "g11": {
-     "p01": 4.18834e-07,
-     "p50": 0.549899,
-     "p99": 5.16917,
+     "p01": 4.22927e-07,
+     "p50": 0.520113,
+     "p99": 4.76546,
      "min": 0.0,
-     "max": 8.01932,
-     "n": 1050
+     "max": 7.46908,
+     "n": 1056
     },
     "g12": {
-     "p01": 7.47329e-05,
-     "p50": 0.237022,
-     "p99": 7.2371,
+     "p01": 6.39246e-05,
+     "p50": 0.222417,
+     "p99": 7.05945,
      "min": 0.0,
-     "max": 16.0457,
-     "n": 1050
+     "max": 14.7052,
+     "n": 1056
     },
     "g13": {
-     "p01": 0.000214494,
-     "p50": 0.569744,
-     "p99": 4.20199,
+     "p01": 0.00020773,
+     "p50": 0.545011,
+     "p99": 4.05097,
      "min": 0.0,
-     "max": 7.19769,
-     "n": 1050
+     "max": 6.59639,
+     "n": 1056
     },
     "g14": {
-     "p01": 0.00038101,
-     "p50": 0.631475,
-     "p99": 4.6416,
+     "p01": 0.000377986,
+     "p50": 0.598006,
+     "p99": 4.48486,
      "min": 0.0,
-     "max": 7.9171,
-     "n": 1050
+     "max": 6.96116,
+     "n": 1056
     },
     "g15": {
-     "p01": 7.83502e-08,
+     "p01": 8.79441e-08,
      "p50": 0.530473,
-     "p99": 7.12037,
+     "p99": 6.60087,
      "min": 0.0,
-     "max": 13.6302,
-     "n": 1050
+     "max": 11.9845,
+     "n": 1056
     },
     "g16": {
-     "p01": 3.74473e-05,
-     "p50": 0.0632363,
-     "p99": 13.7189,
-     "min": 1.67351e-06,
+     "p01": 3.39658e-05,
+     "p50": 0.0663228,
+     "p99": 13.8624,
+     "min": 2.25531e-06,
      "max": 27.5537,
-     "n": 1050
+     "n": 1056
     },
     "g17": {
-     "p01": 7.88995e-05,
-     "p50": 0.12649,
-     "p99": 6.12485,
+     "p01": 7.90189e-05,
+     "p50": 0.14161,
+     "p99": 6.17349,
      "min": 4.33915e-06,
      "max": 12.2534,
-     "n": 1050
+     "n": 1056
     },
     "g18": {
-     "p01": 0.000119792,
-     "p50": 0.166597,
-     "p99": 4.01198,
+     "p01": 0.000140995,
+     "p50": 0.188876,
+     "p99": 3.59677,
      "min": 1.93406e-06,
-     "max": 9.88517,
-     "n": 1050
+     "max": 5.93437,
+     "n": 1056
     },
     "g19": {
-     "p01": 4.84771e-07,
-     "p50": 0.11526,
-     "p99": 6.48594,
+     "p01": 5.00298e-07,
+     "p50": 0.126623,
+     "p99": 5.92679,
      "min": 0.0,
-     "max": 17.0185,
-     "n": 1050
+     "max": 10.2167,
+     "n": 1056
     },
     "g20": {
-     "p01": 0.000124083,
-     "p50": 0.255128,
-     "p99": 8.66313,
-     "min": 1.77021e-06,
+     "p01": 0.000105614,
+     "p50": 0.247262,
+     "p99": 8.55415,
+     "min": 1.37865e-06,
      "max": 14.3622,
-     "n": 1050
+     "n": 1056
     },
     "g21": {
-     "p01": 0.000312614,
-     "p50": 0.551135,
-     "p99": 4.78716,
-     "min": 3.23471e-06,
-     "max": 7.81058,
-     "n": 1050
+     "p01": 0.000330678,
+     "p50": 0.530142,
+     "p99": 4.77264,
+     "min": 2.51922e-06,
+     "max": 7.73499,
+     "n": 1056
     },
     "g22": {
-     "p01": 0.000681836,
-     "p50": 0.633068,
-     "p99": 4.37945,
-     "min": 5.24082e-06,
-     "max": 7.81058,
-     "n": 1050
+     "p01": 0.000642733,
+     "p50": 0.614624,
+     "p99": 4.32814,
+     "min": 4.0816e-06,
+     "max": 7.73499,
+     "n": 1056
     },
     "g23": {
-     "p01": 2.89438e-07,
-     "p50": 0.631163,
-     "p99": 6.39938,
+     "p01": 2.47174e-07,
+     "p50": 0.579748,
+     "p99": 6.05196,
      "min": 0.0,
-     "max": 9.825,
-     "n": 1050
+     "max": 8.97392,
+     "n": 1056
     },
     "g24": {
-     "p01": 6.27685e-05,
-     "p50": 0.202012,
-     "p99": 7.43197,
+     "p01": 7.90547e-05,
+     "p50": 0.191027,
+     "p99": 6.85848,
      "min": 3.15099e-08,
      "max": 10.5597,
-     "n": 1050
+     "n": 1056
     },
     "g25": {
-     "p01": 0.00013043,
-     "p50": 0.492488,
-     "p99": 3.42645,
+     "p01": 0.000135113,
+     "p50": 0.467199,
+     "p99": 3.11803,
      "min": 1.25354e-07,
      "max": 4.69408,
-     "n": 1050
+     "n": 1056
     },
     "g26": {
-     "p01": 0.000171785,
-     "p50": 0.481175,
-     "p99": 5.46886,
+     "p01": 0.00017393,
+     "p50": 0.469096,
+     "p99": 5.0281,
      "min": 2.907e-07,
-     "max": 9.67791,
-     "n": 1050
+     "max": 8.47458,
+     "n": 1056
     },
     "g27": {
-     "p01": 3.66155e-07,
-     "p50": 0.414754,
-     "p99": 9.38669,
+     "p01": 3.26593e-07,
+     "p50": 0.405992,
+     "p99": 8.51582,
      "min": 0.0,
-     "max": 16.6617,
-     "n": 1050
+     "max": 14.59,
+     "n": 1056
     },
     "g28": {
-     "p01": 3.95591e-05,
-     "p50": 0.104589,
-     "p99": 9.52813,
+     "p01": 3.20905e-05,
+     "p50": 0.115802,
+     "p99": 9.60051,
      "min": 4.32985e-07,
-     "max": 19.7461,
-     "n": 1050
+     "max": 20.752,
+     "n": 1056
     },
     "g29": {
-     "p01": 9.75962e-05,
-     "p50": 0.234386,
-     "p99": 4.2977,
+     "p01": 8.14742e-05,
+     "p50": 0.260447,
+     "p99": 4.34177,
      "min": 7.38223e-07,
-     "max": 8.78131,
-     "n": 1050
+     "max": 9.36526,
+     "n": 1056
     },
     "g30": {
-     "p01": 7.77832e-05,
-     "p50": 0.285535,
-     "p99": 4.43777,
+     "p01": 8.93905e-05,
+     "p50": 0.32222,
+     "p99": 4.06116,
      "min": 3.45441e-07,
-     "max": 9.76861,
-     "n": 1050
+     "max": 5.70121,
+     "n": 1056
     },
     "g31": {
-     "p01": 2.27552e-07,
-     "p50": 0.218296,
-     "p99": 7.64016,
+     "p01": 2.61773e-07,
+     "p50": 0.237202,
+     "p99": 6.99178,
      "min": 0.0,
-     "max": 16.8179,
-     "n": 1050
+     "max": 9.81532,
+     "n": 1056
     },
     "g32": {
-     "p01": 8.33954e-05,
-     "p50": 0.219252,
-     "p99": 7.73013,
-     "min": 2.08781e-07,
-     "max": 19.1505,
-     "n": 1050
+     "p01": 8.24194e-05,
+     "p50": 0.203475,
+     "p99": 7.69469,
+     "min": 1.90834e-07,
+     "max": 14.357,
+     "n": 1056
     },
     "g33": {
-     "p01": 0.000255227,
-     "p50": 0.499767,
-     "p99": 3.49746,
-     "min": 8.35122e-07,
-     "max": 8.51294,
-     "n": 1050
+     "p01": 0.000320671,
+     "p50": 0.469725,
+     "p99": 3.44795,
+     "min": 7.63334e-07,
+     "max": 6.38208,
+     "n": 1056
     },
     "g34": {
-     "p01": 0.000381303,
-     "p50": 0.562744,
-     "p99": 3.50053,
-     "min": 1.94031e-06,
-     "max": 6.674,
-     "n": 1050
+     "p01": 0.00039113,
+     "p50": 0.537007,
+     "p99": 3.2975,
+     "min": 1.77352e-06,
+     "max": 6.08369,
+     "n": 1056
     },
     "g35": {
-     "p01": 9.19772e-08,
-     "p50": 0.564145,
-     "p99": 5.5951,
+     "p01": 1.02027e-07,
+     "p50": 0.527304,
+     "p99": 5.10838,
      "min": 0.0,
-     "max": 11.4901,
-     "n": 1050
+     "max": 10.4738,
+     "n": 1056
     },
     "pin": {
-     "p01": 0.158147,
-     "p50": 1.56361,
-     "p99": 23.834,
-     "min": 0.0995813,
+     "p01": 0.16301,
+     "p50": 1.59662,
+     "p99": 23.8027,
+     "min": 0.121875,
      "max": 31.6228,
-     "n": 1050
+     "n": 1056
     },
     "bow_db": {
-     "p01": -24.1782,
-     "p50": -10.4026,
-     "p99": -0.498377,
-     "min": -24.5355,
+     "p01": -24.4813,
+     "p50": -10.4983,
+     "p99": -0.506729,
+     "min": -24.8686,
      "max": 0.0,
-     "n": 832
+     "n": 838
     },
     "dust_hz": {
-     "p01": 0.547286,
-     "p50": 2.1873,
+     "p01": 0.520598,
+     "p50": 2.14052,
      "p99": 5.0,
      "min": 0.5,
      "max": 5.0,
-     "n": 1050
+     "n": 1056
     }
    }
   },
@@ -5234,6 +6938,20 @@
    "U_after": null
   },
   {
+   "date_start": "2023-07-25",
+   "date_end": "2023-07-25",
+   "t_start": 1690243200.0,
+   "t_end": 1690329600.0,
+   "dU_SKSH": null,
+   "dU_SENG": -0.76,
+   "dU_THOB": null,
+   "kind": "spike",
+   "note": "1-day spike, the level returns (SENG -1 mm); never a fall",
+   "used_for_recharge": false,
+   "U_start": null,
+   "U_after": null
+  },
+  {
    "date_start": "2023-11-11",
    "date_end": "2023-11-11",
    "t_start": 1699660800.0,
@@ -5246,6 +6964,20 @@
    "used_for_recharge": true,
    "U_start": 75.11,
    "U_after": -339.41
+  },
+  {
+   "date_start": "2023-11-28",
+   "date_end": "2023-11-28",
+   "t_start": 1701129600.0,
+   "t_end": 1701216000.0,
+   "dU_SKSH": 3.69,
+   "dU_SENG": 4.42,
+   "dU_THOB": 3.79,
+   "kind": "spike",
+   "note": "1-day spike, the level returns (SKSH +4, SENG +4, THOB +4 mm); never a fall",
+   "used_for_recharge": false,
+   "U_start": null,
+   "U_after": null
   },
   {
    "date_start": "2023-12-19",
@@ -5270,7 +7002,7 @@
    "dU_SENG": null,
    "dU_THOB": null,
    "kind": "hidden_by_interpolation",
-   "note": "eruption recorded by the MELH waveform (FINDINGS F2); SKSH, SENG and THOB are straight-line interpolated across it, so its deflation is not in the GNSS (F6)",
+   "note": "eruption recorded by the MELH waveform (FINDINGS F2); SKSH, SENG and THOB are without an IMO solution across it (a gap in all three), so its deflation is not in the GNSS (F6)",
    "used_for_recharge": false,
    "U_start": null,
    "U_after": null
@@ -5284,7 +7016,7 @@
    "dU_SENG": -56.55,
    "dU_THOB": -69.7,
    "kind": "hidden_by_interpolation",
-   "note": "SENG and THOB fall; SKSH's day before is interpolated, so SKSH cannot level it (F6). Not a recharge reference until Leif's timeline (L2)",
+   "note": "SENG and THOB fall; SKSH has no solution the day before (a gap), so SKSH cannot level it (F6). Not a recharge reference until Leif's timeline (L2)",
    "used_for_recharge": false,
    "U_start": null,
    "U_after": null
@@ -5458,6 +7190,34 @@
    "U_after": null
   },
   {
+   "date_start": "2026-04-30",
+   "date_end": "2026-04-30",
+   "t_start": 1777507200.0,
+   "t_end": 1777593600.0,
+   "dU_SKSH": 15.06,
+   "dU_SENG": 13.82,
+   "dU_THOB": 9.69,
+   "kind": "spike",
+   "note": "1-day spike, the level returns (SKSH +15, SENG +14, THOB +10 mm); never a fall",
+   "used_for_recharge": false,
+   "U_start": null,
+   "U_after": null
+  },
+  {
+   "date_start": "2026-06-30",
+   "date_end": "2026-06-30",
+   "t_start": 1782777600.0,
+   "t_end": 1782864000.0,
+   "dU_SKSH": -24.84,
+   "dU_SENG": null,
+   "dU_THOB": null,
+   "kind": "spike",
+   "note": "1-day spike, the level returns (SKSH -25 mm); never a fall",
+   "used_for_recharge": false,
+   "U_start": null,
+   "U_after": null
+  },
+  {
    "date_start": "2026-07-06",
    "date_end": "2026-07-06",
    "t_start": 1783296000.0,
@@ -5481,6 +7241,20 @@
    "dU_THOB": 28.89,
    "kind": "spike",
    "note": "1-day spike, the level returns (SKSH +31, SENG +27, THOB +29 mm); never a fall",
+   "used_for_recharge": false,
+   "U_start": null,
+   "U_after": null
+  },
+  {
+   "date_start": "2026-09-11",
+   "date_end": "2026-09-11",
+   "t_start": 1789084800.0,
+   "t_end": 1789171200.0,
+   "dU_SKSH": 22.72,
+   "dU_SENG": 21.52,
+   "dU_THOB": 22.2,
+   "kind": "spike",
+   "note": "1-day spike, the level returns (SKSH +23, SENG +22, THOB +22 mm); never a fall",
    "used_for_recharge": false,
    "U_start": null,
    "U_after": null
@@ -5648,6 +7422,307 @@
     1
    ]
   ]
+ },
+ "gnss_field": {
+  "source": "gnss_imo",
+  "tier": "f1d",
+  "tile": "tiles/f1d/gnss_imo/0.json",
+  "positions_only": [],
+  "cols_per_station": [
+   "<ST>_n_mm",
+   "<ST>_e_mm",
+   "<ST>_u_mm",
+   "<ST>_n_vel",
+   "<ST>_e_vel",
+   "<ST>_u_vel"
+  ],
+  "units": {
+   "_mm": "mm, displacement since the station's ref_day",
+   "_vel": "mm/day"
+  },
+  "frame": "IMO's plate-fixed frame (the stations move relative to the North American plate side)",
+  "velocity": "trailing 7-day least-squares slope over measured days (>= 5)",
+  "gaps": "days without an IMO solution are null; nothing is filled",
+  "stations": [
+   {
+    "id": "ELDC",
+    "lat": 63.863142,
+    "lon": -22.525716,
+    "pos_status": "measured",
+    "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js), as published",
+    "pos_err_m": null,
+    "ref_day": "2023-06-04",
+    "first_day": "2023-06-04",
+    "last_day": "2026-09-30",
+    "n_days": 1172
+   },
+   {
+    "id": "FAGD",
+    "lat": 63.916717,
+    "lon": -22.288817,
+    "pos_status": "measured",
+    "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js), as published",
+    "pos_err_m": null,
+    "ref_day": "2024-07-14",
+    "first_day": "2024-07-14",
+    "last_day": "2026-09-30",
+    "n_days": 797
+   },
+   {
+    "id": "FEFC",
+    "lat": 63.856654,
+    "lon": -22.312737,
+    "pos_status": "measured",
+    "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js), as published",
+    "pos_err_m": null,
+    "ref_day": "2023-06-04",
+    "first_day": "2023-06-04",
+    "last_day": "2026-09-30",
+    "n_days": 1156
+   },
+   {
+    "id": "GEVK",
+    "lat": 63.835377,
+    "lon": -22.471563,
+    "pos_status": "measured",
+    "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js), as published",
+    "pos_err_m": null,
+    "ref_day": "2024-02-04",
+    "first_day": "2024-02-04",
+    "last_day": "2026-09-30",
+    "n_days": 954
+   },
+   {
+    "id": "GONH",
+    "lat": 63.88554,
+    "lon": -22.270329,
+    "pos_status": "measured",
+    "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js), as published",
+    "pos_err_m": null,
+    "ref_day": "2023-06-04",
+    "first_day": "2023-06-04",
+    "last_day": "2026-09-30",
+    "n_days": 802
+   },
+   {
+    "id": "HAFC",
+    "lat": 63.927358,
+    "lon": -22.679908,
+    "pos_status": "measured",
+    "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js), as published",
+    "pos_err_m": null,
+    "ref_day": "2023-09-22",
+    "first_day": "2023-09-22",
+    "last_day": "2026-09-30",
+    "n_days": 1037
+   },
+   {
+    "id": "HRAG",
+    "lat": 63.887708,
+    "lon": -22.557036,
+    "pos_status": "measured",
+    "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js), as published",
+    "pos_err_m": null,
+    "ref_day": "2024-02-04",
+    "first_day": "2024-02-04",
+    "last_day": "2026-09-30",
+    "n_days": 952
+   },
+   {
+    "id": "HS02",
+    "lat": 63.872659,
+    "lon": -22.455415,
+    "pos_status": "measured",
+    "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js), as published",
+    "pos_err_m": null,
+    "ref_day": "2024-02-04",
+    "first_day": "2024-02-04",
+    "last_day": "2026-09-30",
+    "n_days": 932
+   },
+   {
+    "id": "HVAS",
+    "lat": 64.024424,
+    "lon": -22.127758,
+    "pos_status": "measured",
+    "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js), as published",
+    "pos_err_m": null,
+    "ref_day": "2023-06-04",
+    "first_day": "2023-06-04",
+    "last_day": "2026-09-30",
+    "n_days": 1053
+   },
+   {
+    "id": "KAST",
+    "lat": 63.880038,
+    "lon": -22.323232,
+    "pos_status": "measured",
+    "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js), as published",
+    "pos_err_m": null,
+    "ref_day": "2023-10-24",
+    "first_day": "2023-10-24",
+    "last_day": "2026-09-30",
+    "n_days": 865
+   },
+   {
+    "id": "KEIC",
+    "lat": 63.93006,
+    "lon": -22.19122,
+    "pos_status": "measured",
+    "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js), as published",
+    "pos_err_m": null,
+    "ref_day": "2023-09-28",
+    "first_day": "2023-09-28",
+    "last_day": "2026-09-30",
+    "n_days": 1018
+   },
+   {
+    "id": "KRIV",
+    "lat": 63.878203,
+    "lon": -22.077264,
+    "pos_status": "measured",
+    "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js), as published",
+    "pos_err_m": null,
+    "ref_day": "2023-06-01",
+    "first_day": "2023-06-01",
+    "last_day": "2026-09-30",
+    "n_days": 1182
+   },
+   {
+    "id": "LISK",
+    "lat": 63.922272,
+    "lon": -22.372627,
+    "pos_status": "measured",
+    "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js), as published",
+    "pos_err_m": null,
+    "ref_day": "2023-07-05",
+    "first_day": "2023-07-05",
+    "last_day": "2024-10-08",
+    "n_days": 373
+   },
+   {
+    "id": "MOHA",
+    "lat": 63.919955,
+    "lon": -22.059546,
+    "pos_status": "measured",
+    "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js), as published",
+    "pos_err_m": null,
+    "ref_day": "2023-06-01",
+    "first_day": "2023-06-01",
+    "last_day": "2026-09-30",
+    "n_days": 1154
+   },
+   {
+    "id": "NAMC",
+    "lat": 63.915013,
+    "lon": -22.542308,
+    "pos_status": "measured",
+    "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js), as published",
+    "pos_err_m": null,
+    "ref_day": "2023-06-04",
+    "first_day": "2023-06-04",
+    "last_day": "2026-09-30",
+    "n_days": 1155
+   },
+   {
+    "id": "NBIO",
+    "lat": 63.89766,
+    "lon": -22.47169,
+    "pos_status": "measured",
+    "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js), as published",
+    "pos_err_m": null,
+    "ref_day": "2023-11-04",
+    "first_day": "2023-11-04",
+    "last_day": "2026-09-30",
+    "n_days": 1028
+   },
+   {
+    "id": "NYLA",
+    "lat": 63.973541,
+    "lon": -22.738099,
+    "pos_status": "measured",
+    "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js), as published",
+    "pos_err_m": null,
+    "ref_day": "2023-06-01",
+    "first_day": "2023-06-01",
+    "last_day": "2026-09-30",
+    "n_days": 1179
+   },
+   {
+    "id": "ODDF",
+    "lat": 63.948758,
+    "lon": -22.117577,
+    "pos_status": "measured",
+    "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js), as published",
+    "pos_err_m": null,
+    "ref_day": "2023-07-06",
+    "first_day": "2023-07-06",
+    "last_day": "2026-09-30",
+    "n_days": 1081
+   },
+   {
+    "id": "ORFC",
+    "lat": 63.855149,
+    "lon": -22.419157,
+    "pos_status": "measured",
+    "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js), as published",
+    "pos_err_m": null,
+    "ref_day": "2024-02-24",
+    "first_day": "2024-02-24",
+    "last_day": "2026-09-30",
+    "n_days": 909
+   },
+   {
+    "id": "RVIT",
+    "lat": 63.81594,
+    "lon": -22.70407,
+    "pos_status": "measured",
+    "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js), as published",
+    "pos_err_m": null,
+    "ref_day": "2023-06-04",
+    "first_day": "2023-06-04",
+    "last_day": "2026-09-30",
+    "n_days": 1093
+   },
+   {
+    "id": "SUDV",
+    "lat": 63.849642,
+    "lon": -22.374294,
+    "pos_status": "measured",
+    "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js), as published",
+    "pos_err_m": null,
+    "ref_day": "2024-02-04",
+    "first_day": "2024-02-04",
+    "last_day": "2026-09-30",
+    "n_days": 955
+   },
+   {
+    "id": "SYRF",
+    "lat": 63.835996,
+    "lon": -22.654072,
+    "pos_status": "measured",
+    "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js), as published",
+    "pos_err_m": null,
+    "ref_day": "2023-06-01",
+    "first_day": "2023-06-01",
+    "last_day": "2026-09-30",
+    "n_days": 858
+   },
+   {
+    "id": "VMOS",
+    "lat": 63.846799,
+    "lon": -22.487208,
+    "pos_status": "measured",
+    "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js), as published",
+    "pos_err_m": null,
+    "ref_day": "2024-02-04",
+    "first_day": "2024-02-04",
+    "last_day": "2026-09-30",
+    "n_days": 946
+   }
+  ],
+  "credit": "IMO GNSS time series (Leif Karlstrom, 2026-11-01); positions: https://brunnur.vedur.is/gps/browser/map.js",
+  "note": "SKSH, SENG and THOB are the primary stations (manifest.stations, tiles/f1d/gnss)"
  },
  "events": {
   "file": "events/eq.json",
@@ -5936,11 +8011,11 @@
     "file": "body/identity/sequence_0.json",
     "t0": 1685577600.0,
     "t1": null,
-    "comb_hz": 85.3971,
+    "comb_hz": 85.3968,
     "label": null,
-    "comb_render_hz": 85.3971,
+    "comb_render_hz": 85.3968,
     "room_gain": 1.0,
-    "bow_neutral_db": -11.295,
+    "bow_neutral_db": -11.357,
     "bow_neutral_source": "room median over its measured days",
     "period_d": null,
     "open": null,
@@ -5977,17 +8052,17 @@
     "file": "body/identity/cycle_0.json",
     "t0": 1699574400.0,
     "t1": 1702857600.0,
-    "comb_hz": 225.85,
+    "comb_hz": 226.1508,
     "label": null,
-    "comb_render_hz": 112.925,
-    "room_gain": 2.254064,
-    "bow_neutral_db": -0.514,
+    "comb_render_hz": 113.0754,
+    "room_gain": 1.931072,
+    "bow_neutral_db": -0.517,
     "bow_neutral_source": "room median over its measured days",
     "period_d": 38,
     "open": false,
     "top3": [
      {
-      "sensor": "SENG_e",
+      "sensor": "SENG_u",
       "harm": 1,
       "freq_hz": 163.5206,
       "period_d": 38.0,
@@ -5995,12 +8070,12 @@
       "amp": 1.0
      },
      {
-      "sensor": "SENG_u",
+      "sensor": "SENG_e",
       "harm": 1,
       "freq_hz": 163.5206,
       "period_d": 38.0,
       "f_src_hz": 3.0458089668615986e-07,
-      "amp": 0.957439
+      "amp": 0.986825
      },
      {
       "sensor": "SKSH_e",
@@ -6008,7 +8083,7 @@
       "freq_hz": 163.5206,
       "period_d": 38.0,
       "f_src_hz": 3.0458089668615986e-07,
-      "amp": 0.943191
+      "amp": 0.928239
      }
     ]
    },
@@ -6021,8 +8096,8 @@
     "comb_hz": 268.9199,
     "label": null,
     "comb_render_hz": 134.4599,
-    "room_gain": 3.220512,
-    "bow_neutral_db": -0.181,
+    "room_gain": 3.220576,
+    "bow_neutral_db": -0.182,
     "bow_neutral_source": "room median over its measured days",
     "period_d": 27,
     "open": false,
@@ -6062,8 +8137,8 @@
     "comb_hz": 482.6392,
     "label": null,
     "comb_render_hz": 120.6598,
-    "room_gain": 2.201384,
-    "bow_neutral_db": -11.295,
+    "room_gain": 2.201427,
+    "bow_neutral_db": -11.357,
     "bow_neutral_source": "sequence_0 fallback (no measured inflow day)",
     "period_d": 25,
     "open": false,
@@ -6103,8 +8178,8 @@
     "comb_hz": 622.0651,
     "label": null,
     "comb_render_hz": 77.7581,
-    "room_gain": 2.959321,
-    "bow_neutral_db": -11.295,
+    "room_gain": 2.959379,
+    "bow_neutral_db": -11.357,
     "bow_neutral_source": "sequence_0 fallback (no measured inflow day)",
     "period_d": 23,
     "open": false,
@@ -6144,8 +8219,8 @@
     "comb_hz": 980.0466,
     "label": null,
     "comb_render_hz": 122.5058,
-    "room_gain": 3.78645,
-    "bow_neutral_db": -11.295,
+    "room_gain": 3.786525,
+    "bow_neutral_db": -11.357,
     "bow_neutral_source": "sequence_0 fallback (no measured inflow day)",
     "period_d": 14,
     "open": false,
@@ -6185,8 +8260,8 @@
     "comb_hz": 127.6978,
     "label": null,
     "comb_render_hz": 127.6978,
-    "room_gain": 1.998157,
-    "bow_neutral_db": -5.311,
+    "room_gain": 1.998197,
+    "bow_neutral_db": -5.324,
     "bow_neutral_source": "room median over its measured days",
     "period_d": 74,
     "open": false,
@@ -6226,8 +8301,8 @@
     "comb_hz": 136.504,
     "label": null,
     "comb_render_hz": 136.504,
-    "room_gain": 0.63731,
-    "bow_neutral_db": -4.834,
+    "room_gain": 0.637322,
+    "bow_neutral_db": -4.848,
     "bow_neutral_source": "room median over its measured days",
     "period_d": 85,
     "open": false,
@@ -6267,8 +8342,8 @@
     "comb_hz": 143.5775,
     "label": null,
     "comb_render_hz": 143.5775,
-    "room_gain": 0.667444,
-    "bow_neutral_db": -5.467,
+    "room_gain": 0.667457,
+    "bow_neutral_db": -5.48,
     "bow_neutral_source": "room median over its measured days",
     "period_d": 90,
     "open": false,
@@ -6308,8 +8383,8 @@
     "comb_hz": 52.9544,
     "label": null,
     "comb_render_hz": 52.9544,
-    "room_gain": 0.647445,
-    "bow_neutral_db": -7.658,
+    "room_gain": 0.647458,
+    "bow_neutral_db": -7.672,
     "bow_neutral_source": "room median over its measured days",
     "period_d": 132,
     "open": false,
@@ -6349,8 +8424,8 @@
     "comb_hz": 89.7252,
     "label": null,
     "comb_render_hz": 89.7252,
-    "room_gain": 3.127074,
-    "bow_neutral_db": -9.852,
+    "room_gain": 3.127136,
+    "bow_neutral_db": -9.865,
     "bow_neutral_source": "room median over its measured days",
     "period_d": 106,
     "open": false,
@@ -6387,38 +8462,38 @@
     "file": "body/identity/cycle_10.json",
     "t0": 1752624000.0,
     "t1": null,
-    "comb_hz": 17.6313,
+    "comb_hz": 17.4614,
     "label": null,
-    "comb_render_hz": 35.2626,
-    "room_gain": 2.284666,
-    "bow_neutral_db": -19.27,
+    "comb_render_hz": 34.9228,
+    "room_gain": 2.275999,
+    "bow_neutral_db": -19.331,
     "bow_neutral_source": "room median over its measured days",
-    "period_d": 435,
+    "period_d": 441,
     "open": true,
     "top3": [
      {
       "sensor": "SKSH_u",
       "harm": 1,
-      "freq_hz": 14.2846,
-      "period_d": 435.0,
-      "f_src_hz": 2.6607066836951894e-08,
+      "freq_hz": 14.0902,
+      "period_d": 441.0,
+      "f_src_hz": 2.6245065927605612e-08,
       "amp": 1.0
      },
      {
       "sensor": "SENG_u",
       "harm": 1,
-      "freq_hz": 14.2846,
-      "period_d": 435.0,
-      "f_src_hz": 2.6607066836951894e-08,
-      "amp": 0.94733
+      "freq_hz": 14.0902,
+      "period_d": 441.0,
+      "f_src_hz": 2.6245065927605612e-08,
+      "amp": 0.947393
      },
      {
       "sensor": "THOB_u",
       "harm": 1,
-      "freq_hz": 14.2846,
-      "period_d": 435.0,
-      "f_src_hz": 2.6607066836951894e-08,
-      "amp": 0.939538
+      "freq_hz": 14.0902,
+      "period_d": 441.0,
+      "f_src_hz": 2.6245065927605612e-08,
+      "amp": 0.943331
      }
     ]
    },
@@ -6431,7 +8506,7 @@
     "comb_hz": 2233.3538,
     "label": "quiet",
     "comb_render_hz": 139.5846,
-    "room_gain": 5.640147,
+    "room_gain": 5.640259,
     "bow_neutral_db": 0.0,
     "bow_neutral_source": "regime: no inflow bow (0 dB)",
     "period_d": null,
@@ -6472,7 +8547,7 @@
     "comb_hz": 3150.0547,
     "label": "swarm",
     "comb_render_hz": 98.4392,
-    "room_gain": 5.343664,
+    "room_gain": 5.34377,
     "bow_neutral_db": 0.0,
     "bow_neutral_source": "regime: no inflow bow (0 dB)",
     "period_d": null,
@@ -6513,7 +8588,7 @@
     "comb_hz": 1555.7841,
     "label": "eruption",
     "comb_render_hz": 97.2365,
-    "room_gain": 2.074383,
+    "room_gain": 2.074424,
     "bow_neutral_db": 0.0,
     "bow_neutral_source": "regime: no inflow bow (0 dB)",
     "period_d": null,
@@ -6695,8 +8770,8 @@
     "2025-07-31"
    ],
    "vel_sum_log10_range": [
-    0.2336976986701945,
-    2.384804146243884
+    0.2531152648577198,
+    2.383634466450854
    ],
    "mode_order": "deformation: SKSH n,e,u, SENG n,e,u, THOB n,e,u x 4; regime: Z, N, E x 12"
   }
@@ -6723,8 +8798,8 @@
   "MELH's position is a placeholder (pos_status approx, 2 km): no public service lists RK.MELH; SKSH, SENG, THOB from IMO's GNSS browser / site logs (measured)",
   "waveforms are raw counts (no instrument response yet)",
   "MELH covers 2024-01-14 00:00-10:23 UTC only; the station was overrun by lava",
-  "GNSS straight-line (interpolated) days are flagged <ST>_interp; all three stations are interpolated across the 14 Jan 2024 eruption",
-  "GNSS 1-2 day excursions that return are flagged <ST>_spike",
+  "GNSS days without an IMO solution are gaps (null) and flagged <ST>_interp; all three stations have a gap across the 14 Jan 2024 eruption (the sound reads the straight line across a gap, veiled)",
+  "GNSS 1-2 day excursions that return, in N, E or U, are flagged <ST>_spike",
   "the rooms and waits are bounded by IMO's eruption timeline (events/eruptions.json); deflation_events is W1's GNSS detection, kept for the comparison (gnss_match)",
   "fc_hz assumes a 3 MPa stress drop and treats ML as Mw",
   "eq_b uses one whole-catalogue Mc (max curvature)"

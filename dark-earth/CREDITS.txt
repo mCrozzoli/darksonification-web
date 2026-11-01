@@ -17,6 +17,8 @@ Lava fountains: observed fountain heights from Rhodes et al. (2026), Bulletin of
   doi:10.1007/s00445-026-02006-3 (supplement ESM2); the other eruptions' heights simulated with Leif Karlstrom's model.
   Fissure positions digitised from Rhodes et al. (2026), Fig. 3, or placed from IMO's reports.
 Eruption dates and places: IMO's published reports, https://en.vedur.is/about-imo/news/
+GNSS network: IMO GNSS time series (via Leif Karlstrom); station positions: IMO GNSS browser, brunnur.vedur.is
+  (https://brunnur.vedur.is/gps/browser/)
 Coastline: Natural Earth 1:10m land, public domain (https://www.naturalearthdata.com).
 
 SOFTWARE

@@ -248,6 +248,24 @@ window.SvkTimeline = (function () {
           for (let i = i0; i < i1; i++) if (ok(i) && !ip[i]) { g.beginPath(); g.arc(x(T.t[i] + DAY / 2), y(a[i]), primary ? 2.2 : 1.5, 0, 7); g.fill(); }
         }
       }
+      // no measurement (DESIGN §6.2, IMO's plate files: a day without a solution is a gap, never a line): the station's line
+      // stops with a small tick at each end, and a dotted rail in its colour runs along the top of the lane over the gap,
+      // away from any value, so a gap is not read as a fall. The hover names the station and the days
+      lane.gaps = [];
+      stations.forEach((s, k) => {
+        const a = T.cols[`${s}_u_mm`], sp = T.cols[`${s}_spike`] || [];
+        if (!a) return;
+        const none = (i) => !isNum(a[i]) && !sp[i], ry = lane.y + 13 + k * 2.5;
+        g.strokeStyle = C.gnss[s] || ctx.tok("--ds-txt"); g.lineWidth = 1;
+        for (const [ga, gb] of runs(Array.from({ length: i1 - i0 }, (_, j) => none(i0 + j)), i1 - i0).map(([u, v]) => [u + i0, v + i0])) {
+          const xa = x(T.t[ga]), xb = x(T.t[gb] + DAY);
+          lane.gaps.push({ s, t0: T.t[ga], t1: T.t[gb] + DAY });
+          if (gb - ga < 2 || xb - xa < 4) continue;            // a day or two, or too narrow to see: the line's own break says it
+          g.globalAlpha = alpha * 0.75; g.setLineDash([1, 2.5]); g.beginPath(); g.moveTo(xa, ry); g.lineTo(xb, ry); g.stroke(); g.setLineDash([]);
+          g.globalAlpha = alpha * 0.9;
+          for (const e of [ga - 1, gb + 1]) if (e >= 0 && e < T.t.length && isNum(a[e]) && !sp[e]) { const ex = x(T.t[e] + DAY / 2), ey = y(a[e]); g.beginPath(); g.moveTo(ex, ey - 3); g.lineTo(ex, ey + 3); g.stroke(); }
+        }
+      });
       g.restore();
       // y axis ticks (mm)
       axisLeft(lane, y, alpha, "mm");
@@ -684,7 +702,7 @@ window.SvkTimeline = (function () {
       // the seismometer's recording: the day / hours / minutes graphs' data (at least 6 px, so one day in three years shows)
       g.globalAlpha = melhLevel ? 1 : 0.35; g.fillStyle = C.bands.tremor;
       for (const [ca, cb] of cov) { if (cb < a || ca > b) continue; const xa = Math.max(OV_X, xo(ca)), xb = Math.min(x1, Math.max(xa + 6, xo(cb))); g.fillRect(xa, seisY, xb - xa, rowH - 1); }
-      // the GNSS days: measured solid, a straight line in the file faint (the cycle / sequence graphs' data)
+      // the GNSS days: measured solid, a day without an IMO solution faint (the cycle / sequence graphs' data)
       const G = D.gnss, st = ctx.gnssStations()[0];
       if (G && st) {
         const u = G.cols[`${st}_u_mm`], ip = G.cols[`${st}_interp`] || [];
@@ -751,7 +769,7 @@ window.SvkTimeline = (function () {
       else {
         lines.push(s && ctx.src.covered(s.id, t, t + 1) ? "the seismometer recorded here: the day, hours and minutes graphs are drawn" : `<span class="dim">no seismometer recording here</span>`);
         const G = D.gnss, st = ctx.gnssStations()[0], i = G ? Math.floor((t - G.t[0]) / DAY) : -1;
-        if (G && st && i >= 0 && i < G.t.length) lines.push((G.cols[`${st}_interp`] || [])[i] ? `<span class="dim">GNSS: a straight line in the file (not measured)</span>` : isNum(G.cols[`${st}_u_mm`][i]) ? "GNSS: measured" : `<span class="dim">no GNSS</span>`);
+        if (G && st && i >= 0 && i < G.t.length) lines.push((G.cols[`${st}_interp`] || [])[i] ? `<span class="dim">GNSS: no measurement (no IMO solution that day)</span>` : isNum(G.cols[`${st}_u_mm`][i]) ? "GNSS: measured" : `<span class="dim">no GNSS</span>`);
         const w = (xo.domain()[1] - xo.domain()[0]) / Math.max(1, W - OV_X), E = ctx.src.events(t - w * 2, t + w * 2);
         lines.push(`${E.i1 - E.i0} quakes here`);
         lines.push(`<span class="dim">click or drag: go there at this zoom</span>`);

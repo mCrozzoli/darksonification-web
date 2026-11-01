@@ -68,7 +68,7 @@ window.DarkLegend = (function () {
             { key: "height", qty: 5, name: lab("SKSH_u_mm"), to: "the pitch of a bowed tone (T-A)", epistemic: epi("SKSH_u_mm", "measurement"),
               range: u.min != null ? `${Math.round(u.min)} to ${Math.round(u.max)} mm over the record` : "",
               chips: [["low (0)", 0], ["high (1)", 1], ...(tn && tn.u_abs != null ? [[`now (${f(tn.u_abs)})`, tn.u_abs]] : [])],
-              info: "How high the ground stands at SKSH, on the scale of the whole record: the voice climbs as the ground rises and glides down at every eruption's fall. The pitch is how high the ground stands, not a sound the ground makes. Where the GNSS file is a straight line (not measured, e.g. all of January 2024) the tone is veiled; a one-day spike in the file is never heard as a fall.",
+              info: "How high the ground stands at SKSH, on the scale of the whole record: the voice climbs as the ground rises and glides down at every eruption's fall. The pitch is how high the ground stands, not a sound the ground makes. Across a gap in the GNSS (no measurement, e.g. most of January 2024) the tone carries on veiled; a one-day spike in the file is never heard as a fall.",
               data: "SKSH_u_mm (spike days replaced by their neighbours); u_abs in /svk_tension" },
             { key: "above", qty: 4, name: lab("above_last_start_mm", "height above where the last eruption began"), to: "the interval to a quiet reference tone (T-A)", epistemic: "measurement",
               range: tn && tn.onsetMin != null ? `earlier eruptions began between ${sgn(tn.onsetMin)} and ${sgn(tn.onsetMax)} · now ${sgn(tn.above)}` : "",
@@ -166,17 +166,19 @@ window.DarkLegend = (function () {
   }
   const cooked2 = (v) => typeof v === "number" && isFinite(v);
 
+  const fieldOn = () => { try { const M = api && api.manifest ? api.manifest() : null; return M && M.gnss_field ? (M.gnss_field.stations || []).length : 0; } catch (_) { return 0; } };
   const listed = () => { try { const E = api && api.manifest && window.SvkCook ? window.SvkCook.eruptionList(api.manifest()) : []; return E.length > 0 && E[0].from === "eruptions"; } catch (_) { return false; } };
   const SEE = () => [
     ["gold", "you: the cursor, the room you are in (the band), the ear you listen from"],
     ["faint grey", "not measured"],
-    ["dashed line", "a straight line in the GNSS file: not measured"],
+    ["dotted rail", "along the top of the ground-height lane, in a station's colour: that station has no measurement those days (its line stops at a small tick; nothing is drawn in between)"],
     ["◎", "a trace"],
     ["map", "the quakes on screen, fading with age"],
     ["▲ / △", "a station: filled = measured position, hollow and dashed = a placeholder (the dotted ring: its uncertainty)"],
+    ...(fieldOn() ? [["→ thin arrows", `on the map at the cycle and sequence levels: how ${fieldOn()} more IMO GNSS stations move now (their last 7 days; the key arrow is 5 mm/day). The dot is filled while a station rises, a ring while it sinks. Map only: nothing sounds from them. Point at one for its numbers`]] : []),
     ["◆ + bars", "at an eruption: the fissure and its fountains' heights now, one bar per segment (dashed + model = simulated)"],
     // as the timeline draws them: with W1's eruption list ▼ an eruption, ▿ an intrusion; without it the GNSS detection's own
-    // ▼ and ◇ (an eruption hidden in a straight-line stretch)
+    // ▼ and ◇ (an eruption hidden inside a gap in the GNSS)
     listed() ? ["▼ ▿", "on the GNSS lane: an eruption, an intrusion"] : ["▼ ◇", "on the GNSS lane: an eruption, an eruption hidden in the GNSS"],
     ["latent map", "one dot per recorded minute · colour = group · ring = unusual"],
   ];
