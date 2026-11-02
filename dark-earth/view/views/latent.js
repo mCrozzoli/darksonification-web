@@ -5,6 +5,8 @@
 // rest recede toward the ground; the cursor's minute is ringed in gold (you). Click a point = jump the timeline to that
 // minute and play its Ground (the evidence). The clusters are unsupervised: they are named by when they happen
 // (from the data), never by what we think they are.
+// V1 (Miguel 2026-11-02): zoom and pan the point cloud (views/zoom.js: the wheel or a pinch; a drag pans once zoomed in;
+// double-click or ⟲ back). The points keep their size; hover and click read the zoomed scales.
 window.SvkLatent = (function () {
   "use strict";
   const fmt = d3.utcFormat("%H:%M");
@@ -17,12 +19,14 @@ window.SvkLatent = (function () {
       <div class="lat-empty"></div><div class="hbox lat-hbox"></div>`;
     const cv = host.querySelector(".lat-cv"), g = cv.getContext("2d"), hbox = host.querySelector(".lat-hbox");
     let W = 200, H = 160, dpr = 1, L = null, dirty = true, sx = null, sy = null, groups = [];
+    const Z = SvkZoom.attach(cv, host, { maxK: 20, corner: "tr", onZoom: () => { dirty = true; hbox.style.display = "none"; } });
+    const zoomed = () => (sx ? [Z.t.rescaleX(sx), Z.t.rescaleY(sy)] : [null, null]);
 
     function resize() {
       const r = host.getBoundingClientRect();
       W = Math.max(160, r.width); H = Math.max(120, r.height); dpr = window.devicePixelRatio || 1;
       cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + "px"; cv.style.height = H + "px";
-      scales(); dirty = true;
+      Z.size(W, H); scales(); dirty = true;
     }
     function scales() {
       if (!L) return;
@@ -59,10 +63,10 @@ window.SvkLatent = (function () {
     function draw() {
       if (!dirty || !L || !sx) return; dirty = false;
       g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
-      const C = ctx.col(), [t0, t1] = S.view;
+      const C = ctx.col(), [t0, t1] = S.view, [zx, zy] = zoomed();
       // grid
       g.strokeStyle = ctx.tok("--ds-axis"); g.lineWidth = 1;
-      g.beginPath(); g.moveTo(sx(0), 20); g.lineTo(sx(0), H - 18); g.moveTo(16, sy(0)); g.lineTo(W - 8, sy(0)); g.stroke();
+      g.beginPath(); g.moveTo(zx(0), 20); g.lineTo(zx(0), H - 18); g.moveTo(16, zy(0)); g.lineTo(W - 8, zy(0)); g.stroke();
       const inWin = (t) => t + 60 > t0 && t < t1;
       for (const pass of [0, 1]) {
         for (let i = 0; i < L.x.length; i++) {
@@ -70,8 +74,8 @@ window.SvkLatent = (function () {
           if ((pass === 1) !== on) continue;
           const col = C.clusters[L.cluster[i] % C.clusters.length];
           g.globalAlpha = on ? 0.95 : 0.22;
-          g.fillStyle = col; g.beginPath(); g.arc(sx(L.x[i]), sy(L.y[i]), on ? 3.2 : 2.2, 0, 7); g.fill();
-          if (L.anomaly[i]) { g.strokeStyle = ctx.tok("--ds-txt"); g.lineWidth = 1; g.globalAlpha = on ? 0.9 : 0.3; g.beginPath(); g.arc(sx(L.x[i]), sy(L.y[i]), 5.5, 0, 7); g.stroke(); }
+          g.fillStyle = col; g.beginPath(); g.arc(zx(L.x[i]), zy(L.y[i]), on ? 3.2 : 2.2, 0, 7); g.fill();
+          if (L.anomaly[i]) { g.strokeStyle = ctx.tok("--ds-txt"); g.lineWidth = 1; g.globalAlpha = on ? 0.9 : 0.3; g.beginPath(); g.arc(zx(L.x[i]), zy(L.y[i]), 5.5, 0, 7); g.stroke(); }
         }
       }
       g.globalAlpha = 1;
@@ -79,12 +83,12 @@ window.SvkLatent = (function () {
       const TR = (ctx.traces && ctx.traces()) || [];
       if (TR.length) {
         g.lineWidth = 1.6;
-        for (const r of TR) { g.strokeStyle = r.color; for (let i = 0; i < L.t.length; i++) if (L.t[i] + 60 > r.t0 && L.t[i] < r.t1) { g.beginPath(); g.arc(sx(L.x[i]), sy(L.y[i]), 6.5, 0, 7); g.stroke(); } }
+        for (const r of TR) { g.strokeStyle = r.color; for (let i = 0; i < L.t.length; i++) if (L.t[i] + 60 > r.t0 && L.t[i] < r.t1) { g.beginPath(); g.arc(zx(L.x[i]), zy(L.y[i]), 6.5, 0, 7); g.stroke(); } }
       }
       // the cursor's minute (gold = you)
       const k = nearestT(S.cursor);
       if (k >= 0 && Math.abs(L.t[k] + 30 - S.cursor) <= 60) {
-        g.strokeStyle = ctx.tok("--ds-cur"); g.lineWidth = 2; g.beginPath(); g.arc(sx(L.x[k]), sy(L.y[k]), 8, 0, 7); g.stroke();
+        g.strokeStyle = ctx.tok("--ds-cur"); g.lineWidth = 2; g.beginPath(); g.arc(zx(L.x[k]), zy(L.y[k]), 8, 0, 7); g.stroke();
       }
     }
     function nearestT(t) {
@@ -96,8 +100,9 @@ window.SvkLatent = (function () {
     }
     function pick(px, py) {
       if (!L || !sx) return -1;
+      const [zx, zy] = zoomed();
       let best = -1, bd = 100;
-      for (let i = 0; i < L.x.length; i++) { const d = (sx(L.x[i]) - px) ** 2 + (sy(L.y[i]) - py) ** 2; if (d < bd) { bd = d; best = i; } }
+      for (let i = 0; i < L.x.length; i++) { const d = (zx(L.x[i]) - px) ** 2 + (zy(L.y[i]) - py) ** 2; if (d < bd) { bd = d; best = i; } }
       return best;
     }
     cv.addEventListener("pointermove", (e) => {

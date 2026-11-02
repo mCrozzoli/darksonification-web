@@ -169,7 +169,8 @@ window.DarkLegend = (function () {
   const fieldOn = () => { try { const M = api && api.manifest ? api.manifest() : null; return M && M.gnss_field ? (M.gnss_field.stations || []).length : 0; } catch (_) { return 0; } };
   const listed = () => { try { const E = api && api.manifest && window.SvkCook ? window.SvkCook.eruptionList(api.manifest()) : []; return E.length > 0 && E[0].from === "eruptions"; } catch (_) { return false; } };
   const SEE = () => [
-    ["gold", "you: the cursor, the room you are in (the band), the ear you listen from"],
+    ["gold", "you, in time: the cursor and the room you are in (the band); a quake rings gold as it sounds"],
+    ["magenta", "you, in space: the ear you listen from and its facing wedge. With the lens “show what the ear hears”: rings at 2, 5 and 10 km, a faint shade behind (heard a little muffled), and a line to each sound as it plays, brighter the louder it arrives"],
     ["faint grey", "not measured"],
     ["dotted rail", "along the top of the ground-height lane, in a station's colour: that station has no measurement those days (its line stops at a small tick; nothing is drawn in between)"],
     ["◎", "a trace"],

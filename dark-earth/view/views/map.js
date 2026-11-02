@@ -10,6 +10,9 @@
 //   - v0.17 (DESIGN §6.2): at the cycle and sequence levels, the wider GNSS network (23 IMO stations, map only) as a field of
 //     thin arrows: how each station moves at the cursor's day (its trailing 7-day velocity), faint until pointed at;
 //   - a brush selects events by place: the timeline dims the rest and the Swarm hears only the selection;
+//   - V1 (Miguel 2026-11-02): zoom and pan (views/zoom.js). The wheel or a pinch zooms; a drag pans once zoomed in; at
+//     the full view a drag still draws the box, and shift-drag draws it at any zoom. Semantic: the projection is scaled,
+//     so marks, labels and the ear keep their size while the coast, the grid and the scale bar follow;
 //   - at the hours and minutes levels, a polarization arrow for MELH, in a compass inset (MELH is placed approximately,
 //     ±2 km, since 0.13; the direction is in the sensor's frame, ambiguous by 180°).
 window.SvkMap = (function () {
@@ -21,11 +24,12 @@ window.SvkMap = (function () {
     host.classList.add("mapv");
     host.innerHTML = `<svg class="map-svg"><g class="map-grat"></g><path class="map-land"></path><path class="map-coast"></path>
         <g class="map-places"></g><g class="map-scale"></g><g class="map-brush"></g></svg>
-      <canvas class="map-cv"></canvas><svg class="map-top"><g class="map-st"></g><g class="map-ear"><title></title><circle class="ear-hit" r="13"></circle><circle class="ear-ring" r="5.5"></circle><circle class="ear-dot" r="1.6"></circle><path class="ear-face" d="M0,-6 L-3.4,-12.5 A13,13 0 0 1 3.4,-12.5 Z"></path></g></svg><canvas class="map-eru"></canvas>
+      <canvas class="map-cv"></canvas><svg class="map-top"><g class="ear-lens"><path class="ear-shade"></path><g class="ear-rings"></g></g><g class="map-st"></g><g class="map-ear"><title></title><circle class="ear-hit" r="15"></circle><circle class="ear-ring" r="7"></circle><circle class="ear-dot" r="2"></circle><path class="ear-face" d="M0,-7.5 L-3.6,-14 A14.5,14.5 0 0 1 3.6,-14 Z"></path></g></svg><canvas class="map-eru"></canvas>
       <div class="map-pol"><svg viewBox="-40 -40 80 80"><circle r="30" class="pol-ring"></circle><text y="-32" class="pol-n">N</text>
         <line class="pol-arrow" x1="0" y1="0" x2="0" y2="0"></line><path class="pol-h1"></path><path class="pol-h2"></path></svg>
         <canvas class="map-hodo" title="particle motion: 4 s around the cursor · east → · north ↑ · the sensor's frame"></canvas><div class="pol-txt"></div></div>
-      <div class="map-pending"></div><div class="map-sel"></div><div class="hbox map-hbox"></div>`;
+      <div class="map-pending"></div><div class="map-sel"></div><div class="hbox map-hbox"></div>
+      <div class="ear-hint" style="display:none">drag the ear to listen from elsewhere <button title="got it">✕</button></div>`;
     // the stations sit above the quakes' canvas (map-top, no pointer events: the brush below takes the hover)
     const svg = d3.select(host).select(".map-svg"), top = d3.select(host).select(".map-top"), cv = host.querySelector(".map-cv"), g = cv.getContext("2d");
     // the eruption's fissure and fountain bars on their own canvas above the stations (the stations sit at the eruption site)
@@ -33,6 +37,7 @@ window.SvkMap = (function () {
     const hbox = host.querySelector(".map-hbox");
     let W = 300, H = 200, dpr = 1, geo = null, dirty = true, box = null;
     const proj = d3.geoMercator(), path = d3.geoPath(proj);
+    let s0 = 1, tr0 = [0, 0];                                 // the full view's scale and translate (fit); the zoom scales them
     const brush = d3.brush().on("end", (e) => {
       if (!e.sourceEvent) return;
       if (!e.selection) { box = null; ctx.setSelection(null); return; }
@@ -40,7 +45,17 @@ window.SvkMap = (function () {
       box = { lon0: p0[0], lat0: p0[1], lon1: p1[0], lat1: p1[1] };
       ctx.setSelection(box);
     });
+    // V1: at the full view a drag draws the box (as before); zoomed in, a drag pans and shift-drag draws the box. The box
+    // ignores its own key modifiers (shift would lock it to one axis) and touch (one finger scrolls the page, two zoom)
+    brush.filter((e) => !e.button && !e.ctrlKey && (e.shiftKey || !Z || Z.t.k <= 1.001)).keyModifiers(false).touchable(() => false);
     const bg = svg.select(".map-brush").call(brush);
+    bg.select(".overlay").style("touch-action", "pan-x pan-y");
+    const Z = SvkZoom.attach(svg.node(), host, { maxK: 16, panFilter: (e) => !e.shiftKey, corner: "br", onZoom: () => {
+      applyZoom(); drawStatic(); drawEar(); dirty = true;
+      bg.select(".overlay").style("cursor", Z.t.k > 1.001 ? "grab" : null);
+      if (box) bg.call(brush.move, [proj([box.lon0, box.lat1]), proj([box.lon1, box.lat0])]);
+    } });
+    function applyZoom() { const t = Z.t; proj.scale(s0 * t.k).translate([t.x + t.k * tr0[0], t.y + t.k * tr0[1]]); }
     bg.select(".overlay").on("pointermove.hover", (e) => hover(e)).on("pointerleave.hover", () => { hbox.style.display = "none"; if (fieldHot) { fieldHot = null; dirty = true; } });
 
     function fit() {
@@ -50,13 +65,14 @@ window.SvkMap = (function () {
       const corners = (a, b, c, d) => ({ type: "MultiPoint", coordinates: [[a, b], [c, b], [c, d], [a, d]] });
       // a wide map frames the epicentre area with the coast around it; a tall one shows the whole box
       proj.fitExtent([[8, 8], [W - 8, H - 8]], W / H > 1.4 ? corners(-22.80, 63.76, -22.05, 64.02) : corners(...bb));
+      s0 = proj.scale(); tr0 = proj.translate(); applyZoom();
     }
     function resize() {
       const r = host.getBoundingClientRect();
       W = Math.max(160, r.width); H = Math.max(140, r.height); dpr = window.devicePixelRatio || 1;
       svg.attr("width", W).attr("height", H); top.attr("width", W).attr("height", H);
       for (const c of [cv, cve]) { c.width = W * dpr; c.height = H * dpr; c.style.width = W + "px"; c.style.height = H + "px"; }
-      brush.extent([[0, 0], [W, H]]); bg.call(brush);
+      brush.extent([[0, 0], [W, H]]); bg.call(brush); Z.size(W, H);
       fit(); drawStatic(); drawEar(); dirty = true;
       if (box) bg.call(brush.move, [proj([box.lon0, box.lat1]), proj([box.lon1, box.lat0])]);
     }
@@ -65,14 +81,15 @@ window.SvkMap = (function () {
       const land = geo.features.find((f) => f.properties.kind === "land"), coast = geo.features.find((f) => f.properties.kind === "coast");
       svg.select(".map-land").attr("d", land ? path(land) : null);
       svg.select(".map-coast").attr("d", coast ? path(coast) : null);
-      const grat = d3.geoGraticule().step([0.25, 0.1]).extent([[-23.5, 63.5], [-21, 64.5]]);
+      const k = Z.t.k, grat = d3.geoGraticule().step(k < 3 ? [0.25, 0.1] : k < 8 ? [0.1, 0.05] : [0.05, 0.02]).extent([[-23.5, 63.5], [-21, 64.5]]);
       svg.select(".map-grat").selectAll("path").data([grat()]).join("path").attr("d", path);
-      // a 10 km scale bar
+      // a scale bar of a round length that fits (10 km at the full view; 5, 2, 1 km, 500 m, 200 m zoomed in)
       const [lx, ly] = [14, H - 34], p0 = proj.invert([lx, ly]);
-      const dLon = 10 / (111.32 * Math.cos((p0[1] * Math.PI) / 180)), x1 = proj([p0[0] + dLon, p0[1]])[0];
+      const pxKm = (km) => proj([p0[0] + km / (111.32 * Math.cos((p0[1] * Math.PI) / 180)), p0[1]])[0] - lx;
+      const km = [10, 5, 2, 1, 0.5, 0.2, 0.1].find((v) => pxKm(v) <= 110) || 0.1, x1 = lx + pxKm(km);
       const sc = svg.select(".map-scale").selectAll("*").remove() && svg.select(".map-scale");
       sc.append("line").attr("x1", lx).attr("x2", x1).attr("y1", ly).attr("y2", ly);
-      sc.append("text").attr("x", lx).attr("y", ly - 4).text("10 km");
+      sc.append("text").attr("x", lx).attr("y", ly - 4).text(km >= 1 ? `${km} km` : `${Math.round(km * 1000)} m`);
       // placed stations: measured filled, approx hollow + dashed with its uncertainty ring (CONTRACT 0.13 §4.2)
       const all = stations(), placed = all.filter((s) => s.placed);
       top.select(".map-st").selectAll("g").data(placed, (s) => s.id)
@@ -271,6 +288,36 @@ window.SvkMap = (function () {
       return out;
     }
 
+    // ----- V2: the rays. A placed sound that plays (a quake's bell, grain or tick, a strike, the Ground's onset or swell)
+    // draws a line from the ear to its source, fading over RAY_MS. Its opacity follows the level that arrives: SC's distance
+    // law in dB (+6 near … −18 far) onto RAY_A0 … 1. A dense swarm is thinned: at most RAY_CAP new rays a second, the
+    // loudest first (a frame's due rays sorted by loudness: distance gain × 10^(M/2); strikes and the Ground first)
+    const RAY_MS = 1000, RAY_CAP = 12, RAY_PENDING = 400, RAY_A0 = 0.15;
+    const rays = [], pending = [], admitted = [];
+    function setEarColour() { const C = ctx.col(); if (C && C.ear) host.style.setProperty("--svk-ear", C.ear); }
+    function drawRays(C) {
+      const now = performance.now();
+      if (pending.length) {
+        const due = []; for (let i = pending.length - 1; i >= 0; i--) if (pending[i].at <= now) due.push(pending.splice(i, 1)[0]);
+        due.sort((a, b) => b.loud - a.loud);
+        while (admitted.length && admitted[0] < now - 1000) admitted.shift();
+        for (const p of due) { if (admitted.length >= RAY_CAP) break; admitted.push(now); rays.push({ ...p, t0: now }); }
+      }
+      for (let i = rays.length - 1; i >= 0; i--) if (now - rays[i].t0 >= RAY_MS) rays.splice(i, 1);
+      if (!rays.length) return;
+      const L = ctx.listener ? ctx.listener() : null, e = L && proj([L.lon, L.lat]);
+      if (!e || !isNum(e[0])) return;
+      const g = ge; g.save(); g.strokeStyle = C.ear; g.fillStyle = C.ear; g.lineCap = "round";
+      for (const r of rays) {
+        const s = proj([r.lon, r.lat]); if (!s || !isNum(s[0])) continue;
+        const db = 20 * Math.log10(Math.max(1e-3, r.gain)), lvl = RAY_A0 + (1 - RAY_A0) * Math.max(0, Math.min(1, (db + 18) / 24));
+        g.globalAlpha = lvl * (1 - (now - r.t0) / RAY_MS); g.lineWidth = r.kind === "quake" ? 1 : 1.6;
+        g.beginPath(); g.moveTo(e[0], e[1]); g.lineTo(s[0], s[1]); g.stroke();
+        g.beginPath(); g.arc(s[0], s[1], r.kind === "quake" ? 1.8 : 2.6, 0, 7); g.fill();
+      }
+      g.restore();
+    }
+
     // epicentres of the window, fading with age (relative to the cursor)
     function draw() {
       if (!dirty) return; dirty = false;
@@ -302,6 +349,7 @@ window.SvkMap = (function () {
       g.globalAlpha = 1;
       drawField();
       drawEruption(C);
+      drawRays(C);
       drawPol();
       const n = sel ? countSel(E, sel) : null;
       const ms = host.querySelector(".map-sel");
@@ -356,18 +404,40 @@ window.SvkMap = (function () {
       hbox.style.top = Math.max(2, py + 14 + bh > H ? py - bh - 14 : py + 14) + "px";
     }
 
-    // v0.14: the listener, one gold ear (gold = you): a ring with a small wedge toward where it faces (the activity, eased,
+    // v0.14: the listener, one ear in the listening colour (V2: magenta, COL.ear; gold stays you in time): a ring with a
+    // small wedge toward where it faces (the activity, eased,
     // or north). Drag it to move; near a station it snaps onto it (the listener then follows that station's position).
     // Calm: no label, the name on hover
     const ear = top.select(".map-ear");
+    // a one-time hint (Miguel did not know the ear moves): shown until the ear is first dragged or the hint is closed
+    const EAR_HINT = "svk_ear_hint_seen";
+    const earHintSeen = () => { try { return localStorage.getItem(EAR_HINT) === "1"; } catch (_) { return true; } };
+    const earHintDone = () => { try { localStorage.setItem(EAR_HINT, "1"); } catch (_) {} const h = host.querySelector(".ear-hint"); if (h) h.style.display = "none"; };
+    host.querySelector(".ear-hint button").onclick = (e) => { e.stopPropagation(); earHintDone(); };
     function drawEar() {
+      setEarColour();
       const L = ctx.listener ? ctx.listener() : null, q = L && proj([L.lon, L.lat]);
       ear.style("display", q && isNum(q[0]) ? null : "none");
       if (!q || !isNum(q[0])) return;
       ear.attr("transform", `translate(${q[0]},${q[1]})`);
       const F = ctx.facing ? ctx.facing() : { mode: "north", heading: 0 }, deg = (F.heading * 180) / Math.PI;
       ear.select(".ear-face").attr("transform", `rotate(${deg.toFixed(1)})`);
+      // V2, the lens "show what the ear hears": rings at 2, 5 and 10 km (true distances: they follow the zoom), and behind
+      // the ear (away from where it faces) a faint shade out to 10 km, the half it hears a little muffled (stereo)
+      const lens = !!(ctx.hearLens && ctx.hearLens()), lg = top.select(".ear-lens");
+      ear.classed("lens", lens); lg.style("display", lens ? null : "none");
+      if (lens) {
+        lg.attr("transform", `translate(${q[0]},${q[1]})`);
+        const R = (km) => mPx(L.lat, L.lon, km * 1000), r10 = R(10);
+        lg.select(".ear-shade").attr("d", `M${-r10},0 A${r10},${r10} 0 0 0 ${r10},0 Z`).attr("transform", `rotate(${deg.toFixed(1)})`);
+        lg.select(".ear-rings").selectAll("g").data([2, 5, 10]).join((en) => { const gg = en.append("g"); gg.append("circle"); gg.append("text"); return gg; })
+          .call((gg) => { gg.select("circle").attr("r", R); gg.select("text").attr("x", (km) => R(km) * 0.71 + 2).attr("y", (km) => -R(km) * 0.71 - 2).text((km) => `${km} km`); });
+      }
       const bearing = `${Math.round(((deg % 360) + 360) % 360)}°`;
+      const hint = host.querySelector(".ear-hint");
+      // the hint once the map is fitted (the coast loaded), never at a guessed place
+      if (geo && !earHintSeen()) { hint.style.display = ""; const hw = hint.offsetWidth || 200; hint.style.left = Math.max(4, Math.min(W - hw - 4, q[0] + 16)) + "px"; hint.style.top = Math.max(4, Math.min(H - 24, q[1] + 12)) + "px"; }
+      else hint.style.display = "none";
       ear.select("title").text(`you listen from ${L.label}${L.approx ? " (an approx position)" : ""}, facing ${F.mode === "north" ? "north (east on the right)" : `the activity (${bearing} from north): it is in front`} · drag the ear to move it; facing and place in config · C`);
     }
     if (ctx.setListener) ear.call(d3.drag()
@@ -378,18 +448,20 @@ window.SvkMap = (function () {
         const ll = proj.invert([e.x, e.y]);
         ctx.setListener(snap ? { station: snap.id } : { lat: ll[1], lon: ll[0] }, { dragging: true });
       })
-      .on("end", () => { ear.classed("drag", false); ctx.setListener(ctx.listenerRaw()); }));   // once more, not dragging: the dock and legend follow
+      .on("end", () => { ear.classed("drag", false); earHintDone(); ctx.setListener(ctx.listenerRaw()); }));   // once more, not dragging: the dock and legend follow
 
     fetch("geo/reykjanes_coast.geojson", { cache: "no-store" }).then((r) => r.json()).then((j) => { geo = j; resize(); });
     new ResizeObserver(() => resize()).observe(host);
     resize();
     return {
       redraw() { dirty = true; },
-      frame() { draw(); },
-      restyle() { drawStatic(); drawEar(); dirty = true; },
+      frame() { if (rays.length || pending.length) dirty = true; draw(); },
+      restyle() { setEarColour(); drawStatic(); drawEar(); dirty = true; if (!(ctx.hearLens && ctx.hearLens())) { rays.length = 0; pending.length = 0; } },
+      // V2: a placed sound about to play: {lat, lon, at (ms, performance.now), gain (SC's distance law, linear), loud, kind}
+      ray(p) { if (!(ctx.hearLens && ctx.hearLens())) return; pending.push(p); if (pending.length > RAY_PENDING) { pending.sort((a, b) => b.loud - a.loud); pending.length = RAY_PENDING; } },
       earMoved() { drawEar(); },
       // pan for /svk_event: the epicentre's x in the map's frame, −1 … 1
-      panOf(lon, lat) { const q = proj([lon, lat]); return q ? Math.max(-1, Math.min(1, (q[0] / W) * 2 - 1)) : 0; },
+      panOf(lon, lat) { const q = proj([lon, lat]); return q ? Math.max(-1, Math.min(1, (Z.t.invertX(q[0]) / W) * 2 - 1)) : 0; },   // the full view's x: zooming moves no sound
       clearBox() { box = null; bg.call(brush.move, null); },
       source() { return geo && geo.source; },
     };
