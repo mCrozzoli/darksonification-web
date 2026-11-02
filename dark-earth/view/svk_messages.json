@@ -1,6 +1,6 @@
 {
   "_what": "CONTRACT v0.11 \u00a75 + \u00a75.0 + \u00a75.1 as data: one table read by the page (cook.js: field order, validation, debug panel) and by the bridge (bridge.py: JSON <-> OSC). Field order == OSC arg order. W3 keeps this in step with lab/CONTRACT.md; it never changes the contract.",
-  "contract": "0.14",
+  "contract": "0.18",
   "page_to_engine": {
     "zoom": {
       "addr": "/svk_zoom",
@@ -206,6 +206,10 @@
         [
           "dist_km",
           "f"
+        ],
+        [
+          "el",
+          "f"
         ]
       ],
       "nullable": [
@@ -213,9 +217,10 @@
         "fc_hz",
         "depth_abs",
         "az",
-        "dist_km"
+        "dist_km",
+        "el"
       ],
-      "_what": "v0.14 (spatial listening): pan = sin(az); trailing az (rad, clockwise, RELATIVE TO THE LISTENER'S HEADING: 0 = in front, +pi/2 = right; the heading faces the activity, eased over ~3 s, or north, Miguel 2026-10-25 choice c) and dist_km (3-D, the hypocentre's depth included), both null = NaN when the quake or the listener has no position."
+      "_what": "v0.14 (spatial listening): pan = sin(az); trailing az (rad, clockwise, RELATIVE TO THE LISTENER'S HEADING: 0 = in front, +pi/2 = right; the heading faces the activity, eased over ~3 s, or north, Miguel 2026-10-25 choice c) and dist_km (3-D, the hypocentre's depth included), both null = NaN when the quake or the listener has no position. v0.18 (A2, ambisonics; DECISIONS 2026-11-02; W2's proposal, note \u00a73k): trailing el, the elevation in rad, negative below the ear: -atan2(depth, horizontal distance) for the hypocentre (straight below = -pi/2); null = NaN = the ear's height. Stereo ignores it; dist_km is unchanged."
     },
     "ground": {
       "addr": "/svk_ground",
@@ -816,14 +821,19 @@
         [
           "dist_km",
           "f"
+        ],
+        [
+          "el",
+          "f"
         ]
       ],
       "nullable": [
         "fountain",
         "az",
-        "dist_km"
+        "dist_km",
+        "el"
       ],
-      "_what": "v0.11 \u00a79.3: when the play cursor crosses an eruption (0.5 s lookahead); size = |dU_SKSH| on its range, hidden 0.5; kind 0 magmatic, 1 hidden. v0.13: the eruption list (events/eruptions.json) is the clock when it is there, the GNSS falls otherwise; two trailing args: fountain = the eruption's max fountain height (observed or simulated) on the fountains' range, 0-1 (null = NaN = no fountain data), fountain_kind 0 none, 1 observed, 2 simulated. SC accepts 3 or 5 args; the page always sends 5 v0.14: two more trailing args, az (relative to the listener's heading, as /svk_event) and dist_km from the listener to the eruption's place (fissure centroid; for an intrusion where it began) (null = NaN: a row without a fissure is unplaced). SC accepts 3, 5 or 7 args; the page sends 7"
+      "_what": "v0.11 \u00a79.3: when the play cursor crosses an eruption (0.5 s lookahead); size = |dU_SKSH| on its range, hidden 0.5; kind 0 magmatic, 1 hidden. v0.13: the eruption list (events/eruptions.json) is the clock when it is there, the GNSS falls otherwise; two trailing args: fountain = the eruption's max fountain height (observed or simulated) on the fountains' range, 0-1 (null = NaN = no fountain data), fountain_kind 0 none, 1 observed, 2 simulated. SC accepts 3 or 5 args; the page always sends 5 v0.14: two more trailing args, az (relative to the listener's heading, as /svk_event) and dist_km from the listener to the eruption's place (fissure centroid; for an intrusion where it began) (null = NaN: a row without a fissure is unplaced). SC accepts 3, 5 or 7 args; the page sends 7 v0.18 (A2, ambisonics; DECISIONS 2026-11-02; W2's proposal, note \u00a73k): trailing el, the elevation in rad, negative below the ear (a fissure sits at the surface: 0); null = NaN = the ear's height. Stereo ignores it."
     },
     "ground_space": {
       "addr": "/svk_ground_space",
@@ -835,14 +845,29 @@
         [
           "dist_km",
           "f"
+        ],
+        [
+          "el",
+          "f"
         ]
       ],
       "nullable": [
         "az",
-        "dist_km"
+        "dist_km",
+        "el"
       ],
       "max_hz": 15,
-      "_what": "v0.14: where the Ground is heard from: the recording station's az (rad, clockwise, relative to the listener's heading, as /svk_event) and dist_km from the listener; re-sent when the heading has turned 1 degree or more. Sent at boot and every (re)connect, when the listener moves, and when a station position changes (an edit or StationXML in the config dock). null = NaN: the station has no position (unplaced). The Ground keeps its polarization rotation, placed at this azimuth."
+      "_what": "v0.14: where the Ground is heard from: the recording station's az (rad, clockwise, relative to the listener's heading, as /svk_event) and dist_km from the listener; re-sent when the heading has turned 1 degree or more. Sent at boot and every (re)connect, when the listener moves, and when a station position changes (an edit or StationXML in the config dock). null = NaN: the station has no position (unplaced). The Ground keeps its polarization rotation, placed at this azimuth. v0.18 (A2, ambisonics; DECISIONS 2026-11-02; W2's proposal, note \u00a73k): trailing el, the elevation in rad, negative below the ear (the station at the surface: 0, or atan2 of its height above the listener's when both are known, about +-0.01); null = NaN."
+    },
+    "spatial": {
+      "addr": "/svk_spatial",
+      "args": [
+        [
+          "mode",
+          "i"
+        ]
+      ],
+      "_what": "v0.18 (A2, DECISIONS 2026-11-02; W2's proposal, note \u00a73k): how the placed sounds are heard: 0 stereo (the default; the engine's stereo path is bit-identical to 0.14), 1 ambisonic, decoded binaurally (headphones). Per viewer, from the sound tab's space switch; sent at boot, on every (re)connect and on each change. The engine also accepts an optional trailing heading (rad, clockwise from north; missing = 0, north); the page does not send it, because az is already relative to the listener's heading."
     },
     "listener": {
       "addr": "/svk_listener",
@@ -1088,6 +1113,10 @@
     "strike_kind": {
       "magmatic": 0,
       "hidden": 1
+    },
+    "spatial": {
+      "stereo": 0,
+      "ambisonic": 1
     }
   },
   "_null": "OSC has no null. A field listed in a type's 'nullable' may be JSON null; the bridge (and engine.js) send it as float NaN, which W2's parser reads as nil (sc/parse_dark_svartsengi.scd ~svkNum). A null never becomes a sound (R3).",

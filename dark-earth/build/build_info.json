@@ -1,5 +1,5 @@
 {
-  "built": "2026-11-02 10:32:17",
+  "built": "2026-11-02 12:04:12",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "clearance": {
     "status": "cleared",
@@ -7,15 +7,15 @@
   },
   "name": "Dark Earth",
   "sources": {
-    "viz/app.js": "3b3cecbad3344bdf",
-    "viz/cook.js": "6fc6c6709ef78149",
-    "viz/index.html": "208df914b42c8320",
+    "viz/app.js": "09e7280b290e39e6",
+    "viz/cook.js": "2c4df848baec0de3",
+    "viz/index.html": "3d79bd56ee232777",
     "viz/legend.js": "15e83977f6619b79",
     "viz/source.js": "7a142799cd986625",
     "viz/stations.js": "6679b4736a82c41c",
-    "viz/svk_messages.json": "3543ec94b18d48f5",
+    "viz/svk_messages.json": "91800621bf355b98",
     "viz/views/latent.js": "18dbaad816ec6fb8",
-    "viz/views/map.js": "db56fa885dc2b02c",
+    "viz/views/map.js": "1ac8e457c0c82501",
     "viz/views/timeline.js": "fae11197a0232511",
     "viz/geo/SOURCE.md": "56992082c4c13ddd",
     "viz/geo/reykjanes_coast.geojson": "b384b96f49ff2c82",
@@ -28,9 +28,13 @@
     "viz/mseed/mseed.js": "c69705700c1c709d",
     "viz/mseed/worker.js": "1021ae29d641b083",
     "sc/dark_svartsengi_boot.scd": "c80719c8905c61af",
-    "sc/svk_synthdefs.scd": "211efbbbe64e02c8",
-    "sc/parse_dark_svartsengi.scd": "b181f21edfd7c875",
-    "sc/svk_cook.scd": "483f0364f6144a57",
+    "sc/svk_synthdefs.scd": "50705d8442754d1f",
+    "sc/parse_dark_svartsengi.scd": "25859808ec28942e",
+    "sc/svk_cook.scd": "abd14d44e152fb7b",
+    "sc/svk_hrir_foa_kemar_44100.wav": "ff0ab095b1765ad4",
+    "sc/svk_hrir_foa_kemar_48000.wav": "387cd61866010e29",
+    "sc/svk_hrir_foa_kemar_88200.wav": "f5d2499b4985bbdc",
+    "sc/svk_hrir_foa_kemar_96000.wav": "7ae1705b940c05ac",
     "build/about.template.html": "484018a993777e0a"
   },
   "patches": [
@@ -74,7 +78,7 @@
   "sc_patches": [
     {
       "file": "svk_synthdefs.scd",
-      "why": "the Array of 16 SynthDefs inlined; the desktop boot's `.do(_.add)` + `s.sync` follow it in a fork; ~webSynthsReady appended"
+      "why": "the Array of 17 SynthDefs inlined; the desktop boot's `.do(_.add)` + `s.sync` follow it in a fork; ~webSynthsReady appended"
     },
     {
       "file": "parse_dark_svartsengi.scd",
@@ -92,6 +96,7 @@
     "view/",
     "sc/svk_synthdefs.scd",
     "sc/parse_dark_svartsengi.scd",
+    "sc/svk_hrir_data.scd",
     "index.html",
     "about.html",
     "CREDITS.txt",
@@ -108,7 +113,7 @@
   ],
   "hand_written_sha": {
     "web_page.js": "48ee7c341de23fa1",
-    "engine.js": "a6b1a756a96028c5",
+    "engine.js": "f8391f44c0c4aa7a",
     "relay.js": "15158ec825ae001c",
     "osc.js": "d1e7c6b2ce4b28db",
     "coi-sw.js": "0f0bd6af19f47770",
@@ -116,11 +121,11 @@
     "README.md": "ce0965b715c86f1a"
   },
   "data": {
-    "built": "2026-11-02 10:32:17",
+    "built": "2026-11-02 12:04:12",
     "bridge_sha": "bb868199de1b0d18",
-    "schema_sha": "3543ec94b18d48f5",
-    "contract": "0.14",
-    "contract_warning": "manifest contract 0.13 ≠ svk_messages.json contract 0.14: the data and the message table are from different contract versions",
+    "schema_sha": "91800621bf355b98",
+    "contract": "0.18",
+    "contract_warning": "manifest contract 0.13 ≠ svk_messages.json contract 0.18: the data and the message table are from different contract versions",
     "publication_gate": {
       "public_seismic_coverage": {
         "RK.MELH.10": [
@@ -164,7 +169,7 @@
       "dev_mock/data/"
     ],
     "relay_vectors": {
-      "page_to_engine": 86,
+      "page_to_engine": 87,
       "engine_to_page": 10,
       "setn": 2
     },
@@ -188,13 +193,46 @@
   "sc_files": [
     "web_boot.scd",
     "svk_synthdefs.scd",
+    "svk_hrir_data.scd",
     "parse_dark_svartsengi.scd"
   ],
-  "n_synthdefs": 16,
+  "n_synthdefs": 17,
+  "hrir": {
+    "rates": [
+      44100,
+      48000,
+      88200,
+      96000
+    ],
+    "files": {
+      "44100": {
+        "frames": 255,
+        "sha256": "ff0ab095b1765ad4",
+        "peak": 0.28132063150405884
+      },
+      "48000": {
+        "frames": 278,
+        "sha256": "387cd61866010e29",
+        "peak": 0.25074437260627747
+      },
+      "88200": {
+        "frames": 510,
+        "sha256": "f5d2499b4985bbdc",
+        "peak": 0.14073309302330017
+      },
+      "96000": {
+        "frames": 556,
+        "sha256": "7ae1705b940c05ac",
+        "peak": 0.1301061511039734
+      }
+    },
+    "bytes": 100945
+  },
   "ugen_audit": {
     "defs": [
       "svkArray",
       "svkBell",
+      "svkBinaural",
       "svkBody",
       "svkBody2",
       "svkCore",
@@ -244,6 +282,7 @@
       "MulAdd",
       "Out",
       "Pan2",
+      "PartConv",
       "Phasor",
       "PinkNoise",
       "RLPF",
@@ -272,9 +311,9 @@
     "sclang.data": "697d847b716b6e36"
   },
   "relay_check": {
-    "checked": 98,
+    "checked": 99,
     "failed": 0,
-    "contract": "0.14"
+    "contract": "0.18"
   },
   "publication_markers": "no NOT_FOR_PUBLICATION.txt in the build",
   "page_refs": 18,
@@ -282,6 +321,7 @@
     "OpenStreetMap",
     "Rhodes et al",
     "vedur\\.is",
-    "brunnur\\.vedur\\.is"
+    "brunnur\\.vedur\\.is",
+    "sc/svk_hrir_foa_kemar_*.wav"
   ]
 }

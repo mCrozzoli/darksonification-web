@@ -207,17 +207,16 @@ window.SvkMap = (function () {
     // FIELD_MAX (beyond it a short bar across the tip; the hover has the number); the dot filled while it rises, a ring while
     // it sinks, faster than FIELD_U mm/day (about twice a week's GNSS noise in height), else a small point. Calm
     // (re_wilding): thin and faint, a slow (noisy) arrow fainter still; the one pointed at drawn full. A gap (fewer than 5
-    // measured days in the week): the point alone. A place without a series (gnss_field.positions_only, empty since Miguel
-    // dropped LISF on 2026-11-02): a point, no arrow
+    // measured days in the week): the point alone. Stations with a position but no public time series are not drawn
+    // (gnss_field.positions_only is not read)
     const DAY = 86400, FIELD_PX = 7, FIELD_MAX = 42, FIELD_U = 2.5, FIELD_KEY = 5;
     let fieldHit = [], fieldHot = null;
     function fieldW() { return (S.w[3] || 0) + (S.w[4] || 0); }
     function fieldAt() {
       const F = ctx.gnssField ? ctx.gnssField() : null; if (!F) return null;
       const { T, meta } = F, i = Math.floor((S.cursor - T.t[0]) / DAY), at = (id, c) => (i >= 0 && i < T.t.length ? (T.cols[`${id}_${c}`] || [])[i] : null);
-      const rows = (meta.stations || []).map((s) => ({ s, series: true, day: i >= 0 && i < T.t.length ? T.t[i] : null,
+      const rows = (meta.stations || []).map((s) => ({ s, day: i >= 0 && i < T.t.length ? T.t[i] : null,
         v: { n: at(s.id, "n_vel"), e: at(s.id, "e_vel"), u: at(s.id, "u_vel"), dn: at(s.id, "n_mm"), de: at(s.id, "e_mm"), du: at(s.id, "u_mm") } }));
-      for (const s of meta.positions_only || []) rows.push({ s, series: false, day: null, v: null });
       return { rows, meta };
     }
     function drawField() {
@@ -243,7 +242,7 @@ window.SvkMap = (function () {
         g.globalAlpha = a0 * 0.9; g.lineWidth = 0.9; g.beginPath();
         if (up != null && up >= FIELD_U) { g.arc(q[0], q[1], 2.3, 0, 7); g.fill(); }
         else if (up != null && up <= -FIELD_U) { g.arc(q[0], q[1], 2.3, 0, 7); g.stroke(); }
-        else { g.globalAlpha *= has ? 0.8 : 0.5; g.arc(q[0], q[1], r.series ? 1.3 : 1.6, 0, 7); g.fill(); }
+        else { g.globalAlpha *= has ? 0.8 : 0.5; g.arc(q[0], q[1], 1.3, 0, 7); g.fill(); }
         fieldHit.push({ x: q[0], y: q[1], r });
       }
       // the key, above the 10 km bar: an arrow of FIELD_KEY mm/day
@@ -256,24 +255,19 @@ window.SvkMap = (function () {
     const COMPASS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
     function fieldLines(r) {
       const s = r.s, F = ctx.gnssField().meta, out = [`<b>${esc(s.id)}</b> · GNSS (IMO) · on the map only`];
-      if (!r.series) out.push("a place, no time series");
+      const v = r.v, day = r.day != null ? new Date(r.day * 1000).toISOString().slice(0, 10) : null;
+      if (!v || !isNum(v.n) || !isNum(v.e)) out.push(`no measurement this week${day ? ` (to ${day})` : ""}: fewer than 5 days with an IMO solution`);
       else {
-        const v = r.v, day = r.day != null ? new Date(r.day * 1000).toISOString().slice(0, 10) : null;
-        if (!v || !isNum(v.n) || !isNum(v.e)) out.push(`no measurement this week${day ? ` (to ${day})` : ""}: fewer than 5 days with an IMO solution`);
-        else {
-          const sp = Math.hypot(v.n, v.e), az = ((Math.atan2(v.e, v.n) * 180) / Math.PI + 360) % 360;
-          out.push(`moving ${sp.toFixed(1)} mm/day toward ${Math.round(az)}° (${COMPASS[Math.round(az / 45) % 8]})${sp < 1 ? ' <span class="dim">· within a week\'s GNSS noise</span>' : ""}`);
-          if (isNum(v.u)) out.push(`${v.u >= 0 ? "rising" : "sinking"} ${Math.abs(v.u).toFixed(1)} mm/day${Math.abs(v.u) < FIELD_U ? ' <span class="dim">· within the noise</span>' : ""}`);
-          out.push(`<span class="dim">the 7 days to ${day}, IMO's plate frame</span>`);
-        }
-        const sg = (x) => { const r = Math.round(x); return `${r >= 0 ? "+" : "−"}${Math.abs(r)}`; };
-        if (v && isNum(v.dn) && isNum(v.de) && isNum(v.du)) out.push(`since ${esc(s.ref_day || "the start")}: N ${sg(v.dn)} · E ${sg(v.de)} · U ${sg(v.du)} mm`);
+        const sp = Math.hypot(v.n, v.e), az = ((Math.atan2(v.e, v.n) * 180) / Math.PI + 360) % 360;
+        out.push(`moving ${sp.toFixed(1)} mm/day toward ${Math.round(az)}° (${COMPASS[Math.round(az / 45) % 8]})${sp < 1 ? ' <span class="dim">· within a week\'s GNSS noise</span>' : ""}`);
+        if (isNum(v.u)) out.push(`${v.u >= 0 ? "rising" : "sinking"} ${Math.abs(v.u).toFixed(1)} mm/day${Math.abs(v.u) < FIELD_U ? ' <span class="dim">· within the noise</span>' : ""}`);
+        out.push(`<span class="dim">the 7 days to ${day}, IMO's plate frame</span>`);
       }
-      // one short credit line (the full source strings on its hover): IMO's series; the position from IMO's GNSS browser,
-      // or, for a place known only from the private file, its own words (rounded, not the exact place)
-      const pos = /map\.js|GNSS browser/i.test(s.pos_source || "") ? "position: IMO GNSS browser"
-        : /not public/i.test(s.pos_source || "") ? `position rounded${isNum(s.pos_err_m) ? `, ± ${Math.round(s.pos_err_m)} m` : ""} (the exact place is not public)` : `position: ${clause(s.pos_source || "unknown")}`;
-      out.push(`<span class="dim" title="${esc([F.credit, s.pos_source].filter(Boolean).join(" · "))}">${r.series ? "IMO GNSS time series (via Leif Karlstrom) · " : ""}${esc(pos)}</span>`);
+      const sg = (x) => { const k = Math.round(x); return `${k >= 0 ? "+" : "−"}${Math.abs(k)}`; };
+      if (v && isNum(v.dn) && isNum(v.de) && isNum(v.du)) out.push(`since ${esc(s.ref_day || "the start")}: N ${sg(v.dn)} · E ${sg(v.de)} · U ${sg(v.du)} mm`);
+      // one short credit line (the full source strings on its hover): IMO's series, the position from IMO's GNSS browser
+      const pos = /map\.js|GNSS browser/i.test(s.pos_source || "") ? "position: IMO GNSS browser" : `position: ${clause(s.pos_source || "unknown")}`;
+      out.push(`<span class="dim" title="${esc([F.credit, s.pos_source].filter(Boolean).join(" · "))}">IMO GNSS time series (via Leif Karlstrom) · ${esc(pos)}</span>`);
       return out;
     }
 

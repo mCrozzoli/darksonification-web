@@ -35,7 +35,10 @@ import { toOsc, fromOsc } from "./relay.js";
 const ENGINE_DIR = new URL("./engine/", import.meta.url);
 const SC_DIR = new URL("./sc/", import.meta.url);
 const SCHEMA_URL = new URL("./view/svk_messages.json", import.meta.url);
-const SC_FILES = ["web_boot.scd", "svk_synthdefs.scd", "parse_dark_svartsengi.scd"];
+// svk_hrir_data.scd (generated): ~svkHrirData, the binaural filters as numbers (this scsynth reads no sound files);
+// it runs before the parser, which takes them from there (CONTRACT 0.18). A separate file because sclang accepts
+// nothing before the parser's opening `( var …` block.
+const SC_FILES = ["web_boot.scd", "svk_synthdefs.scd", "svk_hrir_data.scd", "parse_dark_svartsengi.scd"];
 const SETN_CHUNK = 4096;                          // floats per /b_setn (the task's bound; re_wilding measured 4,096 exact)
 const N_RINGS = 3;                                // Ground: Z, N, E
 const ZERO_WAIT_MS = 1000;                        // uploads held for a /b_zero's /done at most this long
@@ -268,7 +271,7 @@ class DarkEngine {
       (async () => {
         const t0 = performance.now();
         this.setState("booting");
-        const [boot, synthdefs, parse] = this.code;
+        const [boot, synthdefs, hrir, parse] = this.code;
         this.held = []; this.bufnums.clear(); this.rings = {};
         this.bootAllowed = my;
         this.sclang.runCode(boot);                // s.waitForBoot → bootServer() → scsynth in an AudioWorklet
@@ -277,6 +280,7 @@ class DarkEngine {
         this.sclang.runCode(synthdefs);           // the 9 SynthDefs (W2's Array) .add + s.sync
         await this.poll("~webSynthsReady == true", 25000, 300, alive);
         if (!alive()) return;
+        this.sclang.runCode(hrir);                // ~svkHrirData (plain assignments: done when the parser compiles)
         this.sclang.runCode(parse);               // svk_cook inlined + the OSCdefs, rings, voices; it says /svk_ready ×3
         await this.poll("OSCdef.all[\\svkTilt].notNil and: { ~svkVoices.notNil and: { ~svkVoices[\\spatial].notNil } }", 20000, 300, alive);
         if (!alive()) return;

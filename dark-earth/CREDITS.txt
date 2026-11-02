@@ -19,6 +19,13 @@ Lava fountains: observed fountain heights from Rhodes et al. (2026), Bulletin of
 Eruption dates and places: IMO's published reports, https://en.vedur.is/about-imo/news/
 GNSS network: IMO GNSS time series (via Leif Karlstrom); station positions: IMO GNSS browser, brunnur.vedur.is
   (https://brunnur.vedur.is/gps/browser/)
+Binaural decoder (the ambisonic mode): four first-order filters derived from the MIT KEMAR HRTF measurements
+  (compact set), Bill Gardner and Keith Martin, MIT Media Laboratory, 1994, https://sound.media.mit.edu/resources/KEMAR.html
+  "This data is Copyright 1994 by the MIT Media Laboratory. It is provided free with no restrictions on use, provided
+  the authors are cited when the data is used in any research or commercial application."
+  W. G. Gardner and K. D. Martin, "HRTF measurements of a KEMAR," Journal of the Acoustical Society of America
+  97(6), 3907-3908 (1995). Decoder: weighted mode-matching over all 710 measured directions, max-rE weighted,
+  diffuse-field equalised.
 Coastline: Natural Earth 1:10m land, public domain (https://www.naturalearthdata.com).
 
 SOFTWARE
