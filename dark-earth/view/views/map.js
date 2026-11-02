@@ -207,7 +207,8 @@ window.SvkMap = (function () {
     // FIELD_MAX (beyond it a short bar across the tip; the hover has the number); the dot filled while it rises, a ring while
     // it sinks, faster than FIELD_U mm/day (about twice a week's GNSS noise in height), else a small point. Calm
     // (re_wilding): thin and faint, a slow (noisy) arrow fainter still; the one pointed at drawn full. A gap (fewer than 5
-    // measured days in the week): the point alone. LISF has a place but no series: a point, no arrow
+    // measured days in the week): the point alone. A place without a series (gnss_field.positions_only, empty since Miguel
+    // dropped LISF on 2026-11-02): a point, no arrow
     const DAY = 86400, FIELD_PX = 7, FIELD_MAX = 42, FIELD_U = 2.5, FIELD_KEY = 5;
     let fieldHit = [], fieldHot = null;
     function fieldW() { return (S.w[3] || 0) + (S.w[4] || 0); }

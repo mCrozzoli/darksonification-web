@@ -1,5 +1,5 @@
 {
-  "built": "2026-11-01 17:19:30",
+  "built": "2026-11-02 10:32:17",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "clearance": {
     "status": "cleared",
@@ -15,7 +15,7 @@
     "viz/stations.js": "6679b4736a82c41c",
     "viz/svk_messages.json": "3543ec94b18d48f5",
     "viz/views/latent.js": "18dbaad816ec6fb8",
-    "viz/views/map.js": "07355a1d4cecc811",
+    "viz/views/map.js": "db56fa885dc2b02c",
     "viz/views/timeline.js": "fae11197a0232511",
     "viz/geo/SOURCE.md": "56992082c4c13ddd",
     "viz/geo/reykjanes_coast.geojson": "b384b96f49ff2c82",
@@ -116,7 +116,7 @@
     "README.md": "ce0965b715c86f1a"
   },
   "data": {
-    "built": "2026-11-01 17:19:30",
+    "built": "2026-11-02 10:32:17",
     "bridge_sha": "bb868199de1b0d18",
     "schema_sha": "3543ec94b18d48f5",
     "contract": "0.14",
@@ -138,9 +138,9 @@
       }
     },
     "manifest": {
-      "sha": "623dd5757dd42036",
+      "sha": "91a3b585825fb991",
       "contract": "0.13",
-      "built": "2026-11-01T14:17:10.621Z",
+      "built": "2026-11-02T09:30:14.703Z",
       "t0": 1685577600,
       "t_end": 1790812800.0,
       "wave_peak": {
@@ -152,12 +152,12 @@
       "not_for_publication": "IMO lava-flow / effusion data (none of it is in viz/data)"
     },
     "data": {
-      "copied": 230,
-      "kept": 0,
+      "copied": 0,
+      "kept": 230,
       "removed": 0,
-      "digest": "6fd1b34afb3e2322",
+      "digest": "8cd6a1493e3de814",
       "files": 230,
-      "bytes": 42206572
+      "bytes": 42206307
     },
     "bridge_data_roots": [
       "data/",
