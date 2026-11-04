@@ -10,6 +10,11 @@
 //   - v0.17 (DESIGN §6.2): at the cycle and sequence levels, the wider GNSS network (23 IMO stations, map only) as a field of
 //     thin arrows: how each station moves at the cursor's day (its trailing 7-day velocity), faint until pointed at;
 //   - a brush selects events by place: the timeline dims the rest and the Swarm hears only the selection;
+//   - S1 (spatial zoom; Leif: "a way to zoom in and out of particular locations to localize sounds"): the map's view is the
+//     spatial filter. It reports its region to the page (ctx.setRegion: null at the full extent), which hears and dims
+//     only what is in view. Semantic levels in space, crossfaded on the view's width (regional ≥ 30 km across → local
+//     ≤ 15 km): regional draws the quakes as density and the GNSS arrows prominent; local draws each quake, the fissure
+//     segments at their places, MELH full, the arrows faded;
 //   - V1 (Miguel 2026-11-02): zoom and pan (views/zoom.js). The wheel or a pinch zooms; a drag pans once zoomed in; at
 //     the full view a drag still draws the box, and shift-drag draws it at any zoom. Semantic: the projection is scaled,
 //     so marks, labels and the ear keep their size while the coast, the grid and the scale bar follow;
@@ -55,7 +60,19 @@ window.SvkMap = (function () {
       bg.select(".overlay").style("cursor", Z.t.k > 1.001 ? "grab" : null);
       if (box) bg.call(brush.move, [proj([box.lon0, box.lat1]), proj([box.lon1, box.lat0])]);
     } });
-    function applyZoom() { const t = Z.t; proj.scale(s0 * t.k).translate([t.x + t.k * tr0[0], t.y + t.k * tr0[1]]); }
+    function applyZoom() { const t = Z.t; proj.scale(s0 * t.k).translate([t.x + t.k * tr0[0], t.y + t.k * tr0[1]]); reportView(); }
+    // the view's region (lon/lat box, km across) and its centre, to the page; null region at the full extent (nothing filtered)
+    let viewKm = 40;
+    function reportView() {
+      const a = proj.invert([0, 0]), b = proj.invert([W, H]); if (!a || !b || !isNum(a[0])) return;
+      const lat = (a[1] + b[1]) / 2;
+      viewKm = Math.abs(b[0] - a[0]) * 111.32 * Math.cos((lat * Math.PI) / 180);
+      const r = Z && Z.t.k > 1.001 ? { lon0: Math.min(a[0], b[0]), lon1: Math.max(a[0], b[0]), lat0: Math.min(a[1], b[1]), lat1: Math.max(a[1], b[1]), km: viewKm } : null;
+      if (ctx.setRegion) ctx.setRegion(r, { lat, lon: (a[0] + b[0]) / 2 });
+    }
+    // 0 regional (≥ 30 km across) … 1 local (≤ 15 km), smooth between (as the time levels crossfade)
+    const LOCAL_KM = 15, REGIONAL_KM = 30;
+    function localW() { const u = Math.max(0, Math.min(1, (REGIONAL_KM - viewKm) / (REGIONAL_KM - LOCAL_KM))); return u * u * (3 - 2 * u); }
     bg.select(".overlay").on("pointermove.hover", (e) => hover(e)).on("pointerleave.hover", () => { hbox.style.display = "none"; if (fieldHot) { fieldHot = null; dirty = true; } });
 
     function fit() {
@@ -105,6 +122,7 @@ window.SvkMap = (function () {
       // a label that would overlap one already drawn is left to the hover (measured stations first): a tight cluster of
       // names on a small map reads as noise
       const shown = [], marks = placed.map((s) => [s.id, proj([s.lon, s.lat])]);
+      top.select(".map-st").selectAll("g").style("opacity", (s) => (s.kind === "seismic" ? (0.4 + 0.6 * localW()).toFixed(2) : null));
       top.select(".map-st").selectAll("g").sort((a, b) => (a.approx ? 1 : 0) - (b.approx ? 1 : 0)).each(function (s) {
         const q = proj([s.lon, s.lat]), w = 7 + 6.2 * short(s.id).length;
         const free = !shown.some((p) => Math.abs(p[0] - q[0]) < 34 && Math.abs(p[1] - q[1]) < 11)
@@ -196,28 +214,35 @@ window.SvkMap = (function () {
       // above the fissure, as before (or the eruption's highest, faint, without a series)
       const cols = F ? F.cols || Object.keys(F.data || {}) : [], hs = cols.map((c) => [c, hAt(F, c, S.cursor)]);
       const n = cols.length, gap = 4, y0 = p[1] - 7, x0 = p[0] - ((n - 1) * gap) / 2;
-      const bar = (x, h, faint, yb = y0) => { const L = 2 + 38 * Math.min(1, h / hTop); g.globalAlpha = faint ? 0.5 : 0.95; g.beginPath(); g.moveTo(x, yb); g.lineTo(x, yb - L); g.stroke(); return L; };
+      const bar = (x, h, faint, yb = y0) => { const L = 2 + 38 * Math.min(1, h / hTop); g.globalAlpha = fa * (faint ? 0.5 : 0.95); g.beginPath(); g.moveTo(x, yb); g.lineTo(x, yb - L); g.stroke(); return L; };
       const segQ = F && Array.isArray(F.seg_lat) && Array.isArray(F.seg_lon) && F.seg_lat.length === n
         ? cols.map((c, k) => (isNum(F.seg_lat[k]) && isNum(F.seg_lon[k]) ? proj([F.seg_lon[k], F.seg_lat[k]]) : null)) : null;
       const placed = !!(n && segQ && segQ.every((q) => q && isNum(q[0])));
+      // S1: placed bars when local, the row above the fissure when regional, crossfaded (fa scales every alpha below)
+      const lw = localW(), segA = placed ? lw : 0, rowA = placed ? 1 - lw : 1;
+      let fa = 1;
       const segHits = [];
       g.strokeStyle = col; g.lineWidth = 2.4; g.setLineDash(sim ? [3, 2] : []);
-      let top = 0, topAt = null;
-      if (placed) {
-        g.setLineDash([]);
+      let top = 0, topAt = null, pTop = 0, pAt = null, rTop = 0;
+      if (placed && segA > 0.02) {
+        fa = segA; g.setLineDash([]);
         hs.forEach(([c, h], k) => {
           const q = segQ[k], err = F.seg_err_m && isNum(F.seg_err_m[k]) ? F.seg_err_m[k] : null, rr = isNum(err) ? mPx(F.seg_lat[k], F.seg_lon[k], err) : 0;
-          if (rr >= 4) { g.globalAlpha = 0.35; g.lineWidth = 0.7; g.setLineDash([1.5, 3]); g.beginPath(); g.arc(q[0], q[1], rr, 0, 7); g.stroke(); g.setLineDash([]); }
-          g.globalAlpha = 0.8; g.lineWidth = 0.9; g.beginPath(); g.arc(q[0], q[1], 1.6, 0, 7); g.stroke();
+          if (rr >= 4) { g.globalAlpha = fa * 0.35; g.lineWidth = 0.7; g.setLineDash([1.5, 3]); g.beginPath(); g.arc(q[0], q[1], rr, 0, 7); g.stroke(); g.setLineDash([]); }
+          g.globalAlpha = fa * 0.8; g.lineWidth = 0.9; g.beginPath(); g.arc(q[0], q[1], 1.6, 0, 7); g.stroke();
           let L = 0;
-          if (isNum(h) && h > 0) { g.lineWidth = 2.4; g.setLineDash(sim ? [3, 2] : []); L = bar(q[0], h, false, q[1] - 2); g.setLineDash([]); if (L > top) { top = L; topAt = [q[0], q[1] - 2]; } }
+          if (isNum(h) && h > 0) { g.lineWidth = 2.4; g.setLineDash(sim ? [3, 2] : []); L = bar(q[0], h, false, q[1] - 2); g.setLineDash([]); if (L > pTop) { pTop = L; pAt = [q[0], q[1] - 2]; } }
           segHits.push({ x: q[0], y: q[1] - L / 2, col: c, h, err });
         });
-      } else if (n) {
-        g.globalAlpha = 0.35; g.lineWidth = 1; g.setLineDash([]); g.beginPath(); g.moveTo(x0 - 2, y0 + 0.5); g.lineTo(x0 + (n - 1) * gap + 2, y0 + 0.5); g.stroke();   // the row's footing
+      }
+      if (n && rowA > 0.02) {
+        fa = rowA; g.strokeStyle = col; g.setLineDash(sim ? [3, 2] : []);
+        g.globalAlpha = fa * 0.35; g.lineWidth = 1; g.setLineDash([]); g.beginPath(); g.moveTo(x0 - 2, y0 + 0.5); g.lineTo(x0 + (n - 1) * gap + 2, y0 + 0.5); g.stroke();   // the row's footing
         g.lineWidth = 2.4; g.setLineDash(sim ? [3, 2] : []);
-        hs.forEach(([, h], k) => { if (isNum(h) && h > 0) top = Math.max(top, bar(x0 + k * gap, h, false)); });
-      } else if (isNum(e.fountain_m)) top = bar(p[0], e.fountain_m, true);
+        hs.forEach(([, h], k) => { if (isNum(h) && h > 0) rTop = Math.max(rTop, bar(x0 + k * gap, h, false)); });
+      } else if (!n && isNum(e.fountain_m)) rTop = bar(p[0], e.fountain_m, true);
+      fa = 1;
+      const useSeg = placed && segA > rowA; top = useSeg ? pTop : rTop; topAt = useSeg ? pAt : null;   // the label by the drawing that leads
       g.setLineDash([]);
       if (sim && top > 0) { const [mx, my] = topAt || [x0, y0]; g.globalAlpha = 0.95; g.fillStyle = col; g.font = `9px ${ctx.tok("--ds-font-canvas")}`; g.textAlign = "right"; g.fillText("model", (topAt ? mx - 4 : mx - 5), my - top + 7); g.textAlign = "left"; }
       g.restore();
@@ -233,7 +258,7 @@ window.SvkMap = (function () {
         if (F.source) out.push(`<span class="dim">${esc(clause(F.source))}</span>`);
       } else if (isNum(e.fountain_m)) out.push(`highest fountain ${Math.round(e.fountain_m)} m · ${e.fountain_kind === 2 ? "simulated: model output" : "observed"} (no height series: the bar is the eruption's highest)`);
       if (f.source) out.push(`<span class="dim" title="${esc(f.source)}">${place}: ${esc(clause(f.source))}</span>`);
-      if (placed) {
+      if (placed && segA >= 0.5) {
         // each placed segment answers the hover with its own line first
         for (const s of segHits) eruHit.push({ x: s.x, y: s.y, lines: [`<b>segment ${esc(s.col)}</b> · ${isNum(s.h) && s.h > 0 ? `${Math.round(s.h)} m now` : "no fountain now"} · approx place${isNum(s.err) ? ` ± ${Math.round(s.err)} m` : ""}`, ...out] });
         eruHit.push({ x: p[0], y: p[1], lines: out });
@@ -260,7 +285,7 @@ window.SvkMap = (function () {
     }
     function drawField() {
       fieldHit = [];
-      const w = Math.min(1, fieldW()), F = w > 0.02 ? fieldAt() : null;
+      const w = Math.min(1, fieldW()) * (1 - 0.7 * localW()), F = w > 0.02 ? fieldAt() : null;   // S1: faded when local
       if (!F) return;
       const ink = ctx.tok("--ds-txt");
       g.save(); g.strokeStyle = ink; g.fillStyle = ink; g.lineCap = "round"; g.lineJoin = "round";
@@ -346,17 +371,34 @@ window.SvkMap = (function () {
       g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
       ge.setTransform(dpr, 0, 0, dpr, 0, 0); ge.clearRect(0, 0, W, H);
       const [t0, t1] = S.view, span = t1 - t0, E = ctx.src.events(t0, t1), C = ctx.col(), sel = ctx.selection();
-      const many = E.n > 3000;
-      for (let k = E.i0; k < E.i1; k++) {
+      const many = E.n > 3000, lw = localW();
+      // S1 regional: the window's quakes before the cursor as a density (GRID px cells, log count; calm: a lone quake barely there), fading in as the view widens
+      if (lw < 0.98) {
+        const GRID = 5, nx = Math.ceil(W / GRID), ny = Math.ceil(H / GRID), cnt = new Uint16Array(nx * ny);
+        let top = 0;
+        for (let k = E.i0; k < E.i1; k++) {
+          if (E.t[k] > S.cursor || (sel && !sel(k))) continue;
+          const q = proj([E.lon[k], E.lat[k]]); if (!q || !isNum(q[0])) continue;
+          const i = Math.floor(q[0] / GRID), j = Math.floor(q[1] / GRID); if (i < 0 || j < 0 || i >= nx || j >= ny) continue;
+          const c = ++cnt[j * nx + i]; if (c > top) top = c;
+        }
+        g.fillStyle = C.event;
+        for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
+          const c = cnt[j * nx + i]; if (!c) continue;
+          g.globalAlpha = (1 - lw) * (0.05 + 0.6 * Math.log2(1 + c) / Math.log2(1 + Math.max(2, top)));   // a lone quake faint, the swarm bright
+          g.fillRect(i * GRID, j * GRID, GRID - 1, GRID - 1);
+        }
+      }
+      for (let k = E.i0; k < E.i1 && lw > 0.02; k++) {
         const lon = E.lon[k], lat = E.lat[k]; if (!isNum(lon) || !isNum(lat)) continue;
         const [px, py] = proj([lon, lat]);
         const age = S.cursor - E.t[k], m = E.mag[k], r = Math.max(0.8, 1 + 1.3 * (m + 0.5));
         const on = !sel || sel(k);
-        if (age < 0) { if (many) continue; g.globalAlpha = on ? 0.18 : 0.05; g.strokeStyle = C.event; g.lineWidth = 0.6; g.beginPath(); g.arc(px, py, r, 0, 7); g.stroke(); continue; }
+        if (age < 0) { if (many) continue; g.globalAlpha = lw * (on ? 0.18 : 0.05); g.strokeStyle = C.event; g.lineWidth = 0.6; g.beginPath(); g.arc(px, py, r, 0, 7); g.stroke(); continue; }
         const fresh = 1 - Math.min(1, age / Math.max(1, span));
         // thousands of dots on 30 km: keep each faint so density reads as density, and the newest stand out
         const dense = Math.min(1, 900 / Math.max(1, E.n));
-        g.globalAlpha = on ? (0.05 + 0.9 * fresh ** 3) * Math.max(dense, fresh ** 3) + 0.03 : 0.03;
+        g.globalAlpha = lw * (on ? (0.05 + 0.9 * fresh ** 3) * Math.max(dense, fresh ** 3) + 0.03 : 0.03);
         g.fillStyle = C.event; g.beginPath(); g.arc(px, py, many ? Math.min(r, 1.8) : r, 0, 7); g.fill();
       }
       // the events just sent to the engine ring once in gold (what you hear, where it is)
@@ -375,7 +417,8 @@ window.SvkMap = (function () {
       drawPol();
       const n = sel ? countSel(E, sel) : null;
       const ms = host.querySelector(".map-sel");
-      ms.innerHTML = sel ? `<b>${n}</b> of ${E.n} in your box <button class="mini" data-clear title="clear the selection">✕</button>` : `${E.n} quakes`;
+      const iv = !box && ctx.inViewCount ? ctx.inViewCount() : null;                         // S1: zoomed in, the quakes in view
+      ms.innerHTML = box && sel ? `<b>${n}</b> of ${E.n} in your box <button class="mini" data-clear title="clear the selection">✕</button>` : iv ? `<b>${iv.n}</b> of ${iv.of} quakes in view` : `${E.n} quakes`;
       ms.title = sel ? "the Swarm hears only the quakes inside your box" : "the quakes on screen, fading with age before the cursor; drag a box to choose which ones the Swarm plays";
       const cl = host.querySelector("[data-clear]"); if (cl) cl.onclick = () => { box = null; bg.call(brush.move, null); ctx.setSelection(null); };
     }
@@ -483,6 +526,7 @@ window.SvkMap = (function () {
       // V2: a placed sound about to play: {lat, lon, at (ms, performance.now), gain (SC's distance law, linear), loud, kind}
       ray(p) { if (!(ctx.hearLens && ctx.hearLens())) return; pending.push(p); if (pending.length > RAY_PENDING) { pending.sort((a, b) => b.loud - a.loud); pending.length = RAY_PENDING; } },
       earMoved() { drawEar(); },
+      viewCentre() { const a = proj.invert([W / 2, H / 2]); return a && isNum(a[0]) ? { lat: a[1], lon: a[0] } : null; },
       // pan for /svk_event: the epicentre's x in the map's frame, −1 … 1
       panOf(lon, lat) { const q = proj([lon, lat]); return q ? Math.max(-1, Math.min(1, (Z.t.invertX(q[0]) / W) * 2 - 1)) : 0; },   // the full view's x: zooming moves no sound
       clearBox() { box = null; bg.call(brush.move, null); },

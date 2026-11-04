@@ -339,11 +339,21 @@ window.SvkTimeline = (function () {
       const r = S.M.ranges && S.M.ranges.eq_n, top = Math.log10(1 + ((r && r.max) || 1000));
       g.save(); g.globalAlpha = alpha;
       const i0 = Math.max(0, Math.floor((t0 - T.t[0]) / DAY)), i1 = Math.min(T.t.length, Math.ceil((t1 - T.t[0]) / DAY));
+      // S1: with the map's view (or a box) the ramp is the quakes in view, recounted from the catalogue, and the total runs
+      // over it as a faint line (the same log scale), so the region's share reads at a glance
+      const R = ctx.regionDaily ? ctx.regionDaily() : null, nv = R ? R.n : n;
       for (let i = i0; i < i1; i++) {
         if (!isNum(n[i])) continue;
         const xa = x(T.t[i]), xb = Math.max(xa + 1, x(T.t[i] + DAY));
-        g.fillStyle = n[i] === 0 ? ctx.tok("--ds-raised") : ramp(Math.log10(1 + n[i]) / top);
+        g.fillStyle = nv[i] === 0 ? ctx.tok("--ds-raised") : ramp(Math.log10(1 + nv[i]) / top);
         g.fillRect(xa, lane.y + 12, xb - xa + 0.4, lane.h - 12);
+      }
+      if (R) {
+        const y = (v) => lane.y + lane.h - (lane.h - 14) * Math.min(1, Math.log10(1 + v) / top);
+        g.globalAlpha = alpha * 0.55; g.strokeStyle = ctx.tok("--ds-txt"); g.lineWidth = 1; g.beginPath();
+        let pen = false;
+        for (let i = i0; i < i1; i++) { if (!isNum(n[i])) { pen = false; continue; } const px = x(T.t[i] + DAY / 2), py = y(n[i]); if (pen) g.lineTo(px, py); else { g.moveTo(px, py); pen = true; } }
+        g.stroke();
       }
       g.restore();
     }
