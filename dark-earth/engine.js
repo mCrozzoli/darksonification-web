@@ -39,6 +39,13 @@ const SCHEMA_URL = new URL("./view/svk_messages.json", import.meta.url);
 // it runs before the parser, which takes them from there (CONTRACT 0.18). A separate file because sclang accepts
 // nothing before the parser's opening `( var …` block.
 const SC_FILES = ["web_boot.scd", "svk_synthdefs.scd", "svk_hrir_data.scd", "parse_dark_svartsengi.scd"];
+// CONTRACT 0.20: how many fountain plates may sound at once in this browser (W2's ~svkK[\fountainMax], 11 by default:
+// every plate of Dec 2023). sc-wasm runs W2's plates far slower in Firefox than in Chromium or WebKit (W5 note §30), so
+// Firefox gets a lower cap; above it the tallest fountains sound. ?fcap=N overrides it (the checks).
+const FOUNTAIN_CAP = (() => {
+  try { const q = new URLSearchParams(location.search).get("fcap"); if (q && /^\d+$/.test(q)) return +q; } catch (_) {}
+  return /Firefox\//.test(navigator.userAgent) ? 4 : null;
+})();
 const SETN_CHUNK = 4096;                          // floats per /b_setn (the task's bound; re_wilding measured 4,096 exact)
 const N_RINGS = 3;                                // Ground: Z, N, E
 const ZERO_WAIT_MS = 1000;                        // uploads held for a /b_zero's /done at most this long
@@ -284,6 +291,8 @@ class DarkEngine {
         this.sclang.runCode(parse);               // svk_cook inlined + the OSCdefs, rings, voices; it says /svk_ready ×3
         await this.poll("OSCdef.all[\\svkTilt].notNil and: { ~svkVoices.notNil and: { ~svkVoices[\\spatial].notNil } }", 20000, 300, alive);
         if (!alive()) return;
+        if (FOUNTAIN_CAP != null) this.sclang.runCode(`~svkK !? { ~svkK[\\fountainMax] = ${FOUNTAIN_CAP} };`);
+        this.info.fountainMax = FOUNTAIN_CAP;
         for (let k = 0; k < 50 && !this.ringsKnown(); k++) await new Promise((r) => setTimeout(r, 100));
         if (!this.ringsKnown()) throw new Error("the parser never announced its three Ground rings (/svk_bufinfo)");
         const opts = (await this.query("[s.options.numWireBufs, s.options.memSize, s.options.numBuffers, s.sampleRate, ~svkK[\\RING], ~svkK[\\BLOCK]]"))

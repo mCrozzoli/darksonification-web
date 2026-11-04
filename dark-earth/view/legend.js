@@ -167,6 +167,8 @@ window.DarkLegend = (function () {
   const cooked2 = (v) => typeof v === "number" && isFinite(v);
 
   const fieldOn = () => { try { const M = api && api.manifest ? api.manifest() : null; return M && M.gnss_field ? (M.gnss_field.stations || []).length : 0; } catch (_) { return 0; } };
+  // 0.20: the fountain voice, one plain line (no chips: it plays with the cursor inside an eruption)
+  const fountainLine = () => { try { const M = api && api.manifest ? api.manifest() : null; return M && (M.fountains || []).some((f) => f.voice) ? `<div class="lg-line"><b>fountain</b> <span>· a bowed plate per segment, louder and brighter when higher</span></div>` : ""; } catch (_) { return ""; } };
   const listed = () => { try { const E = api && api.manifest && window.SvkCook ? window.SvkCook.eruptionList(api.manifest()) : []; return E.length > 0 && E[0].from === "eruptions"; } catch (_) { return false; } };
   const SEE = () => [
     ["gold", "you, in time: the cursor and the room you are in (the band); a quake rings gold as it sounds"],
@@ -263,7 +265,7 @@ window.DarkLegend = (function () {
       ${api.dataSource ? `<div class="lg-from">data: <b>${esc(api.dataSource())}</b>${api.dataSource() === "published" ? "" : " <span>over the published</span>"}</div>` : ""}
       <div class="lsec" data-sec="go">catalogue · real moments (click = go there)<span class="lchev">▾</span></div><div class="lbody"><div class="lgo">${go}</div></div>
       <div class="lsec" data-sec="hear">pick a moment, then hold a chip to hear the difference<span class="lchev">▾</span></div>
-      <div class="lbody"><div class="lg-held" role="status" aria-live="polite"></div>${hear}</div>
+      <div class="lbody"><div class="lg-held" role="status" aria-live="polite"></div>${fountainLine()}${hear}</div>
       <div class="lsec" data-sec="see">see<span class="lchev">▾</span></div><div class="lbody lsee">${SEE().map((x) => `<div><b>${esc(x[0])}</b> <span>· ${esc(x[1])}</span></div>`).join("")}</div>`;
     // the popovers' text goes in with textContent only (C5 §19.6)
     for (const ly of L) for (const r of ly.rows) {

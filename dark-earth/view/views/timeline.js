@@ -607,6 +607,21 @@ window.SvkTimeline = (function () {
       g.restore();
     }
 
+    // 0.20 "listen for: precursors": the 48 h before each onset in IMO's list, marked faintly (neutral ink, not gold: it is
+    // data, not you), a dotted line where the window opens and a small label when there is room; the hover names it
+    function drawPrecursors() {
+      const P = ctx.precursorWindows ? ctx.precursorWindows() : []; if (!P.length) return;
+      const yb = HM - AXIS_H - STRIP_H;
+      g.save(); g.font = `9px ${ctx.tok("--ds-font-canvas")}`;
+      for (const w of P) {
+        const xa = Math.max(0, x(w.t0)), xb = Math.min(W, x(w.t1)); if (xb <= xa) continue;
+        g.globalAlpha = 0.05; g.fillStyle = ctx.tok("--ds-txt"); g.fillRect(xa, PAD_T, xb - xa, yb - PAD_T);
+        const x0 = x(w.t0);
+        if (x0 > 1 && x0 < W - 1) { g.globalAlpha = 0.4; g.strokeStyle = ctx.tok("--ds-dim"); g.lineWidth = 1; g.setLineDash([1, 3]); g.beginPath(); g.moveTo(x0, PAD_T); g.lineTo(x0, yb); g.stroke(); g.setLineDash([]); }
+        if (xb - xa > 60) { g.globalAlpha = 0.75; g.fillStyle = ctx.tok("--ds-dim"); g.fillText("48 h before", xa + 4, yb - 6); }   // at the foot, clear of the lanes' labels
+      }
+      g.restore();
+    }
     // the room the body sounds, lit as a band (Miguel 2026-10-22, point 2: "highlight the space being navigated"): gold is you
     function drawRoom() {
       const r = ctx.roomSpan && ctx.roomSpan(); if (!r) return;
@@ -792,7 +807,7 @@ window.SvkTimeline = (function () {
       g.clearRect(0, 0, W, H);
       const w = S.w;
       lastLanes = [];
-      drawRoom();
+      drawPrecursors(); drawRoom();
       for (let lvl = 4; lvl >= 0; lvl--) {
         const a = w[lvl]; if (a < 0.02) continue;
         for (const lane of lanesOf(lvl)) {
@@ -842,6 +857,8 @@ window.SvkTimeline = (function () {
         const extra = ctx.laneHover(lane, t, py, px, x);
         if (extra) lines.push(...extra);
       }
+      const pw = (ctx.precursorWindows ? ctx.precursorWindows() : []).find((w) => t >= w.t0 && t < w.t1);
+      if (pw) lines.push(`<span class="dim">${((pw.t1 - t) / 3600).toFixed(pw.t1 - t < 36000 ? 1 : 0)} h before the ${pw.e.kind}${pw.e.imo_n ? ` ${pw.e.imo_n}` : ""} (${d3.utcFormat("%-d %b %Y %H:%M")(utc(pw.t1))} UTC): the precursor window</span>`);
       const rs = ctx.roomSpan && ctx.roomSpan();
       if (rs && t >= rs.t0 && t < rs.t1) lines.push(`<span class="dim">the band: ${rs.label}, the room you are in</span>`);
       if (py > HM - AXIS_H - STRIP_H - 2 && !lane) lines.push(`<span class="dim">${d3.utcFormat("%B %Y")(utc(t))}</span>`);

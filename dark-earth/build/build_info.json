@@ -1,5 +1,5 @@
 {
-  "built": "2026-11-04 10:04:28",
+  "built": "2026-11-04 11:57:05",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "clearance": {
     "status": "cleared",
@@ -7,16 +7,16 @@
   },
   "name": "Dark Earth",
   "sources": {
-    "viz/app.js": "4c53e0612a448e37",
-    "viz/cook.js": "55af61c7c3d4dda8",
-    "viz/index.html": "afd81daa5951f3c7",
-    "viz/legend.js": "5ad997887c3c88f9",
+    "viz/app.js": "0d46536f6189c925",
+    "viz/cook.js": "b0b366be33483d05",
+    "viz/index.html": "c1ceda1dfe00bd18",
+    "viz/legend.js": "dae0ab5e02e02229",
     "viz/source.js": "da155a0a25857637",
     "viz/stations.js": "9a540ab282687eed",
-    "viz/svk_messages.json": "91800621bf355b98",
+    "viz/svk_messages.json": "c1f8ead13d1486ff",
     "viz/views/latent.js": "fd479e90c425ec6a",
     "viz/views/map.js": "aed698886efd4d82",
-    "viz/views/timeline.js": "fae11197a0232511",
+    "viz/views/timeline.js": "c1e1f3e1ccbb3dca",
     "viz/views/zoom.js": "23c6305a0d6bcf5e",
     "viz/geo/SOURCE.md": "56992082c4c13ddd",
     "viz/geo/reykjanes_coast.geojson": "b384b96f49ff2c82",
@@ -29,9 +29,9 @@
     "viz/mseed/mseed.js": "c69705700c1c709d",
     "viz/mseed/worker.js": "1021ae29d641b083",
     "sc/dark_svartsengi_boot.scd": "c80719c8905c61af",
-    "sc/svk_synthdefs.scd": "50705d8442754d1f",
-    "sc/parse_dark_svartsengi.scd": "25859808ec28942e",
-    "sc/svk_cook.scd": "7d0b41f9c195ce0c",
+    "sc/svk_synthdefs.scd": "c7ec229ce1931f88",
+    "sc/parse_dark_svartsengi.scd": "e932632e7141cad5",
+    "sc/svk_cook.scd": "b795726b855fad10",
     "sc/svk_hrir_foa_kemar_44100.wav": "ff0ab095b1765ad4",
     "sc/svk_hrir_foa_kemar_48000.wav": "387cd61866010e29",
     "sc/svk_hrir_foa_kemar_88200.wav": "f5d2499b4985bbdc",
@@ -79,7 +79,7 @@
   "sc_patches": [
     {
       "file": "svk_synthdefs.scd",
-      "why": "the Array of 17 SynthDefs inlined; the desktop boot's `.do(_.add)` + `s.sync` follow it in a fork; ~webSynthsReady appended"
+      "why": "the Array of 21 SynthDefs inlined; the desktop boot's `.do(_.add)` + `s.sync` follow it in a fork; ~webSynthsReady appended"
     },
     {
       "file": "parse_dark_svartsengi.scd",
@@ -114,7 +114,7 @@
   ],
   "hand_written_sha": {
     "web_page.js": "48ee7c341de23fa1",
-    "engine.js": "f8391f44c0c4aa7a",
+    "engine.js": "d4e4fc962b293053",
     "relay.js": "15158ec825ae001c",
     "osc.js": "d1e7c6b2ce4b28db",
     "coi-sw.js": "0f0bd6af19f47770",
@@ -122,11 +122,11 @@
     "README.md": "ce0965b715c86f1a"
   },
   "data": {
-    "built": "2026-11-04 10:04:28",
+    "built": "2026-11-04 11:57:05",
     "bridge_sha": "bb868199de1b0d18",
-    "schema_sha": "91800621bf355b98",
-    "contract": "0.18",
-    "contract_warning": "manifest contract 0.13 ≠ svk_messages.json contract 0.18: the data and the message table are from different contract versions",
+    "schema_sha": "c1f8ead13d1486ff",
+    "contract": "0.20",
+    "contract_warning": "manifest contract 0.13 ≠ svk_messages.json contract 0.20: the data and the message table are from different contract versions",
     "publication_gate": {
       "public_seismic_coverage": {
         "RK.MELH.10": [
@@ -158,8 +158,8 @@
       "not_for_publication": "IMO lava-flow / effusion data (none of it is in viz/data)"
     },
     "data": {
-      "copied": 10,
-      "kept": 220,
+      "copied": 0,
+      "kept": 230,
       "removed": 0,
       "digest": "2429c33b7d8d2354",
       "files": 230,
@@ -170,7 +170,7 @@
       "dev_mock/data/"
     ],
     "relay_vectors": {
-      "page_to_engine": 87,
+      "page_to_engine": 93,
       "engine_to_page": 10,
       "setn": 2
     },
@@ -197,7 +197,7 @@
     "svk_hrir_data.scd",
     "parse_dark_svartsengi.scd"
   ],
-  "n_synthdefs": 17,
+  "n_synthdefs": 21,
   "hrir": {
     "rates": [
       44100,
@@ -236,8 +236,11 @@
       "svkBinaural",
       "svkBody",
       "svkBody2",
+      "svkBody2Calm",
       "svkCore",
       "svkDeform",
+      "svkFountain",
+      "svkFountainSim",
       "svkGrain",
       "svkGround",
       "svkGroundRot",
@@ -247,10 +250,12 @@
       "svkStrike",
       "svkSwarm",
       "svkTension",
-      "svkTick"
+      "svkTick",
+      "svkWind"
     ],
     "ugens": [
       "A2K",
+      "AllpassC",
       "Amplitude",
       "BPF",
       "BinaryOpUGen",
@@ -266,6 +271,7 @@
       "DelayC",
       "DelayN",
       "Dust",
+      "Dust2",
       "EnvGen",
       "HPF",
       "Impulse",
@@ -312,9 +318,9 @@
     "sclang.data": "697d847b716b6e36"
   },
   "relay_check": {
-    "checked": 99,
+    "checked": 105,
     "failed": 0,
-    "contract": "0.18"
+    "contract": "0.20"
   },
   "publication_markers": "no NOT_FOR_PUBLICATION.txt in the build",
   "page_refs": 19,

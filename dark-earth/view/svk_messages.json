@@ -1,6 +1,6 @@
 {
   "_what": "CONTRACT v0.11 \u00a75 + \u00a75.0 + \u00a75.1 as data: one table read by the page (cook.js: field order, validation, debug panel) and by the bridge (bridge.py: JSON <-> OSC). Field order == OSC arg order. W3 keeps this in step with lab/CONTRACT.md; it never changes the contract.",
-  "contract": "0.18",
+  "contract": "0.20",
   "page_to_engine": {
     "zoom": {
       "addr": "/svk_zoom",
@@ -833,7 +833,7 @@
         "dist_km",
         "el"
       ],
-      "_what": "v0.11 \u00a79.3: when the play cursor crosses an eruption (0.5 s lookahead); size = |dU_SKSH| on its range, hidden 0.5; kind 0 magmatic, 1 hidden. v0.13: the eruption list (events/eruptions.json) is the clock when it is there, the GNSS falls otherwise; two trailing args: fountain = the eruption's max fountain height (observed or simulated) on the fountains' range, 0-1 (null = NaN = no fountain data), fountain_kind 0 none, 1 observed, 2 simulated. SC accepts 3 or 5 args; the page always sends 5 v0.14: two more trailing args, az (relative to the listener's heading, as /svk_event) and dist_km from the listener to the eruption's place (fissure centroid; for an intrusion where it began) (null = NaN: a row without a fissure is unplaced). SC accepts 3, 5 or 7 args; the page sends 7 v0.18 (A2, ambisonics; DECISIONS 2026-11-02; W2's proposal, note \u00a73k): trailing el, the elevation in rad, negative below the ear (a fissure sits at the surface: 0); null = NaN = the ear's height. Stereo ignores it."
+      "_what": "v0.11 \u00a79.3: when the play cursor crosses an eruption (0.5 s lookahead); size = |dU_SKSH| on its range, hidden 0.5; kind 0 magmatic, 1 hidden. v0.13: the eruption list (events/eruptions.json) is the clock when it is there, the GNSS falls otherwise; two trailing args: fountain = the eruption's max fountain height (observed or simulated) on the fountains' range, 0-1 (null = NaN = no fountain data), fountain_kind 0 none, 1 observed, 2 simulated. SC accepts 3 or 5 args; the page always sends 5 v0.14: two more trailing args, az (relative to the listener's heading, as /svk_event) and dist_km from the listener to the eruption's place (fissure centroid; for an intrusion where it began) (null = NaN: a row without a fissure is unplaced). SC accepts 3, 5 or 7 args; the page sends 7 v0.18 (A2, ambisonics; DECISIONS 2026-11-02; W2's proposal, note \u00a73k): trailing el, the elevation in rad, negative below the ear (a fissure sits at the surface: 0); null = NaN = the ear's height. Stereo ignores it. 0.20 (DECISIONS 2026-11-04 \"into the display\"; W2's engine, sc/parse_dark_svartsengi.scd): fountain is normalised by 132.7 m (the highest observed) and may pass 1 (the engine soft-limits)."
     },
     "ground_space": {
       "addr": "/svk_ground_space",
@@ -868,6 +868,85 @@
         ]
       ],
       "_what": "v0.18 (A2, DECISIONS 2026-11-02; W2's proposal, note \u00a73k): how the placed sounds are heard: 0 stereo (the default; the engine's stereo path is bit-identical to 0.14), 1 ambisonic, decoded binaurally (headphones). Per viewer, from the sound tab's space switch; sent at boot, on every (re)connect and on each change. The engine also accepts an optional trailing heading (rad, clockwise from north; missing = 0, north); the page does not send it, because az is already relative to the listener's heading."
+    },
+    "fountain": {
+      "addr": "/svk_fountain",
+      "args": [
+        [
+          "seg",
+          "i"
+        ],
+        [
+          "h",
+          "f"
+        ],
+        [
+          "var",
+          "f"
+        ],
+        [
+          "kind",
+          "i"
+        ],
+        [
+          "pos",
+          "f"
+        ],
+        [
+          "az",
+          "f"
+        ],
+        [
+          "dist_km",
+          "f"
+        ],
+        [
+          "el",
+          "f"
+        ]
+      ],
+      "nullable": [
+        "h",
+        "var",
+        "pos",
+        "az",
+        "dist_km",
+        "el"
+      ],
+      "_what": "0.20 (DECISIONS 2026-11-04 \"into the display\"; W2's engine, sc/parse_dark_svartsengi.scd): the fountain voice: one bowed plate per open segment. seg = the segment's index in the fountain file's cols; h = its height at the cursor / 132.7 m (manifest.eruptions.fountain_norm_m; may pass 1, the engine soft-limits; null = the segment closes); var = its local variability, 0-1: clip(2 x the standard deviation over +-5 grid minutes / (their mean + 8 m / 132.7), 0, 1), computed by the page; SC uses it as it arrives; kind 1 observed, 2 simulated (mostly through the dream echo); pos = its place along the fissure, 0 southernmost ... 1 northernmost (the plate's pitch); az, dist_km, el = its place in the listener's frame (as /svk_event). The page sends a segment on change (<= 10 Hz) and again at least once a second while it is open (the engine closes one it has not heard from for 5 s), and closes it once (h null) when it leaves its span or the cursor leaves the eruption."
+    },
+    "body_mode": {
+      "addr": "/svk_body_mode",
+      "args": [
+        [
+          "mode",
+          "i"
+        ]
+      ],
+      "_what": "0.20 (DECISIONS 2026-11-04 \"into the display\"; W2's engine, sc/parse_dark_svartsengi.scd): the body version, the sound tab's body row: 0 on change (the default: the calm body sounding with the ground's day-to-day change), 1 calm (Body v2 with its room diffused), 2 breath (broadband noise bands, no pitch), 3 original (Body v2), 4 off. Per viewer; sent at boot, on every (re)connect and on each change."
+    },
+    "listen": {
+      "addr": "/svk_listen",
+      "args": [
+        [
+          "mode",
+          "i"
+        ]
+      ],
+      "_what": "0.20 (DECISIONS 2026-11-04 \"into the display\"; W2's engine, sc/parse_dark_svartsengi.scd): the sound tab's listen-for row, a re-weighting of the mix: 0 eruptions (the default: the rest ducks while a fountain sounds), 1 precursors (the swarm and the body lifted over the 48 h before each onset, by /svk_onset_in), 2 drop <-> fountain (the strike and the fountain forward, the rest lower). Per viewer; sent at boot, on every (re)connect and on each change."
+    },
+    "onset_in": {
+      "addr": "/svk_onset_in",
+      "args": [
+        [
+          "hours",
+          "f"
+        ]
+      ],
+      "nullable": [
+        "hours"
+      ],
+      "_what": "0.20 (DECISIONS 2026-11-04 \"into the display\"; W2's engine, sc/parse_dark_svartsengi.scd): the hours from the cursor to the next onset in IMO's list (events/eruptions.json; eruptions and intrusions), null after the last. On a 0.01 h change, at <= 1 Hz; the precursors preset lifts the last 48 h."
     },
     "listener": {
       "addr": "/svk_listener",
@@ -910,9 +989,13 @@
         [
           "ground",
           "f"
+        ],
+        [
+          "fountain",
+          "f"
         ]
       ],
-      "_what": "v0.12 (the calm page's SOUND tab, W3; W2's OSCdef): one fader per layer, 0-1, multiplying that layer's level after the zoom-level mix (1 = the design's level; NaN or a missing arg = 1, out of range clipped): body = Body v2, strike, swarm = clave + grains + ticks, bells, ground = the 3-C Ground. Sent on every change and on every (re)connect; the faders act on what is sounding (~0.1 s; one-shot voices at their next onset). Legend holds are not faded."
+      "_what": "v0.12 (the calm page's SOUND tab, W3; W2's OSCdef): one fader per layer, 0-1, multiplying that layer's level after the zoom-level mix (1 = the design's level; NaN or a missing arg = 1, out of range clipped): body = Body v2, strike, swarm = clave + grains + ticks, bells, ground = the 3-C Ground. Sent on every change and on every (re)connect; the faders act on what is sounding (~0.1 s; one-shot voices at their next onset). Legend holds are not faded. 0.20 (DECISIONS 2026-11-04 \"into the display\"; W2's engine, sc/parse_dark_svartsengi.scd): a 6th fader, fountain (the fountain voice), 0-1, 1 by default."
     }
   },
   "engine_to_page": {
@@ -1117,6 +1200,18 @@
     "spatial": {
       "stereo": 0,
       "ambisonic": 1
+    },
+    "body_mode": {
+      "on change": 0,
+      "calm": 1,
+      "breath": 2,
+      "original": 3,
+      "off": 4
+    },
+    "listen": {
+      "eruptions": 0,
+      "precursors": 1,
+      "drop<->fountain": 2
     }
   },
   "_null": "OSC has no null. A field listed in a type's 'nullable' may be JSON null; the bridge (and engine.js) send it as float NaN, which W2's parser reads as nil (sc/parse_dark_svartsengi.scd ~svkNum). A null never becomes a sound (R3).",
