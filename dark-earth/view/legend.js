@@ -175,7 +175,7 @@ window.DarkLegend = (function () {
     ["dotted rail", "along the top of the ground-height lane, in a station's colour: that station has no measurement those days (its line stops at a small tick; nothing is drawn in between)"],
     ["◎", "a trace"],
     ["map", "the quakes on screen, fading with age"],
-    ["▲ / △", "a station: filled = measured position, hollow and dashed = a placeholder (the dotted ring: its uncertainty)"],
+    ["▲ / △", "a station: filled = measured position, hollow and dashed = approximate (the dotted ring: its uncertainty)"],
     ...(fieldOn() ? [["→ thin arrows", `on the map at the cycle and sequence levels: how ${fieldOn()} more IMO GNSS stations move now (their last 7 days; the key arrow is 5 mm/day). The dot is filled while a station rises, a ring while it sinks. Map only: nothing sounds from them. Point at one for its numbers`]] : []),
     ["◆ + bars", "at an eruption: the fissure and its fountains' heights now, one bar per segment (dashed + model = simulated)"],
     // as the timeline draws them: with W1's eruption list ▼ an eruption, ▿ an intrusion; without it the GNSS detection's own

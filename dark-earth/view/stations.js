@@ -149,7 +149,7 @@ window.SvkStations = (function () {
     function render(el) {
       const L = list(), nEd = Object.keys(ov).length;
       el.innerHTML = `<div class="sl">stations</div>
-        <div class="hint" style="margin:0 0 8px" title="the positions the map draws and the sound is heard from; an edit applies at once and stays in this page (this browser)"><b>approx</b> = a placeholder, hollow on the map · edits apply at once</div>
+        <div class="hint" style="margin:0 0 8px" title="the positions the map draws and the sound is heard from; an edit applies at once and stays in this page (this browser)"><b>approx</b> = an approximate position, hollow on the map · edits apply at once</div>
         <table class="sttab"><thead><tr><th>id</th><th>lat °N</th><th>lon °E</th><th>± m</th><th>status</th></tr></thead><tbody>
         ${L.map((s) => `<tr class="${s.edited ? "ed" : ""}" data-id="${esc(s.id)}">
             <td class="sid" title="${esc(s.label || s.id)}">${esc(s.id.split(".").length >= 2 ? s.id.split(".")[1] : s.id)}<small>${esc(s.kind || "")}</small></td>

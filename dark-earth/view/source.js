@@ -808,11 +808,14 @@ window.SvkSource = (function () {
       this._specR = this._specR || {};
       return this._specR[chan] || (this._specR[chan] = { lo: null, hi: null });
     }
+    // null = this data has no latent map for the station (the manifest lists none for it, or the file is absent: 404, not
+    // in the folder); a failed read (the network, a broken file) throws, so the view can say so and try again
     async latent(station) {
       const L = this._m.latent;
       if (L && !L[station]) return null;
       const file = (L && L[station] && L[station].file) || `latent/${station}_f1m.json`;
-      try { return await this.io.json(file); } catch (_) { return null; }
+      try { return await this.io.json(file); }
+      catch (e) { if (/^(404|410) |not in the folder/.test(String((e && e.message) || e))) return null; throw e; }
     }
     // the Ground ring's absolute scale: the record's peak |x| for this channel. From the manifest when it says
     // (ranges["wave:<chan>"] or wave[chan].peak); otherwise the max of the listed hours' sidecar scales (fetched once)
@@ -974,7 +977,12 @@ window.SvkSource = (function () {
     fountains(ref) { return (this._eru || this.P).fountains(ref); }
     bodyRows(kind, tier, t0, t1) { return (this.L._m.body ? this.L : this.P).bodyRows(kind, tier, t0, t1); }
     bodyIdentity(kind, id) { return (this.L._m.body ? this.L : this.P).bodyIdentity(kind, id); }
-    latent(station) { return (this.L._m.latent && this.L._m.latent[station] ? this.L : this.P).latent(station); }
+    // the loaded source's own latent map when it lists one and it reads; else the published one (a tree without it, or a
+    // failed read of it, never hides the published map)
+    async latent(station) {
+      if (this.L._m.latent && this.L._m.latent[station]) { try { const r = await this.L.latent(station); if (r) return r; } catch (_) { /* the published one */ } }
+      return this.P.latent(station);
+    }
     waveNorm(chan) { return ((this.P._m.wave || {})[chan] || (this.P._m.ranges || {})[`wave:${chan}`] ? this.P : this.L).waveNorm(chan); }
   }
 

@@ -2,7 +2,7 @@
 //
 // D3 geo over a LOCAL coastline (geo/reykjanes_coast.geojson, Natural Earth 1:10m, public domain). No tile servers.
 //   - the epicentres of the window on the timeline, fading with age before the cursor (after it: faint outlines);
-//   - stations (CONTRACT 0.13 §4.2): a measured position is a filled triangle; an approx one (a placeholder) is hollow and
+//   - stations (CONTRACT 0.13 §4.2): a measured position is a filled triangle; an approx one is hollow and
 //     dashed with a dotted ring of its stated uncertainty (pos_err_m); pos_source on hover; a station without numbers is
 //     LISTED, never placed. ctx.stations() = the published positions with the config dock's page-local edits on top;
 //   - v0.13: while the cursor is inside an eruption, its fissure (W1's centroid; approx = hollow, dashed, with its ring)
@@ -126,7 +126,7 @@ window.SvkMap = (function () {
     const fmtUT = (t) => `${new Date(t * 1000).toISOString().slice(0, 16).replace("T", " ")} UTC`;
     function stationLines(s) {
       const out = [`<b>${esc(short(s.id))}</b> · ${esc(s.kind || "station")}${s.edited ? " · edited in this page" : ""}`];
-      out.push(s.approx ? `approx position, a placeholder${isNum(s.pos_err_m) ? ` · ± ${s.pos_err_m} m` : " · uncertainty unknown"}` : "measured position");
+      out.push(s.approx ? `approx position${isNum(s.pos_err_m) ? ` · ± ${s.pos_err_m} m` : " · uncertainty unknown"}` : "measured position");
       out.push(`${s.lat.toFixed(4)}° N, ${Math.abs(s.lon).toFixed(4)}° ${s.lon < 0 ? "W" : "E"}`);
       if (s.pos_source) out.push(`<span class="dim">${esc(s.pos_source)}</span>`);
       return out;
@@ -135,7 +135,7 @@ window.SvkMap = (function () {
     // v0.13: the eruption whose span holds the cursor: its fissure (the centroid W1 gives; approx = hollow, dashed, with
     // its uncertainty ring) and, from W1's fountain series (events/fountains/<id>.json: t, cols, data[col]), one bar per
     // fissure segment, its height at the cursor, on the fountains' range; dashed with "model" when simulated. A series is
-    // asked for once, when its eruption is near the cursor; the segments have no positions, so the bars stand in a row
+    // asked for once, when its eruption is near the cursor; each segment's bar stands at its own approx place (W1 2026-11-04), or in a row without places
     const fnt = new Map();                                   // file → series (null while loading or absent)
     let eruHit = [];                                         // what the hover can name: {x, y, lines}
     function series(e) {
@@ -183,25 +183,43 @@ window.SvkMap = (function () {
       if (!f) return;
       const p = proj([f.lon, f.lat]); if (!p || !isNum(p[0])) return;
       const sim = F ? F.kind === "simulated" : e.fountain_kind === 2, ap = f.status !== "measured";
-      const hTop = Math.max(1, ...(ctx.eruptions() || []).map((x) => x.fountain_m).filter(isNum));
+      const NORM = S.M.eruptions && isNum(S.M.eruptions.fountain_norm_m) && S.M.eruptions.fountain_norm_m > 0 ? S.M.eruptions.fountain_norm_m : null;
+      const hTop = NORM || Math.max(1, ...(ctx.eruptions() || []).map((x) => x.fountain_m).filter(isNum));   // W1's norm (observed max)
       g.save(); g.lineCap = "butt";
       // the fissure: a diamond, filled when measured; approx = hollow, dashed, its uncertainty ring dotted
       if (ap && isNum(f.err_m) && f.err_m > 0) { g.strokeStyle = col; g.globalAlpha = 0.6; g.lineWidth = 0.8; g.setLineDash([2, 3]); g.beginPath(); g.arc(p[0], p[1], Math.max(4, mPx(f.lat, f.lon, f.err_m)), 0, 7); g.stroke(); g.setLineDash([]); }
       g.globalAlpha = 0.95; g.strokeStyle = col; g.fillStyle = col; g.lineWidth = 1.4; g.setLineDash(ap ? [2, 2] : []);
       g.beginPath(); g.moveTo(p[0], p[1] - 4); g.lineTo(p[0] + 4, p[1]); g.lineTo(p[0], p[1] + 4); g.lineTo(p[0] - 4, p[1]); g.closePath(); if (ap) g.stroke(); else g.fill(); g.setLineDash([]);
-      // the fountains: a row of bars above it, one per segment (or the eruption's highest, faint, without a series)
+      // the fountains: one bar per segment, its height at the cursor. W1 2026-11-04 (Leif's segment centroids): each segment
+      // has its own approx place (seg_lat/seg_lon, aligned with cols; ± seg_err_m), so its bar stands there, on a small
+      // hollow base (approx) with a dotted ring of its uncertainty once the zoom makes it visible. Without places: the row
+      // above the fissure, as before (or the eruption's highest, faint, without a series)
       const cols = F ? F.cols || Object.keys(F.data || {}) : [], hs = cols.map((c) => [c, hAt(F, c, S.cursor)]);
       const n = cols.length, gap = 4, y0 = p[1] - 7, x0 = p[0] - ((n - 1) * gap) / 2;
-      const bar = (x, h, faint) => { const L = 2 + 38 * Math.min(1, h / hTop); g.globalAlpha = faint ? 0.5 : 0.95; g.beginPath(); g.moveTo(x, y0); g.lineTo(x, y0 - L); g.stroke(); return L; };
+      const bar = (x, h, faint, yb = y0) => { const L = 2 + 38 * Math.min(1, h / hTop); g.globalAlpha = faint ? 0.5 : 0.95; g.beginPath(); g.moveTo(x, yb); g.lineTo(x, yb - L); g.stroke(); return L; };
+      const segQ = F && Array.isArray(F.seg_lat) && Array.isArray(F.seg_lon) && F.seg_lat.length === n
+        ? cols.map((c, k) => (isNum(F.seg_lat[k]) && isNum(F.seg_lon[k]) ? proj([F.seg_lon[k], F.seg_lat[k]]) : null)) : null;
+      const placed = !!(n && segQ && segQ.every((q) => q && isNum(q[0])));
+      const segHits = [];
       g.strokeStyle = col; g.lineWidth = 2.4; g.setLineDash(sim ? [3, 2] : []);
-      let top = 0;
-      if (n) {
+      let top = 0, topAt = null;
+      if (placed) {
+        g.setLineDash([]);
+        hs.forEach(([c, h], k) => {
+          const q = segQ[k], err = F.seg_err_m && isNum(F.seg_err_m[k]) ? F.seg_err_m[k] : null, rr = isNum(err) ? mPx(F.seg_lat[k], F.seg_lon[k], err) : 0;
+          if (rr >= 4) { g.globalAlpha = 0.35; g.lineWidth = 0.7; g.setLineDash([1.5, 3]); g.beginPath(); g.arc(q[0], q[1], rr, 0, 7); g.stroke(); g.setLineDash([]); }
+          g.globalAlpha = 0.8; g.lineWidth = 0.9; g.beginPath(); g.arc(q[0], q[1], 1.6, 0, 7); g.stroke();
+          let L = 0;
+          if (isNum(h) && h > 0) { g.lineWidth = 2.4; g.setLineDash(sim ? [3, 2] : []); L = bar(q[0], h, false, q[1] - 2); g.setLineDash([]); if (L > top) { top = L; topAt = [q[0], q[1] - 2]; } }
+          segHits.push({ x: q[0], y: q[1] - L / 2, col: c, h, err });
+        });
+      } else if (n) {
         g.globalAlpha = 0.35; g.lineWidth = 1; g.setLineDash([]); g.beginPath(); g.moveTo(x0 - 2, y0 + 0.5); g.lineTo(x0 + (n - 1) * gap + 2, y0 + 0.5); g.stroke();   // the row's footing
         g.lineWidth = 2.4; g.setLineDash(sim ? [3, 2] : []);
         hs.forEach(([, h], k) => { if (isNum(h) && h > 0) top = Math.max(top, bar(x0 + k * gap, h, false)); });
       } else if (isNum(e.fountain_m)) top = bar(p[0], e.fountain_m, true);
       g.setLineDash([]);
-      if (sim && top > 0) { g.globalAlpha = 0.95; g.fillStyle = col; g.font = `9px ${ctx.tok("--ds-font-canvas")}`; g.textAlign = "right"; g.fillText("model", x0 - 5, y0 - top + 7); g.textAlign = "left"; }
+      if (sim && top > 0) { const [mx, my] = topAt || [x0, y0]; g.globalAlpha = 0.95; g.fillStyle = col; g.font = `9px ${ctx.tok("--ds-font-canvas")}`; g.textAlign = "right"; g.fillText("model", (topAt ? mx - 4 : mx - 5), my - top + 7); g.textAlign = "left"; }
       g.restore();
       // what the hover says there; an intrusion has no fissure: its position is where the dike or swarm began (W1)
       const place = e.kind === "intrusion" ? "where it began" : "fissure";
@@ -215,7 +233,11 @@ window.SvkMap = (function () {
         if (F.source) out.push(`<span class="dim">${esc(clause(F.source))}</span>`);
       } else if (isNum(e.fountain_m)) out.push(`highest fountain ${Math.round(e.fountain_m)} m · ${e.fountain_kind === 2 ? "simulated: model output" : "observed"} (no height series: the bar is the eruption's highest)`);
       if (f.source) out.push(`<span class="dim" title="${esc(f.source)}">${place}: ${esc(clause(f.source))}</span>`);
-      eruHit.push({ x: p[0], y: p[1], lines: out }, ...(n || top ? [{ x: p[0], y: y0 - Math.max(6, top / 2), lines: out }] : []));
+      if (placed) {
+        // each placed segment answers the hover with its own line first
+        for (const s of segHits) eruHit.push({ x: s.x, y: s.y, lines: [`<b>segment ${esc(s.col)}</b> · ${isNum(s.h) && s.h > 0 ? `${Math.round(s.h)} m now` : "no fountain now"} · approx place${isNum(s.err) ? ` ± ${Math.round(s.err)} m` : ""}`, ...out] });
+        eruHit.push({ x: p[0], y: p[1], lines: out });
+      } else eruHit.push({ x: p[0], y: p[1], lines: out }, ...(n || top ? [{ x: p[0], y: y0 - Math.max(6, top / 2), lines: out }] : []));
     }
 
     // ----- the wider GNSS network (CONTRACT 0.17 proposal: manifest.gnss_field + tiles/f1d/gnss_imo; DESIGN §6.2). Map only:
@@ -435,8 +457,9 @@ window.SvkMap = (function () {
       }
       const bearing = `${Math.round(((deg % 360) + 360) % 360)}°`;
       const hint = host.querySelector(".ear-hint");
-      // the hint once the map is fitted (the coast loaded), never at a guessed place
-      if (geo && !earHintSeen()) { hint.style.display = ""; const hw = hint.offsetWidth || 200; hint.style.left = Math.max(4, Math.min(W - hw - 4, q[0] + 16)) + "px"; hint.style.top = Math.max(4, Math.min(H - 24, q[1] + 12)) + "px"; }
+      // the hint once the map is fitted (the coast loaded), never at a guessed place; at the full view only (zoomed in, the ear
+      // may sit at an edge, under the zoom buttons)
+      if (geo && !earHintSeen() && Z.t.k <= 1.001) { hint.style.display = ""; const hw = hint.offsetWidth || 200; hint.style.left = Math.max(4, Math.min(W - hw - 4, q[0] + 16)) + "px"; hint.style.top = Math.max(4, Math.min(H - 24, q[1] + 12)) + "px"; }
       else hint.style.display = "none";
       ear.select("title").text(`you listen from ${L.label}${L.approx ? " (an approx position)" : ""}, facing ${F.mode === "north" ? "north (east on the right)" : `the activity (${bearing} from north): it is in front`} · drag the ear to move it; facing and place in config · C`);
     }

@@ -34,11 +34,29 @@ window.SvkLatent = (function () {
       sx = d3.scaleLinear().domain(xe).nice().range([pad, W - 10]);
       sy = d3.scaleLinear().domain(ye).nice().range([H - pad, 26]);
     }
-    async function load() {
-      const sta = ctx.seismic();
-      L = sta ? await ctx.src.latent(sta.id) : null;
-      const empty = host.querySelector(".lat-empty");
-      if (!L || !L.x || !L.x.length) { empty.textContent = "no latent map yet: it needs recorded minutes (only MELH, 14 Jan 2024, exists)"; return; }
+    // load (and reload on every data swap). The newest load wins: an older one that answers late is dropped. A failed
+    // read is tried again (1.5 s, 4 s, 10 s), so one bad fetch while the page boots (the engine, the isolation worker)
+    // never leaves the map empty for the session. The empty map says why, in its own words (Miguel 2026-11-03: it said
+    // "only MELH exists" while MELH was there)
+    let loadTok = 0, retryT = null;
+    const short = (id) => (String(id).split(".")[1] || String(id));
+    async function load(attempt = 0) {
+      const tok = ++loadTok; clearTimeout(retryT);
+      const sta = ctx.seismic(), empty = host.querySelector(".lat-empty");
+      if (!sta) { L = null; empty.textContent = "no latent map: this data has no seismometer station"; dirty = true; return; }
+      let got = null, err = null;
+      try { got = await ctx.src.latent(sta.id); } catch (e) { err = e; }
+      if (tok !== loadTok) return;                             // a newer load (a data swap) owns the view now
+      const nm = short(sta.id);
+      if (err) {
+        if (attempt < 3) { if (!L) empty.textContent = `the latent map of ${nm} is loading…`; retryT = setTimeout(() => load(attempt + 1), [1500, 4000, 10000][attempt]); return; }
+        L = null; dirty = true;
+        empty.textContent = `the latent map of ${nm} could not be read (${String((err && err.message) || err).slice(0, 60)}): reload the page to try again`;
+        return;
+      }
+      L = got; dirty = true;
+      if (!L) { empty.textContent = `this data has no latent map of ${nm}`; return; }
+      if (!L.x || !L.x.length) { empty.textContent = `the latent map of ${nm} has no recorded minutes in it`; return; }
       empty.textContent = "";
       // each cluster named by when it mostly happens (the central 80% of its minutes), from the data
       const ids = [...new Set(L.cluster)].sort((a, b) => a - b);
@@ -61,7 +79,9 @@ window.SvkLatent = (function () {
         + `<span class="lk"><span class="sw ring"></span>unusual</span>`;
     }
     function draw() {
-      if (!dirty || !L || !sx) return; dirty = false;
+      if (!dirty) return;
+      if (!L || !sx) { g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H); dirty = false; return; }   // no map now: none drawn
+      dirty = false;
       g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
       const C = ctx.col(), [t0, t1] = S.view, [zx, zy] = zoomed();
       // grid

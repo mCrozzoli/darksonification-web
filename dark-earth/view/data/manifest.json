@@ -1,7 +1,7 @@
 {
  "contract": "0.13",
  "public": true,
- "built": "2026-11-02T09:30:14.703Z",
+ "built": "2026-11-04T09:02:27.507Z",
  "t0": 1685577600,
  "t_end": 1790812800.0,
  "n_days": 1218,
@@ -266,11 +266,11 @@
    "kind": "seismic",
    "public": true,
    "label": "MELH, the seismometer near the vent: ground shaking and tilt on 14 Jan 2024, until lava overran it at 10:23 UTC",
-   "lat": 63.862087,
-   "lon": -22.404293,
+   "lat": 63.858,
+   "lon": -22.399,
    "pos_status": "approx",
-   "pos_source": "placeholder: the 2020-21 8F.MELH 'Melholl' site (IRIS FDSN station service), assumed to be the same site; 0.8 km from the 14 Jan 2024 fissure that overran the station",
-   "pos_err_m": 2000.0,
+   "pos_source": "Leif Karlstrom (email 2026-11-04), approximate (\"for now you can use an approximate location\"); rounded to 3 decimals (+/-60 m), Miguel 2026-11-04; +/-100 m proposed by W1 (no uncertainty given). 513 m from the earlier 8F.MELH placeholder, 316 m from the nearest 14 Jan 2024 fissure segment (1b)",
+   "pos_err_m": 100.0,
    "pending": true,
    "channels": [
     "HHZ",
@@ -351,7 +351,7 @@
    "fdsn_lookup": {
     "service": "https://service.iris.edu/fdsnws/station/1/query?sta=MELH&level=station",
     "found": "8F.MELH 'Melholl' 63.862087, -22.404293 (67.6 m), epochs 2020-06-22 to 2021-12-14",
-    "used": "as the approx placeholder only (v0.13: pos_status approx, pos_err_m 2000), never as measured",
+    "used": "no longer: since 2026-11-04 MELH's position is Leif Karlstrom's approximate one (approx, +/-100 m); this 8F site was the placeholder before (513 m away)",
     "why": "a temporary 8F deployment that ended in 2021; RK.MELH.10 (2024) is not listed by IRIS, EIDA, GEOFON, ORFEUS or the EIDA federator, so its measured position waits for StationXML from Leif (TASKS L1)"
    }
   },
@@ -926,8 +926,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    55.072,
-    132.184
+    47.364,
+    135.896
    ]
   },
   "fountain_h_m": {
@@ -937,7 +937,7 @@
    "epistemic": "measurement",
    "range": [
     0.0,
-    89.8
+    85.5
    ]
   },
   "pressure": {
@@ -4571,11 +4571,11 @@
    "source": "body_sequence"
   },
   "fountain_max_m": {
-   "p01": 55.072,
+   "p01": 47.364,
    "p50": 100.0,
-   "p99": 132.184,
-   "min": 55.0,
-   "max": 132.7,
+   "p99": 135.896,
+   "min": 46.8,
+   "max": 136.1,
    "n": 7,
    "tier": "events",
    "source": "eruptions"
@@ -4583,9 +4583,9 @@
   "fountain_h_m": {
    "p01": 0.0,
    "p50": 0.0,
-   "p99": 89.8,
+   "p99": 85.5,
    "min": 0.0,
-   "max": 132.7,
+   "max": 136.1,
    "n": 54980,
    "tier": "events",
    "source": "eruptions"
@@ -6904,19 +6904,19 @@
    },
    "eruptions": {
     "fountain_max_m": {
-     "p01": 55.072,
+     "p01": 47.364,
      "p50": 100.0,
-     "p99": 132.184,
-     "min": 55.0,
-     "max": 132.7,
+     "p99": 135.896,
+     "min": 46.8,
+     "max": 136.1,
      "n": 7
     },
     "fountain_h_m": {
      "p01": 0.0,
      "p50": 0.0,
-     "p99": 89.8,
+     "p99": 85.5,
      "min": 0.0,
-     "max": 132.7,
+     "max": 136.1,
      "n": 54980
     }
    }
@@ -7950,7 +7950,8 @@
   },
   "boundary_rule": "each boundary row's onset UTC day (boundary_day) bounds the rooms and the waits; same-day events share one",
   "intrusion_boundaries": "all",
-  "intrusion_min_fall_mm": 0.0
+  "intrusion_min_fall_mm": 0.0,
+  "fountain_norm_m": 132.7
  },
  "fountains": [
   {
@@ -7958,49 +7959,105 @@
    "kind": "observed",
    "file": "events/fountains/e2023-12-18.json",
    "onset_utc": "2023-12-18T22:17:00Z",
-   "max_m": 93.3
+   "max_m": 93.3,
+   "n_segments": 12,
+   "segments_positioned": 12,
+   "voice": {
+    "step_s": 60,
+    "n": 153,
+    "norm_m": 132.7,
+    "max_norm": 0.7031
+   }
   },
   {
    "id": "e2024-01-14",
    "kind": "observed",
    "file": "events/fountains/e2024-01-14.json",
    "onset_utc": "2024-01-14T07:57:00Z",
-   "max_m": 56.2
+   "max_m": 56.2,
+   "n_segments": 11,
+   "segments_positioned": 11,
+   "voice": {
+    "step_s": 60,
+    "n": 412,
+    "norm_m": 132.7,
+    "max_norm": 0.4235
+   }
   },
   {
    "id": "e2024-03-16",
    "kind": "observed",
    "file": "events/fountains/e2024-03-16.json",
    "onset_utc": "2024-03-16T20:23:00Z",
-   "max_m": 124.1
+   "max_m": 124.1,
+   "n_segments": 10,
+   "segments_positioned": 10,
+   "voice": {
+    "step_s": 60,
+    "n": 169,
+    "norm_m": 132.7,
+    "max_norm": 0.9352
+   }
   },
   {
    "id": "e2024-08-22",
    "kind": "observed",
    "file": "events/fountains/e2024-08-22.json",
    "onset_utc": "2024-08-22T21:26:00Z",
-   "max_m": 132.7
+   "max_m": 132.7,
+   "n_segments": 4,
+   "segments_positioned": 4,
+   "voice": {
+    "step_s": 60,
+    "n": 115,
+    "norm_m": 132.7,
+    "max_norm": 1.0
+   }
   },
   {
    "id": "e2024-11-20",
    "kind": "simulated",
    "file": "events/fountains/e2024-11-20.json",
    "onset_utc": "2024-11-20T23:14:00Z",
-   "max_m": 120.0
+   "max_m": 136.1,
+   "n_segments": 3,
+   "segments_positioned": 3,
+   "voice": {
+    "step_s": 60,
+    "n": 24947,
+    "norm_m": 132.7,
+    "max_norm": 1.0256
+   }
   },
   {
    "id": "e2025-04-01",
    "kind": "simulated",
    "file": "events/fountains/e2025-04-01.json",
    "onset_utc": "2025-04-01T09:45:00Z",
-   "max_m": 55.0
+   "max_m": 46.8,
+   "n_segments": 5,
+   "segments_positioned": 5,
+   "voice": {
+    "step_s": 60,
+    "n": 421,
+    "norm_m": 132.7,
+    "max_norm": 0.3527
+   }
   },
   {
    "id": "e2025-07-16",
    "kind": "simulated",
    "file": "events/fountains/e2025-07-16.json",
    "onset_utc": "2025-07-16T03:54:00Z",
-   "max_m": 100.0
+   "max_m": 100.0,
+   "n_segments": 3,
+   "segments_positioned": 3,
+   "voice": {
+    "step_s": 60,
+    "n": 28747,
+    "norm_m": 132.7,
+    "max_norm": 0.7536
+   }
   }
  ],
  "body": {
@@ -8795,7 +8852,7 @@
   "waveforms": "RK.MELH.10 HH* 100 Hz + LM* 1 Hz miniSEED, 2024-01-14 00:00-10:23 UTC, raw counts"
  },
  "flags": [
-  "MELH's position is a placeholder (pos_status approx, 2 km): no public service lists RK.MELH; SKSH, SENG, THOB from IMO's GNSS browser / site logs (measured)",
+  "MELH's position is Leif Karlstrom's approximate one (email 2026-11-04; pos_status approx, +/-100 m): no public service lists RK.MELH; SKSH, SENG and THOB are from IMO's GNSS browser station list (measured)",
   "waveforms are raw counts (no instrument response yet)",
   "MELH covers 2024-01-14 00:00-10:23 UTC only; the station was overrun by lava",
   "GNSS days without an IMO solution are gaps (null) and flagged <ST>_interp; all three stations have a gap across the 14 Jan 2024 eruption (the sound reads the straight line across a gap, veiled)",

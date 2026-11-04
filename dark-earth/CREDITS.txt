@@ -17,6 +17,9 @@ Lava fountains: observed fountain heights from Rhodes et al. (2026), Bulletin of
   doi:10.1007/s00445-026-02006-3 (supplement ESM2); the other eruptions' heights simulated with Leif Karlstrom's model.
   Fissure positions digitised from Rhodes et al. (2026), Fig. 3, or placed from IMO's reports.
 Eruption dates and places: IMO's published reports, https://en.vedur.is/about-imo/news/
+Fissure segment positions: the fountains' segment centroids by Leif Karlstrom (2026-11-04), approximate (150-1000 m);
+  the observed eruptions' segments as digitised from Rhodes et al. (2026), Fig. 3; the simulated ones placed by Leif Karlstrom.
+MELH seismometer position: approximate, from Leif Karlstrom (2026-11-04), rounded to 3 decimals (about +/-100 m).
 GNSS network: IMO GNSS time series (via Leif Karlstrom); station positions: IMO GNSS browser, brunnur.vedur.is
   (https://brunnur.vedur.is/gps/browser/)
 Binaural decoder (the ambisonic mode): four first-order filters derived from the MIT KEMAR HRTF measurements
