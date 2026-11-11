@@ -54,9 +54,6 @@
   .card p { margin: 0; }
   .card .line { font-size: 16px; }
   .card .meta { font-size: 14px; color: var(--ink-2); }
-  .card .go { margin-top: 16px; align-self: flex-start; font: 500 23px/1 "Karla", sans-serif; letter-spacing: .05em;
-              border-bottom: 2px solid var(--gold); padding-bottom: 5px; }
-  .card:hover .go { color: var(--blue-deep); }
   .stamp { font: 500 11px/1 "Karla", sans-serif; letter-spacing: .14em; text-transform: uppercase; color: var(--rose);
            border: 1.4px solid var(--rose); border-radius: 999px; padding: 4px 8px 3px; transform: rotate(-4deg); }
 
@@ -64,7 +61,7 @@
   footer { margin-top: 56px; padding-block: 0 44px; color: var(--ink-2); font-size: 14px; }
   footer svg { width: 100%; height: 36px; display: block; margin-bottom: 10px; }
   footer p { margin: 4px 0; max-width: 72ch; }
-  footer a { text-decoration-color: var(--gold); text-underline-offset: 3px; }
+  footer a, .about a { text-decoration-color: var(--gold); text-underline-offset: 3px; }
 
   /* the golden line draws itself once; everything is visible without motion */
   @media (prefers-reduced-motion: no-preference) {
@@ -301,13 +298,17 @@
     <div>
       <p class="by">Miguel Angel Crozzoli</p>
       <h1>darksonification</h1>
-      <p class="about">Dark Sonification is a multimodal data display design system focusing on human-data relations
-        in a world increasingly driven by data and mediated through computational processes. It looks into how the
-        process of designing and engaging with data allows meanings to emerge, when we position data and algorithms
-        as non-human co-designers. A display created with Dark Sonification is the result of humans and data
+      <p class="about">Dark Sonification is a multimodal data platform and display design system focusing on human-data
+        relations in a world increasingly driven by data and mediated through computational processes. It looks into how
+        the process of processing, designing and engaging with data allows meanings to emerge, when we position data and
+        algorithms as non-human co-designers. A display created with Dark Sonification is the result of humans and data
         intra-acting within Dark Sonification's affordances, given by its structuring methodology and the specific
         algorithms selected for processing the data.</p>
-      <p class="how">Open a design and click anywhere to hear it. Headphones help.</p>
+      <p class="about">The designs below are customised research tools crafted using Dark Sonification. The data
+        processing and multimodal display design follow researchers' needs. They are very specific for a scientific
+        field, a data set and the researchers' questions, so at a very first glance it might be challenging to understand
+        how to interact with them. If any of them is interesting for you, <a href="mailto:miguel@hi.is">send me an
+        email</a>!</p>
     </div>
     <svg class="hero-art" viewBox="0 0 600 470" role="img" aria-label="An ink and watercolour drawing: golden orbits, an olive brush stroke dotted with ink, blue ink dots and a field of stars over a peach wash.">
       <ellipse cx="352" cy="244" rx="178" ry="156" fill="url(#peach)" filter="url(#wash)"/>
@@ -344,7 +345,6 @@
           <h2>dark ocean</h2>
           <p class="line">The North Atlantic, November 2020 – July 2023: water masses, temperature, salinity and nutrients</p>
           <p class="meta">In collaboration with Björn Erlingsson, Research Scientist in Physical Oceanography</p>
-          <span class="go">open ♪</span>
         </div>
       </a>
       <a class="card" href="dark-re-wilding/">
@@ -353,7 +353,6 @@
           <h2>dark re-wilding</h2>
           <p class="line">Knepp Estate, March 2023 – February 2026: three years of a rewilding soundscape in acoustic indices, bird detections and the recordings themselves</p>
           <p class="meta">In collaboration with Alice Eldridge, University of Sussex</p>
-          <span class="go">open ♪</span>
         </div>
       </a>
       <a class="card" href="dark-pulsar/">
@@ -362,7 +361,6 @@
           <h2>dark pulsar</h2>
           <p class="line">1,297 pulsars from the ATNF catalogue and the EPN profile database: each one&#x27;s physics as a grain cloud cut from its own pulse profile, and its real rotation as a pulse</p>
           <p class="meta">Data: ATNF Pulsar Catalogue · EPN Database of Pulsar Profiles</p>
-          <span class="go">open ♪</span>
         </div>
       </a>
       <a class="card" href="dark-sagas/">
@@ -371,7 +369,6 @@
           <h2>dark sagas</h2>
           <p class="line">The Icelandic sagas collected from sagadb.org, read through Greynir and BÍN with feature extraction around a word list of feelings, for emotion-focused research</p>
           <p class="meta">Texts: sagadb.org (ed. Sveinbjörn Þórðarson) · Greynir (Miðeind) · BÍN (Árni Magnússon Institute, CC BY-SA 4.0)</p>
-          <span class="go">open ♪</span>
         </div>
       </a>
       <a class="card" href="dark-earth/">
@@ -380,7 +377,6 @@
           <h2>dark earth</h2>
           <p class="line">Volcanoes and earthquakes heard as one resonating body built from the ground&#x27;s own modes, starting with the Svartsengi eruption sequence on the Reykjanes peninsula, 2023–2026</p>
           <p class="meta">Built with Leif Karlstrom (University of Oregon) · Data: Icelandic Meteorological Office (IMO)</p>
-          <span class="go">open ♪</span>
         </div>
       </a>
       <a class="card" href="https://mcrozzoli.github.io/uncanny-listening/">
@@ -389,7 +385,6 @@
           <h2>uncanny listening</h2>
           <p class="line">Human-algorithmic listening: what makes a pop song uncanny to a trained ear.</p>
           <p class="meta">Research: Ana Marjalizo, University of Barcelona</p>
-          <span class="go">open ♪</span>
         </div>
       </a>
     </section>
