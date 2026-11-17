@@ -1,4 +1,4 @@
-Dark Earth - credits and licences
+Earth - credits and licences
 ========================================
 
 Design: Miguel Angel Crozzoli. Implemented with Claude AI agents. Built with DarkSonification

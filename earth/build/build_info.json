@@ -1,17 +1,17 @@
 {
-  "built": "2026-11-04 13:49:10",
+  "built": "2026-11-17 10:50:44",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "clearance": {
     "status": "cleared",
     "record": "Miguel Crozzoli, 2026-10-20, in the W5 session: 'Yes, publish publicly now as Dark Earth. Leif confirmed that is ok to publish.' (name confirmed as Dark Earth in the same session). IMO lava-flow / effusion data is not in the build (build_data.py gate)."
   },
-  "name": "Dark Earth",
+  "name": "Earth",
   "sources": {
-    "viz/app.js": "56cd814744aa0d3e",
+    "viz/app.js": "091700d56da6d3cc",
     "viz/cook.js": "75ab16710b6452a5",
     "viz/index.html": "91da4f45fc406f6f",
     "viz/legend.js": "ab8d060f407f01a9",
-    "viz/source.js": "da155a0a25857637",
+    "viz/source.js": "dd45292d0b82d62c",
     "viz/stations.js": "9a540ab282687eed",
     "viz/svk_messages.json": "c1f8ead13d1486ff",
     "viz/views/latent.js": "fd479e90c425ec6a",
@@ -29,9 +29,9 @@
     "viz/mseed/mseed.js": "c69705700c1c709d",
     "viz/mseed/worker.js": "1021ae29d641b083",
     "sc/dark_svartsengi_boot.scd": "c80719c8905c61af",
-    "sc/svk_synthdefs.scd": "c7ec229ce1931f88",
-    "sc/parse_dark_svartsengi.scd": "e932632e7141cad5",
-    "sc/svk_cook.scd": "b795726b855fad10",
+    "sc/svk_synthdefs.scd": "f9e1eb51f0891300",
+    "sc/parse_dark_svartsengi.scd": "281803fa2cd7f685",
+    "sc/svk_cook.scd": "31a34e8edbda3e21",
     "sc/svk_hrir_foa_kemar_44100.wav": "ff0ab095b1765ad4",
     "sc/svk_hrir_foa_kemar_48000.wav": "387cd61866010e29",
     "sc/svk_hrir_foa_kemar_88200.wav": "f5d2499b4985bbdc",
@@ -119,10 +119,10 @@
     "osc.js": "d1e7c6b2ce4b28db",
     "coi-sw.js": "0f0bd6af19f47770",
     "sc/web_boot.scd": "b4d6471195b639e3",
-    "README.md": "ce0965b715c86f1a"
+    "README.md": "2257ff881d3fc1b6"
   },
   "data": {
-    "built": "2026-11-04 13:49:10",
+    "built": "2026-11-17 10:50:44",
     "bridge_sha": "bb868199de1b0d18",
     "schema_sha": "c1f8ead13d1486ff",
     "contract": "0.20",

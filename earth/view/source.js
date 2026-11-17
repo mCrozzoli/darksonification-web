@@ -76,7 +76,7 @@ window.SvkSource = (function () {
   async function checkTree(raw, doc, sizeOf, listAll) {
     // 1. the root
     const miss = ROOT_KEYS.filter((k) => !(k in doc));
-    if (doc.schema !== "darkearth_tree") throw new Error(`darkearth_tree.json says schema "${doc.schema}", not a Dark Earth tree`);
+    if (doc.schema !== "darkearth_tree") throw new Error(`darkearth_tree.json says schema "${doc.schema}", not an Earth data folder`);
     if (!TREE_VERSIONS.includes(String(doc.schema_version))) throw new Error(`a tree of schema version ${doc.schema_version}: this page reads ${TREE_VERSIONS.join(", ")}`);
     if (miss.length) throw new Error(`darkearth_tree.json has no ${miss.join(", ")}`);
     if (("kind" in doc && doc.kind !== doc.schema) || ("contract" in doc && String(doc.contract) !== String(doc.schema_version))) throw new Error("darkearth_tree.json's kind / contract disagree with its schema / schema_version");
@@ -154,7 +154,7 @@ window.SvkSource = (function () {
       checkTreeManifest(doc, manifest, check.indexed);
     } else {
       try { manifest = await rawIo.json("manifest.json"); }
-      catch (e) { if (isNet(e)) throw e; throw new Error("this is not a Dark Earth tree: no darkearth_tree.json and no manifest.json at its top"); }
+      catch (e) { if (isNet(e)) throw e; throw new Error("this is not an Earth data folder: no darkearth_tree.json and no manifest.json at its top"); }
       const bad = checkManifest(manifest); if (bad) throw new Error(`not a tree the page can read: ${bad}`);
     }
     // 0.16: a tiles-only tree may keep its raw miniSEED in a folder beside the tiles (doc.raw.dir, not indexed): the page
@@ -282,7 +282,7 @@ window.SvkSource = (function () {
     if (!window.SvkMseed) throw new Error("the miniSEED reader is not loaded");
     const files = entries.map((e) => { try { e.file.relPath = e.rel; } catch (_) {} return e.file; });
     const S = await window.SvkMseed.scanFiles(files);
-    if (!S.files.length) throw new Error("this is not a Dark Earth tree, and there is no miniSEED in it either (no darkearth_tree.json, no manifest.json, no SEED records)");
+    if (!S.files.length) throw new Error("this is not an Earth data folder, and there is no miniSEED in it either (no darkearth_tree.json, no manifest.json, no SEED records)");
     const chans = new Map();
     for (const m of S.files) { m.spanS = await m.span(); if (!chans.has(m.nslc)) chans.set(m.nslc, []); chans.get(m.nslc).push(m); }
     const byStation = new Map();
