@@ -22,7 +22,7 @@
       out.set("view", me === "index" ? "scatter" : me);
       for (const k of ["m", "d"]) if (q.get(k)) out.set(k, q.get(k));
       window.parent.history.replaceState(null, "", window.parent.location.pathname + "?" + out.toString() + location.hash);
-      if (document.title) window.parent.document.title = document.title;
+      if (document.title) window.parent.document.title = document.title.replace(/^dark_re_wilding/, "Re-Wilding");   // the visible name (2026-11-17)
     } catch (_) {}
   }
 
