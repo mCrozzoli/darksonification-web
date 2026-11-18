@@ -1,5 +1,5 @@
 {
-  "built": "2026-11-18 00:09:13",
+  "built": "2026-11-18 10:37:55",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "clearance": {
     "status": "cleared",
@@ -30,7 +30,7 @@
     "viz/mseed/worker.js": "1021ae29d641b083",
     "sc/dark_svartsengi_boot.scd": "c80719c8905c61af",
     "sc/svk_synthdefs.scd": "7f3cb8de374abc99",
-    "sc/parse_dark_svartsengi.scd": "ab4729b4c8b2568b",
+    "sc/parse_dark_svartsengi.scd": "c5b189a6bb6d2c2f",
     "sc/svk_cook.scd": "0d0c3a8ae8298d9b",
     "sc/svk_hrir_foa_kemar_44100.wav": "ff0ab095b1765ad4",
     "sc/svk_hrir_foa_kemar_48000.wav": "387cd61866010e29",
@@ -122,7 +122,7 @@
     "README.md": "4e3275adf6268255"
   },
   "data": {
-    "built": "2026-11-18 00:09:13",
+    "built": "2026-11-18 10:37:55",
     "bridge_sha": "bb868199de1b0d18",
     "schema_sha": "c13c497d3a10180f",
     "contract": "0.21",
