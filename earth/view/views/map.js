@@ -143,10 +143,13 @@ window.SvkMap = (function () {
     const stations = () => (ctx.stations ? ctx.stations() : (S.M.stations || []).map((s) => ({ ...s, placed: isNum(s.lat) && isNum(s.lon), approx: !!s.pending })));
     const fmtUT = (t) => `${new Date(t * 1000).toISOString().slice(0, 16).replace("T", " ")} UTC`;
     function stationLines(s) {
-      const out = [`<b>${esc(short(s.id))}</b> · ${esc(s.kind || "station")}${s.edited ? " · edited in this page" : ""}`];
+      const inBody = s.kind === "gnss" && ctx.gnssBody && ctx.gnssBody().stations.some((x) => x.id === s.id);   // G4: SKSH, SENG, ELDC, FEFC
+      const out = [`<b>${esc(short(s.id))}</b> · ${esc(s.kind || "station")}${inBody ? " · one of the body's stations" : ""}${s.edited ? " · edited in this page" : ""}`];
       out.push(s.approx ? `approx position${isNum(s.pos_err_m) ? ` · ± ${s.pos_err_m} m` : " · uncertainty unknown"}` : "measured position");
       out.push(`${s.lat.toFixed(4)}° N, ${Math.abs(s.lon).toFixed(4)}° ${s.lon < 0 ? "W" : "E"}`);
       if (s.pos_source) out.push(`<span class="dim">${esc(s.pos_source)}</span>`);
+      const vl = s.kind === "gnss" && fieldW() > 0.3 ? vecLine(s.id) : null;   // G4: its movement over the window
+      if (vl) out.push(`moved ${vl}`);
       return out;
     }
 
@@ -265,70 +268,118 @@ window.SvkMap = (function () {
       } else eruHit.push({ x: p[0], y: p[1], lines: out }, ...(n || top ? [{ x: p[0], y: y0 - Math.max(6, top / 2), lines: out }] : []));
     }
 
-    // ----- the wider GNSS network (CONTRACT 0.17 proposal: manifest.gnss_field + tiles/f1d/gnss_imo; DESIGN §6.2). Map only:
-    // the body and the sound stay on SKSH, SENG and THOB. Each station: an arrow from its place, how it moves at the cursor's
-    // day (the trailing 7-day velocity, mm/day, IMO's plate frame: east → right, north ↑), FIELD_PX px per mm/day up to
-    // FIELD_MAX (beyond it a short bar across the tip; the hover has the number); the dot filled while it rises, a ring while
-    // it sinks, faster than FIELD_U mm/day (about twice a week's GNSS noise in height), else a small point. Calm
-    // (re_wilding): thin and faint, a slow (noisy) arrow fainter still; the one pointed at drawn full. A gap (fewer than 5
-    // measured days in the week): the point alone. Stations with a position but no public time series are not drawn
-    // (gnss_field.positions_only is not read)
-    const DAY = 86400, FIELD_PX = 7, FIELD_MAX = 42, FIELD_U = 2.5, FIELD_KEY = 5;
-    let fieldHit = [], fieldHot = null;
+    // ----- G4 (Leif 2026-11-16: "plot horizontal (E-N) and vertical (Z) components as separate vectors attached to each
+    // station"; Miguel): the GNSS as in publications. Every station, the body's (W1's manifest.body.components.stations, SKSH,
+    // SENG, ELDC, FEFC, in their colours; ELDC and FEFC, with no marker in the dock, get a dot and their name) and the rest
+    // (THOB, the wider network: faint, fading further when the map is local, S1), draws two vectors from
+    // its place over the timeline's window, from its start to the cursor: a horizontal arrow (east → right, north ↑) and a
+    // separate vertical one along the screen (up ↑), thinner, with an open head, set 2.5 px aside. Each kind its own scale,
+    // as in publications (here the vertical is often ten times the horizontal): from the body's largest movement of that kind
+    // (≤ 6 px per mm), each with a round key ("20 mm", "200 mm"); beyond VEC_MAX a short bar across the tip (the hover has the
+    // numbers). The sound tab's GNSS switch (vertical | horizontal) lights the matching vectors. At the cycle and
+    // sequence levels (the GNSS is daily). Stations with a position but no public time series are not drawn
+    const DAY = 86400, VEC_PX = 40, VEC_MAX = 64, KEYS = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000];
+    let fieldHit = [], fieldHot = null, vecByid = new Map();
     function fieldW() { return (S.w[3] || 0) + (S.w[4] || 0); }
-    function fieldAt() {
-      const F = ctx.gnssField ? ctx.gnssField() : null; if (!F) return null;
-      const { T, meta } = F, i = Math.floor((S.cursor - T.t[0]) / DAY), at = (id, c) => (i >= 0 && i < T.t.length ? (T.cols[`${id}_${c}`] || [])[i] : null);
-      const rows = (meta.stations || []).map((s) => ({ s, day: i >= 0 && i < T.t.length ? T.t[i] : null,
-        v: { n: at(s.id, "n_vel"), e: at(s.id, "e_vel"), u: at(s.id, "u_vel"), dn: at(s.id, "n_mm"), de: at(s.id, "e_mm"), du: at(s.id, "u_mm") } }));
-      return { rows, meta };
+    // a station's movement over [t0, t1]: per component the last valid day minus the first (a spike day is not valid)
+    function delta(T, id, t0, t1) {
+      if (!T || !T.t || !T.t.length) return null;
+      const i0 = Math.max(0, Math.floor((t0 - T.t[0]) / DAY)), i1 = Math.min(T.t.length - 1, Math.floor((t1 - T.t[0]) / DAY));
+      if (i1 <= i0) return null;
+      const sp = T.cols[`${id}_spike`] || [], out = {};
+      for (const c of ["n", "e", "u"]) {
+        const a = T.cols[`${id}_${c}_mm`] || [], ok = (k) => isNum(a[k]) && !sp[k];
+        let j0 = i0; while (j0 <= i1 && !ok(j0)) j0++;
+        let j1 = i1; while (j1 >= j0 && !ok(j1)) j1--;
+        out[c] = j1 > j0 ? a[j1] - a[j0] : null;
+        if (c === "u" || out.from == null) { if (j1 > j0) { out.from = T.t[j0]; out.to = T.t[j1]; } }
+      }
+      return isNum(out.n) || isNum(out.e) || isNum(out.u) ? out : null;
+    }
+    // the body's stations first (G4: SKSH, SENG, ELDC, FEFC, each from its own table), then the primary stations outside the
+    // body (THOB) and the network, faint; a station is drawn once
+    function vecRows() {
+      const rows = [], t0 = S.view[0], t1 = Math.min(S.cursor, S.view[1]);
+      if (!(t1 > t0)) return rows;
+      const B = ctx.gnssBody ? ctx.gnssBody() : null, seen = new Set();
+      for (const s of (B && B.stations) || []) { seen.add(s.id); rows.push({ s, body: true, col: s.col, d: delta(s.T, s.id, t0, t1) }); }
+      for (const s of (B && B.others) || []) { seen.add(s.id); rows.push({ s, body: false, col: null, d: delta(s.T, s.id, t0, t1) }); }
+      const F = ctx.gnssField ? ctx.gnssField() : null;
+      for (const s of (F && F.meta.stations) || []) if (!seen.has(s.id)) rows.push({ s, body: false, col: null, d: delta(F.T, s.id, t0, t1), field: true });
+      return rows;
     }
     function drawField() {
-      fieldHit = [];
-      const w = Math.min(1, fieldW()) * (1 - 0.7 * localW()), F = w > 0.02 ? fieldAt() : null;   // S1: faded when local
-      if (!F) return;
-      const ink = ctx.tok("--ds-txt");
-      g.save(); g.strokeStyle = ink; g.fillStyle = ink; g.lineCap = "round"; g.lineJoin = "round";
-      for (const r of F.rows) {
+      fieldHit = []; vecByid = new Map();
+      const w = Math.min(1, fieldW()); if (w < 0.02) return;
+      const rows = vecRows(); if (!rows.length) return;
+      const ink = ctx.tok("--ds-txt"), lw = localW(), comp = ctx.gnssComp ? ctx.gnssComp() : "all";
+      const hF = comp === "vertical" ? 0.3 : 1, vF = comp === "horizontal" ? 0.3 : 1;
+      const hsz = (r) => (r.d && isNum(r.d.n) && isNum(r.d.e) ? Math.hypot(r.d.n, r.d.e) : 0), vsz = (r) => (r.d && isNum(r.d.u) ? Math.abs(r.d.u) : 0);
+      const from = rows.some((r) => r.body && r.d) ? rows.filter((r) => r.body) : rows;
+      const scH = Math.min(6, VEC_PX / Math.max(1, ...from.map(hsz))), scV = Math.min(6, VEC_PX / Math.max(1, ...from.map(vsz)));
+      g.save(); g.lineCap = "round"; g.lineJoin = "round";
+      const head = (x1, y1, ux, uy, hl, open) => {
+        const hw = hl * 0.55; g.beginPath(); g.moveTo(x1 - ux * hl - uy * hw, y1 - uy * hl + ux * hw); g.lineTo(x1, y1); g.lineTo(x1 - ux * hl + uy * hw, y1 - uy * hl - ux * hw);
+        if (open) g.stroke(); else { g.closePath(); g.fill(); }
+      };
+      for (const r of rows) {
         const q = proj([r.s.lon, r.s.lat]); if (!q || !isNum(q[0])) continue;
-        const hot = fieldHot === r.s.id, a0 = w * (hot ? 1 : 0.5), v = r.v, has = v && isNum(v.n) && isNum(v.e);
-        if (has) {
-          const sp = Math.hypot(v.n, v.e), L = Math.min(FIELD_MAX, sp * FIELD_PX);
+        const hot = fieldHot === r.s.id, col = r.col || ink;
+        const a0 = w * (r.body ? (hot ? 1 : 0.95) : (hot ? 1 : 0.32) * (1 - 0.7 * lw));
+        g.strokeStyle = col; g.fillStyle = col;
+        const d = r.d;
+        if (d && isNum(d.n) && isNum(d.e)) {                                   // the horizontal arrow (east, north)
+          const hz = Math.hypot(d.n, d.e), L = Math.min(VEC_MAX, hz * scH);
           if (L >= 1.5) {
-            const ux = v.e / sp, uy = -v.n / sp, x1 = q[0] + ux * L, y1 = q[1] + uy * L, hl = Math.min(4, L * 0.45), hw = hl * 0.55;
-            g.globalAlpha = a0 * (hot ? 1 : Math.min(1, 0.3 + sp / 3)); g.lineWidth = hot ? 1.4 : 0.9;
-            g.beginPath(); g.moveTo(q[0], q[1]); g.lineTo(x1, y1); g.stroke();
-            g.beginPath(); g.moveTo(x1, y1); g.lineTo(x1 - ux * hl - uy * hw, y1 - uy * hl + ux * hw); g.lineTo(x1 - ux * hl + uy * hw, y1 - uy * hl - ux * hw); g.closePath(); g.fill();
-            if (sp * FIELD_PX > FIELD_MAX) { g.beginPath(); g.moveTo(x1 - uy * 3.5, y1 + ux * 3.5); g.lineTo(x1 + uy * 3.5, y1 - ux * 3.5); g.stroke(); }
+            const ux = d.e / hz, uy = -d.n / hz, x1 = q[0] + ux * L, y1 = q[1] + uy * L;
+            g.globalAlpha = a0 * hF; g.lineWidth = r.body ? 1.6 : 0.9;
+            g.beginPath(); g.moveTo(q[0], q[1]); g.lineTo(x1, y1); g.stroke(); head(x1, y1, ux, uy, Math.min(5, L * 0.45), false);
+            if (hz * scH > VEC_MAX) { g.beginPath(); g.moveTo(x1 - uy * 3.5, y1 + ux * 3.5); g.lineTo(x1 + uy * 3.5, y1 - ux * 3.5); g.stroke(); }
           }
         }
-        const up = has && isNum(v.u) ? v.u : null;
-        g.globalAlpha = a0 * 0.9; g.lineWidth = 0.9; g.beginPath();
-        if (up != null && up >= FIELD_U) { g.arc(q[0], q[1], 2.3, 0, 7); g.fill(); }
-        else if (up != null && up <= -FIELD_U) { g.arc(q[0], q[1], 2.3, 0, 7); g.stroke(); }
-        else { g.globalAlpha *= has ? 0.8 : 0.5; g.arc(q[0], q[1], 1.3, 0, 7); g.fill(); }
-        fieldHit.push({ x: q[0], y: q[1], r });
+        if (d && isNum(d.u)) {                                                  // the vertical arrow (up ↑ / down ↓), set aside
+          const L = Math.min(VEC_MAX, Math.abs(d.u) * scV), sx = q[0] + 2.5, sy = q[1], dir = d.u >= 0 ? -1 : 1;
+          if (L >= 1.5) {
+            const y1 = sy + dir * L;
+            g.globalAlpha = a0 * vF; g.lineWidth = r.body ? 1.1 : 0.8;
+            g.beginPath(); g.moveTo(sx - 2, sy); g.lineTo(sx + 2, sy); g.moveTo(sx, sy); g.lineTo(sx, y1); g.stroke();   // a foot, then the shaft
+            head(sx, y1, 0, dir, Math.min(4.5, L * 0.45), true);
+            if (Math.abs(d.u) * scV > VEC_MAX) { g.beginPath(); g.moveTo(sx - 3.5, y1); g.lineTo(sx + 3.5, y1); g.stroke(); }
+          }
+        }
+        if (r.field) { g.globalAlpha = a0 * 0.8; g.beginPath(); g.arc(q[0], q[1], 1.3, 0, 7); g.fill(); fieldHit.push({ x: q[0], y: q[1], r }); }
+        else if (r.body && !r.s.own) {                                          // ELDC, FEFC: no marker in the dock
+          g.globalAlpha = a0; g.beginPath(); g.arc(q[0], q[1], 2.6, 0, 7); g.fill();
+          g.font = `9px ${ctx.tok("--ds-font-canvas")}`; g.globalAlpha = a0 * 0.85; g.fillText(r.s.id, q[0] - 6 - g.measureText(r.s.id).width, q[1] + 3);
+          fieldHit.push({ x: q[0], y: q[1], r });
+        }
+        vecByid.set(r.s.id, r);
       }
-      // the key, above the 10 km bar: an arrow of FIELD_KEY mm/day
-      const kx = 14, ky = H - 52, kl = FIELD_KEY * FIELD_PX;
-      g.globalAlpha = w * 0.7; g.lineWidth = 0.9; g.beginPath(); g.moveTo(kx, ky); g.lineTo(kx + kl, ky); g.stroke();
-      g.beginPath(); g.moveTo(kx + kl, ky); g.lineTo(kx + kl - 4, ky - 2.2); g.lineTo(kx + kl - 4, ky + 2.2); g.closePath(); g.fill();
-      g.font = `9px ${ctx.tok("--ds-font-canvas")}`; g.fillText(`${FIELD_KEY} mm/day · GNSS`, kx + kl + 5, ky + 3);
+      // the keys, above the 10 km bar: a round length on each scale, drawn as its own kind (→ filled, ↑ open with a foot)
+      const mm = (k) => (k >= 1000 ? `${k / 1000} m` : `${k} mm`), pick = (sc, px) => [...KEYS].reverse().find((k) => k * sc <= px) || KEYS[0];
+      const kH = pick(scH, 40), kV = pick(scV, 34), kx = 14, ky = H - 52;
+      g.globalAlpha = w * 0.75; g.strokeStyle = ink; g.fillStyle = ink; g.lineWidth = 0.9; g.font = `9px ${ctx.tok("--ds-font-canvas")}`;
+      g.globalAlpha = w * 0.75 * hF; g.beginPath(); g.moveTo(kx, ky); g.lineTo(kx + kH * scH, ky); g.stroke(); head(kx + kH * scH, ky, 1, 0, 4, false);
+      let x = kx + kH * scH + 5; g.fillText(mm(kH), x, ky + 3); x += g.measureText(mm(kH)).width + 12;
+      g.globalAlpha = w * 0.75 * vF; g.beginPath(); g.moveTo(x - 2, ky + 3); g.lineTo(x + 2, ky + 3); g.moveTo(x, ky + 3); g.lineTo(x, ky + 3 - kV * scV); g.stroke();
+      head(x, ky + 3 - kV * scV, 0, -1, 3.5, true); g.fillText(mm(kV), x + 5, ky + 3); x += 5 + g.measureText(mm(kV)).width;
+      g.globalAlpha = w * 0.5; g.fillText(" · GNSS", x, ky + 3);
       g.restore();
+    }
+    // a station's movement over the window, in words (the hover of a body station and of a field station)
+    const sg = (x) => { const k = Math.round(x); return `${k >= 0 ? "+" : "−"}${Math.abs(k)}`; };
+    const dday = (t) => new Date(t * 1000).toISOString().slice(0, 10);
+    function vecLine(id) {
+      const r = vecByid.get(id), d = r && r.d; if (!d) return null;
+      const parts = [isNum(d.e) ? `E ${sg(d.e)}` : null, isNum(d.n) ? `N ${sg(d.n)}` : null, isNum(d.u) ? `U ${sg(d.u)}` : null].filter(Boolean);
+      return `${parts.join(" · ")} mm${isNum(d.from) ? ` <span class="dim">· ${dday(d.from)} → ${dday(d.to)}</span>` : ""}`;
     }
     const COMPASS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
     function fieldLines(r) {
-      const s = r.s, F = ctx.gnssField().meta, out = [`<b>${esc(s.id)}</b> · GNSS (IMO) · on the map only`];
-      const v = r.v, day = r.day != null ? new Date(r.day * 1000).toISOString().slice(0, 10) : null;
-      if (!v || !isNum(v.n) || !isNum(v.e)) out.push(`no measurement this week${day ? ` (to ${day})` : ""}: fewer than 5 days with an IMO solution`);
-      else {
-        const sp = Math.hypot(v.n, v.e), az = ((Math.atan2(v.e, v.n) * 180) / Math.PI + 360) % 360;
-        out.push(`moving ${sp.toFixed(1)} mm/day toward ${Math.round(az)}° (${COMPASS[Math.round(az / 45) % 8]})${sp < 1 ? ' <span class="dim">· within a week\'s GNSS noise</span>' : ""}`);
-        if (isNum(v.u)) out.push(`${v.u >= 0 ? "rising" : "sinking"} ${Math.abs(v.u).toFixed(1)} mm/day${Math.abs(v.u) < FIELD_U ? ' <span class="dim">· within the noise</span>' : ""}`);
-        out.push(`<span class="dim">the 7 days to ${day}, IMO's plate frame</span>`);
-      }
-      const sg = (x) => { const k = Math.round(x); return `${k >= 0 ? "+" : "−"}${Math.abs(k)}`; };
-      if (v && isNum(v.dn) && isNum(v.de) && isNum(v.du)) out.push(`since ${esc(s.ref_day || "the start")}: N ${sg(v.dn)} · E ${sg(v.de)} · U ${sg(v.du)} mm`);
+      const s = r.s, F = (ctx.gnssField() || {}).meta || {}, out = [`<b>${esc(s.id)}</b> · GNSS (IMO) · ${r.body ? "one of the body's stations" : "on the map only"}`];
+      const vl = vecLine(s.id);
+      out.push(vl ? `moved ${vl}` : `<span class="dim">no movement to show in this window (no IMO solution at its ends)</span>`);
+      out.push(`<span class="dim">over the timeline's window, to the cursor · IMO's plate frame</span>`);
       // one short credit line (the full source strings on its hover): IMO's series, the position from IMO's GNSS browser
       const pos = /map\.js|GNSS browser/i.test(s.pos_source || "") ? "position: IMO GNSS browser" : `position: ${clause(s.pos_source || "unknown")}`;
       out.push(`<span class="dim" title="${esc([F.credit, s.pos_source].filter(Boolean).join(" · "))}">IMO GNSS time series (via Leif Karlstrom) · ${esc(pos)}</span>`);

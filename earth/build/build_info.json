@@ -1,5 +1,5 @@
 {
-  "built": "2026-11-17 10:50:44",
+  "built": "2026-11-18 00:09:13",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "clearance": {
     "status": "cleared",
@@ -7,15 +7,15 @@
   },
   "name": "Earth",
   "sources": {
-    "viz/app.js": "091700d56da6d3cc",
+    "viz/app.js": "1d1170ad0862db1e",
     "viz/cook.js": "75ab16710b6452a5",
-    "viz/index.html": "91da4f45fc406f6f",
-    "viz/legend.js": "ab8d060f407f01a9",
-    "viz/source.js": "dd45292d0b82d62c",
+    "viz/index.html": "e53652ac583e5e88",
+    "viz/legend.js": "bb849a43b8af74bd",
+    "viz/source.js": "4e7e463e507db826",
     "viz/stations.js": "9a540ab282687eed",
-    "viz/svk_messages.json": "c1f8ead13d1486ff",
+    "viz/svk_messages.json": "c13c497d3a10180f",
     "viz/views/latent.js": "fd479e90c425ec6a",
-    "viz/views/map.js": "5aed8d87968b14d6",
+    "viz/views/map.js": "afa50d9a98f4df40",
     "viz/views/timeline.js": "0febe154b1cc6c76",
     "viz/views/zoom.js": "23c6305a0d6bcf5e",
     "viz/geo/SOURCE.md": "56992082c4c13ddd",
@@ -29,9 +29,9 @@
     "viz/mseed/mseed.js": "c69705700c1c709d",
     "viz/mseed/worker.js": "1021ae29d641b083",
     "sc/dark_svartsengi_boot.scd": "c80719c8905c61af",
-    "sc/svk_synthdefs.scd": "f9e1eb51f0891300",
-    "sc/parse_dark_svartsengi.scd": "281803fa2cd7f685",
-    "sc/svk_cook.scd": "31a34e8edbda3e21",
+    "sc/svk_synthdefs.scd": "7f3cb8de374abc99",
+    "sc/parse_dark_svartsengi.scd": "ab4729b4c8b2568b",
+    "sc/svk_cook.scd": "0d0c3a8ae8298d9b",
     "sc/svk_hrir_foa_kemar_44100.wav": "ff0ab095b1765ad4",
     "sc/svk_hrir_foa_kemar_48000.wav": "387cd61866010e29",
     "sc/svk_hrir_foa_kemar_88200.wav": "f5d2499b4985bbdc",
@@ -79,7 +79,7 @@
   "sc_patches": [
     {
       "file": "svk_synthdefs.scd",
-      "why": "the Array of 21 SynthDefs inlined; the desktop boot's `.do(_.add)` + `s.sync` follow it in a fork; ~webSynthsReady appended"
+      "why": "the Array of 22 SynthDefs inlined; the desktop boot's `.do(_.add)` + `s.sync` follow it in a fork; ~webSynthsReady appended"
     },
     {
       "file": "parse_dark_svartsengi.scd",
@@ -118,15 +118,15 @@
     "relay.js": "15158ec825ae001c",
     "osc.js": "d1e7c6b2ce4b28db",
     "coi-sw.js": "0f0bd6af19f47770",
-    "sc/web_boot.scd": "b4d6471195b639e3",
-    "README.md": "2257ff881d3fc1b6"
+    "sc/web_boot.scd": "75531cbd1ec1deca",
+    "README.md": "4e3275adf6268255"
   },
   "data": {
-    "built": "2026-11-17 10:50:44",
+    "built": "2026-11-18 00:09:13",
     "bridge_sha": "bb868199de1b0d18",
-    "schema_sha": "c1f8ead13d1486ff",
-    "contract": "0.20",
-    "contract_warning": "manifest contract 0.13 ≠ svk_messages.json contract 0.20: the data and the message table are from different contract versions",
+    "schema_sha": "c13c497d3a10180f",
+    "contract": "0.21",
+    "contract_warning": "manifest contract 0.13 ≠ svk_messages.json contract 0.21: the data and the message table are from different contract versions",
     "publication_gate": {
       "public_seismic_coverage": {
         "RK.MELH.10": [
@@ -137,16 +137,16 @@
         ]
       },
       "checked": {
-        "json": 164,
+        "json": 192,
         "tiles": 26,
         "wave_hours": 132,
         "rows": 8177
       }
     },
     "manifest": {
-      "sha": "6e490f5361ed95a5",
+      "sha": "8bd98524a5aae5a6",
       "contract": "0.13",
-      "built": "2026-11-04T09:02:27.507Z",
+      "built": "2026-11-17T11:44:50.855Z",
       "t0": 1685577600,
       "t_end": 1790812800.0,
       "wave_peak": {
@@ -159,11 +159,11 @@
     },
     "data": {
       "copied": 0,
-      "kept": 230,
+      "kept": 258,
       "removed": 0,
-      "digest": "2429c33b7d8d2354",
-      "files": 230,
-      "bytes": 42946867
+      "digest": "b23af8cbfe942a90",
+      "files": 258,
+      "bytes": 45119152
     },
     "bridge_data_roots": [
       "data/",
@@ -197,7 +197,7 @@
     "svk_hrir_data.scd",
     "parse_dark_svartsengi.scd"
   ],
-  "n_synthdefs": 21,
+  "n_synthdefs": 22,
   "hrir": {
     "rates": [
       44100,
@@ -248,6 +248,7 @@
       "svkSpace",
       "svkSpatialStereo",
       "svkStrike",
+      "svkStrikeEcho",
       "svkSwarm",
       "svkTension",
       "svkTick",
@@ -320,7 +321,7 @@
   "relay_check": {
     "checked": 105,
     "failed": 0,
-    "contract": "0.20"
+    "contract": "0.21"
   },
   "publication_markers": "no NOT_FOR_PUBLICATION.txt in the build",
   "page_refs": 19,

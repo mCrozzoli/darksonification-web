@@ -15,9 +15,14 @@
 //   numOutputBusChannels 2     the stereo core (A5), as the desktop
 //   numInputBusChannels  0     no input, as the desktop
 //   numWireBufs          256   \svkGround's anti-alias FIR needs more than the default 64 (W2 note §7, CONTRACT v0.8)
-//   memSize              2048  KB of real-time pool. This design's voices use almost none (no delay lines; Limiter
-//                              allocates a few kB). The three Ground rings (262,144 float frames = 1 MiB each, 3 MiB)
-//                              are /b_alloc'ed from the heap beside the pool, inside the ≈ 7 MB left at 2048
+//   memSize              3072  KB of real-time pool (2048 until 2026-11-17). Every synth's graph comes from it, and the
+//                              strikes', bodies' and plates' delay lines (W2: an observed plate ≈ 37 KB, a Ground
+//                              reader ≈ 82 KB, the calm body ≈ 128 KB); a GNSS set switch holds two bodies for 4 s.
+//                              At 2048 the G4 switches ran out ("alloc failed") before W2's 11-17 fix, and W2's native
+//                              hours load needs more than 1536. Measured on build 23:07:20 (W5_harness/heap_room.py):
+//                              2048 → pool ≈ 1.7 MB free when paused, heap ≈ 3.5 MiB free; 3072 → pool ≈ 2.7 MB,
+//                              heap ≈ 2.5 MiB. The heap is spent at boot only (the three Ground rings, 262,144 float
+//                              frames = 1 MiB each, and the four HRIR filters + spectra); nothing /b_alloc's later
 //   numBuffers           128   the three rings only; sclang's allocator hands out 0, 1, 2 (bufnums above numBuffers
 //                              are NOT rejected by this build and would alias: re_wilding gotcha 2)
 //
@@ -30,7 +35,7 @@ s = Server.default;
 s.options.numOutputBusChannels = 2;
 s.options.numInputBusChannels  = 0;
 s.options.numWireBufs = 256;
-s.options.memSize = 2048;
+s.options.memSize = 3072;
 s.options.numBuffers = 128;
 ~svkReplyTo = s.addr;
 ~webBooted = false;

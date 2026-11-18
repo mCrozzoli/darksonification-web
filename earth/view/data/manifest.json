@@ -1,7 +1,7 @@
 {
  "contract": "0.13",
  "public": true,
- "built": "2026-11-04T09:02:27.507Z",
+ "built": "2026-11-17T11:44:50.855Z",
  "t0": 1685577600,
  "t_end": 1790812800.0,
  "n_days": 1218,
@@ -367,6 +367,7 @@
    "pos_err_m": 1.0,
    "pending": false,
    "primary": true,
+   "body": true,
    "first_day": "2023-06-04",
    "last_day": "2026-09-30",
    "n_days": 1215,
@@ -385,6 +386,7 @@
    "pos_err_m": 1.0,
    "pending": false,
    "primary": false,
+   "body": true,
    "first_day": "2023-06-04",
    "last_day": "2026-09-30",
    "n_days": 1215,
@@ -403,11 +405,50 @@
    "pos_err_m": 6.0,
    "pending": false,
    "primary": false,
+   "body": false,
    "first_day": "2023-06-17",
    "last_day": "2026-09-30",
    "n_days": 1202,
    "n_interp": 34,
    "n_spike": 11
+  },
+  {
+   "id": "ELDC",
+   "kind": "gnss",
+   "public": true,
+   "label": "ELDC, GNSS station: daily ground position",
+   "lat": 63.863142,
+   "lon": -22.525716,
+   "pos_status": "measured",
+   "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js), as published",
+   "pos_err_m": null,
+   "pending": false,
+   "primary": false,
+   "body": true,
+   "first_day": "2023-06-04",
+   "last_day": "2026-09-30",
+   "n_days": 1215,
+   "n_interp": 43,
+   "n_spike": 11
+  },
+  {
+   "id": "FEFC",
+   "kind": "gnss",
+   "public": true,
+   "label": "FEFC, GNSS station: daily ground position",
+   "lat": 63.856654,
+   "lon": -22.312737,
+   "pos_status": "measured",
+   "pos_source": "IMO GNSS browser station list (https://brunnur.vedur.is/gps/browser/map.js), as published",
+   "pos_err_m": null,
+   "pending": false,
+   "primary": false,
+   "body": true,
+   "first_day": "2023-06-04",
+   "last_day": "2026-09-30",
+   "n_days": 1215,
+   "n_interp": 59,
+   "n_spike": 15
   }
  ],
  "columns": {
@@ -956,8 +997,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.00027271,
-    4.24255
+    0.000196313,
+    3.40321
    ]
   },
   "g01": {
@@ -966,8 +1007,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000234481,
-    5.17036
+    0.000189484,
+    3.74293
    ]
   },
   "g02": {
@@ -976,8 +1017,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000205495,
-    6.32157
+    0.000173702,
+    4.78264
    ]
   },
   "g03": {
@@ -986,8 +1027,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000157341,
-    8.57797
+    0.000157399,
+    2.73203
    ]
   },
   "g04": {
@@ -996,8 +1037,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000214888,
-    3.77223
+    0.000120568,
+    3.34119
    ]
   },
   "g05": {
@@ -1006,8 +1047,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000164259,
-    4.21197
+    0.000187862,
+    3.35596
    ]
   },
   "g06": {
@@ -1016,8 +1057,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000289849,
-    4.20372
+    0.000574465,
+    3.38054
    ]
   },
   "g07": {
@@ -1026,8 +1067,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000349473,
-    4.76252
+    0.000177365,
+    7.30095
    ]
   },
   "g08": {
@@ -1036,8 +1077,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000567384,
-    3.76067
+    0.000367638,
+    3.73077
    ]
   },
   "g09": {
@@ -1046,8 +1087,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000303319,
-    6.20423
+    6.69327e-05,
+    3.90721
    ]
   },
   "g10": {
@@ -1056,8 +1097,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000319688,
-    4.31136
+    5.98208e-05,
+    5.05798
    ]
   },
   "g11": {
@@ -1066,8 +1107,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000198589,
-    5.2211
+    9.83801e-05,
+    4.65074
    ]
   },
   "g12": {
@@ -1076,8 +1117,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000242909,
-    4.73632
+    3.8619e-05,
+    4.97155
    ]
   },
   "g13": {
@@ -1086,8 +1127,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.0001765,
-    5.37402
+    4.98257e-05,
+    3.36832
    ]
   },
   "g14": {
@@ -1096,8 +1137,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000261414,
-    5.90382
+    3.08581e-05,
+    7.17923
    ]
   },
   "g15": {
@@ -1106,8 +1147,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000267464,
-    6.63669
+    0.000437971,
+    3.35235
    ]
   },
   "g16": {
@@ -1116,8 +1157,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    5.8967e-05,
-    5.01065
+    0.000659787,
+    3.77921
    ]
   },
   "g17": {
@@ -1126,8 +1167,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    6.99756e-05,
-    3.85409
+    0.000170353,
+    5.1878
    ]
   },
   "g18": {
@@ -1136,8 +1177,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    4.94756e-05,
-    6.74701
+    0.000161884,
+    4.67795
    ]
   },
   "g19": {
@@ -1146,8 +1187,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    8.81037e-05,
-    2.68318
+    0.000176335,
+    4.62449
    ]
   },
   "g20": {
@@ -1156,8 +1197,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000966268,
-    4.41662
+    0.000160852,
+    6.9969
    ]
   },
   "g21": {
@@ -1166,8 +1207,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.00106923,
-    4.8862
+    0.000787123,
+    3.55433
    ]
   },
   "g22": {
@@ -1176,8 +1217,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.00126343,
-    5.60096
+    0.00129644,
+    3.77834
    ]
   },
   "g23": {
@@ -1186,8 +1227,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    2.68179e-07,
-    7.12231
+    1.523e-07,
+    5.8781
    ]
   },
   "g24": {
@@ -1196,8 +1237,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000299896,
-    4.89934
+    0.000305691,
+    3.51344
    ]
   },
   "g25": {
@@ -1206,8 +1247,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000272854,
-    4.50562
+    0.000103292,
+    7.00587
    ]
   },
   "g26": {
@@ -1216,8 +1257,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000164688,
-    6.60834
+    0.000505,
+    5.05997
    ]
   },
   "g27": {
@@ -1226,8 +1267,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000129503,
-    8.99879
+    0.000101571,
+    5.06599
    ]
   },
   "g28": {
@@ -1236,8 +1277,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    7.31296e-05,
-    3.84364
+    0.000130341,
+    4.44205
    ]
   },
   "g29": {
@@ -1246,8 +1287,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    4.6806e-05,
-    5.10165
+    4.45493e-05,
+    5.92965
    ]
   },
   "g30": {
@@ -1256,8 +1297,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    8.63995e-05,
-    2.97496
+    6.88754e-05,
+    3.93346
    ]
   },
   "g31": {
@@ -1266,8 +1307,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    7.88488e-05,
-    2.96158
+    9.91956e-05,
+    3.62283
    ]
   },
   "g32": {
@@ -1276,8 +1317,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000449677,
-    2.99639
+    8.40205e-05,
+    6.38835
    ]
   },
   "g33": {
@@ -1286,8 +1327,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000674849,
-    3.26447
+    0.000320413,
+    10.5529
    ]
   },
   "g34": {
@@ -1296,8 +1337,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.000442993,
-    4.21992
+    0.000144297,
+    13.7004
    ]
   },
   "g35": {
@@ -1306,8 +1347,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    1.52213e-07,
-    5.85785
+    0.000203515,
+    10.5158
    ]
   },
   "pin": {
@@ -1316,8 +1357,8 @@
    "log": false,
    "epistemic": "measurement",
    "range": [
-    0.414373,
-    4.45842
+    0.355818,
+    5.59946
    ]
   },
   "bow_db": {
@@ -1939,9 +1980,79 @@
     true
    ]
   },
+  "ELDC_u_mm": {
+   "label": "ELDC up displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "marks": [
+    "interpolated",
+    "spike"
+   ],
+   "marked_by": {
+    "interpolated": "ELDC_interp",
+    "spike": "ELDC_spike"
+   },
+   "range": [
+    -77.7338,
+    425.236
+   ]
+  },
+  "ELDC_u_ds": {
+   "label": "ELDC ground height with its spikes replaced by the neighbours' course (the series every derived value uses), relative to 2023-06-17",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "marks": [
+    "interpolated"
+   ],
+   "marked_by": {
+    "interpolated": "ELDC_interp"
+   },
+   "range": [
+    -77.7338,
+    425.236
+   ]
+  },
   "ELDC_n_mm": {
    "label": "ELDC north displacement since its ref_day (IMO plate frame)",
    "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "marks": [
+    "interpolated",
+    "spike"
+   ],
+   "marked_by": {
+    "interpolated": "ELDC_interp",
+    "spike": "ELDC_spike"
+   },
+   "range": [
+    -0.4002,
+    485.51
+   ]
+  },
+  "ELDC_e_mm": {
+   "label": "ELDC east displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "marks": [
+    "interpolated",
+    "spike"
+   ],
+   "marked_by": {
+    "interpolated": "ELDC_interp",
+    "spike": "ELDC_spike"
+   },
+   "range": [
+    -1252.08,
+    3.9786
+   ]
+  },
+  "ELDC_u_rate": {
+   "label": "ELDC uplift rate, mean of the last 3 days (null on and just after days without a solution)",
+   "unit": "mm/day",
    "log": false,
    "epistemic": "measurement",
    "range": [
@@ -1954,20 +2065,16 @@
    "unit": "mm/day",
    "log": false,
    "epistemic": "measurement",
+   "marks": [
+    "interpolated"
+   ],
+   "marked_by": {
+    "interpolated": "ELDC_interp"
+   },
    "signed": true,
    "range": [
-    null,
-    null
-   ]
-  },
-  "ELDC_e_mm": {
-   "label": "ELDC east displacement since its ref_day (IMO plate frame)",
-   "unit": "mm",
-   "log": false,
-   "epistemic": "measurement",
-   "range": [
-    null,
-    null
+    -1.45307,
+    7.58043
    ]
   },
   "ELDC_e_vel": {
@@ -1975,20 +2082,16 @@
    "unit": "mm/day",
    "log": false,
    "epistemic": "measurement",
+   "marks": [
+    "interpolated"
+   ],
+   "marked_by": {
+    "interpolated": "ELDC_interp"
+   },
    "signed": true,
    "range": [
-    null,
-    null
-   ]
-  },
-  "ELDC_u_mm": {
-   "label": "ELDC up displacement since its ref_day (IMO plate frame)",
-   "unit": "mm",
-   "log": false,
-   "epistemic": "measurement",
-   "range": [
-    null,
-    null
+    -8.98636,
+    14.1247
    ]
   },
   "ELDC_u_vel": {
@@ -1996,10 +2099,251 @@
    "unit": "mm/day",
    "log": false,
    "epistemic": "measurement",
+   "marks": [
+    "interpolated"
+   ],
+   "marked_by": {
+    "interpolated": "ELDC_interp"
+   },
    "signed": true,
+   "range": [
+    -26.5028,
+    5.93654
+   ]
+  },
+  "ELDC_interp": {
+   "label": "ELDC has no IMO solution that day (a gap in IMO's plate series): its values are null here; the sound reads the straight line across the gap (veiled)",
+   "unit": "flag",
+   "log": false,
+   "epistemic": "measurement",
+   "flag": "interpolated",
+   "range": [
+    false,
+    true
+   ]
+  },
+  "ELDC_n_sig": {
+   "label": "ELDC north position uncertainty that day (IMO's 1 sigma)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    1.3071,
+    4.1
+   ]
+  },
+  "ELDC_e_sig": {
+   "label": "ELDC east position uncertainty that day (IMO's 1 sigma)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    1.1271,
+    3.4673
+   ]
+  },
+  "ELDC_u_sig": {
+   "label": "ELDC up position uncertainty that day (IMO's 1 sigma)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    5.0942,
+    11.5548
+   ]
+  },
+  "ELDC_spike": {
+   "label": "ELDC is on a 1-2 day excursion that returns to its earlier course (a spike; derived columns use the neighbours' course)",
+   "unit": "flag",
+   "log": false,
+   "epistemic": "measurement",
+   "flag": "spike",
+   "range": [
+    false,
+    true
+   ]
+  },
+  "FEFC_u_mm": {
+   "label": "FEFC up displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "marks": [
+    "interpolated",
+    "spike"
+   ],
+   "marked_by": {
+    "interpolated": "FEFC_interp",
+    "spike": "FEFC_spike"
+   },
+   "range": [
+    -11.1174,
+    402.175
+   ]
+  },
+  "FEFC_u_ds": {
+   "label": "FEFC ground height with its spikes replaced by the neighbours' course (the series every derived value uses), relative to 2023-06-17",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "marks": [
+    "interpolated"
+   ],
+   "marked_by": {
+    "interpolated": "FEFC_interp"
+   },
+   "range": [
+    -11.1174,
+    402.175
+   ]
+  },
+  "FEFC_n_mm": {
+   "label": "FEFC north displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "marks": [
+    "interpolated",
+    "spike"
+   ],
+   "marked_by": {
+    "interpolated": "FEFC_interp",
+    "spike": "FEFC_spike"
+   },
+   "range": [
+    -1067.83,
+    23.9414
+   ]
+  },
+  "FEFC_e_mm": {
+   "label": "FEFC east displacement since its ref_day (IMO plate frame)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "marks": [
+    "interpolated",
+    "spike"
+   ],
+   "marked_by": {
+    "interpolated": "FEFC_interp",
+    "spike": "FEFC_spike"
+   },
+   "range": [
+    -3.7534,
+    1484.47
+   ]
+  },
+  "FEFC_u_rate": {
+   "label": "FEFC uplift rate, mean of the last 3 days (null on and just after days without a solution)",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
    "range": [
     null,
     null
+   ]
+  },
+  "FEFC_n_vel": {
+   "label": "FEFC moving north, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "marks": [
+    "interpolated"
+   ],
+   "marked_by": {
+    "interpolated": "FEFC_interp"
+   },
+   "signed": true,
+   "range": [
+    -15.8161,
+    1.46361
+   ]
+  },
+  "FEFC_e_vel": {
+   "label": "FEFC moving east, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "marks": [
+    "interpolated"
+   ],
+   "marked_by": {
+    "interpolated": "FEFC_interp"
+   },
+   "signed": true,
+   "range": [
+    -1.31289,
+    15.2026
+   ]
+  },
+  "FEFC_u_vel": {
+   "label": "FEFC moving up, mm/day: slope of the last 7 days",
+   "unit": "mm/day",
+   "log": false,
+   "epistemic": "measurement",
+   "marks": [
+    "interpolated"
+   ],
+   "marked_by": {
+    "interpolated": "FEFC_interp"
+   },
+   "signed": true,
+   "range": [
+    -2.80486,
+    3.7915
+   ]
+  },
+  "FEFC_interp": {
+   "label": "FEFC has no IMO solution that day (a gap in IMO's plate series): its values are null here; the sound reads the straight line across the gap (veiled)",
+   "unit": "flag",
+   "log": false,
+   "epistemic": "measurement",
+   "flag": "interpolated",
+   "range": [
+    false,
+    true
+   ]
+  },
+  "FEFC_n_sig": {
+   "label": "FEFC north position uncertainty that day (IMO's 1 sigma)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    1.44,
+    5.299
+   ]
+  },
+  "FEFC_e_sig": {
+   "label": "FEFC east position uncertainty that day (IMO's 1 sigma)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    1.231,
+    3.387
+   ]
+  },
+  "FEFC_u_sig": {
+   "label": "FEFC up position uncertainty that day (IMO's 1 sigma)",
+   "unit": "mm",
+   "log": false,
+   "epistemic": "measurement",
+   "range": [
+    5.6025,
+    12.67
+   ]
+  },
+  "FEFC_spike": {
+   "label": "FEFC is on a 1-2 day excursion that returns to its earlier course (a spike; derived columns use the neighbours' course)",
+   "unit": "flag",
+   "log": false,
+   "epistemic": "measurement",
+   "flag": "spike",
+   "range": [
+    false,
+    true
    ]
   },
   "FAGD_n_mm": {
@@ -2056,69 +2400,6 @@
   },
   "FAGD_u_vel": {
    "label": "FAGD moving up, mm/day: slope of the last 7 days",
-   "unit": "mm/day",
-   "log": false,
-   "epistemic": "measurement",
-   "signed": true,
-   "range": [
-    null,
-    null
-   ]
-  },
-  "FEFC_n_mm": {
-   "label": "FEFC north displacement since its ref_day (IMO plate frame)",
-   "unit": "mm",
-   "log": false,
-   "epistemic": "measurement",
-   "range": [
-    null,
-    null
-   ]
-  },
-  "FEFC_n_vel": {
-   "label": "FEFC moving north, mm/day: slope of the last 7 days",
-   "unit": "mm/day",
-   "log": false,
-   "epistemic": "measurement",
-   "signed": true,
-   "range": [
-    null,
-    null
-   ]
-  },
-  "FEFC_e_mm": {
-   "label": "FEFC east displacement since its ref_day (IMO plate frame)",
-   "unit": "mm",
-   "log": false,
-   "epistemic": "measurement",
-   "range": [
-    null,
-    null
-   ]
-  },
-  "FEFC_e_vel": {
-   "label": "FEFC moving east, mm/day: slope of the last 7 days",
-   "unit": "mm/day",
-   "log": false,
-   "epistemic": "measurement",
-   "signed": true,
-   "range": [
-    null,
-    null
-   ]
-  },
-  "FEFC_u_mm": {
-   "label": "FEFC up displacement since its ref_day (IMO plate frame)",
-   "unit": "mm",
-   "log": false,
-   "epistemic": "measurement",
-   "range": [
-    null,
-    null
-   ]
-  },
-  "FEFC_u_vel": {
-   "label": "FEFC moving up, mm/day: slope of the last 7 days",
    "unit": "mm/day",
    "log": false,
    "epistemic": "measurement",
@@ -3960,6 +4241,206 @@
    "tier": "f1d",
    "source": "gnss"
   },
+  "ELDC_u_mm": {
+   "p01": -77.7338,
+   "p50": 168.9,
+   "p99": 425.236,
+   "min": -175.32,
+   "max": 433.36,
+   "n": 1215,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "ELDC_u_ds": {
+   "p01": -77.7338,
+   "p50": 168.9,
+   "p99": 425.236,
+   "min": -175.32,
+   "max": 433.36,
+   "n": 1215,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "ELDC_n_mm": {
+   "p01": -0.4002,
+   "p50": 391.26,
+   "p99": 485.51,
+   "min": -8.34,
+   "max": 495.61,
+   "n": 1215,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "ELDC_e_mm": {
+   "p01": -1252.08,
+   "p50": -949.48,
+   "p99": 3.9786,
+   "min": -1259.19,
+   "max": 6.06,
+   "n": 1215,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "ELDC_n_vel": {
+   "p01": -1.45307,
+   "p50": -0.125714,
+   "p99": 7.58043,
+   "min": -2.38857,
+   "max": 75.7786,
+   "n": 1211,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "ELDC_e_vel": {
+   "p01": -8.98636,
+   "p50": -0.800714,
+   "p99": 14.1247,
+   "min": -74.4186,
+   "max": 28.0561,
+   "n": 1211,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "ELDC_u_vel": {
+   "p01": -26.5028,
+   "p50": 1.03207,
+   "p99": 5.93654,
+   "min": -45.9214,
+   "max": 8.94071,
+   "n": 1211,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "ELDC_n_sig": {
+   "p01": 1.3071,
+   "p50": 1.62,
+   "p99": 4.1,
+   "min": 1.05,
+   "max": 7.16,
+   "n": 1172,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "ELDC_e_sig": {
+   "p01": 1.1271,
+   "p50": 1.38,
+   "p99": 3.4673,
+   "min": 0.98,
+   "max": 6.91,
+   "n": 1172,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "ELDC_u_sig": {
+   "p01": 5.0942,
+   "p50": 6.29,
+   "p99": 11.5548,
+   "min": 4.22,
+   "max": 21.95,
+   "n": 1172,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "FEFC_u_mm": {
+   "p01": -11.1174,
+   "p50": 286.49,
+   "p99": 402.175,
+   "min": -20.96,
+   "max": 411.03,
+   "n": 1215,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "FEFC_u_ds": {
+   "p01": -11.1174,
+   "p50": 286.49,
+   "p99": 402.175,
+   "min": -20.96,
+   "max": 411.03,
+   "n": 1215,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "FEFC_n_mm": {
+   "p01": -1067.83,
+   "p50": -832.63,
+   "p99": 23.9414,
+   "min": -1076.88,
+   "max": 28.01,
+   "n": 1215,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "FEFC_e_mm": {
+   "p01": -3.7534,
+   "p50": 1229.42,
+   "p99": 1484.47,
+   "min": -7.74,
+   "max": 1487.15,
+   "n": 1215,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "FEFC_n_vel": {
+   "p01": -15.8161,
+   "p50": -0.182143,
+   "p99": 1.46361,
+   "min": -92.7264,
+   "max": 3.90393,
+   "n": 1211,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "FEFC_e_vel": {
+   "p01": -1.31289,
+   "p50": 0.368571,
+   "p99": 15.2026,
+   "min": -4.165,
+   "max": 108.061,
+   "n": 1211,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "FEFC_u_vel": {
+   "p01": -2.80486,
+   "p50": 0.203929,
+   "p99": 3.7915,
+   "min": -5.12764,
+   "max": 25.63,
+   "n": 1211,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "FEFC_n_sig": {
+   "p01": 1.44,
+   "p50": 1.95,
+   "p99": 5.299,
+   "min": 1.07,
+   "max": 8.66,
+   "n": 1156,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "FEFC_e_sig": {
+   "p01": 1.231,
+   "p50": 1.64,
+   "p99": 3.387,
+   "min": 0.98,
+   "max": 6.93,
+   "n": 1156,
+   "tier": "f1d",
+   "source": "gnss"
+  },
+  "FEFC_u_sig": {
+   "p01": 5.6025,
+   "p50": 7.89,
+   "p99": 12.67,
+   "min": 4.3,
+   "max": 19.46,
+   "n": 1156,
+   "tier": "f1d",
+   "source": "gnss"
+  },
   "recharge_frac": {
    "p01": 0.0,
    "p50": 0.899997,
@@ -4181,371 +4662,371 @@
    "source": "body_sequence"
   },
   "g00": {
-   "p01": 0.00027271,
-   "p50": 0.301382,
-   "p99": 4.24255,
-   "min": 4.73039e-07,
-   "max": 8.6899,
+   "p01": 0.000196313,
+   "p50": 0.198289,
+   "p99": 3.40321,
+   "min": 3.45278e-07,
+   "max": 5.17569,
    "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g01": {
-   "p01": 0.000234481,
-   "p50": 0.37631,
-   "p99": 5.17036,
-   "min": 5.10223e-07,
-   "max": 9.55908,
+   "p01": 0.000189484,
+   "p50": 0.240326,
+   "p99": 3.74293,
+   "min": 3.77949e-07,
+   "max": 8.62736,
    "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g02": {
-   "p01": 0.000205495,
-   "p50": 0.380609,
-   "p99": 6.32157,
-   "min": 5.42346e-07,
-   "max": 11.9929,
+   "p01": 0.000173702,
+   "p50": 0.262482,
+   "p99": 4.78264,
+   "min": 4.06521e-07,
+   "max": 12.2031,
    "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g03": {
-   "p01": 0.000157341,
-   "p50": 0.364623,
-   "p99": 8.57797,
-   "min": 5.79644e-07,
-   "max": 16.2736,
+   "p01": 0.000157399,
+   "p50": 0.207383,
+   "p99": 2.73203,
+   "min": 2.8801e-06,
+   "max": 4.94483,
    "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g04": {
-   "p01": 0.000214888,
-   "p50": 0.303792,
-   "p99": 3.77223,
-   "min": 2.55357e-06,
-   "max": 7.15792,
+   "p01": 0.000120568,
+   "p50": 0.170011,
+   "p99": 3.34119,
+   "min": 1.87189e-06,
+   "max": 7.29147,
    "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g05": {
-   "p01": 0.000164259,
-   "p50": 0.246814,
-   "p99": 4.21197,
-   "min": 1.73772e-06,
-   "max": 8.14465,
+   "p01": 0.000187862,
+   "p50": 0.235994,
+   "p99": 3.35596,
+   "min": 6.12606e-06,
+   "max": 7.34822,
    "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g06": {
-   "p01": 0.000289849,
-   "p50": 0.339639,
-   "p99": 4.20372,
-   "min": 5.07901e-06,
-   "max": 10.0421,
+   "p01": 0.000574465,
+   "p50": 0.578922,
+   "p99": 3.38054,
+   "min": 1.61255e-05,
+   "max": 5.7256,
    "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g07": {
-   "p01": 0.000349473,
-   "p50": 0.338771,
-   "p99": 4.76252,
-   "min": 6.32274e-06,
-   "max": 12.5012,
+   "p01": 0.000177365,
+   "p50": 0.223983,
+   "p99": 7.30095,
+   "min": 1.61255e-05,
+   "max": 11.4357,
    "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g08": {
-   "p01": 0.000567384,
-   "p50": 0.840936,
-   "p99": 3.76067,
-   "min": 3.36004e-05,
-   "max": 6.79903,
+   "p01": 0.000367638,
+   "p50": 0.594738,
+   "p99": 3.73077,
+   "min": 1.61255e-05,
+   "max": 4.90217,
    "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g09": {
-   "p01": 0.000303319,
-   "p50": 0.338417,
-   "p99": 6.20423,
-   "min": 2.5141e-05,
-   "max": 7.78688,
+   "p01": 6.69327e-05,
+   "p50": 0.462911,
+   "p99": 3.90721,
+   "min": 0.0,
+   "max": 6.51805,
    "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g10": {
-   "p01": 0.000319688,
-   "p50": 0.938894,
-   "p99": 4.31136,
-   "min": 3.36004e-05,
-   "max": 6.79903,
+   "p01": 5.98208e-05,
+   "p50": 0.392551,
+   "p99": 5.05798,
+   "min": 0.0,
+   "max": 6.51805,
    "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g11": {
-   "p01": 0.000198589,
-   "p50": 0.844824,
-   "p99": 5.2211,
-   "min": 3.36004e-05,
-   "max": 7.59525,
+   "p01": 9.83801e-05,
+   "p50": 0.465583,
+   "p99": 4.65074,
+   "min": 0.0,
+   "max": 7.78702,
    "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g12": {
-   "p01": 0.000242909,
-   "p50": 0.659406,
-   "p99": 4.73632,
-   "min": 0.0,
-   "max": 12.8026,
+   "p01": 3.8619e-05,
+   "p50": 0.0595104,
+   "p99": 4.97155,
+   "min": 5.66665e-07,
+   "max": 8.72943,
    "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g13": {
-   "p01": 0.0001765,
-   "p50": 0.583499,
-   "p99": 5.37402,
-   "min": 0.0,
-   "max": 12.8026,
+   "p01": 4.98257e-05,
+   "p50": 0.0651011,
+   "p99": 3.36832,
+   "min": 8.16121e-07,
+   "max": 6.14903,
    "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g14": {
-   "p01": 0.000261414,
-   "p50": 0.752431,
-   "p99": 5.90382,
-   "min": 0.0,
-   "max": 12.8026,
+   "p01": 3.08581e-05,
+   "p50": 0.0494808,
+   "p99": 7.17923,
+   "min": 3.37189e-07,
+   "max": 12.2296,
    "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g15": {
-   "p01": 0.000267464,
-   "p50": 0.731306,
-   "p99": 6.63669,
-   "min": 0.0,
-   "max": 12.8026,
+   "p01": 0.000437971,
+   "p50": 0.613359,
+   "p99": 3.35235,
+   "min": 9.63971e-07,
+   "max": 6.5232,
    "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g16": {
-   "p01": 5.8967e-05,
-   "p50": 0.0862115,
-   "p99": 5.01065,
-   "min": 2.79529e-06,
-   "max": 7.15955,
+   "p01": 0.000659787,
+   "p50": 0.609794,
+   "p99": 3.77921,
+   "min": 1.57481e-06,
+   "max": 6.5232,
    "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g17": {
-   "p01": 6.99756e-05,
-   "p50": 0.0940003,
-   "p99": 3.85409,
-   "min": 3.88084e-06,
-   "max": 5.3103,
+   "p01": 0.000170353,
+   "p50": 0.578142,
+   "p99": 5.1878,
+   "min": 2.04252e-06,
+   "max": 8.03634,
    "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g18": {
-   "p01": 4.94756e-05,
-   "p50": 0.0719985,
-   "p99": 6.74701,
-   "min": 1.76449e-06,
-   "max": 9.63317,
+   "p01": 0.000161884,
+   "p50": 0.313363,
+   "p99": 4.67795,
+   "min": 0.0,
+   "max": 9.46946,
    "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g19": {
-   "p01": 8.81037e-05,
-   "p50": 0.115396,
-   "p99": 2.68318,
-   "min": 6.24372e-06,
-   "max": 4.83834,
+   "p01": 0.000176335,
+   "p50": 0.343513,
+   "p99": 4.62449,
+   "min": 0.0,
+   "max": 9.46946,
    "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g20": {
-   "p01": 0.000966268,
-   "p50": 0.892906,
-   "p99": 4.41662,
-   "min": 4.46607e-06,
-   "max": 11.9318,
+   "p01": 0.000160852,
+   "p50": 0.356295,
+   "p99": 6.9969,
+   "min": 0.0,
+   "max": 12.6541,
    "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g21": {
-   "p01": 0.00106923,
-   "p50": 1.02688,
-   "p99": 4.8862,
-   "min": 6.85235e-06,
-   "max": 11.9318,
+   "p01": 0.000787123,
+   "p50": 0.481043,
+   "p99": 3.55433,
+   "min": 4.0238e-06,
+   "max": 4.76853,
    "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g22": {
-   "p01": 0.00126343,
-   "p50": 0.968606,
-   "p99": 5.60096,
-   "min": 8.6292e-06,
-   "max": 11.9318,
+   "p01": 0.00129644,
+   "p50": 0.463989,
+   "p99": 3.77834,
+   "min": 9.32306e-06,
+   "max": 6.95865,
    "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g23": {
-   "p01": 2.68179e-07,
-   "p50": 0.998582,
-   "p99": 7.12231,
+   "p01": 1.523e-07,
+   "p50": 0.445598,
+   "p99": 5.8781,
    "min": 0.0,
-   "max": 11.9318,
+   "max": 10.8914,
    "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g24": {
-   "p01": 0.000299896,
-   "p50": 0.518366,
-   "p99": 4.89934,
-   "min": 1.9208e-07,
-   "max": 11.3749,
-   "n": 1198,
+   "p01": 0.000305691,
+   "p50": 0.679323,
+   "p99": 3.51344,
+   "min": 1.24441e-06,
+   "max": 5.45847,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g25": {
-   "p01": 0.000272854,
-   "p50": 0.580636,
-   "p99": 4.50562,
-   "min": 2.66424e-07,
-   "max": 11.3749,
-   "n": 1198,
+   "p01": 0.000103292,
+   "p50": 0.304053,
+   "p99": 7.00587,
+   "min": 4.47044e-07,
+   "max": 10.9022,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g26": {
-   "p01": 0.000164688,
-   "p50": 0.560527,
-   "p99": 6.60834,
-   "min": 4.92009e-07,
-   "max": 11.3749,
-   "n": 1198,
+   "p01": 0.000505,
+   "p50": 0.694343,
+   "p99": 5.05997,
+   "min": 2.43658e-06,
+   "max": 7.47132,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g27": {
-   "p01": 0.000129503,
-   "p50": 0.548238,
-   "p99": 8.99879,
-   "min": 7.10273e-07,
-   "max": 14.2521,
-   "n": 1198,
+   "p01": 0.000101571,
+   "p50": 0.213077,
+   "p99": 5.06599,
+   "min": 0.0,
+   "max": 9.76004,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g28": {
-   "p01": 7.31296e-05,
-   "p50": 0.159181,
-   "p99": 3.84364,
-   "min": 4.70787e-07,
-   "max": 5.27182,
-   "n": 1198,
+   "p01": 0.000130341,
+   "p50": 0.247671,
+   "p99": 4.44205,
+   "min": 0.0,
+   "max": 9.76004,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g29": {
-   "p01": 4.6806e-05,
-   "p50": 0.124078,
-   "p99": 5.10165,
-   "min": 4.7546e-07,
-   "max": 7.11584,
-   "n": 1198,
+   "p01": 4.45493e-05,
+   "p50": 0.254509,
+   "p99": 5.92965,
+   "min": 0.0,
+   "max": 10.0517,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g30": {
-   "p01": 8.63995e-05,
-   "p50": 0.18396,
-   "p99": 2.97496,
-   "min": 3.91242e-07,
-   "max": 3.89562,
-   "n": 1198,
+   "p01": 6.88754e-05,
+   "p50": 0.229707,
+   "p99": 3.93346,
+   "min": 1.79876e-06,
+   "max": 6.64693,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g31": {
-   "p01": 7.88488e-05,
-   "p50": 0.193762,
-   "p99": 2.96158,
-   "min": 2.316e-07,
-   "max": 4.50734,
-   "n": 1198,
+   "p01": 9.91956e-05,
+   "p50": 0.257412,
+   "p99": 3.62283,
+   "min": 2.5906e-06,
+   "max": 6.64693,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g32": {
-   "p01": 0.000449677,
-   "p50": 0.635475,
-   "p99": 2.99639,
-   "min": 9.24458e-07,
-   "max": 5.24248,
-   "n": 1198,
+   "p01": 8.40205e-05,
+   "p50": 0.256368,
+   "p99": 6.38835,
+   "min": 3.20171e-06,
+   "max": 9.75795,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g33": {
-   "p01": 0.000674849,
-   "p50": 0.706014,
-   "p99": 3.26447,
-   "min": 1.98978e-06,
-   "max": 5.6955,
-   "n": 1198,
+   "p01": 0.000320413,
+   "p50": 1.16695,
+   "p99": 10.5529,
+   "min": 1.0115e-05,
+   "max": 25.1819,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g34": {
-   "p01": 0.000442993,
-   "p50": 0.676134,
-   "p99": 4.21992,
-   "min": 2.58052e-06,
-   "max": 8.22748,
-   "n": 1198,
+   "p01": 0.000144297,
+   "p50": 1.4631,
+   "p99": 13.7004,
+   "min": 1.98992e-05,
+   "max": 27.2357,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "g35": {
-   "p01": 1.52213e-07,
-   "p50": 0.70528,
-   "p99": 5.85785,
-   "min": 0.0,
-   "max": 11.4209,
-   "n": 1198,
+   "p01": 0.000203515,
+   "p50": 1.42772,
+   "p99": 10.5158,
+   "min": 1.74701e-05,
+   "max": 25.1819,
+   "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
   },
   "pin": {
-   "p01": 0.414373,
-   "p50": 1.29866,
-   "p99": 4.45842,
-   "min": 0.207087,
-   "max": 5.11122,
+   "p01": 0.355818,
+   "p50": 1.3682,
+   "p99": 5.59946,
+   "min": 0.239839,
+   "max": 7.34597,
    "n": 1211,
    "tier": "f1d",
    "source": "body_sequence"
@@ -4561,9 +5042,9 @@
    "source": "body_sequence"
   },
   "dust_hz": {
-   "p01": 0.500828,
-   "p50": 2.03141,
-   "p99": 4.99629,
+   "p01": 0.500997,
+   "p50": 1.99655,
+   "p99": 4.99034,
    "min": 0.5,
    "max": 5.0,
    "n": 1211,
@@ -6069,6 +6550,166 @@
      "max": 41.3,
      "n": 1168
     },
+    "ELDC_u_mm": {
+     "p01": -77.7338,
+     "p50": 168.9,
+     "p99": 425.236,
+     "min": -175.32,
+     "max": 433.36,
+     "n": 1215
+    },
+    "ELDC_u_ds": {
+     "p01": -77.7338,
+     "p50": 168.9,
+     "p99": 425.236,
+     "min": -175.32,
+     "max": 433.36,
+     "n": 1215
+    },
+    "ELDC_n_mm": {
+     "p01": -0.4002,
+     "p50": 391.26,
+     "p99": 485.51,
+     "min": -8.34,
+     "max": 495.61,
+     "n": 1215
+    },
+    "ELDC_e_mm": {
+     "p01": -1252.08,
+     "p50": -949.48,
+     "p99": 3.9786,
+     "min": -1259.19,
+     "max": 6.06,
+     "n": 1215
+    },
+    "ELDC_n_vel": {
+     "p01": -1.45307,
+     "p50": -0.125714,
+     "p99": 7.58043,
+     "min": -2.38857,
+     "max": 75.7786,
+     "n": 1211
+    },
+    "ELDC_e_vel": {
+     "p01": -8.98636,
+     "p50": -0.800714,
+     "p99": 14.1247,
+     "min": -74.4186,
+     "max": 28.0561,
+     "n": 1211
+    },
+    "ELDC_u_vel": {
+     "p01": -26.5028,
+     "p50": 1.03207,
+     "p99": 5.93654,
+     "min": -45.9214,
+     "max": 8.94071,
+     "n": 1211
+    },
+    "ELDC_n_sig": {
+     "p01": 1.3071,
+     "p50": 1.62,
+     "p99": 4.1,
+     "min": 1.05,
+     "max": 7.16,
+     "n": 1172
+    },
+    "ELDC_e_sig": {
+     "p01": 1.1271,
+     "p50": 1.38,
+     "p99": 3.4673,
+     "min": 0.98,
+     "max": 6.91,
+     "n": 1172
+    },
+    "ELDC_u_sig": {
+     "p01": 5.0942,
+     "p50": 6.29,
+     "p99": 11.5548,
+     "min": 4.22,
+     "max": 21.95,
+     "n": 1172
+    },
+    "FEFC_u_mm": {
+     "p01": -11.1174,
+     "p50": 286.49,
+     "p99": 402.175,
+     "min": -20.96,
+     "max": 411.03,
+     "n": 1215
+    },
+    "FEFC_u_ds": {
+     "p01": -11.1174,
+     "p50": 286.49,
+     "p99": 402.175,
+     "min": -20.96,
+     "max": 411.03,
+     "n": 1215
+    },
+    "FEFC_n_mm": {
+     "p01": -1067.83,
+     "p50": -832.63,
+     "p99": 23.9414,
+     "min": -1076.88,
+     "max": 28.01,
+     "n": 1215
+    },
+    "FEFC_e_mm": {
+     "p01": -3.7534,
+     "p50": 1229.42,
+     "p99": 1484.47,
+     "min": -7.74,
+     "max": 1487.15,
+     "n": 1215
+    },
+    "FEFC_n_vel": {
+     "p01": -15.8161,
+     "p50": -0.182143,
+     "p99": 1.46361,
+     "min": -92.7264,
+     "max": 3.90393,
+     "n": 1211
+    },
+    "FEFC_e_vel": {
+     "p01": -1.31289,
+     "p50": 0.368571,
+     "p99": 15.2026,
+     "min": -4.165,
+     "max": 108.061,
+     "n": 1211
+    },
+    "FEFC_u_vel": {
+     "p01": -2.80486,
+     "p50": 0.203929,
+     "p99": 3.7915,
+     "min": -5.12764,
+     "max": 25.63,
+     "n": 1211
+    },
+    "FEFC_n_sig": {
+     "p01": 1.44,
+     "p50": 1.95,
+     "p99": 5.299,
+     "min": 1.07,
+     "max": 8.66,
+     "n": 1156
+    },
+    "FEFC_e_sig": {
+     "p01": 1.231,
+     "p50": 1.64,
+     "p99": 3.387,
+     "min": 0.98,
+     "max": 6.93,
+     "n": 1156
+    },
+    "FEFC_u_sig": {
+     "p01": 5.6025,
+     "p50": 7.89,
+     "p99": 12.67,
+     "min": 4.3,
+     "max": 19.46,
+     "n": 1156
+    },
     "recharge_frac": {
      "p01": 0.0,
      "p50": 0.899997,
@@ -6224,299 +6865,299 @@
      "n": 1215
     },
     "g00": {
-     "p01": 0.00027271,
-     "p50": 0.301382,
-     "p99": 4.24255,
-     "min": 4.73039e-07,
-     "max": 8.6899,
+     "p01": 0.000196313,
+     "p50": 0.198289,
+     "p99": 3.40321,
+     "min": 3.45278e-07,
+     "max": 5.17569,
      "n": 1211
     },
     "g01": {
-     "p01": 0.000234481,
-     "p50": 0.37631,
-     "p99": 5.17036,
-     "min": 5.10223e-07,
-     "max": 9.55908,
+     "p01": 0.000189484,
+     "p50": 0.240326,
+     "p99": 3.74293,
+     "min": 3.77949e-07,
+     "max": 8.62736,
      "n": 1211
     },
     "g02": {
-     "p01": 0.000205495,
-     "p50": 0.380609,
-     "p99": 6.32157,
-     "min": 5.42346e-07,
-     "max": 11.9929,
+     "p01": 0.000173702,
+     "p50": 0.262482,
+     "p99": 4.78264,
+     "min": 4.06521e-07,
+     "max": 12.2031,
      "n": 1211
     },
     "g03": {
-     "p01": 0.000157341,
-     "p50": 0.364623,
-     "p99": 8.57797,
-     "min": 5.79644e-07,
-     "max": 16.2736,
+     "p01": 0.000157399,
+     "p50": 0.207383,
+     "p99": 2.73203,
+     "min": 2.8801e-06,
+     "max": 4.94483,
      "n": 1211
     },
     "g04": {
-     "p01": 0.000214888,
-     "p50": 0.303792,
-     "p99": 3.77223,
-     "min": 2.55357e-06,
-     "max": 7.15792,
+     "p01": 0.000120568,
+     "p50": 0.170011,
+     "p99": 3.34119,
+     "min": 1.87189e-06,
+     "max": 7.29147,
      "n": 1211
     },
     "g05": {
-     "p01": 0.000164259,
-     "p50": 0.246814,
-     "p99": 4.21197,
-     "min": 1.73772e-06,
-     "max": 8.14465,
+     "p01": 0.000187862,
+     "p50": 0.235994,
+     "p99": 3.35596,
+     "min": 6.12606e-06,
+     "max": 7.34822,
      "n": 1211
     },
     "g06": {
-     "p01": 0.000289849,
-     "p50": 0.339639,
-     "p99": 4.20372,
-     "min": 5.07901e-06,
-     "max": 10.0421,
+     "p01": 0.000574465,
+     "p50": 0.578922,
+     "p99": 3.38054,
+     "min": 1.61255e-05,
+     "max": 5.7256,
      "n": 1211
     },
     "g07": {
-     "p01": 0.000349473,
-     "p50": 0.338771,
-     "p99": 4.76252,
-     "min": 6.32274e-06,
-     "max": 12.5012,
+     "p01": 0.000177365,
+     "p50": 0.223983,
+     "p99": 7.30095,
+     "min": 1.61255e-05,
+     "max": 11.4357,
      "n": 1211
     },
     "g08": {
-     "p01": 0.000567384,
-     "p50": 0.840936,
-     "p99": 3.76067,
-     "min": 3.36004e-05,
-     "max": 6.79903,
+     "p01": 0.000367638,
+     "p50": 0.594738,
+     "p99": 3.73077,
+     "min": 1.61255e-05,
+     "max": 4.90217,
      "n": 1211
     },
     "g09": {
-     "p01": 0.000303319,
-     "p50": 0.338417,
-     "p99": 6.20423,
-     "min": 2.5141e-05,
-     "max": 7.78688,
+     "p01": 6.69327e-05,
+     "p50": 0.462911,
+     "p99": 3.90721,
+     "min": 0.0,
+     "max": 6.51805,
      "n": 1211
     },
     "g10": {
-     "p01": 0.000319688,
-     "p50": 0.938894,
-     "p99": 4.31136,
-     "min": 3.36004e-05,
-     "max": 6.79903,
+     "p01": 5.98208e-05,
+     "p50": 0.392551,
+     "p99": 5.05798,
+     "min": 0.0,
+     "max": 6.51805,
      "n": 1211
     },
     "g11": {
-     "p01": 0.000198589,
-     "p50": 0.844824,
-     "p99": 5.2211,
-     "min": 3.36004e-05,
-     "max": 7.59525,
+     "p01": 9.83801e-05,
+     "p50": 0.465583,
+     "p99": 4.65074,
+     "min": 0.0,
+     "max": 7.78702,
      "n": 1211
     },
     "g12": {
-     "p01": 0.000242909,
-     "p50": 0.659406,
-     "p99": 4.73632,
-     "min": 0.0,
-     "max": 12.8026,
+     "p01": 3.8619e-05,
+     "p50": 0.0595104,
+     "p99": 4.97155,
+     "min": 5.66665e-07,
+     "max": 8.72943,
      "n": 1211
     },
     "g13": {
-     "p01": 0.0001765,
-     "p50": 0.583499,
-     "p99": 5.37402,
-     "min": 0.0,
-     "max": 12.8026,
+     "p01": 4.98257e-05,
+     "p50": 0.0651011,
+     "p99": 3.36832,
+     "min": 8.16121e-07,
+     "max": 6.14903,
      "n": 1211
     },
     "g14": {
-     "p01": 0.000261414,
-     "p50": 0.752431,
-     "p99": 5.90382,
-     "min": 0.0,
-     "max": 12.8026,
+     "p01": 3.08581e-05,
+     "p50": 0.0494808,
+     "p99": 7.17923,
+     "min": 3.37189e-07,
+     "max": 12.2296,
      "n": 1211
     },
     "g15": {
-     "p01": 0.000267464,
-     "p50": 0.731306,
-     "p99": 6.63669,
-     "min": 0.0,
-     "max": 12.8026,
+     "p01": 0.000437971,
+     "p50": 0.613359,
+     "p99": 3.35235,
+     "min": 9.63971e-07,
+     "max": 6.5232,
      "n": 1211
     },
     "g16": {
-     "p01": 5.8967e-05,
-     "p50": 0.0862115,
-     "p99": 5.01065,
-     "min": 2.79529e-06,
-     "max": 7.15955,
+     "p01": 0.000659787,
+     "p50": 0.609794,
+     "p99": 3.77921,
+     "min": 1.57481e-06,
+     "max": 6.5232,
      "n": 1211
     },
     "g17": {
-     "p01": 6.99756e-05,
-     "p50": 0.0940003,
-     "p99": 3.85409,
-     "min": 3.88084e-06,
-     "max": 5.3103,
+     "p01": 0.000170353,
+     "p50": 0.578142,
+     "p99": 5.1878,
+     "min": 2.04252e-06,
+     "max": 8.03634,
      "n": 1211
     },
     "g18": {
-     "p01": 4.94756e-05,
-     "p50": 0.0719985,
-     "p99": 6.74701,
-     "min": 1.76449e-06,
-     "max": 9.63317,
+     "p01": 0.000161884,
+     "p50": 0.313363,
+     "p99": 4.67795,
+     "min": 0.0,
+     "max": 9.46946,
      "n": 1211
     },
     "g19": {
-     "p01": 8.81037e-05,
-     "p50": 0.115396,
-     "p99": 2.68318,
-     "min": 6.24372e-06,
-     "max": 4.83834,
+     "p01": 0.000176335,
+     "p50": 0.343513,
+     "p99": 4.62449,
+     "min": 0.0,
+     "max": 9.46946,
      "n": 1211
     },
     "g20": {
-     "p01": 0.000966268,
-     "p50": 0.892906,
-     "p99": 4.41662,
-     "min": 4.46607e-06,
-     "max": 11.9318,
+     "p01": 0.000160852,
+     "p50": 0.356295,
+     "p99": 6.9969,
+     "min": 0.0,
+     "max": 12.6541,
      "n": 1211
     },
     "g21": {
-     "p01": 0.00106923,
-     "p50": 1.02688,
-     "p99": 4.8862,
-     "min": 6.85235e-06,
-     "max": 11.9318,
+     "p01": 0.000787123,
+     "p50": 0.481043,
+     "p99": 3.55433,
+     "min": 4.0238e-06,
+     "max": 4.76853,
      "n": 1211
     },
     "g22": {
-     "p01": 0.00126343,
-     "p50": 0.968606,
-     "p99": 5.60096,
-     "min": 8.6292e-06,
-     "max": 11.9318,
+     "p01": 0.00129644,
+     "p50": 0.463989,
+     "p99": 3.77834,
+     "min": 9.32306e-06,
+     "max": 6.95865,
      "n": 1211
     },
     "g23": {
-     "p01": 2.68179e-07,
-     "p50": 0.998582,
-     "p99": 7.12231,
+     "p01": 1.523e-07,
+     "p50": 0.445598,
+     "p99": 5.8781,
      "min": 0.0,
-     "max": 11.9318,
+     "max": 10.8914,
      "n": 1211
     },
     "g24": {
-     "p01": 0.000299896,
-     "p50": 0.518366,
-     "p99": 4.89934,
-     "min": 1.9208e-07,
-     "max": 11.3749,
-     "n": 1198
+     "p01": 0.000305691,
+     "p50": 0.679323,
+     "p99": 3.51344,
+     "min": 1.24441e-06,
+     "max": 5.45847,
+     "n": 1211
     },
     "g25": {
-     "p01": 0.000272854,
-     "p50": 0.580636,
-     "p99": 4.50562,
-     "min": 2.66424e-07,
-     "max": 11.3749,
-     "n": 1198
+     "p01": 0.000103292,
+     "p50": 0.304053,
+     "p99": 7.00587,
+     "min": 4.47044e-07,
+     "max": 10.9022,
+     "n": 1211
     },
     "g26": {
-     "p01": 0.000164688,
-     "p50": 0.560527,
-     "p99": 6.60834,
-     "min": 4.92009e-07,
-     "max": 11.3749,
-     "n": 1198
+     "p01": 0.000505,
+     "p50": 0.694343,
+     "p99": 5.05997,
+     "min": 2.43658e-06,
+     "max": 7.47132,
+     "n": 1211
     },
     "g27": {
-     "p01": 0.000129503,
-     "p50": 0.548238,
-     "p99": 8.99879,
-     "min": 7.10273e-07,
-     "max": 14.2521,
-     "n": 1198
+     "p01": 0.000101571,
+     "p50": 0.213077,
+     "p99": 5.06599,
+     "min": 0.0,
+     "max": 9.76004,
+     "n": 1211
     },
     "g28": {
-     "p01": 7.31296e-05,
-     "p50": 0.159181,
-     "p99": 3.84364,
-     "min": 4.70787e-07,
-     "max": 5.27182,
-     "n": 1198
+     "p01": 0.000130341,
+     "p50": 0.247671,
+     "p99": 4.44205,
+     "min": 0.0,
+     "max": 9.76004,
+     "n": 1211
     },
     "g29": {
-     "p01": 4.6806e-05,
-     "p50": 0.124078,
-     "p99": 5.10165,
-     "min": 4.7546e-07,
-     "max": 7.11584,
-     "n": 1198
+     "p01": 4.45493e-05,
+     "p50": 0.254509,
+     "p99": 5.92965,
+     "min": 0.0,
+     "max": 10.0517,
+     "n": 1211
     },
     "g30": {
-     "p01": 8.63995e-05,
-     "p50": 0.18396,
-     "p99": 2.97496,
-     "min": 3.91242e-07,
-     "max": 3.89562,
-     "n": 1198
+     "p01": 6.88754e-05,
+     "p50": 0.229707,
+     "p99": 3.93346,
+     "min": 1.79876e-06,
+     "max": 6.64693,
+     "n": 1211
     },
     "g31": {
-     "p01": 7.88488e-05,
-     "p50": 0.193762,
-     "p99": 2.96158,
-     "min": 2.316e-07,
-     "max": 4.50734,
-     "n": 1198
+     "p01": 9.91956e-05,
+     "p50": 0.257412,
+     "p99": 3.62283,
+     "min": 2.5906e-06,
+     "max": 6.64693,
+     "n": 1211
     },
     "g32": {
-     "p01": 0.000449677,
-     "p50": 0.635475,
-     "p99": 2.99639,
-     "min": 9.24458e-07,
-     "max": 5.24248,
-     "n": 1198
+     "p01": 8.40205e-05,
+     "p50": 0.256368,
+     "p99": 6.38835,
+     "min": 3.20171e-06,
+     "max": 9.75795,
+     "n": 1211
     },
     "g33": {
-     "p01": 0.000674849,
-     "p50": 0.706014,
-     "p99": 3.26447,
-     "min": 1.98978e-06,
-     "max": 5.6955,
-     "n": 1198
+     "p01": 0.000320413,
+     "p50": 1.16695,
+     "p99": 10.5529,
+     "min": 1.0115e-05,
+     "max": 25.1819,
+     "n": 1211
     },
     "g34": {
-     "p01": 0.000442993,
-     "p50": 0.676134,
-     "p99": 4.21992,
-     "min": 2.58052e-06,
-     "max": 8.22748,
-     "n": 1198
+     "p01": 0.000144297,
+     "p50": 1.4631,
+     "p99": 13.7004,
+     "min": 1.98992e-05,
+     "max": 27.2357,
+     "n": 1211
     },
     "g35": {
-     "p01": 1.52213e-07,
-     "p50": 0.70528,
-     "p99": 5.85785,
-     "min": 0.0,
-     "max": 11.4209,
-     "n": 1198
+     "p01": 0.000203515,
+     "p50": 1.42772,
+     "p99": 10.5158,
+     "min": 1.74701e-05,
+     "max": 25.1819,
+     "n": 1211
     },
     "pin": {
-     "p01": 0.414373,
-     "p50": 1.29866,
-     "p99": 4.45842,
-     "min": 0.207087,
-     "max": 5.11122,
+     "p01": 0.355818,
+     "p50": 1.3682,
+     "p99": 5.59946,
+     "min": 0.239839,
+     "max": 7.34597,
      "n": 1211
     },
     "bow_db": {
@@ -6528,9 +7169,9 @@
      "n": 893
     },
     "dust_hz": {
-     "p01": 0.500828,
-     "p50": 2.03141,
-     "p99": 4.99629,
+     "p01": 0.500997,
+     "p50": 1.99655,
+     "p99": 4.99034,
      "min": 0.5,
      "max": 5.0,
      "n": 1211
@@ -6562,299 +7203,299 @@
      "n": 1056
     },
     "g00": {
-     "p01": 0.00033314,
-     "p50": 0.255738,
-     "p99": 9.09317,
-     "min": 1.55835e-06,
-     "max": 22.602,
+     "p01": 0.000197225,
+     "p50": 0.203773,
+     "p99": 7.49385,
+     "min": 1.30418e-06,
+     "max": 38.4222,
      "n": 1056
     },
     "g01": {
-     "p01": 0.000663055,
-     "p50": 0.533012,
-     "p99": 5.33895,
-     "min": 4.13274e-06,
-     "max": 10.4392,
+     "p01": 0.000696733,
+     "p50": 0.480506,
+     "p99": 4.84398,
+     "min": 2.65258e-06,
+     "max": 10.5659,
      "n": 1056
     },
     "g02": {
-     "p01": 0.000354121,
-     "p50": 0.609905,
-     "p99": 8.26977,
-     "min": 4.88128e-06,
-     "max": 24.2543,
+     "p01": 5.8018e-08,
+     "p50": 0.449801,
+     "p99": 9.88735,
+     "min": 0.0,
+     "max": 19.6636,
      "n": 1056
     },
     "g03": {
-     "p01": 3.47877e-08,
-     "p50": 0.536235,
-     "p99": 13.8435,
-     "min": 0.0,
-     "max": 41.7568,
+     "p01": 9.17764e-05,
+     "p50": 0.221378,
+     "p99": 9.36357,
+     "min": 1.74078e-06,
+     "max": 27.532,
      "n": 1056
     },
     "g04": {
-     "p01": 0.000139134,
-     "p50": 0.273508,
-     "p99": 7.98644,
-     "min": 1.36491e-06,
-     "max": 12.585,
+     "p01": 0.000318247,
+     "p50": 0.502617,
+     "p99": 3.73038,
+     "min": 1.02544e-05,
+     "max": 7.57112,
      "n": 1056
     },
     "g05": {
-     "p01": 0.000361493,
-     "p50": 0.551856,
-     "p99": 4.50893,
-     "min": 5.45962e-06,
-     "max": 8.3195,
+     "p01": 6.31525e-07,
+     "p50": 0.459825,
+     "p99": 8.39892,
+     "min": 0.0,
+     "max": 20.0448,
      "n": 1056
     },
     "g06": {
-     "p01": 0.000655626,
-     "p50": 0.585167,
-     "p99": 5.32166,
-     "min": 1.26848e-05,
-     "max": 13.9121,
+     "p01": 0.0001077,
+     "p50": 0.15742,
+     "p99": 13.0683,
+     "min": 1.23346e-05,
+     "max": 34.6826,
      "n": 1056
     },
     "g07": {
-     "p01": 2.88653e-07,
-     "p50": 0.561502,
-     "p99": 8.81002,
-     "min": 0.0,
-     "max": 23.9513,
+     "p01": 0.00060592,
+     "p50": 0.440535,
+     "p99": 4.06653,
+     "min": 7.26595e-05,
+     "max": 9.5375,
      "n": 1056
     },
     "g08": {
-     "p01": 0.000132723,
-     "p50": 0.208425,
-     "p99": 8.30672,
-     "min": 8.51231e-06,
-     "max": 15.8464,
+     "p01": 7.84499e-07,
+     "p50": 0.435221,
+     "p99": 4.4714,
+     "min": 0.0,
+     "max": 7.22015,
      "n": 1056
     },
     "g09": {
-     "p01": 0.000530893,
-     "p50": 0.492895,
-     "p99": 4.41458,
-     "min": 3.40492e-05,
-     "max": 7.04418,
+     "p01": 4.49117e-05,
+     "p50": 0.192539,
+     "p99": 9.41157,
+     "min": 0.0,
+     "max": 18.6825,
      "n": 1056
     },
     "g10": {
-     "p01": 0.00111314,
-     "p50": 0.542464,
-     "p99": 3.6278,
-     "min": 7.91096e-05,
-     "max": 5.56649,
+     "p01": 0.000203715,
+     "p50": 0.506001,
+     "p99": 3.55358,
+     "min": 0.0,
+     "max": 5.13961,
      "n": 1056
     },
     "g11": {
-     "p01": 4.22927e-07,
-     "p50": 0.520113,
-     "p99": 4.76546,
+     "p01": 1.92395e-07,
+     "p50": 0.43275,
+     "p99": 6.09997,
      "min": 0.0,
-     "max": 7.46908,
+     "max": 9.37123,
      "n": 1056
     },
     "g12": {
-     "p01": 6.39246e-05,
-     "p50": 0.222417,
-     "p99": 7.05945,
-     "min": 0.0,
-     "max": 14.7052,
+     "p01": 2.9674e-05,
+     "p50": 0.0539605,
+     "p99": 25.4033,
+     "min": 7.5739e-07,
+     "max": 51.8176,
      "n": 1056
     },
     "g13": {
-     "p01": 0.00020773,
-     "p50": 0.545011,
-     "p99": 4.05097,
-     "min": 0.0,
-     "max": 6.59639,
+     "p01": 8.27632e-05,
+     "p50": 0.129596,
+     "p99": 7.04742,
+     "min": 2.34992e-06,
+     "max": 14.2495,
      "n": 1056
     },
     "g14": {
-     "p01": 0.000377986,
-     "p50": 0.598006,
-     "p99": 4.48486,
+     "p01": 4.73519e-07,
+     "p50": 0.0937255,
+     "p99": 4.97516,
      "min": 0.0,
-     "max": 6.96116,
+     "max": 6.67163,
      "n": 1056
     },
     "g15": {
-     "p01": 8.79441e-08,
-     "p50": 0.530473,
-     "p99": 6.60087,
-     "min": 0.0,
-     "max": 11.9845,
+     "p01": 6.6153e-05,
+     "p50": 0.189868,
+     "p99": 11.5312,
+     "min": 7.25819e-07,
+     "max": 20.6556,
      "n": 1056
     },
     "g16": {
-     "p01": 3.39658e-05,
-     "p50": 0.0663228,
-     "p99": 13.8624,
-     "min": 2.25531e-06,
-     "max": 27.5537,
+     "p01": 0.000378228,
+     "p50": 0.481859,
+     "p99": 3.9899,
+     "min": 1.63748e-06,
+     "max": 5.8329,
      "n": 1056
     },
     "g17": {
-     "p01": 7.90189e-05,
-     "p50": 0.14161,
-     "p99": 6.17349,
-     "min": 4.33915e-06,
-     "max": 12.2534,
+     "p01": 5.40923e-07,
+     "p50": 0.509912,
+     "p99": 5.099,
+     "min": 0.0,
+     "max": 8.24705,
      "n": 1056
     },
     "g18": {
-     "p01": 0.000140995,
-     "p50": 0.188876,
-     "p99": 3.59677,
-     "min": 1.93406e-06,
-     "max": 5.93437,
+     "p01": 6.35664e-05,
+     "p50": 0.159311,
+     "p99": 8.93968,
+     "min": 0.0,
+     "max": 25.0528,
      "n": 1056
     },
     "g19": {
-     "p01": 5.00298e-07,
-     "p50": 0.126623,
-     "p99": 5.92679,
+     "p01": 0.000170728,
+     "p50": 0.445452,
+     "p99": 3.38107,
      "min": 0.0,
-     "max": 10.2167,
+     "max": 6.88936,
      "n": 1056
     },
     "g20": {
-     "p01": 0.000105614,
-     "p50": 0.247262,
-     "p99": 8.55415,
-     "min": 1.37865e-06,
-     "max": 14.3622,
+     "p01": 2.6881e-09,
+     "p50": 0.36024,
+     "p99": 7.95199,
+     "min": 0.0,
+     "max": 15.0509,
      "n": 1056
     },
     "g21": {
-     "p01": 0.000330678,
-     "p50": 0.530142,
-     "p99": 4.77264,
-     "min": 2.51922e-06,
-     "max": 7.73499,
+     "p01": 0.000376897,
+     "p50": 0.195149,
+     "p99": 13.7459,
+     "min": 1.15402e-06,
+     "max": 27.7616,
      "n": 1056
     },
     "g22": {
-     "p01": 0.000642733,
-     "p50": 0.614624,
-     "p99": 4.32814,
-     "min": 4.0816e-06,
-     "max": 7.73499,
+     "p01": 0.00208927,
+     "p50": 0.521425,
+     "p99": 4.14758,
+     "min": 6.79797e-06,
+     "max": 7.63425,
      "n": 1056
     },
     "g23": {
-     "p01": 2.47174e-07,
-     "p50": 0.579748,
-     "p99": 6.05196,
+     "p01": 5.91341e-07,
+     "p50": 0.480451,
+     "p99": 5.26846,
      "min": 0.0,
-     "max": 8.97392,
+     "max": 8.81845,
      "n": 1056
     },
     "g24": {
-     "p01": 7.90547e-05,
-     "p50": 0.191027,
-     "p99": 6.85848,
-     "min": 3.15099e-08,
-     "max": 10.5597,
+     "p01": 4.13593e-05,
+     "p50": 0.179604,
+     "p99": 12.5822,
+     "min": 3.32168e-07,
+     "max": 23.6325,
      "n": 1056
     },
     "g25": {
-     "p01": 0.000135113,
-     "p50": 0.467199,
-     "p99": 3.11803,
-     "min": 1.25354e-07,
-     "max": 4.69408,
+     "p01": 0.000213506,
+     "p50": 0.473978,
+     "p99": 3.91771,
+     "min": 1.15758e-06,
+     "max": 6.49878,
      "n": 1056
     },
     "g26": {
-     "p01": 0.00017393,
-     "p50": 0.469096,
-     "p99": 5.0281,
-     "min": 2.907e-07,
-     "max": 8.47458,
+     "p01": 6.1771e-07,
+     "p50": 0.440531,
+     "p99": 5.44592,
+     "min": 0.0,
+     "max": 11.1049,
      "n": 1056
     },
     "g27": {
-     "p01": 3.26593e-07,
-     "p50": 0.405992,
-     "p99": 8.51582,
+     "p01": 3.35223e-05,
+     "p50": 0.110209,
+     "p99": 17.3524,
      "min": 0.0,
-     "max": 14.59,
+     "max": 40.751,
      "n": 1056
     },
     "g28": {
-     "p01": 3.20905e-05,
-     "p50": 0.115802,
-     "p99": 9.60051,
-     "min": 4.32985e-07,
-     "max": 20.752,
+     "p01": 6.72776e-05,
+     "p50": 0.287339,
+     "p99": 4.81512,
+     "min": 0.0,
+     "max": 11.2063,
      "n": 1056
     },
     "g29": {
-     "p01": 8.14742e-05,
-     "p50": 0.260447,
-     "p99": 4.34177,
-     "min": 7.38223e-07,
-     "max": 9.36526,
+     "p01": 4.98171e-08,
+     "p50": 0.26911,
+     "p99": 7.59357,
+     "min": 0.0,
+     "max": 12.9732,
      "n": 1056
     },
     "g30": {
-     "p01": 8.93905e-05,
-     "p50": 0.32222,
-     "p99": 4.06116,
-     "min": 3.45441e-07,
-     "max": 5.70121,
+     "p01": 4.75906e-05,
+     "p50": 0.199085,
+     "p99": 12.1209,
+     "min": 1.36849e-06,
+     "max": 24.9004,
      "n": 1056
     },
     "g31": {
-     "p01": 2.61773e-07,
-     "p50": 0.237202,
-     "p99": 6.99178,
-     "min": 0.0,
-     "max": 9.81532,
+     "p01": 0.00019285,
+     "p50": 0.423117,
+     "p99": 4.95871,
+     "min": 8.06136e-06,
+     "max": 6.85257,
      "n": 1056
     },
     "g32": {
-     "p01": 8.24194e-05,
-     "p50": 0.203475,
-     "p99": 7.69469,
-     "min": 1.90834e-07,
-     "max": 14.357,
+     "p01": 2.48284e-08,
+     "p50": 0.391319,
+     "p99": 10.5264,
+     "min": 0.0,
+     "max": 15.9797,
      "n": 1056
     },
     "g33": {
-     "p01": 0.000320671,
-     "p50": 0.469725,
-     "p99": 3.44795,
-     "min": 7.63334e-07,
-     "max": 6.38208,
+     "p01": 0.000164753,
+     "p50": 0.244352,
+     "p99": 14.9942,
+     "min": 2.38837e-06,
+     "max": 30.8219,
      "n": 1056
     },
     "g34": {
-     "p01": 0.00039113,
-     "p50": 0.537007,
-     "p99": 3.2975,
-     "min": 1.77352e-06,
-     "max": 6.08369,
+     "p01": 0.000165718,
+     "p50": 0.634226,
+     "p99": 6.09412,
+     "min": 1.32893e-05,
+     "max": 9.52863,
      "n": 1056
     },
     "g35": {
-     "p01": 1.02027e-07,
-     "p50": 0.527304,
-     "p99": 5.10838,
+     "p01": 1.70791e-09,
+     "p50": 0.686783,
+     "p99": 10.1167,
      "min": 0.0,
-     "max": 10.4738,
+     "max": 18.8296,
      "n": 1056
     },
     "pin": {
-     "p01": 0.16301,
-     "p50": 1.59662,
-     "p99": 23.8027,
-     "min": 0.121875,
-     "max": 31.6228,
+     "p01": 0.0998845,
+     "p50": 1.45987,
+     "p99": 11.5942,
+     "min": 0.0577222,
+     "max": 16.0199,
      "n": 1056
     },
     "bow_db": {
@@ -6866,8 +7507,8 @@
      "n": 838
     },
     "dust_hz": {
-     "p01": 0.520598,
-     "p50": 2.14052,
+     "p01": 0.571029,
+     "p50": 2.10123,
      "p99": 5.0,
      "min": 0.5,
      "max": 5.0,
@@ -7421,6 +8062,105 @@
     "2025-05-01",
     1
    ]
+  ],
+  "ELDC": [
+   [
+    "2023-09-23",
+    "2023-09-24",
+    2
+   ],
+   [
+    "2024-01-07",
+    "2024-02-03",
+    28
+   ],
+   [
+    "2024-09-05",
+    "2024-09-05",
+    1
+   ],
+   [
+    "2024-12-31",
+    "2024-12-31",
+    1
+   ],
+   [
+    "2025-01-15",
+    "2025-01-17",
+    3
+   ],
+   [
+    "2025-01-24",
+    "2025-01-27",
+    4
+   ],
+   [
+    "2025-04-16",
+    "2025-04-17",
+    2
+   ],
+   [
+    "2025-05-01",
+    "2025-05-01",
+    1
+   ],
+   [
+    "2025-11-27",
+    "2025-11-27",
+    1
+   ]
+  ],
+  "FEFC": [
+   [
+    "2023-06-20",
+    "2023-06-21",
+    2
+   ],
+   [
+    "2023-09-23",
+    "2023-09-24",
+    2
+   ],
+   [
+    "2023-10-11",
+    "2023-10-12",
+    2
+   ],
+   [
+    "2024-01-07",
+    "2024-02-03",
+    28
+   ],
+   [
+    "2024-08-24",
+    "2024-08-31",
+    8
+   ],
+   [
+    "2024-09-05",
+    "2024-09-05",
+    1
+   ],
+   [
+    "2024-10-09",
+    "2024-10-21",
+    13
+   ],
+   [
+    "2024-12-31",
+    "2024-12-31",
+    1
+   ],
+   [
+    "2025-04-17",
+    "2025-04-17",
+    1
+   ],
+   [
+    "2025-05-01",
+    "2025-05-01",
+    1
+   ]
   ]
  },
  "gnss_field": {
@@ -7446,6 +8186,8 @@
   "stations": [
    {
     "id": "ELDC",
+    "body": true,
+    "in_stations": true,
     "lat": 63.863142,
     "lon": -22.525716,
     "pos_status": "measured",
@@ -7458,6 +8200,8 @@
    },
    {
     "id": "FAGD",
+    "body": false,
+    "in_stations": false,
     "lat": 63.916717,
     "lon": -22.288817,
     "pos_status": "measured",
@@ -7470,6 +8214,8 @@
    },
    {
     "id": "FEFC",
+    "body": true,
+    "in_stations": true,
     "lat": 63.856654,
     "lon": -22.312737,
     "pos_status": "measured",
@@ -7482,6 +8228,8 @@
    },
    {
     "id": "GEVK",
+    "body": false,
+    "in_stations": false,
     "lat": 63.835377,
     "lon": -22.471563,
     "pos_status": "measured",
@@ -7494,6 +8242,8 @@
    },
    {
     "id": "GONH",
+    "body": false,
+    "in_stations": false,
     "lat": 63.88554,
     "lon": -22.270329,
     "pos_status": "measured",
@@ -7506,6 +8256,8 @@
    },
    {
     "id": "HAFC",
+    "body": false,
+    "in_stations": false,
     "lat": 63.927358,
     "lon": -22.679908,
     "pos_status": "measured",
@@ -7518,6 +8270,8 @@
    },
    {
     "id": "HRAG",
+    "body": false,
+    "in_stations": false,
     "lat": 63.887708,
     "lon": -22.557036,
     "pos_status": "measured",
@@ -7530,6 +8284,8 @@
    },
    {
     "id": "HS02",
+    "body": false,
+    "in_stations": false,
     "lat": 63.872659,
     "lon": -22.455415,
     "pos_status": "measured",
@@ -7542,6 +8298,8 @@
    },
    {
     "id": "HVAS",
+    "body": false,
+    "in_stations": false,
     "lat": 64.024424,
     "lon": -22.127758,
     "pos_status": "measured",
@@ -7554,6 +8312,8 @@
    },
    {
     "id": "KAST",
+    "body": false,
+    "in_stations": false,
     "lat": 63.880038,
     "lon": -22.323232,
     "pos_status": "measured",
@@ -7566,6 +8326,8 @@
    },
    {
     "id": "KEIC",
+    "body": false,
+    "in_stations": false,
     "lat": 63.93006,
     "lon": -22.19122,
     "pos_status": "measured",
@@ -7578,6 +8340,8 @@
    },
    {
     "id": "KRIV",
+    "body": false,
+    "in_stations": false,
     "lat": 63.878203,
     "lon": -22.077264,
     "pos_status": "measured",
@@ -7590,6 +8354,8 @@
    },
    {
     "id": "LISK",
+    "body": false,
+    "in_stations": false,
     "lat": 63.922272,
     "lon": -22.372627,
     "pos_status": "measured",
@@ -7602,6 +8368,8 @@
    },
    {
     "id": "MOHA",
+    "body": false,
+    "in_stations": false,
     "lat": 63.919955,
     "lon": -22.059546,
     "pos_status": "measured",
@@ -7614,6 +8382,8 @@
    },
    {
     "id": "NAMC",
+    "body": false,
+    "in_stations": false,
     "lat": 63.915013,
     "lon": -22.542308,
     "pos_status": "measured",
@@ -7626,6 +8396,8 @@
    },
    {
     "id": "NBIO",
+    "body": false,
+    "in_stations": false,
     "lat": 63.89766,
     "lon": -22.47169,
     "pos_status": "measured",
@@ -7638,6 +8410,8 @@
    },
    {
     "id": "NYLA",
+    "body": false,
+    "in_stations": false,
     "lat": 63.973541,
     "lon": -22.738099,
     "pos_status": "measured",
@@ -7650,6 +8424,8 @@
    },
    {
     "id": "ODDF",
+    "body": false,
+    "in_stations": false,
     "lat": 63.948758,
     "lon": -22.117577,
     "pos_status": "measured",
@@ -7662,6 +8438,8 @@
    },
    {
     "id": "ORFC",
+    "body": false,
+    "in_stations": false,
     "lat": 63.855149,
     "lon": -22.419157,
     "pos_status": "measured",
@@ -7674,6 +8452,8 @@
    },
    {
     "id": "RVIT",
+    "body": false,
+    "in_stations": false,
     "lat": 63.81594,
     "lon": -22.70407,
     "pos_status": "measured",
@@ -7686,6 +8466,8 @@
    },
    {
     "id": "SUDV",
+    "body": false,
+    "in_stations": false,
     "lat": 63.849642,
     "lon": -22.374294,
     "pos_status": "measured",
@@ -7698,6 +8480,8 @@
    },
    {
     "id": "SYRF",
+    "body": false,
+    "in_stations": false,
     "lat": 63.835996,
     "lon": -22.654072,
     "pos_status": "measured",
@@ -7710,6 +8494,8 @@
    },
    {
     "id": "VMOS",
+    "body": false,
+    "in_stations": false,
     "lat": 63.846799,
     "lon": -22.487208,
     "pos_status": "measured",
@@ -8068,9 +8854,9 @@
     "file": "body/identity/sequence_0.json",
     "t0": 1685577600.0,
     "t1": null,
-    "comb_hz": 85.3968,
+    "comb_hz": 76.1238,
     "label": null,
-    "comb_render_hz": 85.3968,
+    "comb_render_hz": 76.1238,
     "room_gain": 1.0,
     "bow_neutral_db": -11.357,
     "bow_neutral_source": "room median over its measured days",
@@ -8086,20 +8872,20 @@
       "amp": 1.0
      },
      {
-      "sensor": "THOB_u",
-      "harm": 1,
-      "freq_hz": 70.1556,
-      "period_d": 88.571,
-      "f_src_hz": 1.3067502986857826e-07,
-      "amp": 0.92381
-     },
-     {
       "sensor": "SENG_u",
       "harm": 1,
       "freq_hz": 70.1556,
       "period_d": 88.571,
       "f_src_hz": 1.3067502986857826e-07,
       "amp": 0.882591
+     },
+     {
+      "sensor": "ELDC_u",
+      "harm": 1,
+      "freq_hz": 70.1556,
+      "period_d": 88.571,
+      "f_src_hz": 1.3067502986857826e-07,
+      "amp": 0.621543
      }
     ]
    },
@@ -8109,10 +8895,10 @@
     "file": "body/identity/cycle_0.json",
     "t0": 1699574400.0,
     "t1": 1702857600.0,
-    "comb_hz": 226.1508,
+    "comb_hz": 204.0055,
     "label": null,
-    "comb_render_hz": 113.0754,
-    "room_gain": 1.931072,
+    "comb_render_hz": 102.0028,
+    "room_gain": 1.959342,
     "bow_neutral_db": -0.517,
     "bow_neutral_source": "room median over its measured days",
     "period_d": 38,
@@ -8150,17 +8936,17 @@
     "file": "body/identity/cycle_1.json",
     "t0": 1702857600.0,
     "t1": 1705190400.0,
-    "comb_hz": 268.9199,
+    "comb_hz": 249.9792,
     "label": null,
-    "comb_render_hz": 134.4599,
-    "room_gain": 3.220576,
+    "comb_render_hz": 124.9896,
+    "room_gain": 2.681501,
     "bow_neutral_db": -0.182,
     "bow_neutral_source": "room median over its measured days",
     "period_d": 27,
     "open": false,
     "top3": [
      {
-      "sensor": "THOB_e",
+      "sensor": "SENG_e",
       "harm": 1,
       "freq_hz": 230.1401,
       "period_d": 27.0,
@@ -8168,20 +8954,20 @@
       "amp": 1.0
      },
      {
-      "sensor": "SENG_e",
+      "sensor": "SENG_n",
       "harm": 1,
       "freq_hz": 230.1401,
       "period_d": 27.0,
       "f_src_hz": 4.2866941015089163e-07,
-      "amp": 0.749412
+      "amp": 0.676422
      },
      {
-      "sensor": "THOB_n",
+      "sensor": "SKSH_e",
       "harm": 1,
       "freq_hz": 230.1401,
       "period_d": 27.0,
       "f_src_hz": 4.2866941015089163e-07,
-      "amp": 0.652063
+      "amp": 0.602681
      }
     ]
    },
@@ -8191,17 +8977,17 @@
     "file": "body/identity/cycle_2.json",
     "t0": 1705190400.0,
     "t1": 1707350400.0,
-    "comb_hz": 482.6392,
+    "comb_hz": 411.3416,
     "label": null,
-    "comb_render_hz": 120.6598,
-    "room_gain": 2.201427,
+    "comb_render_hz": 102.8354,
+    "room_gain": 4.695971,
     "bow_neutral_db": -11.357,
     "bow_neutral_source": "sequence_0 fallback (no measured inflow day)",
     "period_d": 25,
     "open": false,
     "top3": [
      {
-      "sensor": "THOB_e",
+      "sensor": "SENG_e",
       "harm": 1,
       "freq_hz": 248.5513,
       "period_d": 25.0,
@@ -8209,20 +8995,20 @@
       "amp": 1.0
      },
      {
-      "sensor": "THOB_e",
-      "harm": 2,
-      "freq_hz": 497.1027,
-      "period_d": 12.5,
-      "f_src_hz": 9.259259259259259e-07,
-      "amp": 0.712863
-     },
-     {
-      "sensor": "THOB_n",
+      "sensor": "SENG_n",
       "harm": 1,
       "freq_hz": 248.5513,
       "period_d": 25.0,
       "f_src_hz": 4.6296296296296297e-07,
-      "amp": 0.629535
+      "amp": 0.825965
+     },
+     {
+      "sensor": "SENG_e",
+      "harm": 2,
+      "freq_hz": 497.1027,
+      "period_d": 12.5,
+      "f_src_hz": 9.259259259259259e-07,
+      "amp": 0.711873
      }
     ]
    },
@@ -8232,10 +9018,10 @@
     "file": "body/identity/cycle_3.json",
     "t0": 1707350400.0,
     "t1": 1709337600.0,
-    "comb_hz": 622.0651,
+    "comb_hz": 487.6081,
     "label": null,
-    "comb_render_hz": 77.7581,
-    "room_gain": 2.959379,
+    "comb_render_hz": 121.902,
+    "room_gain": 2.018724,
     "bow_neutral_db": -11.357,
     "bow_neutral_source": "sequence_0 fallback (no measured inflow day)",
     "period_d": 23,
@@ -8250,12 +9036,12 @@
       "amp": 1.0
      },
      {
-      "sensor": "THOB_u",
-      "harm": 4,
-      "freq_hz": 1080.658,
-      "period_d": 5.75,
-      "f_src_hz": 2.012882447665056e-06,
-      "amp": 0.862554
+      "sensor": "FEFC_u",
+      "harm": 2,
+      "freq_hz": 540.329,
+      "period_d": 11.5,
+      "f_src_hz": 1.006441223832528e-06,
+      "amp": 0.833325
      },
      {
       "sensor": "SENG_u",
@@ -8273,10 +9059,10 @@
     "file": "body/identity/cycle_4.json",
     "t0": 1709337600.0,
     "t1": 1710547200.0,
-    "comb_hz": 980.0466,
+    "comb_hz": 762.466,
     "label": null,
-    "comb_render_hz": 122.5058,
-    "room_gain": 3.786525,
+    "comb_render_hz": 95.3083,
+    "room_gain": 4.114407,
     "bow_neutral_db": -11.357,
     "bow_neutral_source": "sequence_0 fallback (no measured inflow day)",
     "period_d": 14,
@@ -8314,10 +9100,10 @@
     "file": "body/identity/cycle_5.json",
     "t0": 1710547200.0,
     "t1": 1716940800.0,
-    "comb_hz": 127.6978,
+    "comb_hz": 119.614,
     "label": null,
-    "comb_render_hz": 127.6978,
-    "room_gain": 1.998197,
+    "comb_render_hz": 119.614,
+    "room_gain": 2.640621,
     "bow_neutral_db": -5.324,
     "bow_neutral_source": "room median over its measured days",
     "period_d": 74,
@@ -8332,20 +9118,20 @@
       "amp": 1.0
      },
      {
-      "sensor": "THOB_u",
-      "harm": 1,
-      "freq_hz": 83.9701,
-      "period_d": 74.0,
-      "f_src_hz": 1.564064064064064e-07,
-      "amp": 0.982395
-     },
-     {
       "sensor": "SKSH_u",
       "harm": 1,
       "freq_hz": 83.9701,
       "period_d": 74.0,
       "f_src_hz": 1.564064064064064e-07,
       "amp": 0.958627
+     },
+     {
+      "sensor": "ELDC_u",
+      "harm": 1,
+      "freq_hz": 83.9701,
+      "period_d": 74.0,
+      "f_src_hz": 1.564064064064064e-07,
+      "amp": 0.635049
      }
     ]
    },
@@ -8355,17 +9141,17 @@
     "file": "body/identity/cycle_6.json",
     "t0": 1716940800.0,
     "t1": 1724284800.0,
-    "comb_hz": 136.504,
+    "comb_hz": 126.3115,
     "label": null,
-    "comb_render_hz": 136.504,
-    "room_gain": 0.637322,
+    "comb_render_hz": 126.3115,
+    "room_gain": 1.728046,
     "bow_neutral_db": -4.848,
     "bow_neutral_source": "room median over its measured days",
     "period_d": 85,
     "open": false,
     "top3": [
      {
-      "sensor": "THOB_u",
+      "sensor": "SENG_u",
       "harm": 2,
       "freq_hz": 146.2067,
       "period_d": 42.5,
@@ -8373,20 +9159,20 @@
       "amp": 1.0
      },
      {
-      "sensor": "SENG_u",
-      "harm": 2,
-      "freq_hz": 146.2067,
-      "period_d": 42.5,
-      "f_src_hz": 2.7233115468409584e-07,
-      "amp": 0.953746
-     },
-     {
       "sensor": "SKSH_u",
       "harm": 2,
       "freq_hz": 146.2067,
       "period_d": 42.5,
       "f_src_hz": 2.7233115468409584e-07,
-      "amp": 0.950877
+      "amp": 0.996992
+     },
+     {
+      "sensor": "SENG_u",
+      "harm": 1,
+      "freq_hz": 73.1033,
+      "period_d": 85.0,
+      "f_src_hz": 1.3616557734204792e-07,
+      "amp": 0.876004
      }
     ]
    },
@@ -8396,17 +9182,17 @@
     "file": "body/identity/cycle_7.json",
     "t0": 1724284800.0,
     "t1": 1732060800.0,
-    "comb_hz": 143.5775,
+    "comb_hz": 121.8198,
     "label": null,
-    "comb_render_hz": 143.5775,
-    "room_gain": 0.667457,
+    "comb_render_hz": 121.8198,
+    "room_gain": 3.051011,
     "bow_neutral_db": -5.48,
     "bow_neutral_source": "room median over its measured days",
     "period_d": 90,
     "open": false,
     "top3": [
      {
-      "sensor": "THOB_u",
+      "sensor": "FEFC_u",
       "harm": 1,
       "freq_hz": 69.042,
       "period_d": 90.0,
@@ -8414,20 +9200,20 @@
       "amp": 1.0
      },
      {
-      "sensor": "THOB_u",
-      "harm": 3,
-      "freq_hz": 207.1261,
-      "period_d": 30.0,
-      "f_src_hz": 3.8580246913580245e-07,
-      "amp": 0.910361
-     },
-     {
       "sensor": "SKSH_u",
       "harm": 1,
       "freq_hz": 69.042,
       "period_d": 90.0,
       "f_src_hz": 1.286008230452675e-07,
-      "amp": 0.888893
+      "amp": 0.630168
+     },
+     {
+      "sensor": "FEFC_u",
+      "harm": 3,
+      "freq_hz": 207.1261,
+      "period_d": 30.0,
+      "f_src_hz": 3.8580246913580245e-07,
+      "amp": 0.618757
      }
     ]
    },
@@ -8437,10 +9223,10 @@
     "file": "body/identity/cycle_8.json",
     "t0": 1732060800.0,
     "t1": 1743465600.0,
-    "comb_hz": 52.9544,
+    "comb_hz": 52.3935,
     "label": null,
-    "comb_render_hz": 52.9544,
-    "room_gain": 0.647458,
+    "comb_render_hz": 52.3935,
+    "room_gain": 1.12158,
     "bow_neutral_db": -7.672,
     "bow_neutral_source": "room median over its measured days",
     "period_d": 132,
@@ -8455,20 +9241,20 @@
       "amp": 1.0
      },
      {
-      "sensor": "THOB_u",
-      "harm": 1,
-      "freq_hz": 47.0741,
-      "period_d": 132.0,
-      "f_src_hz": 8.768237934904601e-08,
-      "amp": 0.938406
-     },
-     {
       "sensor": "SENG_u",
       "harm": 1,
       "freq_hz": 47.0741,
       "period_d": 132.0,
       "f_src_hz": 8.768237934904601e-08,
       "amp": 0.891241
+     },
+     {
+      "sensor": "ELDC_u",
+      "harm": 1,
+      "freq_hz": 47.0741,
+      "period_d": 132.0,
+      "f_src_hz": 8.768237934904601e-08,
+      "amp": 0.461759
      }
     ]
    },
@@ -8478,10 +9264,10 @@
     "file": "body/identity/cycle_9.json",
     "t0": 1743465600.0,
     "t1": 1752624000.0,
-    "comb_hz": 89.7252,
+    "comb_hz": 79.6843,
     "label": null,
-    "comb_render_hz": 89.7252,
-    "room_gain": 3.127136,
+    "comb_render_hz": 79.6843,
+    "room_gain": 3.378984,
     "bow_neutral_db": -9.865,
     "bow_neutral_source": "room median over its measured days",
     "period_d": 106,
@@ -8504,12 +9290,12 @@
       "amp": 0.733425
      },
      {
-      "sensor": "THOB_u",
+      "sensor": "ELDC_u",
       "harm": 1,
       "freq_hz": 58.6206,
       "period_d": 106.0,
       "f_src_hz": 1.0918937805730258e-07,
-      "amp": 0.493554
+      "amp": 0.45039
      }
     ]
    },
@@ -8519,10 +9305,10 @@
     "file": "body/identity/cycle_10.json",
     "t0": 1752624000.0,
     "t1": null,
-    "comb_hz": 17.4614,
+    "comb_hz": 16.8826,
     "label": null,
-    "comb_render_hz": 34.9228,
-    "room_gain": 2.275999,
+    "comb_render_hz": 67.5304,
+    "room_gain": 5.10244,
     "bow_neutral_db": -19.331,
     "bow_neutral_source": "room median over its measured days",
     "period_d": 441,
@@ -8545,12 +9331,12 @@
       "amp": 0.947393
      },
      {
-      "sensor": "THOB_u",
+      "sensor": "ELDC_u",
       "harm": 1,
       "freq_hz": 14.0902,
       "period_d": 441.0,
       "f_src_hz": 2.6245065927605612e-08,
-      "amp": 0.943331
+      "amp": 0.55722
      }
     ]
    },
@@ -8563,7 +9349,7 @@
     "comb_hz": 2233.3538,
     "label": "quiet",
     "comb_render_hz": 139.5846,
-    "room_gain": 5.640259,
+    "room_gain": 7.618342,
     "bow_neutral_db": 0.0,
     "bow_neutral_source": "regime: no inflow bow (0 dB)",
     "period_d": null,
@@ -8604,7 +9390,7 @@
     "comb_hz": 3150.0547,
     "label": "swarm",
     "comb_render_hz": 98.4392,
-    "room_gain": 5.34377,
+    "room_gain": 7.217872,
     "bow_neutral_db": 0.0,
     "bow_neutral_source": "regime: no inflow bow (0 dB)",
     "period_d": null,
@@ -8645,7 +9431,7 @@
     "comb_hz": 1555.7841,
     "label": "eruption",
     "comb_render_hz": 97.2365,
-    "room_gain": 2.074424,
+    "room_gain": 2.801941,
     "bow_neutral_db": 0.0,
     "bow_neutral_source": "regime: no inflow bow (0 dB)",
     "period_d": null,
@@ -8757,6 +9543,1616 @@
     "dwell_minutes": 10
    }
   },
+  "components": {
+   "default": "all",
+   "stations": [
+    "SKSH",
+    "SENG",
+    "ELDC",
+    "FEFC"
+   ],
+   "block": 9,
+   "station_detune": {
+    "SKSH": -0.06,
+    "SENG": -0.02,
+    "ELDC": 0.02,
+    "FEFC": 0.06
+   },
+   "sets": {
+    "all": {
+     "comps": "neu",
+     "per_sensor": 3,
+     "mode_order": "SKSH, SENG, ELDC, FEFC blocks of 9: N h1-3, E h1-3, U h1-3",
+     "root": "body/",
+     "identity": [
+      {
+       "kind": "sequence",
+       "id": 0,
+       "file": "body/identity/sequence_0.json",
+       "t0": 1685577600.0,
+       "t1": null,
+       "comb_hz": 76.1238,
+       "label": null,
+       "comb_render_hz": 76.1238,
+       "room_gain": 1.0,
+       "bow_neutral_db": -11.357,
+       "bow_neutral_source": "room median over its measured days",
+       "period_d": null,
+       "open": null,
+       "top3": [
+        {
+         "sensor": "SKSH_u",
+         "harm": 1,
+         "freq_hz": 70.1556,
+         "period_d": 88.571,
+         "f_src_hz": 1.3067502986857826e-07,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SENG_u",
+         "harm": 1,
+         "freq_hz": 70.1556,
+         "period_d": 88.571,
+         "f_src_hz": 1.3067502986857826e-07,
+         "amp": 0.882591
+        },
+        {
+         "sensor": "ELDC_u",
+         "harm": 1,
+         "freq_hz": 70.1556,
+         "period_d": 88.571,
+         "f_src_hz": 1.3067502986857826e-07,
+         "amp": 0.621543
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 0,
+       "file": "body/identity/cycle_0.json",
+       "t0": 1699574400.0,
+       "t1": 1702857600.0,
+       "comb_hz": 204.0055,
+       "label": null,
+       "comb_render_hz": 102.0028,
+       "room_gain": 1.959342,
+       "bow_neutral_db": -0.517,
+       "bow_neutral_source": "room median over its measured days",
+       "period_d": 38,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "SENG_u",
+         "harm": 1,
+         "freq_hz": 163.5206,
+         "period_d": 38.0,
+         "f_src_hz": 3.0458089668615986e-07,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SENG_e",
+         "harm": 1,
+         "freq_hz": 163.5206,
+         "period_d": 38.0,
+         "f_src_hz": 3.0458089668615986e-07,
+         "amp": 0.986825
+        },
+        {
+         "sensor": "SKSH_e",
+         "harm": 1,
+         "freq_hz": 163.5206,
+         "period_d": 38.0,
+         "f_src_hz": 3.0458089668615986e-07,
+         "amp": 0.928239
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 1,
+       "file": "body/identity/cycle_1.json",
+       "t0": 1702857600.0,
+       "t1": 1705190400.0,
+       "comb_hz": 249.9792,
+       "label": null,
+       "comb_render_hz": 124.9896,
+       "room_gain": 2.681501,
+       "bow_neutral_db": -0.182,
+       "bow_neutral_source": "room median over its measured days",
+       "period_d": 27,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "SENG_e",
+         "harm": 1,
+         "freq_hz": 230.1401,
+         "period_d": 27.0,
+         "f_src_hz": 4.2866941015089163e-07,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SENG_n",
+         "harm": 1,
+         "freq_hz": 230.1401,
+         "period_d": 27.0,
+         "f_src_hz": 4.2866941015089163e-07,
+         "amp": 0.676422
+        },
+        {
+         "sensor": "SKSH_e",
+         "harm": 1,
+         "freq_hz": 230.1401,
+         "period_d": 27.0,
+         "f_src_hz": 4.2866941015089163e-07,
+         "amp": 0.602681
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 2,
+       "file": "body/identity/cycle_2.json",
+       "t0": 1705190400.0,
+       "t1": 1707350400.0,
+       "comb_hz": 411.3416,
+       "label": null,
+       "comb_render_hz": 102.8354,
+       "room_gain": 4.695971,
+       "bow_neutral_db": -11.357,
+       "bow_neutral_source": "sequence_0 fallback (no measured inflow day)",
+       "period_d": 25,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "SENG_e",
+         "harm": 1,
+         "freq_hz": 248.5513,
+         "period_d": 25.0,
+         "f_src_hz": 4.6296296296296297e-07,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SENG_n",
+         "harm": 1,
+         "freq_hz": 248.5513,
+         "period_d": 25.0,
+         "f_src_hz": 4.6296296296296297e-07,
+         "amp": 0.825965
+        },
+        {
+         "sensor": "SENG_e",
+         "harm": 2,
+         "freq_hz": 497.1027,
+         "period_d": 12.5,
+         "f_src_hz": 9.259259259259259e-07,
+         "amp": 0.711873
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 3,
+       "file": "body/identity/cycle_3.json",
+       "t0": 1707350400.0,
+       "t1": 1709337600.0,
+       "comb_hz": 487.6081,
+       "label": null,
+       "comb_render_hz": 121.902,
+       "room_gain": 2.018724,
+       "bow_neutral_db": -11.357,
+       "bow_neutral_source": "sequence_0 fallback (no measured inflow day)",
+       "period_d": 23,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "SKSH_u",
+         "harm": 2,
+         "freq_hz": 540.329,
+         "period_d": 11.5,
+         "f_src_hz": 1.006441223832528e-06,
+         "amp": 1.0
+        },
+        {
+         "sensor": "FEFC_u",
+         "harm": 2,
+         "freq_hz": 540.329,
+         "period_d": 11.5,
+         "f_src_hz": 1.006441223832528e-06,
+         "amp": 0.833325
+        },
+        {
+         "sensor": "SENG_u",
+         "harm": 1,
+         "freq_hz": 270.1645,
+         "period_d": 23.0,
+         "f_src_hz": 5.03220611916264e-07,
+         "amp": 0.790746
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 4,
+       "file": "body/identity/cycle_4.json",
+       "t0": 1709337600.0,
+       "t1": 1710547200.0,
+       "comb_hz": 762.466,
+       "label": null,
+       "comb_render_hz": 95.3083,
+       "room_gain": 4.114407,
+       "bow_neutral_db": -11.357,
+       "bow_neutral_source": "sequence_0 fallback (no measured inflow day)",
+       "period_d": 14,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "SENG_e",
+         "harm": 1,
+         "freq_hz": 443.8417,
+         "period_d": 14.0,
+         "f_src_hz": 8.267195767195768e-07,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SKSH_u",
+         "harm": 1,
+         "freq_hz": 443.8417,
+         "period_d": 14.0,
+         "f_src_hz": 8.267195767195768e-07,
+         "amp": 0.912224
+        },
+        {
+         "sensor": "SENG_e",
+         "harm": 2,
+         "freq_hz": 887.6834,
+         "period_d": 7.0,
+         "f_src_hz": 1.6534391534391535e-06,
+         "amp": 0.8427
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 5,
+       "file": "body/identity/cycle_5.json",
+       "t0": 1710547200.0,
+       "t1": 1716940800.0,
+       "comb_hz": 119.614,
+       "label": null,
+       "comb_render_hz": 119.614,
+       "room_gain": 2.640621,
+       "bow_neutral_db": -5.324,
+       "bow_neutral_source": "room median over its measured days",
+       "period_d": 74,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "SENG_u",
+         "harm": 1,
+         "freq_hz": 83.9701,
+         "period_d": 74.0,
+         "f_src_hz": 1.564064064064064e-07,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SKSH_u",
+         "harm": 1,
+         "freq_hz": 83.9701,
+         "period_d": 74.0,
+         "f_src_hz": 1.564064064064064e-07,
+         "amp": 0.958627
+        },
+        {
+         "sensor": "ELDC_u",
+         "harm": 1,
+         "freq_hz": 83.9701,
+         "period_d": 74.0,
+         "f_src_hz": 1.564064064064064e-07,
+         "amp": 0.635049
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 6,
+       "file": "body/identity/cycle_6.json",
+       "t0": 1716940800.0,
+       "t1": 1724284800.0,
+       "comb_hz": 126.3115,
+       "label": null,
+       "comb_render_hz": 126.3115,
+       "room_gain": 1.728046,
+       "bow_neutral_db": -4.848,
+       "bow_neutral_source": "room median over its measured days",
+       "period_d": 85,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "SENG_u",
+         "harm": 2,
+         "freq_hz": 146.2067,
+         "period_d": 42.5,
+         "f_src_hz": 2.7233115468409584e-07,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SKSH_u",
+         "harm": 2,
+         "freq_hz": 146.2067,
+         "period_d": 42.5,
+         "f_src_hz": 2.7233115468409584e-07,
+         "amp": 0.996992
+        },
+        {
+         "sensor": "SENG_u",
+         "harm": 1,
+         "freq_hz": 73.1033,
+         "period_d": 85.0,
+         "f_src_hz": 1.3616557734204792e-07,
+         "amp": 0.876004
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 7,
+       "file": "body/identity/cycle_7.json",
+       "t0": 1724284800.0,
+       "t1": 1732060800.0,
+       "comb_hz": 121.8198,
+       "label": null,
+       "comb_render_hz": 121.8198,
+       "room_gain": 3.051011,
+       "bow_neutral_db": -5.48,
+       "bow_neutral_source": "room median over its measured days",
+       "period_d": 90,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "FEFC_u",
+         "harm": 1,
+         "freq_hz": 69.042,
+         "period_d": 90.0,
+         "f_src_hz": 1.286008230452675e-07,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SKSH_u",
+         "harm": 1,
+         "freq_hz": 69.042,
+         "period_d": 90.0,
+         "f_src_hz": 1.286008230452675e-07,
+         "amp": 0.630168
+        },
+        {
+         "sensor": "FEFC_u",
+         "harm": 3,
+         "freq_hz": 207.1261,
+         "period_d": 30.0,
+         "f_src_hz": 3.8580246913580245e-07,
+         "amp": 0.618757
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 8,
+       "file": "body/identity/cycle_8.json",
+       "t0": 1732060800.0,
+       "t1": 1743465600.0,
+       "comb_hz": 52.3935,
+       "label": null,
+       "comb_render_hz": 52.3935,
+       "room_gain": 1.12158,
+       "bow_neutral_db": -7.672,
+       "bow_neutral_source": "room median over its measured days",
+       "period_d": 132,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "SKSH_u",
+         "harm": 1,
+         "freq_hz": 47.0741,
+         "period_d": 132.0,
+         "f_src_hz": 8.768237934904601e-08,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SENG_u",
+         "harm": 1,
+         "freq_hz": 47.0741,
+         "period_d": 132.0,
+         "f_src_hz": 8.768237934904601e-08,
+         "amp": 0.891241
+        },
+        {
+         "sensor": "ELDC_u",
+         "harm": 1,
+         "freq_hz": 47.0741,
+         "period_d": 132.0,
+         "f_src_hz": 8.768237934904601e-08,
+         "amp": 0.461759
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 9,
+       "file": "body/identity/cycle_9.json",
+       "t0": 1743465600.0,
+       "t1": 1752624000.0,
+       "comb_hz": 79.6843,
+       "label": null,
+       "comb_render_hz": 79.6843,
+       "room_gain": 3.378984,
+       "bow_neutral_db": -9.865,
+       "bow_neutral_source": "room median over its measured days",
+       "period_d": 106,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "SKSH_u",
+         "harm": 1,
+         "freq_hz": 58.6206,
+         "period_d": 106.0,
+         "f_src_hz": 1.0918937805730258e-07,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SENG_u",
+         "harm": 1,
+         "freq_hz": 58.6206,
+         "period_d": 106.0,
+         "f_src_hz": 1.0918937805730258e-07,
+         "amp": 0.733425
+        },
+        {
+         "sensor": "ELDC_u",
+         "harm": 1,
+         "freq_hz": 58.6206,
+         "period_d": 106.0,
+         "f_src_hz": 1.0918937805730258e-07,
+         "amp": 0.45039
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 10,
+       "file": "body/identity/cycle_10.json",
+       "t0": 1752624000.0,
+       "t1": null,
+       "comb_hz": 16.8826,
+       "label": null,
+       "comb_render_hz": 67.5304,
+       "room_gain": 5.10244,
+       "bow_neutral_db": -19.331,
+       "bow_neutral_source": "room median over its measured days",
+       "period_d": 441,
+       "open": true,
+       "top3": [
+        {
+         "sensor": "SKSH_u",
+         "harm": 1,
+         "freq_hz": 14.0902,
+         "period_d": 441.0,
+         "f_src_hz": 2.6245065927605612e-08,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SENG_u",
+         "harm": 1,
+         "freq_hz": 14.0902,
+         "period_d": 441.0,
+         "f_src_hz": 2.6245065927605612e-08,
+         "amp": 0.947393
+        },
+        {
+         "sensor": "ELDC_u",
+         "harm": 1,
+         "freq_hz": 14.0902,
+         "period_d": 441.0,
+         "f_src_hz": 2.6245065927605612e-08,
+         "amp": 0.55722
+        }
+       ]
+      }
+     ],
+     "identities": [
+      "sequence_0.json",
+      "cycle_0.json",
+      "cycle_1.json",
+      "cycle_2.json",
+      "cycle_3.json",
+      "cycle_4.json",
+      "cycle_5.json",
+      "cycle_6.json",
+      "cycle_7.json",
+      "cycle_8.json",
+      "cycle_9.json",
+      "cycle_10.json"
+     ],
+     "tiles": {
+      "sequence": {
+       "f1d": [
+        0
+       ]
+      },
+      "cycle": {
+       "f1d": [
+        0
+       ]
+      }
+     },
+     "vel_sum_log10_range": [
+      0.3821818814112189,
+      2.3592726523279133
+     ]
+    },
+    "vertical": {
+     "comps": "u",
+     "per_sensor": 9,
+     "mode_order": "SKSH, SENG, ELDC, FEFC blocks of 9: U h1-9",
+     "root": "body/vertical/",
+     "identity": [
+      {
+       "kind": "sequence",
+       "id": 0,
+       "file": "body/vertical/identity/sequence_0.json",
+       "t0": 1685577600.0,
+       "t1": null,
+       "comb_hz": 100.3741,
+       "label": null,
+       "comb_render_hz": 100.3741,
+       "room_gain": 1.0,
+       "bow_neutral_db": -11.357,
+       "bow_neutral_source": "room median over its measured days",
+       "period_d": null,
+       "open": null,
+       "top3": [
+        {
+         "sensor": "SKSH_u",
+         "harm": 1,
+         "freq_hz": 70.1556,
+         "period_d": 88.571,
+         "f_src_hz": 1.3067502986857826e-07,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SENG_u",
+         "harm": 1,
+         "freq_hz": 70.1556,
+         "period_d": 88.571,
+         "f_src_hz": 1.3067502986857826e-07,
+         "amp": 0.882591
+        },
+        {
+         "sensor": "ELDC_u",
+         "harm": 1,
+         "freq_hz": 70.1556,
+         "period_d": 88.571,
+         "f_src_hz": 1.3067502986857826e-07,
+         "amp": 0.621543
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 0,
+       "file": "body/vertical/identity/cycle_0.json",
+       "t0": 1699574400.0,
+       "t1": 1702857600.0,
+       "comb_hz": 202.9873,
+       "label": null,
+       "comb_render_hz": 101.4937,
+       "room_gain": 2.421052,
+       "bow_neutral_db": -0.517,
+       "bow_neutral_source": "room median over its measured days",
+       "period_d": 38,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "SENG_u",
+         "harm": 1,
+         "freq_hz": 163.5206,
+         "period_d": 38.0,
+         "f_src_hz": 3.0458089668615986e-07,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SKSH_u",
+         "harm": 1,
+         "freq_hz": 163.5206,
+         "period_d": 38.0,
+         "f_src_hz": 3.0458089668615986e-07,
+         "amp": 0.840917
+        },
+        {
+         "sensor": "ELDC_u",
+         "harm": 1,
+         "freq_hz": 163.5206,
+         "period_d": 38.0,
+         "f_src_hz": 3.0458089668615986e-07,
+         "amp": 0.4609
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 1,
+       "file": "body/vertical/identity/cycle_1.json",
+       "t0": 1702857600.0,
+       "t1": 1705190400.0,
+       "comb_hz": 325.5098,
+       "label": null,
+       "comb_render_hz": 81.3774,
+       "room_gain": 1.380635,
+       "bow_neutral_db": -0.182,
+       "bow_neutral_source": "room median over its measured days",
+       "period_d": 27,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "SKSH_u",
+         "harm": 1,
+         "freq_hz": 230.1401,
+         "period_d": 27.0,
+         "f_src_hz": 4.2866941015089163e-07,
+         "amp": 1.0
+        },
+        {
+         "sensor": "FEFC_u",
+         "harm": 1,
+         "freq_hz": 230.1401,
+         "period_d": 27.0,
+         "f_src_hz": 4.2866941015089163e-07,
+         "amp": 0.417755
+        },
+        {
+         "sensor": "SENG_u",
+         "harm": 1,
+         "freq_hz": 230.1401,
+         "period_d": 27.0,
+         "f_src_hz": 4.2866941015089163e-07,
+         "amp": 0.255917
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 2,
+       "file": "body/vertical/identity/cycle_2.json",
+       "t0": 1705190400.0,
+       "t1": 1707350400.0,
+       "comb_hz": 676.9398,
+       "label": null,
+       "comb_render_hz": 84.6175,
+       "room_gain": 1.028102,
+       "bow_neutral_db": -11.357,
+       "bow_neutral_source": "sequence_0 fallback (no measured inflow day)",
+       "period_d": 25,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "FEFC_u",
+         "harm": 1,
+         "freq_hz": 248.5513,
+         "period_d": 25.0,
+         "f_src_hz": 4.6296296296296297e-07,
+         "amp": 1.0
+        },
+        {
+         "sensor": "FEFC_u",
+         "harm": 2,
+         "freq_hz": 497.1027,
+         "period_d": 12.5,
+         "f_src_hz": 9.259259259259259e-07,
+         "amp": 0.697094
+        },
+        {
+         "sensor": "SENG_u",
+         "harm": 1,
+         "freq_hz": 248.5513,
+         "period_d": 25.0,
+         "f_src_hz": 4.6296296296296297e-07,
+         "amp": 0.692273
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 3,
+       "file": "body/vertical/identity/cycle_3.json",
+       "t0": 1707350400.0,
+       "t1": 1709337600.0,
+       "comb_hz": 1123.0721,
+       "label": null,
+       "comb_render_hz": 140.384,
+       "room_gain": 0.696075,
+       "bow_neutral_db": -11.357,
+       "bow_neutral_source": "sequence_0 fallback (no measured inflow day)",
+       "period_d": 23,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "SKSH_u",
+         "harm": 2,
+         "freq_hz": 540.329,
+         "period_d": 11.5,
+         "f_src_hz": 1.006441223832528e-06,
+         "amp": 1.0
+        },
+        {
+         "sensor": "FEFC_u",
+         "harm": 4,
+         "freq_hz": 1080.658,
+         "period_d": 5.75,
+         "f_src_hz": 2.012882447665056e-06,
+         "amp": 0.880917
+        },
+        {
+         "sensor": "FEFC_u",
+         "harm": 2,
+         "freq_hz": 540.329,
+         "period_d": 11.5,
+         "f_src_hz": 1.006441223832528e-06,
+         "amp": 0.833325
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 4,
+       "file": "body/vertical/identity/cycle_4.json",
+       "t0": 1709337600.0,
+       "t1": 1710547200.0,
+       "comb_hz": 1622.4956,
+       "label": null,
+       "comb_render_hz": 101.406,
+       "room_gain": 1.39631,
+       "bow_neutral_db": -11.357,
+       "bow_neutral_source": "sequence_0 fallback (no measured inflow day)",
+       "period_d": 14,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "SKSH_u",
+         "harm": 5,
+         "freq_hz": 2219.2085,
+         "period_d": 2.8,
+         "f_src_hz": 4.133597883597884e-06,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SKSH_u",
+         "harm": 1,
+         "freq_hz": 443.8417,
+         "period_d": 14.0,
+         "f_src_hz": 8.267195767195768e-07,
+         "amp": 0.929591
+        },
+        {
+         "sensor": "SENG_u",
+         "harm": 1,
+         "freq_hz": 443.8417,
+         "period_d": 14.0,
+         "f_src_hz": 8.267195767195768e-07,
+         "amp": 0.8354
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 5,
+       "file": "body/vertical/identity/cycle_5.json",
+       "t0": 1710547200.0,
+       "t1": 1716940800.0,
+       "comb_hz": 156.997,
+       "label": null,
+       "comb_render_hz": 78.4985,
+       "room_gain": 0.156136,
+       "bow_neutral_db": -5.324,
+       "bow_neutral_source": "room median over its measured days",
+       "period_d": 74,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "SENG_u",
+         "harm": 1,
+         "freq_hz": 83.9701,
+         "period_d": 74.0,
+         "f_src_hz": 1.564064064064064e-07,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SKSH_u",
+         "harm": 1,
+         "freq_hz": 83.9701,
+         "period_d": 74.0,
+         "f_src_hz": 1.564064064064064e-07,
+         "amp": 0.958627
+        },
+        {
+         "sensor": "ELDC_u",
+         "harm": 1,
+         "freq_hz": 83.9701,
+         "period_d": 74.0,
+         "f_src_hz": 1.564064064064064e-07,
+         "amp": 0.635049
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 6,
+       "file": "body/vertical/identity/cycle_6.json",
+       "t0": 1716940800.0,
+       "t1": 1724284800.0,
+       "comb_hz": 231.5739,
+       "label": null,
+       "comb_render_hz": 115.787,
+       "room_gain": 0.686296,
+       "bow_neutral_db": -4.848,
+       "bow_neutral_source": "room median over its measured days",
+       "period_d": 85,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "SENG_u",
+         "harm": 2,
+         "freq_hz": 146.2067,
+         "period_d": 42.5,
+         "f_src_hz": 2.7233115468409584e-07,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SKSH_u",
+         "harm": 2,
+         "freq_hz": 146.2067,
+         "period_d": 42.5,
+         "f_src_hz": 2.7233115468409584e-07,
+         "amp": 0.996992
+        },
+        {
+         "sensor": "SENG_u",
+         "harm": 1,
+         "freq_hz": 73.1033,
+         "period_d": 85.0,
+         "f_src_hz": 1.3616557734204792e-07,
+         "amp": 0.876004
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 7,
+       "file": "body/vertical/identity/cycle_7.json",
+       "t0": 1724284800.0,
+       "t1": 1732060800.0,
+       "comb_hz": 236.2781,
+       "label": null,
+       "comb_render_hz": 118.139,
+       "room_gain": 0.820748,
+       "bow_neutral_db": -5.48,
+       "bow_neutral_source": "room median over its measured days",
+       "period_d": 90,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "FEFC_u",
+         "harm": 1,
+         "freq_hz": 69.042,
+         "period_d": 90.0,
+         "f_src_hz": 1.286008230452675e-07,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SKSH_u",
+         "harm": 1,
+         "freq_hz": 69.042,
+         "period_d": 90.0,
+         "f_src_hz": 1.286008230452675e-07,
+         "amp": 0.630168
+        },
+        {
+         "sensor": "FEFC_u",
+         "harm": 3,
+         "freq_hz": 207.1261,
+         "period_d": 30.0,
+         "f_src_hz": 3.8580246913580245e-07,
+         "amp": 0.618757
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 8,
+       "file": "body/vertical/identity/cycle_8.json",
+       "t0": 1732060800.0,
+       "t1": 1743465600.0,
+       "comb_hz": 76.92,
+       "label": null,
+       "comb_render_hz": 76.92,
+       "room_gain": 1.558369,
+       "bow_neutral_db": -7.672,
+       "bow_neutral_source": "room median over its measured days",
+       "period_d": 132,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "SKSH_u",
+         "harm": 1,
+         "freq_hz": 47.0741,
+         "period_d": 132.0,
+         "f_src_hz": 8.768237934904601e-08,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SENG_u",
+         "harm": 1,
+         "freq_hz": 47.0741,
+         "period_d": 132.0,
+         "f_src_hz": 8.768237934904601e-08,
+         "amp": 0.891241
+        },
+        {
+         "sensor": "ELDC_u",
+         "harm": 1,
+         "freq_hz": 47.0741,
+         "period_d": 132.0,
+         "f_src_hz": 8.768237934904601e-08,
+         "amp": 0.461759
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 9,
+       "file": "body/vertical/identity/cycle_9.json",
+       "t0": 1743465600.0,
+       "t1": 1752624000.0,
+       "comb_hz": 128.5369,
+       "label": null,
+       "comb_render_hz": 128.5369,
+       "room_gain": 1.194834,
+       "bow_neutral_db": -9.865,
+       "bow_neutral_source": "room median over its measured days",
+       "period_d": 106,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "SKSH_u",
+         "harm": 1,
+         "freq_hz": 58.6206,
+         "period_d": 106.0,
+         "f_src_hz": 1.0918937805730258e-07,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SENG_u",
+         "harm": 1,
+         "freq_hz": 58.6206,
+         "period_d": 106.0,
+         "f_src_hz": 1.0918937805730258e-07,
+         "amp": 0.733425
+        },
+        {
+         "sensor": "ELDC_u",
+         "harm": 1,
+         "freq_hz": 58.6206,
+         "period_d": 106.0,
+         "f_src_hz": 1.0918937805730258e-07,
+         "amp": 0.45039
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 10,
+       "file": "body/vertical/identity/cycle_10.json",
+       "t0": 1752624000.0,
+       "t1": null,
+       "comb_hz": 19.5183,
+       "label": null,
+       "comb_render_hz": 78.0732,
+       "room_gain": 1.598786,
+       "bow_neutral_db": -19.331,
+       "bow_neutral_source": "room median over its measured days",
+       "period_d": 441,
+       "open": true,
+       "top3": [
+        {
+         "sensor": "SKSH_u",
+         "harm": 1,
+         "freq_hz": 14.0902,
+         "period_d": 441.0,
+         "f_src_hz": 2.6245065927605612e-08,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SENG_u",
+         "harm": 1,
+         "freq_hz": 14.0902,
+         "period_d": 441.0,
+         "f_src_hz": 2.6245065927605612e-08,
+         "amp": 0.947393
+        },
+        {
+         "sensor": "ELDC_u",
+         "harm": 1,
+         "freq_hz": 14.0902,
+         "period_d": 441.0,
+         "f_src_hz": 2.6245065927605612e-08,
+         "amp": 0.55722
+        }
+       ]
+      }
+     ],
+     "identities": [
+      "sequence_0.json",
+      "cycle_0.json",
+      "cycle_1.json",
+      "cycle_2.json",
+      "cycle_3.json",
+      "cycle_4.json",
+      "cycle_5.json",
+      "cycle_6.json",
+      "cycle_7.json",
+      "cycle_8.json",
+      "cycle_9.json",
+      "cycle_10.json"
+     ],
+     "tiles": {
+      "sequence": {
+       "f1d": [
+        0
+       ]
+      },
+      "cycle": {
+       "f1d": [
+        0
+       ]
+      }
+     },
+     "vel_sum_log10_range": [
+      -0.12384532872537361,
+      2.0615723651654507
+     ]
+    },
+    "horizontal": {
+     "comps": "ne",
+     "per_sensor": 4,
+     "mode_order": "SKSH, SENG, ELDC, FEFC blocks of 9: N h1-4, E h1-4, 1 silent pad",
+     "root": "body/horizontal/",
+     "identity": [
+      {
+       "kind": "sequence",
+       "id": 0,
+       "file": "body/horizontal/identity/sequence_0.json",
+       "t0": 1685577600.0,
+       "t1": null,
+       "comb_hz": 78.3462,
+       "label": null,
+       "comb_render_hz": 78.3462,
+       "room_gain": 1.0,
+       "bow_neutral_db": -11.357,
+       "bow_neutral_source": "room median over its measured days",
+       "period_d": null,
+       "open": null,
+       "top3": [
+        {
+         "sensor": "SENG_e",
+         "harm": 1,
+         "freq_hz": 60.1334,
+         "period_d": 103.333,
+         "f_src_hz": 1.1200716845878136e-07,
+         "amp": 1.0
+        },
+        {
+         "sensor": "ELDC_e",
+         "harm": 1,
+         "freq_hz": 70.1556,
+         "period_d": 88.571,
+         "f_src_hz": 1.3067502986857826e-07,
+         "amp": 0.986994
+        },
+        {
+         "sensor": "SENG_e",
+         "harm": 2,
+         "freq_hz": 80.1779,
+         "period_d": 77.5,
+         "f_src_hz": 1.4934289127837515e-07,
+         "amp": 0.827933
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 0,
+       "file": "body/horizontal/identity/cycle_0.json",
+       "t0": 1699574400.0,
+       "t1": 1702857600.0,
+       "comb_hz": 230.1997,
+       "label": null,
+       "comb_render_hz": 115.0999,
+       "room_gain": 3.269531,
+       "bow_neutral_db": -0.517,
+       "bow_neutral_source": "room median over its measured days",
+       "period_d": 38,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "SENG_e",
+         "harm": 1,
+         "freq_hz": 163.5206,
+         "period_d": 38.0,
+         "f_src_hz": 3.0458089668615986e-07,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SKSH_e",
+         "harm": 1,
+         "freq_hz": 163.5206,
+         "period_d": 38.0,
+         "f_src_hz": 3.0458089668615986e-07,
+         "amp": 0.940631
+        },
+        {
+         "sensor": "ELDC_e",
+         "harm": 1,
+         "freq_hz": 163.5206,
+         "period_d": 38.0,
+         "f_src_hz": 3.0458089668615986e-07,
+         "amp": 0.771998
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 1,
+       "file": "body/horizontal/identity/cycle_1.json",
+       "t0": 1702857600.0,
+       "t1": 1705190400.0,
+       "comb_hz": 246.6926,
+       "label": null,
+       "comb_render_hz": 123.3463,
+       "room_gain": 2.876527,
+       "bow_neutral_db": -0.182,
+       "bow_neutral_source": "room median over its measured days",
+       "period_d": 27,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "SENG_e",
+         "harm": 1,
+         "freq_hz": 230.1401,
+         "period_d": 27.0,
+         "f_src_hz": 4.2866941015089163e-07,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SENG_n",
+         "harm": 1,
+         "freq_hz": 230.1401,
+         "period_d": 27.0,
+         "f_src_hz": 4.2866941015089163e-07,
+         "amp": 0.676422
+        },
+        {
+         "sensor": "SKSH_e",
+         "harm": 1,
+         "freq_hz": 230.1401,
+         "period_d": 27.0,
+         "f_src_hz": 4.2866941015089163e-07,
+         "amp": 0.602681
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 2,
+       "file": "body/horizontal/identity/cycle_2.json",
+       "t0": 1705190400.0,
+       "t1": 1707350400.0,
+       "comb_hz": 481.8568,
+       "label": null,
+       "comb_render_hz": 120.4642,
+       "room_gain": 0.964661,
+       "bow_neutral_db": -11.357,
+       "bow_neutral_source": "sequence_0 fallback (no measured inflow day)",
+       "period_d": 25,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "SENG_e",
+         "harm": 1,
+         "freq_hz": 248.5513,
+         "period_d": 25.0,
+         "f_src_hz": 4.6296296296296297e-07,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SENG_n",
+         "harm": 1,
+         "freq_hz": 248.5513,
+         "period_d": 25.0,
+         "f_src_hz": 4.6296296296296297e-07,
+         "amp": 0.825965
+        },
+        {
+         "sensor": "SENG_e",
+         "harm": 2,
+         "freq_hz": 497.1027,
+         "period_d": 12.5,
+         "f_src_hz": 9.259259259259259e-07,
+         "amp": 0.711873
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 3,
+       "file": "body/horizontal/identity/cycle_3.json",
+       "t0": 1707350400.0,
+       "t1": 1709337600.0,
+       "comb_hz": 587.892,
+       "label": null,
+       "comb_render_hz": 146.973,
+       "room_gain": 2.171606,
+       "bow_neutral_db": -11.357,
+       "bow_neutral_source": "sequence_0 fallback (no measured inflow day)",
+       "period_d": 23,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "ELDC_e",
+         "harm": 1,
+         "freq_hz": 270.1645,
+         "period_d": 23.0,
+         "f_src_hz": 5.03220611916264e-07,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SENG_n",
+         "harm": 2,
+         "freq_hz": 540.329,
+         "period_d": 11.5,
+         "f_src_hz": 1.006441223832528e-06,
+         "amp": 0.921645
+        },
+        {
+         "sensor": "ELDC_n",
+         "harm": 1,
+         "freq_hz": 270.1645,
+         "period_d": 23.0,
+         "f_src_hz": 5.03220611916264e-07,
+         "amp": 0.907913
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 4,
+       "file": "body/horizontal/identity/cycle_4.json",
+       "t0": 1709337600.0,
+       "t1": 1710547200.0,
+       "comb_hz": 1083.4412,
+       "label": null,
+       "comb_render_hz": 135.4301,
+       "room_gain": 6.487501,
+       "bow_neutral_db": -11.357,
+       "bow_neutral_source": "sequence_0 fallback (no measured inflow day)",
+       "period_d": 14,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "SENG_e",
+         "harm": 1,
+         "freq_hz": 443.8417,
+         "period_d": 14.0,
+         "f_src_hz": 8.267195767195768e-07,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SENG_e",
+         "harm": 2,
+         "freq_hz": 887.6834,
+         "period_d": 7.0,
+         "f_src_hz": 1.6534391534391535e-06,
+         "amp": 0.8427
+        },
+        {
+         "sensor": "SENG_e",
+         "harm": 4,
+         "freq_hz": 1775.3668,
+         "period_d": 3.5,
+         "f_src_hz": 3.306878306878307e-06,
+         "amp": 0.8003
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 5,
+       "file": "body/horizontal/identity/cycle_5.json",
+       "t0": 1710547200.0,
+       "t1": 1716940800.0,
+       "comb_hz": 128.5892,
+       "label": null,
+       "comb_render_hz": 128.5892,
+       "room_gain": 3.788686,
+       "bow_neutral_db": -5.324,
+       "bow_neutral_source": "room median over its measured days",
+       "period_d": 74,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "ELDC_e",
+         "harm": 1,
+         "freq_hz": 83.9701,
+         "period_d": 74.0,
+         "f_src_hz": 1.564064064064064e-07,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SKSH_e",
+         "harm": 1,
+         "freq_hz": 83.9701,
+         "period_d": 74.0,
+         "f_src_hz": 1.564064064064064e-07,
+         "amp": 0.773329
+        },
+        {
+         "sensor": "SENG_n",
+         "harm": 1,
+         "freq_hz": 83.9701,
+         "period_d": 74.0,
+         "f_src_hz": 1.564064064064064e-07,
+         "amp": 0.583407
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 6,
+       "file": "body/horizontal/identity/cycle_6.json",
+       "t0": 1716940800.0,
+       "t1": 1724284800.0,
+       "comb_hz": 140.0548,
+       "label": null,
+       "comb_render_hz": 140.0548,
+       "room_gain": 0.95138,
+       "bow_neutral_db": -4.848,
+       "bow_neutral_source": "room median over its measured days",
+       "period_d": 85,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "ELDC_e",
+         "harm": 1,
+         "freq_hz": 73.1033,
+         "period_d": 85.0,
+         "f_src_hz": 1.3616557734204792e-07,
+         "amp": 1.0
+        },
+        {
+         "sensor": "FEFC_e",
+         "harm": 1,
+         "freq_hz": 73.1033,
+         "period_d": 85.0,
+         "f_src_hz": 1.3616557734204792e-07,
+         "amp": 0.886743
+        },
+        {
+         "sensor": "SENG_n",
+         "harm": 2,
+         "freq_hz": 146.2067,
+         "period_d": 42.5,
+         "f_src_hz": 2.7233115468409584e-07,
+         "amp": 0.874449
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 7,
+       "file": "body/horizontal/identity/cycle_7.json",
+       "t0": 1724284800.0,
+       "t1": 1732060800.0,
+       "comb_hz": 131.5812,
+       "label": null,
+       "comb_render_hz": 131.5812,
+       "room_gain": 3.843705,
+       "bow_neutral_db": -5.48,
+       "bow_neutral_source": "room median over its measured days",
+       "period_d": 90,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "SENG_e",
+         "harm": 1,
+         "freq_hz": 69.042,
+         "period_d": 90.0,
+         "f_src_hz": 1.286008230452675e-07,
+         "amp": 1.0
+        },
+        {
+         "sensor": "FEFC_n",
+         "harm": 1,
+         "freq_hz": 69.042,
+         "period_d": 90.0,
+         "f_src_hz": 1.286008230452675e-07,
+         "amp": 0.501751
+        },
+        {
+         "sensor": "ELDC_e",
+         "harm": 1,
+         "freq_hz": 69.042,
+         "period_d": 90.0,
+         "f_src_hz": 1.286008230452675e-07,
+         "amp": 0.451509
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 8,
+       "file": "body/horizontal/identity/cycle_8.json",
+       "t0": 1732060800.0,
+       "t1": 1743465600.0,
+       "comb_hz": 57.387,
+       "label": null,
+       "comb_render_hz": 57.387,
+       "room_gain": 1.958455,
+       "bow_neutral_db": -7.672,
+       "bow_neutral_source": "room median over its measured days",
+       "period_d": 132,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "ELDC_e",
+         "harm": 1,
+         "freq_hz": 47.0741,
+         "period_d": 132.0,
+         "f_src_hz": 8.768237934904601e-08,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SENG_n",
+         "harm": 1,
+         "freq_hz": 47.0741,
+         "period_d": 132.0,
+         "f_src_hz": 8.768237934904601e-08,
+         "amp": 0.537235
+        },
+        {
+         "sensor": "SKSH_e",
+         "harm": 1,
+         "freq_hz": 47.0741,
+         "period_d": 132.0,
+         "f_src_hz": 8.768237934904601e-08,
+         "amp": 0.482676
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 9,
+       "file": "body/horizontal/identity/cycle_9.json",
+       "t0": 1743465600.0,
+       "t1": 1752624000.0,
+       "comb_hz": 98.6084,
+       "label": null,
+       "comb_render_hz": 98.6084,
+       "room_gain": 4.859473,
+       "bow_neutral_db": -9.865,
+       "bow_neutral_source": "room median over its measured days",
+       "period_d": 106,
+       "open": false,
+       "top3": [
+        {
+         "sensor": "ELDC_e",
+         "harm": 1,
+         "freq_hz": 58.6206,
+         "period_d": 106.0,
+         "f_src_hz": 1.0918937805730258e-07,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SENG_n",
+         "harm": 1,
+         "freq_hz": 58.6206,
+         "period_d": 106.0,
+         "f_src_hz": 1.0918937805730258e-07,
+         "amp": 0.55764
+        },
+        {
+         "sensor": "ELDC_e",
+         "harm": 2,
+         "freq_hz": 117.2412,
+         "period_d": 53.0,
+         "f_src_hz": 2.1837875611460516e-07,
+         "amp": 0.495752
+        }
+       ]
+      },
+      {
+       "kind": "cycle",
+       "id": 10,
+       "file": "body/horizontal/identity/cycle_10.json",
+       "t0": 1752624000.0,
+       "t1": null,
+       "comb_hz": 17.434,
+       "label": null,
+       "comb_render_hz": 69.736,
+       "room_gain": 5.452831,
+       "bow_neutral_db": -19.331,
+       "bow_neutral_source": "room median over its measured days",
+       "period_d": 441,
+       "open": true,
+       "top3": [
+        {
+         "sensor": "ELDC_e",
+         "harm": 1,
+         "freq_hz": 14.0902,
+         "period_d": 441.0,
+         "f_src_hz": 2.6245065927605612e-08,
+         "amp": 1.0
+        },
+        {
+         "sensor": "SENG_n",
+         "harm": 1,
+         "freq_hz": 14.0902,
+         "period_d": 441.0,
+         "f_src_hz": 2.6245065927605612e-08,
+         "amp": 0.659513
+        },
+        {
+         "sensor": "SKSH_e",
+         "harm": 1,
+         "freq_hz": 14.0902,
+         "period_d": 441.0,
+         "f_src_hz": 2.6245065927605612e-08,
+         "amp": 0.47544
+        }
+       ]
+      }
+     ],
+     "identities": [
+      "sequence_0.json",
+      "cycle_0.json",
+      "cycle_1.json",
+      "cycle_2.json",
+      "cycle_3.json",
+      "cycle_4.json",
+      "cycle_5.json",
+      "cycle_6.json",
+      "cycle_7.json",
+      "cycle_8.json",
+      "cycle_9.json",
+      "cycle_10.json"
+     ],
+     "tiles": {
+      "sequence": {
+       "f1d": [
+        0
+       ]
+      },
+      "cycle": {
+       "f1d": [
+        0
+       ]
+      }
+     },
+     "vel_sum_log10_range": [
+      0.004083634368685349,
+      2.078918768683222
+     ]
+    }
+   },
+   "shared": "the regime rooms (body/identity/regime_*.json, body/regime/f10s) serve every set",
+   "note": "the SKSH logic (pressure, the rooms' timing, the bow) is the same in every set"
+  },
   "tiles": {
    "sequence": {
     "f1d": [
@@ -8809,7 +11205,7 @@
    "engine_applies": {
     "detune": "freq_hz x (1 + detune)",
     "overtone_damping": "ring_s x 0.85^(harm - 1)",
-    "comb_fold": "comb_hz by whole octaves into [33.0, 150.0] Hz (= comb_render_hz)",
+    "comb_fold": "comb_hz by whole octaves into [42.0, 155.0] Hz (= comb_render_hz)",
     "note": "the pin and rest gains are priced on exactly this render"
    },
    "ring": "0.8 + 6 * amp (amp: room max = 1), no overtone damping",
@@ -8827,10 +11223,22 @@
     "2025-07-31"
    ],
    "vel_sum_log10_range": [
-    0.2531152648577198,
-    2.383634466450854
+    0.3821818814112189,
+    2.3592726523279133
    ],
-   "mode_order": "deformation: SKSH n,e,u, SENG n,e,u, THOB n,e,u x 4; regime: Z, N, E x 12"
+   "mode_order": "deformation (all): SKSH, SENG, ELDC, FEFC blocks of 9: N h1-3, E h1-3, U h1-3; regime: Z, N, E x 12",
+   "stations": [
+    "SKSH",
+    "SENG",
+    "ELDC",
+    "FEFC"
+   ],
+   "station_detune": {
+    "SKSH": -0.06,
+    "SENG": -0.02,
+    "ELDC": 0.02,
+    "FEFC": 0.06
+   }
   }
  },
  "units": {

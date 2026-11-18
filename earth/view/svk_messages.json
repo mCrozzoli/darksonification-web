@@ -1,6 +1,6 @@
 {
   "_what": "CONTRACT v0.11 \u00a75 + \u00a75.0 + \u00a75.1 as data: one table read by the page (cook.js: field order, validation, debug panel) and by the bridge (bridge.py: JSON <-> OSC). Field order == OSC arg order. W3 keeps this in step with lab/CONTRACT.md; it never changes the contract.",
-  "contract": "0.20",
+  "contract": "0.21",
   "page_to_engine": {
     "zoom": {
       "addr": "/svk_zoom",
@@ -548,7 +548,7 @@
           ]
         }
       ],
-      "_what": "v0.11 \u00a79.3: once per room change; kind 0 sequence, 1 cycle, 2 regime; from viz/data/body/identity/<kind>_<id>.json. v0.11.6: one trailing arg room_gain after the rest gains (the room's resting body levelled to sequence_0's render; null = NaN = SC's 1). v0.11.7 (W2): a 2nd trailing arg bow_neutral_db, the room's median bow over its measured days, which SC plays a veiled bow at (v0.11.9: null \u2192 the page sends sequence_0's value; NaN only if that is missing too)",
+      "_what": "v0.11 \u00a79.3: once per room change; kind 0 sequence, 1 cycle, 2 regime; from viz/data/body/identity/<kind>_<id>.json. v0.11.6: one trailing arg room_gain after the rest gains (the room's resting body levelled to sequence_0's render; null = NaN = SC's 1). v0.11.7 (W2): a 2nd trailing arg bow_neutral_db, the room's median bow over its measured days, which SC plays a veiled bow at (v0.11.9: null \u2192 the page sends sequence_0's value; NaN only if that is missing too) 0.21 (G4, Leif 2026-11-16; W2's engine, sc/parse_dark_svartsengi.scd; W1's manifest.body.components): a 3rd trailing arg comp, the GNSS set the room was built from: 0 all (N, E, U), 1 vertical (U), 2 horizontal (N, E); the tables of 1 and 2 under body/vertical/ and body/horizontal/. A regime room is the same in every set: comp 0. The engine rebuilds when (kind, id, comp) changes (a 4-s crossfade) and restarts its 'on change' detector. 7 + 6n args (SC's msg.size 8 + 6n); SC reads 6 + 6n as comp 0. The page sends it once per room and set (the sound tab's GNSS row, per viewer), and again on every (re)connect.",
       "tail": [
         [
           "room_gain",
@@ -557,6 +557,10 @@
         [
           "bow_neutral_db",
           "f"
+        ],
+        [
+          "comp",
+          "i"
         ]
       ],
       "nullable": [

@@ -572,11 +572,19 @@ window.SvkSource = (function () {
     // ----- body v2 (CONTRACT v0.11 §9): per-point tables viz/data/body/<kind>/<tier>/<tile>.json (same tiling as §4.2)
     // and room identities viz/data/body/identity/<kind>_<id>.json. Requests stay inside the manifest's body index when it
     // has one ({tiles:{kind:{tier:[…]}}, identities:[…]}); otherwise inside the data's coverage
-    async bodyRows(kind, tier, t0, t1) {
-      const tr = this._m.tiers[tier], B = this._m.body || {};
-      const out = { tier, source: `body/${kind}`, kind, step: tr ? tr.step : null, t: new Float64Array(0), cols: {} };
+    // G4 (CONTRACT 0.21): manifest.body.components.sets.<set> = {root, identity, tiles} for the sequence and cycle rooms of
+    // the GNSS set "vertical" or "horizontal" ("all" stays at today's paths; the regime rooms serve every set). A set the
+    // manifest doesn't list falls back to today's paths
+    _bodySet(kind, set) {
+      const C = this._m.body && this._m.body.components, st = C && C.sets && set && set !== "all" && kind !== "regime" ? C.sets[set] : null;
+      return st && st.root ? st : null;
+    }
+    async bodyRows(kind, tier, t0, t1, set = "all") {
+      const tr = this._m.tiers[tier], B = this._m.body || {}, St = this._bodySet(kind, set), root = St ? St.root.replace(/\/?$/, "/") : "body/";
+      const out = { tier, source: `${root}${kind}`, kind, step: tr ? tr.step : null, t: new Float64Array(0), cols: {} };
       if (!tr || !this._m.body) return out;                  // no body section in the manifest = no Body v2 data yet: ask for nothing
       const listed = (k) => {
+        if (St) { const L = St.tiles && St.tiles[kind] && St.tiles[kind][tier]; return !!L && L.includes(k); }
         const T = B.tables && B.tables[kind];                  // W1's index: tables.<kind> = {tier, tiles:[…]}
         if (B.tables) return !!T && T.tier === tier && (T.tiles || []).includes(k);
         const L = B.tiles && B.tiles[kind] && B.tiles[kind][tier];
@@ -586,10 +594,10 @@ window.SvkSource = (function () {
         const span = tr.step * tr.tile_rows, a = this._m.t0 + k * span;
         return kind === "regime" ? (this._m.stations || []).some((st) => st.kind === "seismic" && this.covered(st.id, a, a + span)) : true;
       };
-      return this._rows(out, tier, t0, t1, listed, (k) => `body/${kind}/${tier}/${k}`);
+      return this._rows(out, tier, t0, t1, listed, (k) => `${root}${kind}/${tier}/${k}`);
     }
-    bodyIdentity(kind, id) {
-      const B = this._m.body, name = `${kind}_${id}`;
+    bodyIdentity(kind, id, set = "all") {
+      const St = this._bodySet(kind, set), B = St || this._m.body, name = `${kind}_${id}`, key = St ? `${set}:${name}` : name;
       if (!B) return Promise.resolve(null);
       // W1's index: identity = [{kind, id, file, label, t0, t1, comb_hz, …}]
       const entry = Array.isArray(B.identity) ? B.identity.find((e) => e.kind === kind && +e.id === +id) : null;
@@ -597,11 +605,11 @@ window.SvkSource = (function () {
       // a plain list of names, with or without ".json" (W1 ships both forms), is only consulted without the entries
       if (!entry && Array.isArray(B.identities) && !B.identities.some((n) => n === name || n === `${name}.json`)) return Promise.resolve(null);
       if (!this._ident) this._ident = new Map();
-      const file = (entry && entry.file) || `body/identity/${name}.json`;
+      const file = (entry && entry.file) || `${St ? St.root.replace(/\/?$/, "/") : "body/"}identity/${name}.json`;
       // a failed read (a 404 while W1 re-exports) is not remembered, so the next ask tries again
-      if (!this._ident.has(name)) this._ident.set(name, this.io.json(file).then((j) => ({ ...j, label: j.label ?? (entry && entry.label) }))
-        .catch(() => { this._ident.delete(name); return null; }));
-      return this._ident.get(name);
+      if (!this._ident.has(key)) this._ident.set(key, this.io.json(file).then((j) => ({ ...j, label: j.label ?? (entry && entry.label) }))
+        .catch(() => { this._ident.delete(key); return null; }));
+      return this._ident.get(key);
     }
     async _rows(out, tier, t0, t1, listed, rel) {
       const tr = this._m.tiers[tier];
@@ -975,8 +983,8 @@ window.SvkSource = (function () {
       this._eru = S; return this._m._eruptions;
     }
     fountains(ref) { return (this._eru || this.P).fountains(ref); }
-    bodyRows(kind, tier, t0, t1) { return (this.L._m.body ? this.L : this.P).bodyRows(kind, tier, t0, t1); }
-    bodyIdentity(kind, id) { return (this.L._m.body ? this.L : this.P).bodyIdentity(kind, id); }
+    bodyRows(kind, tier, t0, t1, set) { return (this.L._m.body ? this.L : this.P).bodyRows(kind, tier, t0, t1, set); }
+    bodyIdentity(kind, id, set) { return (this.L._m.body ? this.L : this.P).bodyIdentity(kind, id, set); }
     // the loaded source's own latent map when it lists one and it reads; else the published one (a tree without it, or a
     // failed read of it, never hides the published map)
     async latent(station) {

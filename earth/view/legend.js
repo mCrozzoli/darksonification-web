@@ -166,19 +166,22 @@ window.DarkLegend = (function () {
   }
   const cooked2 = (v) => typeof v === "number" && isFinite(v);
 
+  // G4: the body's GNSS stations as W1's manifest lists them (body.components.stations), for the arrows' line
+  const bodyGnss = () => { try { const M = api && api.manifest ? api.manifest() : null, C = M && M.body && M.body.components; return C && (C.stations || []).length ? ` (${C.stations.join(", ")})` : ""; } catch (_) { return ""; } };
   const fieldOn = () => { try { const M = api && api.manifest ? api.manifest() : null; return M && M.gnss_field ? (M.gnss_field.stations || []).length : 0; } catch (_) { return 0; } };
   // 0.20: the fountain voice, one plain line (no chips: it plays with the cursor inside an eruption)
   const fountainLine = () => { try { const M = api && api.manifest ? api.manifest() : null; return M && (M.fountains || []).some((f) => f.voice) ? `<div class="lg-line"><b>fountain</b> <span>· a bowed plate per segment, louder and brighter when higher</span></div>` : ""; } catch (_) { return ""; } };
   const listed = () => { try { const E = api && api.manifest && window.SvkCook ? window.SvkCook.eruptionList(api.manifest()) : []; return E.length > 0 && E[0].from === "eruptions"; } catch (_) { return false; } };
   const SEE = () => [
     ["gold", "you, in time: the cursor and the room you are in (the band); a quake rings gold as it sounds"],
-    ["magenta", "you, in space: the ear you listen from and its facing wedge. With the lens “show what the ear hears”: rings at 2, 5 and 10 km, a faint shade behind (heard a little muffled), and a line to each sound as it plays, brighter the louder it arrives"],
+    ["magenta", "you, in space: the ear you listen from and its facing wedge. With “show what the ear hears” on (the sound tab): rings at 2, 5 and 10 km, a faint shade behind (heard a little muffled), and a line to each sound as it plays, brighter the louder it arrives"],
     ["faint grey", "not measured"],
     ["dotted rail", "along the top of the ground-height lane, in a station's colour: that station has no measurement those days (its line stops at a small tick; nothing is drawn in between)"],
     ["◎", "a trace"],
     ["map", "the quakes on screen, fading with age"],
     ["▲ / △", "a station: filled = measured position, hollow and dashed = approximate (the dotted ring: its uncertainty)"],
-    ...(fieldOn() ? [["→ thin arrows", `on the map at the cycle and sequence levels: how ${fieldOn()} more IMO GNSS stations move now (their last 7 days; the key arrow is 5 mm/day). The dot is filled while a station rises, a ring while it sinks. Map only: nothing sounds from them. Point at one for its numbers`]] : []),
+    ...(fieldOn() ? [["→ arrows (map)", `cycle and sequence levels: how each GNSS station moved east and north over the timeline's window, from its start to the cursor. The body's stations${bodyGnss()} in their colours, the others and the wider network faint; the → key gives their scale`],
+                     ["↑ thin arrows (map)", "the same stations' vertical movement over the window, up or down along the screen, set beside the horizontal arrow, on its own scale (the ↑ key; up is often ten times the sideways). The sound tab's GNSS choice lights one kind or the other"]] : []),
     ["◆ + bars", "at an eruption: the fissure and its fountains' heights now, one bar per segment (dashed + model = simulated)"],
     // as the timeline draws them: with W1's eruption list ▼ an eruption, ▿ an intrusion; without it the GNSS detection's own
     // ▼ and ◇ (an eruption hidden inside a gap in the GNSS)
