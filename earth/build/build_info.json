@@ -1,5 +1,5 @@
 {
-  "built": "2026-11-25 09:14:49",
+  "built": "2026-11-25 09:56:50",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "clearance": {
     "status": "cleared",
@@ -7,13 +7,13 @@
   },
   "name": "Earth",
   "sources": {
-    "viz/app.js": "0f43a20c9d7ef29c",
+    "viz/app.js": "8c7547e1c5a261f0",
     "viz/cook.js": "75ab16710b6452a5",
-    "viz/index.html": "d731d97ed3717545",
+    "viz/index.html": "02dd19c3e55564dd",
     "viz/legend.js": "bb849a43b8af74bd",
     "viz/source.js": "4e7e463e507db826",
     "viz/stations.js": "9a540ab282687eed",
-    "viz/svk_messages.json": "5e9ed7dc20a85bea",
+    "viz/svk_messages.json": "c4b1173302072f40",
     "viz/views/latent.js": "fd479e90c425ec6a",
     "viz/views/map.js": "afa50d9a98f4df40",
     "viz/views/plot.js": "99d268d6649cd9c4",
@@ -123,9 +123,9 @@
     "README.md": "4e3275adf6268255"
   },
   "data": {
-    "built": "2026-11-25 09:14:49",
+    "built": "2026-11-25 09:56:50",
     "bridge_sha": "bb868199de1b0d18",
-    "schema_sha": "5e9ed7dc20a85bea",
+    "schema_sha": "c4b1173302072f40",
     "contract": "0.22",
     "contract_warning": "manifest contract 0.13 ≠ svk_messages.json contract 0.22: the data and the message table are from different contract versions",
     "publication_gate": {

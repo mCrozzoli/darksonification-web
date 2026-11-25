@@ -1209,7 +1209,134 @@
   "constants": {
     "_what": "CONTRACT constants the page needs where the manifest does not carry them (the manifest wins)",
     "TRANSPOSE": 250,
-    "DEFORM_OCTAVES": 30
+    "DEFORM_OCTAVES": 30,
+    "level_mix": {
+      "_what": "the engine's level mix, copied from sc/svk_level_mix.json (W2's gate, from the live ~svkK) by viz/tools/sync_level_mix.py; a fader's level weight = max over its faderMap components of clip(sum over the levels of row x w, 0, 1), w = the /svk_zoom weights (SC's ~svkMixGains). Never edited by hand",
+      "levels": [
+        "minutes",
+        "hours",
+        "day",
+        "cycle",
+        "sequence"
+      ],
+      "mix": {
+        "array": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "body": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "body2": [
+          0.25,
+          0.3,
+          0.8,
+          1,
+          1
+        ],
+        "fountain": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "ground": [
+          1,
+          1,
+          0.3,
+          0,
+          0
+        ],
+        "rumble": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "strike": [
+          0.3,
+          0.6,
+          1,
+          1,
+          1
+        ],
+        "swarmBell": [
+          0,
+          0,
+          1,
+          1,
+          0
+        ],
+        "swarmGrain": [
+          0,
+          0,
+          1,
+          0,
+          0
+        ],
+        "swarmTexture": [
+          0,
+          0,
+          0,
+          0,
+          0.6
+        ],
+        "swarmTick": [
+          0.3,
+          0.4,
+          0,
+          0,
+          0
+        ],
+        "tension": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "faderMap": {
+        "body": [
+          "body2",
+          "body"
+        ],
+        "strike": [
+          "strike"
+        ],
+        "swarm": [
+          "swarmTexture",
+          "swarmGrain",
+          "swarmTick"
+        ],
+        "bells": [
+          "swarmBell"
+        ],
+        "ground": [
+          "ground"
+        ],
+        "fountain": [
+          "fountain"
+        ]
+      },
+      "faderOrder": [
+        "body",
+        "strike",
+        "swarm",
+        "bells",
+        "ground",
+        "fountain"
+      ]
+    }
   },
   "_repeat": "A type may carry 'repeat' groups after its fixed args (v0.11 /svk_identity): {field, count, args}. In JSON the field is a list of `count` items (objects with the group's arg names, or plain numbers for a one-arg group); on the wire each item's args follow in order, group after group.",
   "_tail": "v0.11.6: `tail` = args after the repeat groups, in order (/svk_identity room_gain); nullable like `args`"
