@@ -1,5 +1,5 @@
 {
-  "built": "2026-11-18 10:37:55",
+  "built": "2026-11-25 09:14:49",
   "engine": "sc-wasm @ 5d47207bb313684e81ebe729a5f714f50761c6c7",
   "clearance": {
     "status": "cleared",
@@ -7,16 +7,17 @@
   },
   "name": "Earth",
   "sources": {
-    "viz/app.js": "1d1170ad0862db1e",
+    "viz/app.js": "0f43a20c9d7ef29c",
     "viz/cook.js": "75ab16710b6452a5",
-    "viz/index.html": "e53652ac583e5e88",
+    "viz/index.html": "d731d97ed3717545",
     "viz/legend.js": "bb849a43b8af74bd",
     "viz/source.js": "4e7e463e507db826",
     "viz/stations.js": "9a540ab282687eed",
-    "viz/svk_messages.json": "c13c497d3a10180f",
+    "viz/svk_messages.json": "5e9ed7dc20a85bea",
     "viz/views/latent.js": "fd479e90c425ec6a",
     "viz/views/map.js": "afa50d9a98f4df40",
-    "viz/views/timeline.js": "0febe154b1cc6c76",
+    "viz/views/plot.js": "99d268d6649cd9c4",
+    "viz/views/timeline.js": "3be8c5a23cb0a036",
     "viz/views/zoom.js": "23c6305a0d6bcf5e",
     "viz/geo/SOURCE.md": "56992082c4c13ddd",
     "viz/geo/reykjanes_coast.geojson": "b384b96f49ff2c82",
@@ -30,8 +31,8 @@
     "viz/mseed/worker.js": "1021ae29d641b083",
     "sc/dark_svartsengi_boot.scd": "c80719c8905c61af",
     "sc/svk_synthdefs.scd": "7f3cb8de374abc99",
-    "sc/parse_dark_svartsengi.scd": "c5b189a6bb6d2c2f",
-    "sc/svk_cook.scd": "0d0c3a8ae8298d9b",
+    "sc/parse_dark_svartsengi.scd": "b95df501b737161d",
+    "sc/svk_cook.scd": "46f91eeec70d431d",
     "sc/svk_hrir_foa_kemar_44100.wav": "ff0ab095b1765ad4",
     "sc/svk_hrir_foa_kemar_48000.wav": "387cd61866010e29",
     "sc/svk_hrir_foa_kemar_88200.wav": "f5d2499b4985bbdc",
@@ -122,11 +123,11 @@
     "README.md": "4e3275adf6268255"
   },
   "data": {
-    "built": "2026-11-18 10:37:55",
+    "built": "2026-11-25 09:14:49",
     "bridge_sha": "bb868199de1b0d18",
-    "schema_sha": "c13c497d3a10180f",
-    "contract": "0.21",
-    "contract_warning": "manifest contract 0.13 ≠ svk_messages.json contract 0.21: the data and the message table are from different contract versions",
+    "schema_sha": "5e9ed7dc20a85bea",
+    "contract": "0.22",
+    "contract_warning": "manifest contract 0.13 ≠ svk_messages.json contract 0.22: the data and the message table are from different contract versions",
     "publication_gate": {
       "public_seismic_coverage": {
         "RK.MELH.10": [
@@ -170,7 +171,7 @@
       "dev_mock/data/"
     ],
     "relay_vectors": {
-      "page_to_engine": 93,
+      "page_to_engine": 91,
       "engine_to_page": 10,
       "setn": 2
     },
@@ -319,12 +320,12 @@
     "sclang.data": "697d847b716b6e36"
   },
   "relay_check": {
-    "checked": 105,
+    "checked": 103,
     "failed": 0,
-    "contract": "0.21"
+    "contract": "0.22"
   },
   "publication_markers": "no NOT_FOR_PUBLICATION.txt in the build",
-  "page_refs": 19,
+  "page_refs": 20,
   "credits_from_data": [
     "OpenStreetMap",
     "Rhodes et al",

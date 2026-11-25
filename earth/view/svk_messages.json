@@ -1,6 +1,6 @@
 {
   "_what": "CONTRACT v0.11 \u00a75 + \u00a75.0 + \u00a75.1 as data: one table read by the page (cook.js: field order, validation, debug panel) and by the bridge (bridge.py: JSON <-> OSC). Field order == OSC arg order. W3 keeps this in step with lab/CONTRACT.md; it never changes the contract.",
-  "contract": "0.21",
+  "contract": "0.22",
   "page_to_engine": {
     "zoom": {
       "addr": "/svk_zoom",
@@ -937,20 +937,7 @@
           "i"
         ]
       ],
-      "_what": "0.20 (DECISIONS 2026-11-04 \"into the display\"; W2's engine, sc/parse_dark_svartsengi.scd): the sound tab's listen-for row, a re-weighting of the mix: 0 eruptions (the default: the rest ducks while a fountain sounds), 1 precursors (the swarm and the body lifted over the 48 h before each onset, by /svk_onset_in), 2 drop <-> fountain (the strike and the fountain forward, the rest lower). Per viewer; sent at boot, on every (re)connect and on each change."
-    },
-    "onset_in": {
-      "addr": "/svk_onset_in",
-      "args": [
-        [
-          "hours",
-          "f"
-        ]
-      ],
-      "nullable": [
-        "hours"
-      ],
-      "_what": "0.20 (DECISIONS 2026-11-04 \"into the display\"; W2's engine, sc/parse_dark_svartsengi.scd): the hours from the cursor to the next onset in IMO's list (events/eruptions.json; eruptions and intrusions), null after the last. On a 0.01 h change, at <= 1 Hz; the precursors preset lifts the last 48 h."
+      "_what": "0.22 (DECISIONS 2026-11-25; W2's engine, sc/parse_dark_svartsengi.scd): the sound tab's \"listen for\": 0 inflation \u00b7 deflation (the default): the GNSS body forward and the rest back, at the day, cycle and sequence levels only (at hours and minutes the plain mix). 1 swarms: the swarm and bells forward, the body lower, everywhere. 2 drop <-> fountain: as 0.20 (the strike and the fountain forward, the rest lower). Each is level-matched to the plain mix. The ids are 0.20's; per viewer; sent at boot, on every (re)connect and on each change."
     },
     "listener": {
       "addr": "/svk_listener",
@@ -1213,8 +1200,8 @@
       "off": 4
     },
     "listen": {
-      "eruptions": 0,
-      "precursors": 1,
+      "inflation \u00b7 deflation": 0,
+      "swarms": 1,
       "drop<->fountain": 2
     }
   },
